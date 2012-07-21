@@ -13,8 +13,6 @@
 
 namespace vectorial {
     
-    class vec4f;
-    class vec2f;
 
     class vec3f {
     public:
@@ -24,9 +22,8 @@ namespace vectorial {
         inline vec3f() {}
         inline vec3f(const vec3f& v) : value(v.value) {}
         inline vec3f(const simd4f& v) : value(v) {}
-        explicit inline vec3f(float xyz) : value( simd4f_splat(xyz) ) {}
         inline vec3f(float x, float y, float z) : value( simd4f_create(x,y,z,0) ) {}
-        explicit inline vec3f(const float *ary) : value( simd4f_uload3(ary) ) { }
+        inline vec3f(const float *ary) : value( simd4f_uload3(ary) ) { }
             
         inline float x() const { return simd4f_get_x(value); }
         inline float y() const { return simd4f_get_y(value); }
@@ -38,17 +35,11 @@ namespace vectorial {
         enum { elements = 3 };
 
         static vec3f zero() { return vec3f(simd4f_zero()); }
-        static vec3f one() { return vec3f(1.0f); }
+        static vec3f one() { return vec3f(1.0f, 1.0f, 1.0f); }
         static vec3f xAxis() { return vec3f(1.0f, 0.0f, 0.0f); }
         static vec3f yAxis() { return vec3f(0.0f, 1.0f, 0.0f); }
         static vec3f zAxis() { return vec3f(0.0f, 0.0f, 1.0f); }
 
-        inline vec4f xyz0() const;
-        inline vec4f xyz1() const;
-        inline vec4f xyzw(float w) const;
-        inline vec3f xyz() const;
-        inline vec3f xy0() const;
-        inline vec2f xy() const;
     };
 
     vectorial_inline vec3f operator-(const vec3f& lhs) {
@@ -162,21 +153,9 @@ namespace vectorial {
         return vec3f( simd4f_normalize3(v.value) );
     }
 
-    vectorial_inline vec3f min(const vec3f& a, const vec3f& b) {
-        return vec3f( simd4f_min(a.value, b.value) );
-    }
-
-    vectorial_inline vec3f max(const vec3f& a, const vec3f& b) {
-        return vec3f( simd4f_max(a.value, b.value) );
-    }
 
 }
 
-
-namespace std {
-    inline ::vectorial::vec3f min(const ::vectorial::vec3f& a, const ::vectorial::vec3f& b) { return ::vectorial::min(a,b); }
-    inline ::vectorial::vec3f max(const ::vectorial::vec3f& a, const ::vectorial::vec3f& b) { return ::vectorial::max(a,b); }
-}
 
 
 #ifdef VECTORIAL_OSTREAM

@@ -128,10 +128,6 @@ vectorial_inline simd4f simd4f_div(simd4f lhs, simd4f rhs) {
     return ret;
 }
 
-vectorial_inline simd4f simd4f_madd(simd4f m1, simd4f m2, simd4f a) {
-    return simd4f_add( simd4f_mul(m1, m2), a );
-}
-
 
 vectorial_inline simd4f simd4f_cross3(simd4f l, simd4f r) {
     _simd4f_union lhs = {l};
@@ -140,69 +136,6 @@ vectorial_inline simd4f simd4f_cross3(simd4f l, simd4f r) {
     return simd4f_create( lhs.f[1] * rhs.f[2] - lhs.f[2] * rhs.f[1],
                           lhs.f[2] * rhs.f[0] - lhs.f[0] * rhs.f[2],
                           lhs.f[0] * rhs.f[1] - lhs.f[1] * rhs.f[0], 0);
-}
-
-
-vectorial_inline simd4f simd4f_shuffle_wxyz(simd4f s) { 
-    _simd4f_union u = {s};
-    return simd4f_create(u.f[3], u.f[0], u.f[1], u.f[2]); 
-}
-
-vectorial_inline simd4f simd4f_shuffle_zwxy(simd4f s) { 
-    _simd4f_union u = {s};
-    return simd4f_create(u.f[2], u.f[3], u.f[0], u.f[1]); 
-}
-
-vectorial_inline simd4f simd4f_shuffle_yzwx(simd4f s) { 
-    _simd4f_union u = {s};
-    return simd4f_create(u.f[1], u.f[2], u.f[3], u.f[0]); 
-}
-
-
-vectorial_inline simd4f simd4f_zero_w(simd4f s) {
-    _simd4f_union u = {s};
-    return simd4f_create(u.f[0], u.f[1], u.f[2], 0.0f);
-}
-
-vectorial_inline simd4f simd4f_zero_zw(simd4f s) {
-    _simd4f_union u = {s};
-    return simd4f_create(u.f[0], u.f[1], 0.0f, 0.0f);
-}
-
-
-vectorial_inline simd4f simd4f_merge_high(simd4f abcd, simd4f xyzw) { 
-    _simd4f_union u1 = {abcd};
-    _simd4f_union u2 = {xyzw};
-    return simd4f_create(u1.f[2], u1.f[3], u2.f[2], u2.f[3]);
-}
-
-vectorial_inline simd4f simd4f_flip_sign_0101(simd4f s) {
-    _simd4f_union u = {s};
-    return simd4f_create(u.f[0], -u.f[1], u.f[2], -u.f[3]);
-}
-
-vectorial_inline simd4f simd4f_flip_sign_1010(simd4f s) {
-    _simd4f_union u = {s};
-    return simd4f_create(-u.f[0], u.f[1], -u.f[2], u.f[3]);
-}
-
-
-vectorial_inline simd4f simd4f_min(simd4f a, simd4f b) {
-    _simd4f_union ua = {a};
-    _simd4f_union ub = {b};
-    return simd4f_create( ua.f[0] < ub.f[0] ? ua.f[0] : ub.f[0], 
-                          ua.f[1] < ub.f[1] ? ua.f[1] : ub.f[1], 
-                          ua.f[2] < ub.f[2] ? ua.f[2] : ub.f[2], 
-                          ua.f[3] < ub.f[3] ? ua.f[3] : ub.f[3] );
-}
-
-vectorial_inline simd4f simd4f_max(simd4f a, simd4f b) {
-    _simd4f_union ua = {a};
-    _simd4f_union ub = {b};
-    return simd4f_create( ua.f[0] > ub.f[0] ? ua.f[0] : ub.f[0], 
-                          ua.f[1] > ub.f[1] ? ua.f[1] : ub.f[1], 
-                          ua.f[2] > ub.f[2] ? ua.f[2] : ub.f[2], 
-                          ua.f[3] > ub.f[3] ? ua.f[3] : ub.f[3] );
 }
 
 

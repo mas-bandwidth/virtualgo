@@ -8,7 +8,7 @@
 
 
 #ifndef VECTORIAL_FORCED
-    #if defined(__SSE__) || (_M_IX86_FP > 0)
+    #if defined(__SSE__)
 
         #define VECTORIAL_SSE
 
@@ -60,13 +60,10 @@
   #if defined(__cplusplus)
     #define vectorial_restrict  __restrict
   #endif
-  #define simd4f_aligned16  __attribute__ ((aligned (16)))
 #elif defined(_WIN32)
   #define vectorial_restrict  
-  #define simd4f_aligned16   __declspec(align(16))
 #else
   #define vectorial_restrict  restrict
-  #define simd4f_aligned16   
 #endif
 // #define vectorial_restrict
 
@@ -76,13 +73,6 @@
     #define vectorial_pure
 #endif
 
-#ifdef _WIN32
-  #if defined(min) || defined(max)
-#pragma message ( "set NOMINMAX as preprocessor macro, undefining min/max " )
-#undef min
-#undef max
-  #endif
-#endif
 
 #ifdef __cplusplus
     // Hack around msvc badness

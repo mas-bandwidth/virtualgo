@@ -6,25 +6,74 @@ DONE:
     Get the vector library back up and running from scoopr. 
     Don't resurrect my own crappy library that isn't SIMD!!!
 
+    Copy across useful code from old biconvex mathematics
+    routines, eg. 
+
+        0. ray vs. sphere
+        1. ray vs. biconvex (local space)
+
 TODO:
 
-    Port across intersection and distance tests already written
+    Point vs. Biconvex
 
-        1. biconvex vs. plane
-        2. ray intersection with biconvex
-        3. probably need to redesign biconvex vs. biconvex!
+        Quick test to determine if a point is inside the biconvex.
 
-    Get unit testing framework going and start doing unit tests to verify
-    correct behavior of collision queries etc.
+        Add a function to determine if a point is on the biconvex surface within epsilon.
 
-    Get a basic opengl display going.
+        Determine normal given a point on the biconvex surface.
+        This should accept an epsilon in which it determines that the point is on
+        the circle edge, vs. being on the sphere edge. In the case of circle edge
+        express the normal as outwards from the circle.
 
-    Render some wireframe approximation of a floor plane and the biconvex shape
+        Find closest point on biconvex to another point (point is outside the biconvex)
 
-    Visually verify intersection point/normal with biconvex and plane
+    Plane vs. Biconvex
 
-    Visually verify intersection point/normal between biconvex
+        Quick test to determine if a biconvex and plane are colliding.
+        Do not determine contact point or normal or penetration depth.
 
+        Closest point on plane relative to biconvex (assuming not colliding)
 
+        Determine angle/dot at edge of biconvex (eg. within which the plane collision 
+        will be a collision with the circle, not the sphere surface...)
+    
+        Use this to rework the plane collision to determine the dot range
+        in which the plane must collide with the circle, and not the sphere
+        surfaces.
 
+        Express the collision in terms of point, normal and penetration distance d.
 
+    Biconvex vs. Biconvex
+
+        Quick test to determine if a biconvex is colliding with another biconvex.
+            
+        Closest point on another biconvex relative to another (assume not colliding)
+
+        Assuming biconvex is colliding with another biconvex, find best point/normal
+        for the collision. Will need to rework this and determine the cases, for example
+        the 
+
+    Broadphase
+
+        Need quick rejection tests, for example, reject collisions with bounding spheres
+        is probably OK for biconvex vs. biconvex. The oriented bounding box will likely
+        fit quite a bit better, but is it worth the complexity? Probably not.
+
+    Unit Testing
+
+        Get unit testing framework going and start doing unit tests to verify
+        correct behavior of collision queries etc.
+
+    Interactive Demo
+
+        Get a basic opengl display going (bring in from "Cube" demo...)
+
+        Get back to an interactive demo showing a go board and a single stone
+
+        The go board should be zoomed in, the stone should be a white stone
+
+        Need a wireframe mode and debug visualization so we can test various
+        queries, such as nearest point to biconvex, biconvex vs. plane,
+        biconvex vs. other biconvex interactively.
+
+        Should start investigating: Soft shadows, DoF etc.

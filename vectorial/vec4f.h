@@ -14,8 +14,6 @@
 
 namespace vectorial {
     
-    class vec3f;
-    class vec2f;
 
     class vec4f {
     public:
@@ -25,9 +23,8 @@ namespace vectorial {
         inline vec4f() {}
         inline vec4f(const vec4f& v) : value(v.value) {}
         inline vec4f(const simd4f& v) : value(v) {}
-        explicit inline vec4f(float xyzw) : value( simd4f_splat(xyzw) ) {}
         inline vec4f(float x, float y, float z, float w) : value( simd4f_create(x,y,z,w) ) {}
-        explicit inline vec4f(const float *ary) : value( simd4f_uload4(ary) ) { }
+        inline vec4f(const float *ary) : value( simd4f_uload4(ary) ) { }
             
         inline float x() const { return simd4f_get_x(value); }
         inline float y() const { return simd4f_get_y(value); }
@@ -41,15 +38,11 @@ namespace vectorial {
 
 
         static vec4f zero() { return vec4f(simd4f_zero()); }
-        static vec4f one() { return vec4f(1.0f); }
+        static vec4f one() { return vec4f(1.0f, 1.0f, 1.0f, 1.0f); }
         static vec4f xAxis() { return vec4f(1.0f, 0.0f, 0.0f, 0.0f); }
         static vec4f yAxis() { return vec4f(0.0f, 1.0f, 0.0f, 0.0f); }
         static vec4f zAxis() { return vec4f(0.0f, 0.0f, 1.0f, 0.0f); }
         static vec4f wAxis() { return vec4f(0.0f, 0.0f, 0.0f, 1.0f); }
-
-
-        inline vec3f xyz() const;
-        inline vec2f xy() const;
 
     };
 
@@ -161,26 +154,13 @@ namespace vectorial {
         return vec4f( simd4f_normalize4(v.value) );
     }
 
-    vectorial_inline vec4f min(const vec4f& a, const vec4f& b) {
-        return vec4f( simd4f_min(a.value, b.value) );
-    }
-
-    vectorial_inline vec4f max(const vec4f& a, const vec4f& b) {
-        return vec4f( simd4f_max(a.value, b.value) );
-    }
-
 
 }
 
-
-namespace std {
-    inline ::vectorial::vec4f min(const ::vectorial::vec4f& a, const ::vectorial::vec4f& b) { return ::vectorial::min(a,b); }
-    inline ::vectorial::vec4f max(const ::vectorial::vec4f& a, const ::vectorial::vec4f& b) { return ::vectorial::max(a,b); }
-}
 
 
 #ifdef VECTORIAL_OSTREAM
-#include <ostream>
+//#include <ostream>
 
 vectorial_inline std::ostream& operator<<(std::ostream& os, const vectorial::vec4f& v) {
     os << "[ " << v.x() << ", "
@@ -190,6 +170,8 @@ vectorial_inline std::ostream& operator<<(std::ostream& os, const vectorial::vec
     return os;
 }
 #endif
+
+
 
 
 #endif

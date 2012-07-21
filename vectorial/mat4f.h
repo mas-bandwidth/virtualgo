@@ -24,10 +24,8 @@ namespace vectorial {
         simd4x4f value;
     
         inline mat4f() {}
-        inline mat4f(const mat4f& m) : value(m.value) {}
         inline mat4f(const simd4x4f& v) : value(v) {}
-        inline mat4f(const vec4f& v0, const vec4f& v1, const vec4f& v2, const vec4f& v3) : value(simd4x4f_create(v0.value, v1.value, v2.value, v3.value)) {}
-        explicit inline mat4f(const float *ary) { simd4x4f_uload(&value, ary); }
+        inline mat4f(vec4f v0, vec4f v1, vec4f v2, vec4f v3) : value(simd4x4f_create(v0.value, v1.value, v2.value, v3.value)) {}
 
         inline void load(const float *ary) { 
             value.x = simd4f_uload4(ary);
@@ -57,36 +55,22 @@ namespace vectorial {
             return m;
         }
         
-        static mat4f lookAt(const vec3f& eye, const vec3f& center, const vec3f& up) {
+        static mat4f lookAt(vec3f eye, vec3f center, vec3f up) {
             simd4x4f m;
             simd4x4f_lookat(&m, eye.value, center.value, up.value);
             return m;            
         }
 
-        static mat4f translation(const vec3f& pos) {
+        static mat4f translation(vec3f pos) {
             simd4x4f m;
             simd4x4f_translation(&m, pos.x(), pos.y(), pos.z());
             return m;            
         }
 
-        static mat4f axisRotation(float angle, const vec3f& axis) {
+        static mat4f axisRotation(float angle, vec3f axis) {
             simd4x4f m;
             simd4x4f_axis_rotation(&m, angle, axis.value);
             return m;            
-        }
-
-        static mat4f scale(float scale) {
-            return simd4x4f_create( simd4f_create(scale,0,0,0),
-                                    simd4f_create(0,scale,0,0),
-                                    simd4f_create(0,0,scale,0),
-                                    simd4f_create(0,0,0,1) );
-        }
-
-        static mat4f scale(const vec3f& scale) {
-            return simd4x4f_create( simd4f_create(scale.x(),0,0,0),
-                                   simd4f_create(0,scale.y(),0,0),
-                                   simd4f_create(0,0,scale.z(),0),
-                                   simd4f_create(0,0,0,1) );
         }
 
     };
@@ -97,13 +81,6 @@ namespace vectorial {
         simd4x4f_matrix_mul(&lhs.value, &rhs.value, &ret.value);
         return ret;
     }
-
-    vectorial_inline mat4f operator*=(mat4f& lhs, const mat4f& rhs) {
-        const simd4x4f tmp = lhs.value;
-        simd4x4f_matrix_mul(&tmp, &rhs.value, &lhs.value);
-        return lhs;
-    }
-
 
     vectorial_inline vec4f operator*(const mat4f& lhs, const vec4f& rhs) {
         vec4f ret;
@@ -117,44 +94,18 @@ namespace vectorial {
         return ret;
     }
 
-    vectorial_inline vec4f transformVector(const mat4f& lhs, const vec4f& rhs) {
-        vec4f ret;
-        simd4x4f_matrix_vector_mul(&lhs.value, &rhs.value, &ret.value);
-        return ret;
-    }
-    
     vectorial_inline vec3f transformPoint(const mat4f& lhs, const vec3f& rhs) {
         vec3f ret;
         simd4x4f_matrix_point3_mul(&lhs.value, &rhs.value, &ret.value);
         return ret;
     }
-
-    vectorial_inline vec3f orthoInverseTransformPoint(const mat4f& lhs, const vec3f& rhs) {
-        vec3f ret;
-        simd4x4f_inv_ortho_matrix_point3_mul(&lhs.value, &rhs.value, &ret.value);
-        return ret;
-    }
-
-    vectorial_inline vec3f orthoInverseTransformVector(const mat4f& lhs, const vec3f& rhs) {
-        vec3f ret;
-        simd4x4f_inv_ortho_matrix_vector3_mul(&lhs.value, &rhs.value, &ret.value);
-        return ret;
-    }
-
     
     vectorial_inline mat4f transpose(const mat4f& m) {
         mat4f ret;
         simd4x4f_transpose(&m.value, &ret.value);
         return ret;
     }
-
-
-    vectorial_inline mat4f inverse(const mat4f& m) {
-        mat4f ret;
-        simd4x4f_inverse(&m.value, &ret.value);
-        return ret;
-    }
-
+    
 
 
 }

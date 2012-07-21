@@ -147,11 +147,6 @@ vectorial_inline simd4f simd4f_div(simd4f lhs, simd4f rhs) {
     return ret;
 }
 
-vectorial_inline simd4f simd4f_madd(simd4f m1, simd4f m2, simd4f a) {
-    return vmlaq_f32( a, m1, m2 );
-}
-
-
 
 vectorial_inline float simd4f_get_x(simd4f s) { return vgetq_lane_f32(s, 0); }
 vectorial_inline float simd4f_get_y(simd4f s) { return vgetq_lane_f32(s, 1); }
@@ -171,59 +166,7 @@ vectorial_inline simd4f simd4f_cross3(simd4f lhs, simd4f rhs) {
 
 }
 
-vectorial_inline simd4f simd4f_shuffle_wxyz(simd4f s) { 
-    _simd4f_union u = {s};
-    return simd4f_create( u.f[3], u.f[0], u.f[1], u.f[2]); 
-}
 
-vectorial_inline simd4f simd4f_shuffle_zwxy(simd4f s) { 
-    _simd4f_union u = {s};
-    return simd4f_create(u.f[2], u.f[3], u.f[0], u.f[1]); 
-}
-
-vectorial_inline simd4f simd4f_shuffle_yzwx(simd4f s) { 
-    _simd4f_union u = {s};
-    return simd4f_create(u.f[1], u.f[2], u.f[3], u.f[0]); 
-}
-
-
-vectorial_inline simd4f simd4f_zero_w(simd4f s) {
-    _simd4f_union u = {s};
-    return simd4f_create(u.f[0], u.f[1], u.f[2], 0.0f);
-}
-
-vectorial_inline simd4f simd4f_zero_zw(simd4f s) {
-    _simd4f_union u = {s};
-    return simd4f_create(u.f[0], u.f[1], 0.0f, 0.0f);
-}
-
-
-vectorial_inline simd4f simd4f_merge_high(simd4f xyzw, simd4f abcd) { 
-    _simd4f_union u1 = {xyzw};
-    _simd4f_union u2 = {abcd};
-    return simd4f_create(u1.f[2], u1.f[3], u2.f[2], u2.f[3]); 
-}
-
-vectorial_inline simd4f simd4f_flip_sign_0101(simd4f s) {
-    const unsigned int upnpn[4] = { 0x00000000, 0x80000000, 0x00000000, 0x80000000 };
-    const uint32x4_t pnpn = vld1q_u32( upnpn );
-    return vreinterpretq_f32_u32( veorq_u32( vreinterpretq_u32_f32(s), pnpn ) ); 
-}
-
-vectorial_inline simd4f simd4f_flip_sign_1010(simd4f s) {
-    const unsigned int unpnp[4] = { 0x80000000, 0x00000000, 0x80000000, 0x00000000 };
-    const uint32x4_t npnp = vld1q_u32( unpnp );
-    return vreinterpretq_f32_u32( veorq_u32( vreinterpretq_u32_f32(s), npnp ) ); 
-}
-
-
-vectorial_inline simd4f simd4f_min(simd4f a, simd4f b) {
-    return vminq_f32( a, b ); 
-}
-
-vectorial_inline simd4f simd4f_max(simd4f a, simd4f b) {
-    return vmaxq_f32( a, b ); 
-}
 
 
 #ifdef __cplusplus

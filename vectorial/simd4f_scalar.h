@@ -124,9 +124,6 @@ vectorial_inline simd4f simd4f_div(simd4f lhs, simd4f rhs) {
     return ret;
 }
 
-vectorial_inline simd4f simd4f_madd(simd4f m1, simd4f m2, simd4f a) {
-    return simd4f_add( simd4f_mul(m1, m2), a );
-}
 
 vectorial_inline simd4f simd4f_cross3(simd4f lhs, simd4f rhs) {
     return simd4f_create( lhs.y * rhs.z - lhs.z * rhs.y,
@@ -139,47 +136,6 @@ vectorial_inline float simd4f_get_x(simd4f s) { return s.x; }
 vectorial_inline float simd4f_get_y(simd4f s) { return s.y; }
 vectorial_inline float simd4f_get_z(simd4f s) { return s.z; }
 vectorial_inline float simd4f_get_w(simd4f s) { return s.w; }
-
-
-vectorial_inline simd4f simd4f_shuffle_wxyz(simd4f s) { return simd4f_create(s.w, s.x, s.y, s.z); }
-vectorial_inline simd4f simd4f_shuffle_zwxy(simd4f s) { return simd4f_create(s.z, s.w, s.x, s.y); }
-vectorial_inline simd4f simd4f_shuffle_yzwx(simd4f s) { return simd4f_create(s.y, s.z, s.w, s.x); }
-
-
-vectorial_inline simd4f simd4f_zero_w(simd4f s) {
-    return simd4f_create(s.x, s.y, s.z, 0.0f);
-}
-
-vectorial_inline simd4f simd4f_zero_zw(simd4f s) {
-    return simd4f_create(s.x, s.y, 0.0f, 0.0f);
-}
-
-
-vectorial_inline simd4f simd4f_merge_high(simd4f abcd, simd4f xyzw) { 
-    return simd4f_create(abcd.z, abcd.w, xyzw.z, xyzw.w);
-}
-
-vectorial_inline simd4f simd4f_flip_sign_0101(simd4f s) {
-    return simd4f_create(s.x, -s.y, s.z, -s.w);
-}
-
-vectorial_inline simd4f simd4f_flip_sign_1010(simd4f s) {
-    return simd4f_create(-s.x, s.y, -s.z, s.w);
-}
-
-vectorial_inline simd4f simd4f_min(simd4f a, simd4f b) {
-    return simd4f_create( a.x < b.x ? a.x : b.x, 
-                          a.y < b.y ? a.y : b.y, 
-                          a.z < b.z ? a.z : b.z, 
-                          a.w < b.w ? a.w : b.w );
-}
-
-vectorial_inline simd4f simd4f_max(simd4f a, simd4f b) {
-    return simd4f_create( a.x > b.x ? a.x : b.x, 
-                          a.y > b.y ? a.y : b.y, 
-                          a.z > b.z ? a.z : b.z, 
-                          a.w > b.w ? a.w : b.w );
-}
 
 
 #ifdef __cplusplus

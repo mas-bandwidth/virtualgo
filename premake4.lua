@@ -1,6 +1,6 @@
 solution "VirtualGo"
     language "C++"
-    includedirs { "." }
+    includedirs { ".", ".." }
     configuration { "not windows" }
     configurations { "Debug", "Release" }
     configuration "Debug"
@@ -13,6 +13,10 @@ solution "VirtualGo"
 project "VirtualGo"
     kind "ConsoleApp"
     files { "*.h", "*.cpp" }
+
+if _ACTION == "clean" then
+    os.rmdir "obj"
+end
 
 if not os.is "windows" then
 

@@ -36,7 +36,7 @@ vectorial_inline void simd4x4f_identity(simd4x4f* m) {
 
 
 
-vectorial_inline void simd4x4f_uload(simd4x4f* m, const float *f) {
+vectorial_inline void simd4x4f_uload(simd4x4f* m, float *f) {
 
     m->x = simd4f_uload4(f + 0);
     m->y = simd4f_uload4(f + 4);
@@ -71,85 +71,35 @@ vectorial_inline void simd4x4f_sum(const simd4x4f* a, simd4f* out) {
 
 vectorial_inline void simd4x4f_matrix_vector_mul(const simd4x4f* a, const simd4f * b, simd4f* out) {
 
-    const simd4f x = a->x;
-    const simd4f y = a->y;
-    const simd4f z = a->z;
-    const simd4f w = a->w;
-    const simd4f v = *b;
-    const simd4f vx = simd4f_splat_x(v);
-    const simd4f vy = simd4f_splat_y(v);
-    const simd4f vz = simd4f_splat_z(v);
-    const simd4f vw = simd4f_splat_w(v);
+    simd4x4f bbbb = simd4x4f_create( simd4f_splat_x(*b),
+                                     simd4f_splat_y(*b),
+                                     simd4f_splat_z(*b),
+                                     simd4f_splat_w(*b) );
 
-    #if 0
-    // In a hasty benchmark, this actually performed worse on neon
-    // TODO: revisit and conditionalize accordingly
+    simd4x4f ab = simd4x4f_create( simd4f_mul(a->x, bbbb.x),
+                                   simd4f_mul(a->y, bbbb.y),
+                                   simd4f_mul(a->z, bbbb.z),
+                                   simd4f_mul(a->w, bbbb.w) );
 
-    *out = simd4f_madd(x, vx, 
-             simd4f_madd(y, vy, 
-               simd4f_madd(z, vz, 
-                 simd4f_mul(w, vw) ) ) );
+    simd4x4f_sum(&ab, out);
 
-    #else    
-
-     *out = simd4f_add(simd4f_mul(x, vx), 
-              simd4f_add(simd4f_mul(y, vy), 
-                simd4f_add(simd4f_mul(z, vz), 
-                  simd4f_mul(w, vw) ) ) );
-
-    #endif
 }
 
 vectorial_inline void simd4x4f_matrix_vector3_mul(const simd4x4f* a, const simd4f * b, simd4f* out) {
 
-    #if 0
-    *out = simd4f_madd( a->x, simd4f_splat_x(*b), 
-             simd4f_madd( a->y, simd4f_splat_y(*b), 
-               simd4f_mul(a->z, simd4f_splat_z(*b)) ) );
-    #else
-    *out = simd4f_add( simd4f_mul(a->x, simd4f_splat_x(*b)), 
-             simd4f_add( simd4f_mul(a->y, simd4f_splat_y(*b)), 
-               simd4f_mul(a->z, simd4f_splat_z(*b)) ) );
-    #endif
+    *out = simd4f_add( simd4f_add( simd4f_mul(a->x, simd4f_splat_x(*b)), 
+                                   simd4f_mul(a->y, simd4f_splat_y(*b)) ),
+                       simd4f_mul(a->z, simd4f_splat_z(*b)) );
 
 }
 
 vectorial_inline void simd4x4f_matrix_point3_mul(const simd4x4f* a, const simd4f * b, simd4f* out) {
 
-    #if 0
-    *out = simd4f_madd( a->x, simd4f_splat_x(*b),
-             simd4f_madd( a->y, simd4f_splat_y(*b),
-               simd4f_madd( a->z, simd4f_splat_z(*b),
-                 a->w ) ) );
-    #else
-    *out = simd4f_add( simd4f_mul(a->x, simd4f_splat_x(*b)),
-             simd4f_add( simd4f_mul(a->y, simd4f_splat_y(*b)),
-               simd4f_add( simd4f_mul(a->z, simd4f_splat_z(*b)),
-                 a->w ) ) );
-    #endif
+    *out = simd4f_add( simd4f_add( simd4f_mul(a->x, simd4f_splat_x(*b)), 
+                                   simd4f_mul(a->y, simd4f_splat_y(*b)) ),
+                       simd4f_add( simd4f_mul(a->z, simd4f_splat_z(*b)), 
+                                   a->w) );
 
-}
-
-vectorial_inline void simd4x4f_inv_ortho_matrix_point3_mul(const simd4x4f* a, const simd4f * b, simd4f* out) {
-    simd4f translation = simd4f_sub(*b, a->w);
-
-    simd4x4f transpose = *a;
-
-    transpose.w = simd4f_create(0,0,0,0);
-    simd4x4f_transpose_inplace(&transpose);
-
-    simd4x4f_matrix_point3_mul(&transpose, &translation, out);
-}
-
-vectorial_inline void simd4x4f_inv_ortho_matrix_vector3_mul(const simd4x4f* a, const simd4f * b, simd4f* out) {
-    simd4f translation = *b;
-
-    simd4x4f transpose = *a;
-
-    transpose.w = simd4f_create(0,0,0,0);
-    simd4x4f_transpose_inplace(&transpose);
-
-    simd4x4f_matrix_vector3_mul(&transpose, &translation, out);
 }
 
 
@@ -165,10 +115,12 @@ vectorial_inline void simd4x4f_matrix_mul(const simd4x4f* a, const simd4x4f* b, 
 
 
 
-vectorial_inline void simd4x4f_perspective(simd4x4f *m, float fovy_radians, float aspect, float znear, float zfar) {
+vectorial_inline void simd4x4f_perspective(simd4x4f *m, float fovy, float aspect, float znear, float zfar) {
     
+    float radians = fovy * VECTORIAL_HALFPI / 180.0f;
     float deltaz = zfar - znear;
-    float cotangent = tanf( VECTORIAL_HALFPI - fovy_radians * 0.5f );
+    float sine = sinf(radians);
+    float cotangent = cosf(radians) / sine;
     
     float a = cotangent / aspect;
     float b = cotangent;
@@ -234,12 +186,13 @@ vectorial_inline void simd4x4f_translation(simd4x4f* m, float x, float y, float 
 }
 
 
-vectorial_inline void simd4x4f_axis_rotation(simd4x4f* m, float radians, simd4f axis) {
+vectorial_inline void simd4x4f_axis_rotation(simd4x4f* m, float angle, simd4f axis) {
 
-    radians = -radians;
+    angle = -angle;
 
     axis = simd4f_normalize3(axis);
 
+    const float radians = angle * M_PI / 180;
     const float sine = sinf(radians);
     const float cosine = cosf(radians);
 
@@ -299,81 +252,6 @@ vectorial_inline void simd4x4f_div(simd4x4f* a, simd4x4f* b, simd4x4f* out) {
     out->z = simd4f_div(a->z, b->z);
     out->w = simd4f_div(a->w, b->w);
     
-}
-
-vectorial_inline void simd4x4f_inverse(const simd4x4f* a, simd4x4f* out) {
-
-    const simd4f c0 = a->x;
-    const simd4f c1 = a->y;
-    const simd4f c2 = a->z;
-    const simd4f c3 = a->w;
-
-    const simd4f c0_wxyz = simd4f_shuffle_wxyz(c0);
-    const simd4f c0_zwxy = simd4f_shuffle_zwxy(c0);
-    const simd4f c0_yzwx = simd4f_shuffle_yzwx(c0);
-
-    const simd4f c1_wxyz = simd4f_shuffle_wxyz(c1);
-    const simd4f c1_zwxy = simd4f_shuffle_zwxy(c1);
-    const simd4f c1_yzwx = simd4f_shuffle_yzwx(c1);
-
-    const simd4f c2_wxyz = simd4f_shuffle_wxyz(c2);
-    const simd4f c2_zwxy = simd4f_shuffle_zwxy(c2);
-    const simd4f c2_yzwx = simd4f_shuffle_yzwx(c2);
-
-    const simd4f c3_wxyz = simd4f_shuffle_wxyz(c3);
-    const simd4f c3_zwxy = simd4f_shuffle_zwxy(c3);
-    const simd4f c3_yzwx = simd4f_shuffle_yzwx(c3);
-
-    const simd4f c0_wxyz_x_c1 = simd4f_mul(c0_wxyz, c1);
-    const simd4f c0_wxyz_x_c1_yzwx = simd4f_mul(c0_wxyz, c1_yzwx);
-    const simd4f c0_wxyz_x_c1_zwxy = simd4f_mul(c0_wxyz, c1_zwxy);
-
-    const simd4f c2_wxyz_x_c3 = simd4f_mul(c2_wxyz, c3);
-    const simd4f c2_wxyz_x_c3_yzwx = simd4f_mul(c2_wxyz, c3_yzwx);
-    const simd4f c2_wxyz_x_c3_zwxy = simd4f_mul(c2_wxyz, c3_zwxy);
-
-    const simd4f ar1 = simd4f_sub( simd4f_shuffle_wxyz(c2_wxyz_x_c3_zwxy), simd4f_shuffle_zwxy(c2_wxyz_x_c3) );
-    const simd4f ar2 = simd4f_sub( simd4f_shuffle_zwxy(c2_wxyz_x_c3_yzwx), c2_wxyz_x_c3_yzwx );
-    const simd4f ar3 = simd4f_sub( c2_wxyz_x_c3_zwxy, simd4f_shuffle_wxyz(c2_wxyz_x_c3) );
-
-    const simd4f br1 = simd4f_sub( simd4f_shuffle_wxyz(c0_wxyz_x_c1_zwxy), simd4f_shuffle_zwxy(c0_wxyz_x_c1) );
-    const simd4f br2 = simd4f_sub( simd4f_shuffle_zwxy(c0_wxyz_x_c1_yzwx), c0_wxyz_x_c1_yzwx );
-    const simd4f br3 = simd4f_sub( c0_wxyz_x_c1_zwxy, simd4f_shuffle_wxyz(c0_wxyz_x_c1) );
-
-
-    const simd4f c0_sum = simd4f_madd(c0_yzwx, ar3,
-                            simd4f_madd(c0_zwxy, ar2,
-                              simd4f_mul(c0_wxyz, ar1)));
-
-    const simd4f c1_sum = simd4f_madd(c1_wxyz,  ar1, 
-                            simd4f_madd(c1_zwxy,  ar2, 
-                              simd4f_mul(c1_yzwx, ar3)));
-
-    const simd4f c2_sum = simd4f_madd(c2_yzwx, br3,
-                            simd4f_madd(c2_zwxy, br2,
-                              simd4f_mul(c2_wxyz, br1)));
-
-    const simd4f c3_sum = simd4f_madd(c3_yzwx, br3,
-                            simd4f_madd(c3_zwxy, br2,
-                              simd4f_mul(c3_wxyz, br1)));
-
-
-    const simd4f d0 = simd4f_mul(c1_sum, c0);
-    const simd4f d1 = simd4f_add(d0, simd4f_merge_high(d0, d0));
-    const simd4f det = simd4f_sub(d1, simd4f_splat_y(d1));
-
-    const simd4f invdet = simd4f_splat_x( simd4f_div(simd4f_splat(1.0f), det) );
-
-    const simd4f o0 = simd4f_mul( simd4f_flip_sign_0101(c1_sum), invdet );
-    const simd4f o1 = simd4f_mul( simd4f_flip_sign_1010(c0_sum), invdet );
-    const simd4f o2 = simd4f_mul( simd4f_flip_sign_0101(c3_sum), invdet );
-    const simd4f o3 = simd4f_mul( simd4f_flip_sign_1010(c2_sum), invdet );
-
-    const simd4x4f mt = simd4x4f_create(o0, o1, o2, o3);
-    
-    simd4x4f_transpose( &mt, out);
-
-
 }
 
 
