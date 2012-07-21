@@ -1,0 +1,30 @@
+DONE:
+
+    Restore basic biconvex class with math to determine sphere radius
+    and offset for a given biconvex width and height.
+
+    Get the vector library back up and running from scoopr. 
+    Don't resurrect my own crappy library that isn't SIMD!!!
+
+TODO:
+
+    Port across intersection and distance tests already written
+
+        1. biconvex vs. plane
+        2. ray intersection with biconvex
+        3. probably need to redesign biconvex vs. biconvex!
+
+    Get unit testing framework going and start doing unit tests to verify
+    correct behavior of collision queries etc.
+
+    Get a basic opengl display going.
+
+    Render some wireframe approximation of a floor plane and the biconvex shape
+
+    Visually verify intersection point/normal with biconvex and plane
+
+    Visually verify intersection point/normal between biconvex
+
+
+
+
