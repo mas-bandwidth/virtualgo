@@ -120,6 +120,20 @@
 	},
 	"file_history":
 	[
+		"/Users/gaffer/git/cubes/client/Render.cpp",
+		"/Users/gaffer/virtualgo/VirtualGo.cpp",
+		"/Users/gaffer/virtualgo/TODO",
+		"/Users/gaffer/virtualgo/premake4.lua",
+		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
+		"/Users/gaffer/git/network/premake4.lua",
+		"/Users/gaffer/Desktop/Intersection of Ellipsoids.pdf",
+		"/Users/gaffer/git/cubes/PreCompiled.h",
+		"/Users/gaffer/virtualgo/vectorial/config.h",
+		"/Users/gaffer/git/cubes/shared/Engine.cpp",
+		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Mathematics/Biconvex.h",
+		"/Users/gaffer/Downloads/scoopr-vectorial-85caa38/README",
+		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Core/Stone.h",
+		"/Users/gaffer/Desktop/Biconvex.h",
 		"/Users/gaffer/git/network/ruby/shortcuts.rb",
 		"/Users/gaffer/git/network/src/netGameModeData.cpp",
 		"/Users/gaffer/git/network/include/netGameModeData.h",
@@ -177,7 +191,6 @@
 		"/Users/gaffer/git/network/incoming/mpPlayerManager.cpp",
 		"/Users/gaffer/git/network/incoming/mpShortcutsManager.cpp",
 		"/Users/gaffer/git/network/incoming/mpDefinitions.h",
-		"/Users/gaffer/git/network/premake4.lua",
 		"/Users/gaffer/git/network/test/Data.cpp",
 		"/Users/gaffer/git/network/test/PreBuild.cpp",
 		"/Users/gaffer/git/network/test/UnitTest.cpp",
@@ -234,20 +247,7 @@
 		"/Users/gaffer/git/network/include/netSemaphore.h",
 		"/Users/gaffer/git/network/src/lanNode.cpp",
 		"/Users/gaffer/git/network/src/netSemaphore.cpp",
-		"/Users/gaffer/git/network/src/netSockets.cpp",
-		"/Users/gaffer/git/network/include/netSockets.h",
-		"/Users/gaffer/Desktop/accounts.txt",
-		"/Users/gaffer/git/network/src/lanMesh.cpp",
-		"/Users/gaffer/git/network/include/lanNode.h",
-		"/Users/gaffer/git/network/include/lanMesh.h",
-		"/Users/gaffer/git/network/bin/output.txt",
-		"/Users/gaffer/git/network/include/ProtocolConstants.h",
-		"/Users/gaffer/git/network/include/ProtocolUser.h",
-		"/Users/gaffer/git/network/src/netThread.cpp",
-		"/Users/gaffer/git/network/test/TestNodeMesh.cpp",
-		"/Users/gaffer/git/src/netSockets.cpp",
-		"/Users/gaffer/git/network/www/flot/examples/multiple-axes.html",
-		"/Users/gaffer/network/include/ProtocolUser.h"
+		"/Users/gaffer/git/network/src/netSockets.cpp"
 	],
 	"find":
 	{
@@ -285,6 +285,8 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"vectorial::",
+			"vec",
 			"Version",
 			"generate",
 			"Version",
@@ -410,9 +412,7 @@
 			"user packet",
 			"printf",
 			"unix",
-			"new Sema",
-			"->Acquire",
-			"working == 1"
+			"new Sema"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -483,12 +483,32 @@
 		"selected_items":
 		[
 			[
-				"changes",
-				"CHANGES"
+				"pm",
+				"premake4.lua"
 			],
 			[
 				"todo",
 				"TODO"
+			],
+			[
+				"vec3f.h",
+				"vectorial/vec3f.h"
+			],
+			[
+				"lua",
+				"premake4.lua"
+			],
+			[
+				"virtualgo.cpp",
+				"VirtualGo.cpp"
+			],
+			[
+				"premake",
+				"premake4.lua"
+			],
+			[
+				"changes",
+				"CHANGES"
 			],
 			[
 				"gamemodes.json",
@@ -641,10 +661,6 @@
 			[
 				"prebuild.cpp",
 				"test/PreBuild.cpp"
-			],
-			[
-				"premake",
-				"premake4.lua"
 			],
 			[
 				"",
@@ -977,22 +993,6 @@
 			[
 				"testsub",
 				"test/TestSubWads.cpp"
-			],
-			[
-				"testprotocol.cpp",
-				"test/TestProtocol.cpp"
-			],
-			[
-				"netinterface.h",
-				"include/netInterface.h"
-			],
-			[
-				"tables.rb",
-				"ruby/tables.rb"
-			],
-			[
-				"nettablemanager.cpp",
-				"src/netTableManager.cpp"
 			]
 		],
 		"width": 0.0

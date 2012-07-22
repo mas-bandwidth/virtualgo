@@ -28,60 +28,59 @@ DONE:
         a) closest point on sphere -- easy
         b) closest point on circle -- project to xz plane, normalize and multiply by circle radius
 
-TODO:
+    Determine dot at edge of biconvex (eg. within which the plane collision 
+    will be a collision with the circle, not the sphere surface...)
 
-    Plane vs. Biconvex
+    This angle can be determined by looking at the origin of one of the generating
+    spheres, and determining the angle between the x axis, and the line to the side
+    of the biconvex shape.
 
-        Determine dot at edge of biconvex (eg. within which the plane collision 
-        will be a collision with the circle, not the sphere surface...)
+    Use this to rework the plane collision to determine the dot range
+    in which the plane must collide with the circle, and not the sphere
+    surfaces.
 
-        This angle can be determined by looking at the origin of one of the generating
-        spheres, and determining the angle between the x axis, and the line to the side
-        of the biconvex shape.
+    Add tests for top, buttom and edge cases of biconvex vs. plane
+
+    Fix the function so that the results are what we expect!
+
+    Rework function so we get information about nearest point even
+    if the plane and biconvex are not colliding yet.
+
+    Get unit testing framework integrated into the project
+
+    Convert all printf tests over to unit tests.
+
+    Problem with nearest point on biconvex surface, it is giving NaNs
+    for trivial points outside the biconvex, eg. (0,10,0) above the 
+    biconvex should result in (0,0.5,0)
+
+    Convert plane biconvex intersection. Make sure all three cases
+    are properly tested:
+
+        1. top surface
+        2. sphere surface
+        3. circle edge
     
-        Quick test to determine if a biconvex and plane are colliding.
-        Do not determine contact point or normal or penetration depth.
+    I still want a "pm dev" console app that I can use to just printf
+    and explore various things, as well as "pm test" and "pm go" for
+    the actual opengl program.
 
-        This breaks down into two cases:
+    For the moment the quickest way to get all this stuff going is to
+    just have it all in VirtualGo.cpp. Over structuring is a waste of 
+    my time.
 
-            a) depending on which side the plane is on, plane vs. the appropriate
-               sphere, but IFF the plane normal is inside the range for the sphere
-               and not the circle
+    So to get this working have VIRTUALGO_TEST, VIRTUALGO_CONSOLE
+    defined with separate behavior for these guys, and default
+    is to run the real program (eg. "pm go")
 
-            b) plane vs. circle, if the plane normal is approaching from the side
-
-        Use this to rework the plane collision to determine the dot range
-        in which the plane must collide with the circle, and not the sphere
-        surfaces.
-
-        Closest point on plane relative to biconvex (assuming not colliding)
-
-        Express the collision in terms of point, normal and penetration distance d.
-
-    Biconvex vs. Biconvex
-
-        Quick test to determine if a biconvex is colliding with another biconvex.
-            
-        Closest point on another biconvex relative to another (assume not colliding)
-
-        Assuming biconvex is colliding with another biconvex, find best point/normal
-        for the collision. Will need to rework this and determine the cases, for example
-        the 
-
-    Broadphase
-
-        Need quick rejection tests, for example, reject collisions with bounding spheres
-        is probably OK for biconvex vs. biconvex. The oriented bounding box will likely
-        fit quite a bit better, but is it worth the complexity? Probably not.
-
-    Unit Testing
-
-        Get unit testing framework going and start doing unit tests to verify
-        correct behavior of collision queries etc.
+TODO:
 
     Interactive Demo
 
         Get a basic opengl display going (bring in from "Cube" demo...)
+
+        Bring back code to generate the go stone given a biconvex share
+        and a desired amount of bevel along the edge (radius of bevel).
 
         Get back to an interactive demo showing a go board and a single stone
 
@@ -92,3 +91,13 @@ TODO:
         biconvex vs. other biconvex interactively.
 
         Should start investigating: Soft shadows, DoF etc.
+
+    Biconvex vs. Biconvex
+
+        Quick test to determine if a biconvex is colliding with another biconvex.
+            
+        Closest point on another biconvex relative to another (assume not colliding)
+
+        Assuming biconvex is colliding with another biconvex, find best point/normal
+        for the collision. Will need to rework this and determine the cases, for example
+        edge vs. sphere surface, sphere surface vs. sphere surface etc.

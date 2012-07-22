@@ -9,6 +9,9 @@
 #include "vectorial/vec3f.h"
 #include "vectorial/vec4f.h"
 #include "vectorial/mat4f.h"
+#include "UnitTest++/UnitTest++.h"
+#include "UnitTest++/TestRunner.h"
+#include "UnitTest++/TestReporterStdout.h"
    
 using namespace vectorial;
 
@@ -73,6 +76,8 @@ inline bool IntersectRaySphere( vec3f rayStart,
     if ( timeHalfChordSquared < 0 )
         return false;                   // ray misses sphere
     t = timeClosest - sqrt( timeHalfChordSquared );
+    if ( t < 0 )
+        return false;                   // ray started inside sphere. we only want one sided collisions from outside of sphere
     return true;
 }
 
@@ -198,28 +203,34 @@ inline void GetBiconvexSurfaceNormalAtPoint_LocalSpace( vec3f point,
 }
 
 inline vec3f GetNearestPointOnBiconvexSurface_LocalSpace( vec3f point, 
-                                                          const Biconvex & biconvex )
+                                                          const Biconvex & biconvex,
+                                                          float epsilon = 0.001f )
 {
     const float circleRadius = biconvex.GetWidth() / 2;
     const float sphereRadius = biconvex.GetSphereRadius();
     const float sphereOffset = point.y() > 0 ? -biconvex.GetSphereOffset() : +biconvex.GetSphereOffset();
     vec3f sphereCenter( 0, sphereOffset, 0 );
-    vec3f a = normalize( point - sphereCenter ) * sphereRadius;
-    vec3f b = normalize( point - vec3f(0,point.y(),0) ) * circleRadius;
-    const float sqr_distance_a = length_squared( point - a );
-    const float sqr_distance_b = length_squared( point - b );
-    if ( sqr_distance_a < sqr_distance_b )
-        return a;
-    else
+    vec3f a = sphereCenter + normalize( point - sphereCenter ) * sphereRadius;
+    vec3f b = normalize( vec3f( point.x(), 0, point.z() ) ) * circleRadius;
+    if ( sphereOffset * a.y() > 0 )         // IMPORTANT: only consider "a" if on same half of biconvex as point
         return b;
+    const float sphereDot = biconvex.GetSphereDot();
+    const float pointDot = fabs( dot( vec3f(0,1,0), normalize(point) ) );
+    if ( pointDot < 1.0f - epsilon )
+    {
+        const float sqr_distance_a = length_squared( point - a );
+        const float sqr_distance_b = length_squared( point - b );
+        if ( sqr_distance_b < sqr_distance_a )
+            return b;
+    }
+    return a;
 }
 
-inline bool IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
-                                               float planeDistance,
-                                               const Biconvex & biconvex,
-                                               vec3f & point,
-                                               vec3f & normal,
-                                               float depth )
+inline float IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
+                                                float planeDistance,
+                                                const Biconvex & biconvex,
+                                                vec3f & point,
+                                                vec3f & normal )
 {
     const float sphereDot = biconvex.GetSphereDot();
     const float planeNormalDot = fabs( dot( vec3f(0,1,0), planeNormal ) );
@@ -229,7 +240,7 @@ inline bool IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
         const float sphereRadius = biconvex.GetSphereRadius();
         const float sphereOffset = planeNormal.y() < 0 ? -biconvex.GetSphereOffset() : +biconvex.GetSphereOffset();
         vec3f sphereCenter( 0, sphereOffset, 0 );
-        point = normalize( sphereCenter - planeNormal ) * sphereRadius;
+        point = sphereCenter + ( normalize( sphereCenter - planeNormal ) * sphereRadius );
     }
     else
     {
@@ -238,131 +249,216 @@ inline bool IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
         point = normalize( vec3f( -planeNormal.x(), 0, -planeNormal.z() ) ) * circleRadius;
     }
     normal = planeNormal;
-    depth = dot( -planeNormal, point );
-    return depth > 0;                           // todo: probably want some epsilon here
+    return dot( -planeNormal, point ) + planeDistance;
 }
 
-int main()
-{
+#if VIRTUALGO_CONSOLE
+
+    int main()
     {
         Biconvex biconvex( 2.0f, 1.0f );
-
-        printf( "=======================================\n" );
-        printf( "biconvex:\n" );
-        printf( "=======================================\n" );
-        printf( " + width = %.2f\n", biconvex.GetWidth() );
-        printf( " + height = %.2f\n", biconvex.GetHeight() );
-        printf( " + sphere radius = %.2f\n", biconvex.GetSphereRadius() );
-        printf( " + sphere offset = %.2f\n", biconvex.GetSphereOffset() );
-        printf( " + sphere dot = %.2f\n", biconvex.GetSphereDot() );
-        printf( "=======================================\n" );
+        printf( "hello world\n" );
+        return 0;
     }
 
-    {
-        vec3f rayStart(0,0,-10);
-        vec3f rayDirection(0,0,1);
-        vec3f sphereCenter(0,0,0);
-        float sphereRadius = 1.0f;
-        float sphereRadiusSquared = sphereRadius * sphereRadius;
-        float t = 0;
-        bool hit = IntersectRaySphere( rayStart, rayDirection, sphereCenter, sphereRadius, sphereRadiusSquared, t );
+#elif VIRTUALGO_TEST
 
-        printf( "=======================================\n" );
-        printf( "ray vs. sphere:\n" );
-        printf( "=======================================\n" );
-        printf( " + ray start = (%f,%f,%f)\n", rayStart.x(), rayStart.y(), rayStart.z() );
-        printf( " + ray direction = (%f,%f,%f)\n", rayDirection.x(), rayDirection.y(), rayDirection.z() );
-        if ( hit )
+    #define CHECK_CLOSE_VEC3( value, expected, epsilon ) CHECK_CLOSE( length( value - expected ), 0.0f, epsilon )
+
+    SUITE( Intersection )
+    {
+        TEST( biconvex )
         {
-            printf( " + hit: t = %f\n", t );
-        }
-        else
-            printf( " + missed!\n" );
-        printf( "=======================================\n" );
-    }
+            Biconvex biconvex( 2.0f, 1.0f );
+            const float epsilon = 0.001f;
+            CHECK_CLOSE( biconvex.GetWidth(), 2.0f, epsilon );
+            CHECK_CLOSE( biconvex.GetHeight(), 1.0f, epsilon );
+            CHECK_CLOSE( biconvex.GetSphereRadius(), 1.25f, epsilon );
+            CHECK_CLOSE( biconvex.GetSphereOffset(), 0.75f, epsilon );
+            CHECK_CLOSE( biconvex.GetSphereDot(), 0.75f, epsilon );
+        }    
 
-    {
-        Biconvex biconvex( 2.0f, 1.0f );
-        vec3f point(0,0.5,0.5f);
-        bool inside = PointInsideBiconvex_LocalSpace( point, biconvex );
-
-        printf( "=======================================\n" );
-        printf( "point inside biconvex (local space):\n" );
-        printf( "=======================================\n" );
-        printf( " + point = (%f,%f,%f)\n", point.x(), point.y(), point.z() );
-        if ( inside )
-            printf( " + inside!\n" );
-        else
-            printf( " + outside!\n" );
-        printf( "=======================================\n" );
-    }
-
-    {
-        Biconvex biconvex( 2.0f, 1.0f );
-        vec3f point(0,0.5,0);
-        bool inside = IsPointOnBiconvexSurface_LocalSpace( point, biconvex );
-
-        printf( "========================================\n" );
-        printf( "point on biconvex surface (local space):\n" );
-        printf( "========================================\n" );
-        printf( " + point = (%f,%f,%f)\n", point.x(), point.y(), point.z() );
-        if ( inside )
-            printf( " + on surface!\n" );
-        else
-            printf( " + not on surface!\n" );
-        printf( "========================================\n" );
-    }
-
-    {
-        Biconvex biconvex( 2.0f, 1.0f );
-        vec3f point(1,0,0);
-        vec3f normal(0,0,0);
-        GetBiconvexSurfaceNormalAtPoint_LocalSpace( point, biconvex, normal );
-
-        printf( "=========================================\n" );
-        printf( "normal on biconvex surface (local space):\n" );
-        printf( "=========================================\n" );
-        printf( " + point = (%f,%f,%f)\n", point.x(), point.y(), point.z() );
-        printf( " + normal = (%f,%f,%f)\n", normal.x(), normal.y(), normal.z() );
-        printf( "=========================================\n" );
-    }
-
-    {
-        Biconvex biconvex( 2.0f, 1.0f );
-        vec3f point(10,2,0);
-        vec3f nearest = GetNearestPointOnBiconvexSurface_LocalSpace( point, biconvex );
-
-        printf( "================================================\n" );
-        printf( "nearest point on biconvex surface (local space):\n" );
-        printf( "================================================\n" );
-        printf( " + point = (%f,%f,%f)\n", point.x(), point.y(), point.z() );
-        printf( " + nearest = (%f,%f,%f)\n", nearest.x(), nearest.y(), nearest.z() );
-        printf( "================================================\n" );
-    }
-
-    // todo: code below doesn't seem to be getting valid results back from the fn
-    {
-        Biconvex biconvex( 2.0f, 1.0f );
-        vec3f planeNormal(0,1,0);
-        float planeDistance = 0;
-        vec3f point, normal;
-        float depth;
-        bool collided = IntersectPlaneBiconvex_LocalSpace( planeNormal, planeDistance, biconvex, point, normal, depth );
-
-        printf( "=======================================\n" );
-        printf( "plane vs. biconvex (local space):\n" );
-        printf( "=======================================\n" );
-        printf( " + plane normal = (%f,%f,%f)\n", planeNormal.x(), planeNormal.y(), planeNormal.z() );
-        printf( " + plane distance = %f\n", planeDistance );
-        if ( collided )
+        TEST( intersect_ray_sphere_hit )
         {
-            printf( " + collision:\n" );
-            printf( " + point = (%f,%f,%f)\n", point.x(), point.y(), point.z() );
-            printf( " + normal = (%f,%f,%f)\n", normal.x(), normal.y(), normal.z() );
-            printf( " + depth = %f\n", depth );
+            const float epsilon = 0.001f;
+            vec3f rayStart(0,0,-10);
+            vec3f rayDirection(0,0,1);
+            vec3f sphereCenter(0,0,0);
+            float sphereRadius = 1.0f;
+            float sphereRadiusSquared = sphereRadius * sphereRadius;
+            float t = 0;
+            bool hit = IntersectRaySphere( rayStart, rayDirection, sphereCenter, sphereRadius, sphereRadiusSquared, t );
+            CHECK( hit );
+            CHECK_CLOSE( t, 9.0f, epsilon );
         }
-        else
-            printf( " + no collision!\n" );
-        printf( "=======================================\n" );
+
+        TEST( intersect_ray_sphere_miss )
+        {
+            const float epsilon = 0.001f;
+            vec3f rayStart(0,50,-10);
+            vec3f rayDirection(0,0,1);
+            vec3f sphereCenter(0,0,0);
+            float sphereRadius = 1.0f;
+            float sphereRadiusSquared = sphereRadius * sphereRadius;
+            float t = 0;
+            bool hit = IntersectRaySphere( rayStart, rayDirection, sphereCenter, sphereRadius, sphereRadiusSquared, t );
+            CHECK( !hit );
+        }
+
+        TEST( intersect_ray_sphere_inside )
+        {
+            // IMPORTANT: we define a ray starting inside the sphere as a miss
+            // we only care about spheres that we hit from the outside, eg. one sided
+            const float epsilon = 0.001f;
+            vec3f rayStart(0,0,0);
+            vec3f rayDirection(0,0,1);
+            vec3f sphereCenter(0,0,0);
+            float sphereRadius = 1.0f;
+            float sphereRadiusSquared = sphereRadius * sphereRadius;
+            float t = 0;
+            bool hit = IntersectRaySphere( rayStart, rayDirection, sphereCenter, sphereRadius, sphereRadiusSquared, t );
+            CHECK( !hit );
+        }
+
+        TEST( point_inside_biconvex )
+        {
+            Biconvex biconvex( 2.0f, 1.0f );
+            CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,0,0), biconvex ) );
+            CHECK( PointInsideBiconvex_LocalSpace( vec3f(-1,0,0), biconvex ) );
+            CHECK( PointInsideBiconvex_LocalSpace( vec3f(+1,0,0), biconvex ) );
+            CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,0,-1), biconvex ) );
+            CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,0,+1), biconvex ) );
+            CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,0.5,0), biconvex ) );
+            CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,-0.5,0), biconvex ) );
+            CHECK( !PointInsideBiconvex_LocalSpace( vec3f(0,0.5,0.5f), biconvex ) );
+        }
+
+        TEST( point_on_biconvex_surface )
+        {
+            Biconvex biconvex( 2.0f, 1.0f );
+            CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(-1,0,0), biconvex ) );
+            CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(+1,0,0), biconvex ) );
+            CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(0,0,-1), biconvex ) );
+            CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(0,0,+1), biconvex ) );
+            CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(0,0.5,0), biconvex ) );
+            CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(0,-0.5,0), biconvex ) );
+            CHECK( !IsPointOnBiconvexSurface_LocalSpace( vec3f(0,0,0), biconvex ) );
+            CHECK( !IsPointOnBiconvexSurface_LocalSpace( vec3f(10,10,10), biconvex ) );
+        }
+
+        TEST( biconvex_surface_normal_at_point )
+        {
+            const float epsilon = 0.001f;
+            Biconvex biconvex( 2.0f, 1.0f );
+            vec3f normal(0,0,0);
+
+            GetBiconvexSurfaceNormalAtPoint_LocalSpace( vec3f(1,0,0), biconvex, normal );
+            CHECK_CLOSE_VEC3( normal, vec3f(1,0,0), epsilon );
+
+            GetBiconvexSurfaceNormalAtPoint_LocalSpace( vec3f(-1,0,0), biconvex, normal );
+            CHECK_CLOSE_VEC3( normal, vec3f(-1,0,0), epsilon );
+
+            GetBiconvexSurfaceNormalAtPoint_LocalSpace( vec3f(0,0,1), biconvex, normal );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,0,1), epsilon );
+
+            GetBiconvexSurfaceNormalAtPoint_LocalSpace( vec3f(0,0,-1), biconvex, normal );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,0,-1), epsilon );
+
+            GetBiconvexSurfaceNormalAtPoint_LocalSpace( vec3f(0,0.5,0), biconvex, normal );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+
+            GetBiconvexSurfaceNormalAtPoint_LocalSpace( vec3f(0,-0.5,0), biconvex, normal );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,-1,0), epsilon );
+        }
+
+        TEST( nearest_point_on_biconvex_surface )
+        {
+            const float epsilon = 0.001f;
+            Biconvex biconvex( 2.0f, 1.0f );
+            vec3f nearest;
+
+            nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(0,10,0), biconvex );
+            CHECK_CLOSE_VEC3( nearest, vec3f(0,0.5f,0), epsilon );
+
+            nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(0,-10,0), biconvex );
+            CHECK_CLOSE_VEC3( nearest, vec3f(0,-0.5f,0), epsilon );
+
+            nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(-10,0,0), biconvex );
+            CHECK_CLOSE_VEC3( nearest, vec3f(-1,0,0), epsilon );
+
+            nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(10,0,0), biconvex );
+            CHECK_CLOSE_VEC3( nearest, vec3f(1,0,0), epsilon );
+
+            nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(0,0,-10), biconvex );
+            CHECK_CLOSE_VEC3( nearest, vec3f(0,0,-1), epsilon );
+
+            nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(0,0,10), biconvex );
+            CHECK_CLOSE_VEC3( nearest, vec3f(0,0,1), epsilon );
+        }
+
+        TEST( intersect_plane_biconvex_bottom )
+        {
+            const float epsilon = 0.001f;
+            Biconvex biconvex( 2.0f, 1.0f );
+            vec3f planeNormal(0,1,0);
+            float planeDistance = -10;
+            vec3f point, normal;
+            float penetrationDepth = IntersectPlaneBiconvex_LocalSpace( planeNormal, planeDistance, biconvex, point, normal );
+            CHECK_CLOSE( penetrationDepth, -9.5, epsilon );
+            CHECK_CLOSE_VEC3( point, vec3f(0,-0.5,0), epsilon );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+        }
+
+        TEST( intersect_plane_biconvex_top )
+        {
+            const float epsilon = 0.001f;
+            Biconvex biconvex( 2.0f, 1.0f );
+            vec3f planeNormal(0,-1,0);
+            float planeDistance = -10;
+            vec3f point, normal;
+            float penetrationDepth = IntersectPlaneBiconvex_LocalSpace( planeNormal, planeDistance, biconvex, point, normal );
+            CHECK_CLOSE( penetrationDepth, -9.5, epsilon );
+            CHECK_CLOSE_VEC3( point, vec3f(0,+0.5,0), epsilon );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,-1,0), epsilon );
+        }
+
+        TEST( intersect_plane_biconvex_side )
+        {
+            const float epsilon = 0.001f;
+            Biconvex biconvex( 2.0f, 1.0f );
+            vec3f planeNormal(-1,0,0);
+            float planeDistance = -10;
+            vec3f point, normal;
+            float penetrationDepth = IntersectPlaneBiconvex_LocalSpace( planeNormal, planeDistance, biconvex, point, normal );
+            CHECK_CLOSE( penetrationDepth, -9, epsilon );
+            CHECK_CLOSE_VEC3( point, vec3f(1,0,0), epsilon );
+            CHECK_CLOSE_VEC3( normal, vec3f(-1,0,0), epsilon );
+        }
     }
-}
+
+    class MyTestReporter : public UnitTest::TestReporterStdout
+    {
+        virtual void ReportTestStart( UnitTest::TestDetails const & details )
+        {
+            printf( "test_%s\n", details.testName );
+        }
+    };
+
+    int main( int argc, char * argv[] )
+    {
+        MyTestReporter reporter;
+
+        UnitTest::TestRunner runner( reporter );
+
+        return runner.RunTestsIf( UnitTest::Test::GetTestList(), NULL, UnitTest::True(), 0 );
+    }
+
+#else
+
+    int main()
+    {
+        printf( "[virtual go]\n" );
+        return 0;
+    }
+
+#endif
