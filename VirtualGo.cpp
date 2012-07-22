@@ -10,6 +10,8 @@
 #include "vectorial/vec4f.h"
 #include "vectorial/mat4f.h"
    
+using namespace vectorial;
+
 class Biconvex
 {
 public:
@@ -22,6 +24,7 @@ public:
         sphereRadius = ( width*width + height*height ) / ( 4 * height );
         sphereRadiusSquared = sphereRadius * sphereRadius;
         sphereOffset = sphereRadius - height/2;
+        sphereDot = dot( vec3f(0,1,0), vec3f(width/2,0,0) - vec3f(0,-sphereOffset,0) );
 
         boundingSphereRadius = width * 0.5f;
         boundingSphereRadiusSquared = boundingSphereRadius * boundingSphereRadius;
@@ -36,6 +39,7 @@ public:
     float GetSphereRadius() const { return sphereRadius; }
     float GetSphereRadiusSquared() const { return sphereRadiusSquared; }
     float GetSphereOffset() const { return sphereOffset; }
+    float GetSphereDot() const { return sphereDot; }
 
     float GetBoundingSphereRadius() const { return boundingSphereRadius; }
 
@@ -47,21 +51,22 @@ private:
     float sphereRadius;                     // radius of spheres that intersect to generate this biconvex solid
     float sphereRadiusSquared;              // radius squared
     float sphereOffset;                     // vertical offset from biconvex origin to center of spheres
+    float sphereDot;                        // dot product of "up" with vector from to sphere center to "P" on biconvex edge circle
 
     float boundingSphereRadius;             // bounding sphere radius for biconvex shape
     float boundingSphereRadiusSquared;      // bounding sphere radius squared
 };
 
-inline bool IntersectRaySphere( vectorial::vec3f rayStart, 
-                                vectorial::vec3f rayDirection, 
-                                vectorial::vec3f sphereCenter, 
+inline bool IntersectRaySphere( vec3f rayStart, 
+                                vec3f rayDirection, 
+                                vec3f sphereCenter, 
                                 float sphereRadius, 
                                 float sphereRadiusSquared, 
                                 float & t )
 {
-    vectorial::vec3f delta = sphereCenter - rayStart;
-    const float distanceSquared = vectorial::dot( delta, delta );
-    const float timeClosest = vectorial::dot( delta, rayDirection );
+    vec3f delta = sphereCenter - rayStart;
+    const float distanceSquared = dot( delta, delta );
+    const float timeClosest = dot( delta, rayDirection );
     if ( timeClosest < 0 )
         return false;                   // ray points away from sphere
     const float timeHalfChordSquared = sphereRadiusSquared - distanceSquared + timeClosest*timeClosest;
@@ -71,37 +76,37 @@ inline bool IntersectRaySphere( vectorial::vec3f rayStart,
     return true;
 }
 
-inline bool IntersectRayBiconvex_LocalSpace( vectorial::vec3f rayStart, 
-                                             vectorial::vec3f rayDirection, 
+inline bool IntersectRayBiconvex_LocalSpace( vec3f rayStart, 
+                                             vec3f rayDirection, 
                                              const Biconvex & biconvex,
                                              float & t, 
-                                             vectorial::vec3f & point, 
-                                             vectorial::vec3f & normal )
+                                             vec3f & point, 
+                                             vec3f & normal )
 {
     const float sphereOffset = biconvex.GetSphereOffset();
     const float sphereRadius = biconvex.GetSphereRadius();
     const float sphereRadiusSquared = biconvex.GetSphereRadiusSquared();
 
     // intersect ray with bottom sphere
-    vectorial::vec3f bottomSphereCenter( 0, -sphereOffset, 0 );
+    vec3f bottomSphereCenter( 0, -sphereOffset, 0 );
     if ( IntersectRaySphere( rayStart, rayDirection, bottomSphereCenter, sphereRadius, sphereRadiusSquared, t ) )
     {
         point = rayStart + rayDirection * t;
         if ( point.y() >= 0 )
         {
-            normal = vectorial::normalize( point - bottomSphereCenter );
+            normal = normalize( point - bottomSphereCenter );
             return true;
         }        
     }
 
     // intersect ray with top sphere
-    vectorial::vec3f topSphereCenter( 0, sphereOffset, 0 );
+    vec3f topSphereCenter( 0, sphereOffset, 0 );
     if ( IntersectRaySphere( rayStart, rayDirection, topSphereCenter, sphereRadius, sphereRadiusSquared, t ) )
     {
         point = rayStart + rayDirection * t;
         if ( point.y() <= 0 )
         {
-            normal = vectorial::normalize( point - topSphereCenter );
+            normal = normalize( point - topSphereCenter );
             return true;
         }
     }
@@ -109,213 +114,133 @@ inline bool IntersectRayBiconvex_LocalSpace( vectorial::vec3f rayStart,
     return false;
 }
 
-inline bool IntersectPlaneBiconvex_LocalSpace( vectorial::vec3f planeNormal, 
-                                               float planeDistance,
-                                               const Biconvex & biconvex,
-                                               vectorial::vec3f & point,
-                                               vectorial::vec3f & normal )
+inline bool PointInsideBiconvex_LocalSpace( vec3f point,
+                                            const Biconvex & biconvex,
+                                            float epsilon = 0.001f )
 {
-    // TODO
-    /*
-        Biconvex *biconvex = *(Biconvex**) dGeomGetClassData(self);
+    const float radius = biconvex.GetSphereRadius() + epsilon;
+    const float radiusSquared = radius * radius; 
+    const float sphereOffset = biconvex.GetSphereOffset();
 
-        assert(biconvex);
-
-        dBodyID body = dGeomGetBody(self);
-
-        if (!body)
-            return 0;
-
-        const dReal *center = dBodyGetPosition(body);
-        
-        dVector4 plane;
-        dGeomPlaneGetParams(other, plane);
-
-        const dReal *rotation = dGeomGetRotation(self);
-
-        const dReal radius = biconvex->radius;
-
-        dVector3 up;
-        up[0] = rotation[2];
-        up[1] = rotation[6];
-        up[2] = rotation[10];
-
-        assert(Mathematics::Float::equal((float)(up[0]*up[0]+up[1]*up[1]+up[2]*up[2]), 1));
-
-        // top sphere
-
-        const dReal topDot = up[0]*plane[0] + up[1]*plane[1] + up[2]*plane[2];
-
-        if (topDot>=0)
-        {
-            dVector3 topCenter;
-            
-            topCenter[0] = center[0] + biconvex->offset * up[0];
-            topCenter[1] = center[1] + biconvex->offset * up[1];
-            topCenter[2] = center[2] + biconvex->offset * up[2];
-
-            const dReal d = plane[0]*topCenter[0] + plane[1]*topCenter[1] + plane[2]*topCenter[2] - plane[3];
-
-            if (d<radius && d>0)
-            {
-                // fill in contact information
-
-                contact[0].pos[0] = topCenter[0] - plane[0] * d;
-                contact[0].pos[1] = topCenter[1] - plane[1] * d;
-                contact[0].pos[2] = topCenter[2] - plane[2] * d;
-                contact[0].normal[0] = plane[0];
-                contact[0].normal[1] = plane[1];
-                contact[0].normal[2] = plane[2];
-                contact[0].depth = radius - d;
-                contact[0].g1 = self;
-                contact[0].g2 = other;
-
-                // calculate contact dot relative to up
-
-                dVector3 delta;
-
-                delta[0] = center[0] - contact[0].pos[0];
-                delta[1] = center[1] - contact[0].pos[1];
-                delta[2] = center[2] - contact[0].pos[2];
-
-                dNormalize3(delta);
-
-                const dReal contactDot = delta[0]*up[0] + delta[1]*up[1] + delta[2]*up[2];
-
-                if (contactDot<0)
-                {
-                    // edge contact
-
-                    dVector4 centerPlane;
-
-                    centerPlane[0] = up[0];
-                    centerPlane[1] = up[1];
-                    centerPlane[2] = up[2];
-                    centerPlane[3] = centerPlane[0]*center[0] + centerPlane[1]*center[1] + centerPlane[2]*center[2];
-
-                    // project on to center plane
-
-                    const dReal centerDepth = contact[0].pos[0]*centerPlane[0] + contact[0].pos[1]*centerPlane[1] + contact[0].pos[2]*centerPlane[2] - centerPlane[3];
-
-                    contact[0].pos[0] -= centerPlane[0]*centerDepth;
-                    contact[0].pos[1] -= centerPlane[1]*centerDepth;
-                    contact[0].pos[2] -= centerPlane[2]*centerDepth;
-
-                    assert(Mathematics::Float::equal((float)(contact[0].pos[0]*centerPlane[0] + contact[0].pos[1]*centerPlane[1] + contact[0].pos[2]*centerPlane[2] - centerPlane[3]), 0));
-
-                    // normalize contact point to radius
-
-                    dVector3 radial;
-
-                    radial[0] = center[0] - contact[0].pos[0];
-                    radial[1] = center[1] - contact[0].pos[1];
-                    radial[2] = center[2] - contact[0].pos[2];
-
-                    dNormalize3(radial);
-
-                    contact[0].pos[0] = center[0] - radial[0] * biconvex->bound;
-                    contact[0].pos[1] = center[1] - radial[1] * biconvex->bound;
-                    contact[0].pos[2] = center[2] - radial[2] * biconvex->bound;
-
-                    // recalculate contact depth based on new contact point
-
-                    contact[0].depth = -(plane[0]*contact[0].pos[0] + plane[1]*contact[0].pos[1] + plane[2]*contact[0].pos[2] - plane[3]);
-                }
-
-                return 1;
-            }
-        }
-
-        // bottom sphere
-
-        const dReal bottomDot = -topDot;
-
-        if (bottomDot>=0)
-        {
-            dVector3 bottomCenter;
-            
-            bottomCenter[0] = center[0] - biconvex->offset * up[0];
-            bottomCenter[1] = center[1] - biconvex->offset * up[1];
-            bottomCenter[2] = center[2] - biconvex->offset * up[2];
-
-            const dReal d = plane[0]*bottomCenter[0] + plane[1]*bottomCenter[1] + plane[2]*bottomCenter[2] - plane[3];
-
-            if (d<radius && d>0)
-            {
-                // fill in contact information
-
-                contact[0].pos[0] = bottomCenter[0] - plane[0] * d;
-                contact[0].pos[1] = bottomCenter[1] - plane[1] * d;
-                contact[0].pos[2] = bottomCenter[2] - plane[2] * d;
-                contact[0].normal[0] = plane[0];
-                contact[0].normal[1] = plane[1];
-                contact[0].normal[2] = plane[2];
-                contact[0].depth = radius - d;
-                contact[0].g1 = self;
-                contact[0].g2 = other;
-
-                // calculate contact dot relative to up
-
-                dVector3 delta;
-
-                delta[0] = center[0] - contact[0].pos[0];
-                delta[1] = center[1] - contact[0].pos[1];
-                delta[2] = center[2] - contact[0].pos[2];
-
-                dNormalize3(delta);
-
-                const dReal contactDot = delta[0]*up[0] + delta[1]*up[1] + delta[2]*up[2];
-
-                if (contactDot>0)
-                {
-                    // edge contact
-
-                    dVector4 centerPlane;
-
-                    centerPlane[0] = -up[0];
-                    centerPlane[1] = -up[1];
-                    centerPlane[2] = -up[2];
-                    centerPlane[3] = centerPlane[0]*center[0] + centerPlane[1]*center[1] + centerPlane[2]*center[2];
-
-                    // project on to center plane
-
-                    const dReal centerDepth = contact[0].pos[0]*centerPlane[0] + contact[0].pos[1]*centerPlane[1] + contact[0].pos[2]*centerPlane[2] - centerPlane[3];
-
-                    contact[0].pos[0] -= centerPlane[0]*centerDepth;
-                    contact[0].pos[1] -= centerPlane[1]*centerDepth;
-                    contact[0].pos[2] -= centerPlane[2]*centerDepth;
-
-                    assert(Mathematics::Float::equal((float)(contact[0].pos[0]*centerPlane[0] + contact[0].pos[1]*centerPlane[1] + contact[0].pos[2]*centerPlane[2] - centerPlane[3]), 0));
-
-                    // normalize contact point to radius
-
-                    dVector3 radial;
-
-                    radial[0] = center[0] - contact[0].pos[0];
-                    radial[1] = center[1] - contact[0].pos[1];
-                    radial[2] = center[2] - contact[0].pos[2];
-
-                    dNormalize3(radial);
-
-                    contact[0].pos[0] = center[0] - radial[0] * biconvex->bound;
-                    contact[0].pos[1] = center[1] - radial[1] * biconvex->bound;
-                    contact[0].pos[2] = center[2] - radial[2] * biconvex->bound;
-
-                    // recalculate contact depth based on new contact point
-
-                    contact[0].depth = -(plane[0]*contact[0].pos[0] + plane[1]*contact[0].pos[1] + plane[2]*contact[0].pos[2] - plane[3]);
-                }
-
-                return 1;
-            }
-        }
-        
-        return 0;
-    */
+    if ( point.y() >= 0 )
+    {
+        // check bottom sphere (top half of biconvex)
+        vec3f bottomSphereCenter( 0, -sphereOffset, 0 );
+        const float distanceSquared = length_squared( point - bottomSphereCenter );
+        if ( distanceSquared <= radiusSquared )
+            return true;
+    }
+    else
+    {
+        // check top sphere (bottom half of biconvex)
+        vec3f topSphereCenter( 0, sphereOffset, 0 );
+        const float distanceSquared = length_squared( point - topSphereCenter );
+        if ( distanceSquared <= radiusSquared )
+            return true;
+    }
 
     return false;
 }
 
+inline bool IsPointOnBiconvexSurface_LocalSpace( vec3f point, 
+                                                 const Biconvex & biconvex,
+                                                 float epsilon = 0.001f )
+{
+    const float innerRadius = biconvex.GetSphereRadius() - epsilon;
+    const float outerRadius = biconvex.GetSphereRadius() + epsilon;
+    const float innerRadiusSquared = innerRadius * innerRadius;
+    const float outerRadiusSquared = outerRadius * outerRadius;
+    const float sphereOffset = biconvex.GetSphereOffset();
+
+    if ( point.y() >= 0 )
+    {
+        // check bottom sphere (top half of biconvex)
+        vec3f bottomSphereCenter( 0, -sphereOffset, 0 );
+        const float distanceSquared = length_squared( point - bottomSphereCenter );
+        if ( distanceSquared >= innerRadiusSquared && distanceSquared <= outerRadiusSquared )
+            return true;
+    }
+    else
+    {
+        // check top sphere (bottom half of biconvex)
+        vec3f topSphereCenter( 0, sphereOffset, 0 );
+        const float distanceSquared = length_squared( point - topSphereCenter );
+        if ( distanceSquared >= innerRadiusSquared && distanceSquared <= outerRadiusSquared )
+            return true;
+    }
+
+    return false;
+}
+
+inline void GetBiconvexSurfaceNormalAtPoint_LocalSpace( vec3f point, 
+                                                        const Biconvex & biconvex,
+                                                        vec3f & normal,
+                                                        float epsilon = 0.001 )
+{
+    const float sphereOffset = biconvex.GetSphereOffset();
+    if ( point.y() > epsilon )
+    {
+        // top half of biconvex (bottom sphere)
+        vec3f bottomSphereCenter( 0, -sphereOffset, 0 );
+        normal = normalize( point - bottomSphereCenter );
+    }
+    else if ( point.y() < -epsilon )
+    {
+        // bottom half of biconvex (top sphere)
+        vec3f topSphereCenter( 0, sphereOffset, 0 );
+        normal = normalize( point - topSphereCenter );
+    }
+    else
+    {
+        // circle edge
+        normal = normalize( point );       
+    }
+}
+
+inline vec3f GetNearestPointOnBiconvexSurface_LocalSpace( vec3f point, 
+                                                          const Biconvex & biconvex )
+{
+    const float circleRadius = biconvex.GetWidth() / 2;
+    const float sphereRadius = biconvex.GetSphereRadius();
+    const float sphereOffset = point.y() > 0 ? -biconvex.GetSphereOffset() : +biconvex.GetSphereOffset();
+    vec3f sphereCenter( 0, sphereOffset, 0 );
+    vec3f a = normalize( point - sphereCenter ) * sphereRadius;
+    vec3f b = normalize( point - vec3f(0,point.y(),0) ) * circleRadius;
+    const float sqr_distance_a = length_squared( point - a );
+    const float sqr_distance_b = length_squared( point - b );
+    if ( sqr_distance_a < sqr_distance_b )
+        return a;
+    else
+        return b;
+}
+
+inline bool IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
+                                               float planeDistance,
+                                               const Biconvex & biconvex,
+                                               vec3f & point,
+                                               vec3f & normal,
+                                               float depth )
+{
+    const float sphereDot = biconvex.GetSphereDot();
+    const float planeNormalDot = fabs( dot( vec3f(0,1,0), planeNormal ) );
+    if ( planeNormalDot > sphereDot )
+    {
+        // sphere surface collision
+        const float sphereRadius = biconvex.GetSphereRadius();
+        const float sphereOffset = planeNormal.y() < 0 ? -biconvex.GetSphereOffset() : +biconvex.GetSphereOffset();
+        vec3f sphereCenter( 0, sphereOffset, 0 );
+        point = normalize( sphereCenter - planeNormal ) * sphereRadius;
+    }
+    else
+    {
+        // circle edge collision
+        const float circleRadius = biconvex.GetWidth() / 2;
+        point = normalize( vec3f( -planeNormal.x(), 0, -planeNormal.z() ) ) * circleRadius;
+    }
+    normal = planeNormal;
+    depth = dot( -planeNormal, point );
+    return depth > 0;                           // todo: probably want some epsilon here
+}
 
 int main()
 {
@@ -329,13 +254,14 @@ int main()
         printf( " + height = %.2f\n", biconvex.GetHeight() );
         printf( " + sphere radius = %.2f\n", biconvex.GetSphereRadius() );
         printf( " + sphere offset = %.2f\n", biconvex.GetSphereOffset() );
+        printf( " + sphere dot = %.2f\n", biconvex.GetSphereDot() );
         printf( "=======================================\n" );
     }
 
     {
-        vectorial::vec3f rayStart(0,0,-10);
-        vectorial::vec3f rayDirection(0,0,1);
-        vectorial::vec3f sphereCenter(0,0,0);
+        vec3f rayStart(0,0,-10);
+        vec3f rayDirection(0,0,1);
+        vec3f sphereCenter(0,0,0);
         float sphereRadius = 1.0f;
         float sphereRadiusSquared = sphereRadius * sphereRadius;
         float t = 0;
@@ -357,10 +283,71 @@ int main()
 
     {
         Biconvex biconvex( 2.0f, 1.0f );
-        vectorial::vec3f planeNormal(0,1,0);
+        vec3f point(0,0.5,0.5f);
+        bool inside = PointInsideBiconvex_LocalSpace( point, biconvex );
+
+        printf( "=======================================\n" );
+        printf( "point inside biconvex (local space):\n" );
+        printf( "=======================================\n" );
+        printf( " + point = (%f,%f,%f)\n", point.x(), point.y(), point.z() );
+        if ( inside )
+            printf( " + inside!\n" );
+        else
+            printf( " + outside!\n" );
+        printf( "=======================================\n" );
+    }
+
+    {
+        Biconvex biconvex( 2.0f, 1.0f );
+        vec3f point(0,0.5,0);
+        bool inside = IsPointOnBiconvexSurface_LocalSpace( point, biconvex );
+
+        printf( "========================================\n" );
+        printf( "point on biconvex surface (local space):\n" );
+        printf( "========================================\n" );
+        printf( " + point = (%f,%f,%f)\n", point.x(), point.y(), point.z() );
+        if ( inside )
+            printf( " + on surface!\n" );
+        else
+            printf( " + not on surface!\n" );
+        printf( "========================================\n" );
+    }
+
+    {
+        Biconvex biconvex( 2.0f, 1.0f );
+        vec3f point(1,0,0);
+        vec3f normal(0,0,0);
+        GetBiconvexSurfaceNormalAtPoint_LocalSpace( point, biconvex, normal );
+
+        printf( "=========================================\n" );
+        printf( "normal on biconvex surface (local space):\n" );
+        printf( "=========================================\n" );
+        printf( " + point = (%f,%f,%f)\n", point.x(), point.y(), point.z() );
+        printf( " + normal = (%f,%f,%f)\n", normal.x(), normal.y(), normal.z() );
+        printf( "=========================================\n" );
+    }
+
+    {
+        Biconvex biconvex( 2.0f, 1.0f );
+        vec3f point(10,2,0);
+        vec3f nearest = GetNearestPointOnBiconvexSurface_LocalSpace( point, biconvex );
+
+        printf( "================================================\n" );
+        printf( "nearest point on biconvex surface (local space):\n" );
+        printf( "================================================\n" );
+        printf( " + point = (%f,%f,%f)\n", point.x(), point.y(), point.z() );
+        printf( " + nearest = (%f,%f,%f)\n", nearest.x(), nearest.y(), nearest.z() );
+        printf( "================================================\n" );
+    }
+
+    // todo: code below doesn't seem to be getting valid results back from the fn
+    {
+        Biconvex biconvex( 2.0f, 1.0f );
+        vec3f planeNormal(0,1,0);
         float planeDistance = 0;
-        vectorial::vec3f point, normal;
-        bool collided = IntersectPlaneBiconvex_LocalSpace( planeNormal, planeDistance, biconvex, point, normal );
+        vec3f point, normal;
+        float depth;
+        bool collided = IntersectPlaneBiconvex_LocalSpace( planeNormal, planeDistance, biconvex, point, normal, depth );
 
         printf( "=======================================\n" );
         printf( "plane vs. biconvex (local space):\n" );
@@ -372,9 +359,10 @@ int main()
             printf( " + collision:\n" );
             printf( " + point = (%f,%f,%f)\n", point.x(), point.y(), point.z() );
             printf( " + normal = (%f,%f,%f)\n", normal.x(), normal.y(), normal.z() );
+            printf( " + depth = %f\n", depth );
         }
         else
             printf( " + no collision!\n" );
         printf( "=======================================\n" );
-    } 
+    }
 }
