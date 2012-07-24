@@ -3,6 +3,7 @@
     A networked simulation of a go board and stones
 */
 
+#include "Platform.h"
 #include <stdio.h>
 #include <assert.h>
 #include "vectorial/vec2f.h"
@@ -12,7 +13,15 @@
 #include "UnitTest++/UnitTest++.h"
 #include "UnitTest++/TestRunner.h"
 #include "UnitTest++/TestReporterStdout.h"
+
+#if PLATFORM == PLATFORM_MAC
+#include <OpenGl/gl.h>
+#include <OpenGl/glu.h>
+#include <OpenGL/glext.h>
+#include <OpenGL/OpenGL.h>
+#endif
    
+using namespace platform;
 using namespace vectorial;
 
 class Biconvex
@@ -29,6 +38,8 @@ public:
         sphereOffset = sphereRadius - height/2;
         sphereDot = dot( vec3f(0,1,0), vec3f(width/2,0,0) - vec3f(0,-sphereOffset,0) );
 
+        circleRadius = width / 2;
+
         boundingSphereRadius = width * 0.5f;
         boundingSphereRadiusSquared = boundingSphereRadius * boundingSphereRadius;
 
@@ -44,6 +55,8 @@ public:
     float GetSphereOffset() const { return sphereOffset; }
     float GetSphereDot() const { return sphereDot; }
 
+    float GetCircleRadius() const { return circleRadius; }
+
     float GetBoundingSphereRadius() const { return boundingSphereRadius; }
 
 private:
@@ -56,11 +69,13 @@ private:
     float sphereOffset;                     // vertical offset from biconvex origin to center of spheres
     float sphereDot;                        // dot product of "up" with vector from to sphere center to "P" on biconvex edge circle
 
+    float circleRadius;                     // the radius of the circle edge at the intersection of the spheres surfaces
+
     float boundingSphereRadius;             // bounding sphere radius for biconvex shape
     float boundingSphereRadiusSquared;      // bounding sphere radius squared
 };
 
-inline bool IntersectRaySphere( vec3f rayStart, 
+inline bool IntersectRaySphere( vec3f rayStart,
                                 vec3f rayDirection, 
                                 vec3f sphereCenter, 
                                 float sphereRadius, 
@@ -206,7 +221,7 @@ inline vec3f GetNearestPointOnBiconvexSurface_LocalSpace( vec3f point,
                                                           const Biconvex & biconvex,
                                                           float epsilon = 0.001f )
 {
-    const float circleRadius = biconvex.GetWidth() / 2;
+    const float circleRadius = biconvex.GetCircleRadius();
     const float sphereRadius = biconvex.GetSphereRadius();
     const float sphereOffset = point.y() > 0 ? -biconvex.GetSphereOffset() : +biconvex.GetSphereOffset();
     vec3f sphereCenter( 0, sphereOffset, 0 );
@@ -245,12 +260,70 @@ inline float IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
     else
     {
         // circle edge collision
-        const float circleRadius = biconvex.GetWidth() / 2;
+        const float circleRadius = biconvex.GetCircleRadius();
         point = normalize( vec3f( -planeNormal.x(), 0, -planeNormal.z() ) ) * circleRadius;
     }
     normal = planeNormal;
     return dot( -planeNormal, point ) + planeDistance;
 }
+
+template <typename T> void swap( T & a, T & b )
+{
+    T tmp = a;
+    a = b;
+    b = tmp;
+}
+
+inline void BiconvexSupport_LocalSpace( Biconvex & biconvex, 
+                                        vec3f direction, 
+                                        float & s1, 
+                                        float & s2 )
+{
+    const float sphereDot = biconvex.GetSphereDot();
+    if ( fabs( dot( direction, vec3f(0,1,0) ) ) < sphereDot )
+    {
+        // in this orientation the span is the circle edge projected onto the line
+        const float circleRadius = biconvex.GetCircleRadius();
+        vec3f point = normalize( vec3f( direction.x(), 0, direction.z() ) ) * circleRadius;
+        s2 = dot( point, direction );
+        s1 = -s2;
+    }
+    else
+    {
+        // in this orientation the span is the intersection of the spans of both spheres
+        const float sphereOffset = biconvex.GetSphereOffset();
+        const float sphereRadius = biconvex.GetSphereRadius();
+        float t1 = dot( vec3f(0,-sphereOffset,0), direction );          // bottom sphere
+        float t2 = dot( vec3f(0,sphereOffset,0), direction );           // top sphere
+        if ( t1 > t2 )
+            swap( t1, t2 );
+        s1 = t2 - sphereRadius;
+        s2 = t1 + sphereRadius;
+    }
+}
+
+// todo: get the local space one making sense first!
+/*
+inline void BiconvexSupport_WorldSpace( Biconvex & biconvex, 
+                                        vec3f biconvexCenter,
+                                        vec3f biconvexUp,
+                                        vec3f direction, 
+                                        float & s1,
+                                        float & s2 )
+{
+    // same function but for the case where the biconvex
+    // solid is not centered around (0,0,0) and is rotated
+    // (this is the commmon case for the "other" biconvex)
+    const float sphereOffset = biconvex.GetSphereOffset();
+    const float sphereRadius = biconvex.GetSphereRadius();
+    float t1 = dot( biconvexCenter + biconvexUp * sphereOffset, direction );          // top sphere
+    float t2 = dot( biconvexCenter - biconvexUp * sphereOffset, direction );          // bottom sphere
+    if ( t1 > t2 )
+        swap( t1, t2 );
+    s1 = t2 - sphereRadius;
+    s2 = t1 + sphereRadius;
+}
+*/
 
 #if VIRTUALGO_CONSOLE
 
@@ -434,6 +507,39 @@ inline float IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
             CHECK_CLOSE_VEC3( point, vec3f(1,0,0), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(-1,0,0), epsilon );
         }
+
+        TEST( biconvex_support )
+        {
+            const float epsilon = 0.001f;
+
+            Biconvex biconvex( 2.0f, 1.0f );
+
+            float s1,s2;
+
+            BiconvexSupport_LocalSpace( biconvex, vec3f(0,1,0), s1, s2 );
+            CHECK_CLOSE( s1, -0.5f, epsilon );
+            CHECK_CLOSE( s2, 0.5f, epsilon );
+
+            BiconvexSupport_LocalSpace( biconvex, vec3f(0,-1,0), s1, s2 );
+            CHECK_CLOSE( s1, -0.5f, epsilon );
+            CHECK_CLOSE( s2, 0.5f, epsilon );
+
+            BiconvexSupport_LocalSpace( biconvex, vec3f(1,0,0), s1, s2 );
+            CHECK_CLOSE( s1, -1.0f, epsilon );
+            CHECK_CLOSE( s2, 1.0f, epsilon );
+
+            BiconvexSupport_LocalSpace( biconvex, vec3f(-1,0,0), s1, s2 );
+            CHECK_CLOSE( s1, -1.0f, epsilon );
+            CHECK_CLOSE( s2, 1.0f, epsilon );
+
+            BiconvexSupport_LocalSpace( biconvex, vec3f(0,0,1), s1, s2 );
+            CHECK_CLOSE( s1, -1.0f, epsilon );
+            CHECK_CLOSE( s2, 1.0f, epsilon );
+
+            BiconvexSupport_LocalSpace( biconvex, vec3f(0,0,-1), s1, s2 );
+            CHECK_CLOSE( s1, -1.0f, epsilon );
+            CHECK_CLOSE( s2, 1.0f, epsilon );
+        }
     }
 
     class MyTestReporter : public UnitTest::TestReporterStdout
@@ -458,6 +564,46 @@ inline float IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
     int main()
     {
         printf( "[virtual go]\n" );
+
+        int displayWidth, displayHeight;
+        GetDisplayResolution( displayWidth, displayHeight );
+
+        #ifdef LETTERBOX
+        displayWidth = 1280;
+        displayHeight = 800;
+        #endif
+
+        printf( "display resolution is %d x %d\n", displayWidth, displayHeight );
+
+        HideMouseCursor();
+        
+        if ( !OpenDisplay( "Virtual Go", displayWidth, displayHeight ) )
+        {
+            printf( "error: failed to open display" );
+            return 1;
+        }
+        
+        bool quit = false;
+        while ( !quit )
+        {
+            platform::Input input;
+            
+            input = platform::Input::Sample();
+
+            if ( input.escape )
+                quit = true;
+
+            glViewport( 0, 0, displayWidth, displayHeight );
+            glDisable( GL_SCISSOR_TEST );
+            glClearStencil( 0 );
+            glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );     
+            glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+            
+            UpdateDisplay( 1 );
+        }
+
+        CloseDisplay();
+
         return 0;
     }
 

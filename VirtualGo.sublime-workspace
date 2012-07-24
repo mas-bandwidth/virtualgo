@@ -120,10 +120,15 @@
 	},
 	"file_history":
 	[
-		"/Users/gaffer/git/cubes/client/Render.cpp",
-		"/Users/gaffer/virtualgo/VirtualGo.cpp",
-		"/Users/gaffer/virtualgo/TODO",
 		"/Users/gaffer/virtualgo/premake4.lua",
+		"/Users/gaffer/virtualgo/VirtualGo.cpp",
+		"/Users/gaffer/virtualgo/Platform.cpp",
+		"/Users/gaffer/virtualgo/Config.h",
+		"/Users/gaffer/virtualgo/Platform.h",
+		"/Users/gaffer/virtualgo/TODO",
+		"/Users/gaffer/virtualgo/CHANGES",
+		"/Users/gaffer/virtualgo/View.h",
+		"/Users/gaffer/git/cubes/client/Render.cpp",
 		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
 		"/Users/gaffer/git/network/premake4.lua",
 		"/Users/gaffer/Desktop/Intersection of Ellipsoids.pdf",
@@ -242,12 +247,7 @@
 		"/Users/gaffer/git/network/test/TestRecorder.cpp",
 		"/Users/gaffer/git/network/src/netTime.cpp",
 		"/Users/gaffer/git/network/src/netLog.cpp",
-		"/Users/gaffer/git/network/include/netLog.h",
-		"/Users/gaffer/git/network/test/TestAsyncSockets.cpp",
-		"/Users/gaffer/git/network/include/netSemaphore.h",
-		"/Users/gaffer/git/network/src/lanNode.cpp",
-		"/Users/gaffer/git/network/src/netSemaphore.cpp",
-		"/Users/gaffer/git/network/src/netSockets.cpp"
+		"/Users/gaffer/git/network/include/netLog.h"
 	],
 	"find":
 	{
@@ -483,12 +483,36 @@
 		"selected_items":
 		[
 			[
-				"pm",
+				"todo",
+				"TODO"
+			],
+			[
+				"platform.cpp",
+				"Platform.cpp"
+			],
+			[
+				"platform.h",
+				"Platform.h"
+			],
+			[
+				"view.h",
+				"View.h"
+			],
+			[
+				"premake4.lua",
 				"premake4.lua"
 			],
 			[
-				"todo",
-				"TODO"
+				"virtualgo.cpp",
+				"VirtualGo.cpp"
+			],
+			[
+				"prem",
+				"premake4.lua"
+			],
+			[
+				"pm",
+				"premake4.lua"
 			],
 			[
 				"vec3f.h",
@@ -497,10 +521,6 @@
 			[
 				"lua",
 				"premake4.lua"
-			],
-			[
-				"virtualgo.cpp",
-				"VirtualGo.cpp"
 			],
 			[
 				"premake",
@@ -637,10 +657,6 @@
 			[
 				"contants.net",
 				"ruby/ndl/Constants.net"
-			],
-			[
-				"premake4.lua",
-				"premake4.lua"
 			],
 			[
 				"constants.net",
@@ -977,22 +993,6 @@
 			[
 				"netbitpacker.h",
 				"include/netBitPacker.h"
-			],
-			[
-				"netstream.h",
-				"include/netStream.h"
-			],
-			[
-				"netutil.h",
-				"include/netUtil.h"
-			],
-			[
-				"sputest.cpp",
-				"test/SPUTest.cpp"
-			],
-			[
-				"testsub",
-				"test/TestSubWads.cpp"
 			]
 		],
 		"width": 0.0

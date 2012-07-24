@@ -23,16 +23,18 @@ project "UnitTest++"
 project "VirtualGo"
     kind "ConsoleApp"
     files { "*.h", "*.cpp" }
+    configuration { "macosx" }
+        links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
 project "UnitTest"
     kind "ConsoleApp"
-    files { "*.h", "*.cpp" }
+    files { "VirtualGo.cpp" }
     links { "UnitTest++" }
     defines { "VIRTUALGO_TEST" }
 
 project "Console"
     kind "ConsoleApp"
-    files { "*.h", "*.cpp" }
+    files { "VirtualGo.cpp" }
     defines { "VIRTUALGO_CONSOLE" }
 
 if _ACTION == "clean" then

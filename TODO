@@ -1,83 +1,39 @@
+
 DONE:
 
-    Restore basic biconvex class with math to determine sphere radius
-    and offset for a given biconvex width and height.
+    Link to OpenGL, Carbon etc.
 
-    Get the vector library back up and running from scoopr. 
-    Don't resurrect my own crappy library that isn't SIMD!!!
+    Get a basic opengl display going (bring in from "Cube" demo...)
 
-    Copy across useful code from old biconvex mathematics
-    routines, eg. 
+    Write function to determine projection of biconvex onto a line.
 
-        0. ray vs. sphere
-        1. ray vs. biconvex (local space)
-
-    Quick test to determine if a point is inside the biconvex.
-
-    Add a function to determine if a point is on the biconvex surface within epsilon.
-
-    Determine normal given a point on the biconvex surface.
-    This should accept an epsilon in which it determines that the point is on
-    the circle edge, vs. being on the sphere edge. In the case of circle edge
-    express the normal as outwards from the circle.
-
-    Find closest point on biconvex to another point (point is outside the biconvex)
-
-    This breaks down into:
-
-        a) closest point on sphere -- easy
-        b) closest point on circle -- project to xz plane, normalize and multiply by circle radius
-
-    Determine dot at edge of biconvex (eg. within which the plane collision 
-    will be a collision with the circle, not the sphere surface...)
-
-    This angle can be determined by looking at the origin of one of the generating
-    spheres, and determining the angle between the x axis, and the line to the side
-    of the biconvex shape.
-
-    Use this to rework the plane collision to determine the dot range
-    in which the plane must collide with the circle, and not the sphere
-    surfaces.
-
-    Add tests for top, buttom and edge cases of biconvex vs. plane
-
-    Fix the function so that the results are what we expect!
-
-    Rework function so we get information about nearest point even
-    if the plane and biconvex are not colliding yet.
-
-    Get unit testing framework integrated into the project
-
-    Convert all printf tests over to unit tests.
-
-    Problem with nearest point on biconvex surface, it is giving NaNs
-    for trivial points outside the biconvex, eg. (0,10,0) above the 
-    biconvex should result in (0,0.5,0)
-
-    Convert plane biconvex intersection. Make sure all three cases
-    are properly tested:
-
-        1. top surface
-        2. sphere surface
-        3. circle edge
-    
-    I still want a "pm dev" console app that I can use to just printf
-    and explore various things, as well as "pm test" and "pm go" for
-    the actual opengl program.
-
-    For the moment the quickest way to get all this stuff going is to
-    just have it all in VirtualGo.cpp. Over structuring is a waste of 
-    my time.
-
-    So to get this working have VIRTUALGO_TEST, VIRTUALGO_CONSOLE
-    defined with separate behavior for these guys, and default
-    is to run the real program (eg. "pm go")
 
 TODO:
 
+    Biconvex vs. Biconvex
+
+        Simplify circle case. I don't think that it is necessary
+        to do the normalize and project just to get it working.
+
+        Write a function that determines the projection of a biconvex
+        with a rigid body transform onto a line. This will be used for
+        determining the projection of the "other" biconvex.
+
+        Determine set of axes to test one biconvex vs. another. 
+        I believe if it is all combinations of lines between sphere
+        centers, and a line from the center of each biconvex through
+        the circle plane, to the projection of the other biconvex center.
+        Not sure about this last one though.
+
+        Once biconvex works with SAT then we can use the area of most
+        least overlap as the area to push out. This is the "least" work
+        way to push out of the object. But is this correct?
+
     Interactive Demo
 
-        Get a basic opengl display going (bring in from "Cube" demo...)
+        Bring back Render.h/Camera.h in a basic form from the Cube demo
+        so I don't have to rewrite my own system again, but cut down
+        dramatically to just what I need.
 
         Bring back code to generate the go stone given a biconvex share
         and a desired amount of bevel along the edge (radius of bevel).
@@ -90,14 +46,21 @@ TODO:
         queries, such as nearest point to biconvex, biconvex vs. plane,
         biconvex vs. other biconvex interactively.
 
-        Should start investigating: Soft shadows, DoF etc.
+    Physics:
 
-    Biconvex vs. Biconvex
+        Once satisfied that the basic queries are good quality implement physics
 
-        Quick test to determine if a biconvex is colliding with another biconvex.
-            
-        Closest point on another biconvex relative to another (assume not colliding)
+        The idea would be that an impulse based simulation is probably the best
+        way to go, ideally reusing the idea of speculative contacts so resting
+        contact is completely stable with no jitter.
 
-        Assuming biconvex is colliding with another biconvex, find best point/normal
-        for the collision. Will need to rework this and determine the cases, for example
-        edge vs. sphere surface, sphere surface vs. sphere surface etc.
+        First implement the stone drop with gravity with only linear motion
+
+        Verify that the stone properly drops and bounces against the plane
+        without linear motion and does not penetrate.
+
+        Next, determine how to implement angular collision response
+
+        Next, determine how to implement friction
+
+        At this point the stone should bounce and move realistically.
