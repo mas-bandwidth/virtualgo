@@ -7,27 +7,33 @@ DONE:
 
     Write function to determine projection of biconvex onto a line.
 
+    Implement basic unit tests of the span across xyz axes
+
+    Determine set of axes to test one biconvex vs. another. 
+    I believe if it is all combinations of lines between sphere
+    centers, and a line from the center of each biconvex through
+    the circle plane, to the projection of the other biconvex center
+    onto the circle plane. YES!
+
+    Write a function that determines the projection of a biconvex
+    with a rigid body transform onto a line. This will be used for
+    determining the projection of the "other" biconvex.
+
+    Implement a biconvex vs. biconvex SAT function which accepts
+    world space position/up per-biconvex and returns true if they
+    are intersecting.
 
 TODO:
 
     Biconvex vs. Biconvex
 
-        Simplify circle case. I don't think that it is necessary
-        to do the normalize and project just to get it working.
+        Test the biconvex SAT function and fix the biconvex span function
+        so that it gives correct results off the primary axes
+        (check the dot threshold!)
 
-        Write a function that determines the projection of a biconvex
-        with a rigid body transform onto a line. This will be used for
-        determining the projection of the "other" biconvex.
-
-        Determine set of axes to test one biconvex vs. another. 
-        I believe if it is all combinations of lines between sphere
-        centers, and a line from the center of each biconvex through
-        the circle plane, to the projection of the other biconvex center.
-        Not sure about this last one though.
-
-        Once biconvex works with SAT then we can use the area of most
-        least overlap as the area to push out. This is the "least" work
-        way to push out of the object. But is this correct?
+        Extend so that once we know intersection we can determine
+        the point and normal to push out. Should this be done with
+        SAT or some hand crafted test based on nearest features?
 
     Interactive Demo
 

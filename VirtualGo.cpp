@@ -36,7 +36,7 @@ public:
         sphereRadius = ( width*width + height*height ) / ( 4 * height );
         sphereRadiusSquared = sphereRadius * sphereRadius;
         sphereOffset = sphereRadius - height/2;
-        sphereDot = dot( vec3f(0,1,0), vec3f(width/2,0,0) - vec3f(0,-sphereOffset,0) );
+        sphereDot = dot( vec3f(0,1,0), normalize( vec3f(width/2,0,0) - vec3f(0,-sphereOffset,0) ) );
 
         circleRadius = width / 2;
 
@@ -274,18 +274,18 @@ template <typename T> void swap( T & a, T & b )
     b = tmp;
 }
 
-inline void BiconvexSupport_LocalSpace( Biconvex & biconvex, 
-                                        vec3f direction, 
+inline void BiconvexSupport_LocalSpace( const Biconvex & biconvex, 
+                                        vec3f axis, 
                                         float & s1, 
                                         float & s2 )
 {
     const float sphereDot = biconvex.GetSphereDot();
-    if ( fabs( dot( direction, vec3f(0,1,0) ) ) < sphereDot )
+    if ( fabs( dot( axis, vec3f(0,1,0) ) ) < sphereDot )
     {
         // in this orientation the span is the circle edge projected onto the line
         const float circleRadius = biconvex.GetCircleRadius();
-        vec3f point = normalize( vec3f( direction.x(), 0, direction.z() ) ) * circleRadius;
-        s2 = dot( point, direction );
+        vec3f point = normalize( vec3f( axis.x(), 0, axis.z() ) ) * circleRadius;
+        s2 = dot( point, axis );
         s1 = -s2;
     }
     else
@@ -293,8 +293,8 @@ inline void BiconvexSupport_LocalSpace( Biconvex & biconvex,
         // in this orientation the span is the intersection of the spans of both spheres
         const float sphereOffset = biconvex.GetSphereOffset();
         const float sphereRadius = biconvex.GetSphereRadius();
-        float t1 = dot( vec3f(0,-sphereOffset,0), direction );          // bottom sphere
-        float t2 = dot( vec3f(0,sphereOffset,0), direction );           // top sphere
+        float t1 = dot( vec3f(0,-sphereOffset,0), axis );          // bottom sphere
+        float t2 = dot( vec3f(0,sphereOffset,0), axis );           // top sphere
         if ( t1 > t2 )
             swap( t1, t2 );
         s1 = t2 - sphereRadius;
@@ -302,28 +302,72 @@ inline void BiconvexSupport_LocalSpace( Biconvex & biconvex,
     }
 }
 
-// todo: get the local space one making sense first!
-/*
-inline void BiconvexSupport_WorldSpace( Biconvex & biconvex, 
+inline void BiconvexSupport_WorldSpace( const Biconvex & biconvex, 
                                         vec3f biconvexCenter,
                                         vec3f biconvexUp,
-                                        vec3f direction, 
+                                        vec3f axis, 
                                         float & s1,
                                         float & s2 )
 {
     // same function but for the case where the biconvex
     // solid is not centered around (0,0,0) and is rotated
     // (this is the commmon case for the "other" biconvex)
-    const float sphereOffset = biconvex.GetSphereOffset();
-    const float sphereRadius = biconvex.GetSphereRadius();
-    float t1 = dot( biconvexCenter + biconvexUp * sphereOffset, direction );          // top sphere
-    float t2 = dot( biconvexCenter - biconvexUp * sphereOffset, direction );          // bottom sphere
-    if ( t1 > t2 )
-        swap( t1, t2 );
-    s1 = t2 - sphereRadius;
-    s2 = t1 + sphereRadius;
+    const float sphereDot = biconvex.GetSphereDot();
+    if ( fabs( dot( axis, biconvexUp ) ) < sphereDot )
+    {
+        // in this orientation the span is the circle edge projected onto the line
+        const float circleRadius = biconvex.GetCircleRadius();
+        const float center_t = dot( biconvexCenter, axis );
+        const float radius_t = dot( normalize( axis - biconvexUp * dot(biconvexUp,axis) ) * circleRadius, axis );
+        s1 = center_t - radius_t;
+        s2 = center_t + radius_t;
+    }
+    else
+    {
+        // in this orientation the span is the intersection of the spans of both spheres
+        const float sphereOffset = biconvex.GetSphereOffset();
+        const float sphereRadius = biconvex.GetSphereRadius();
+        float t1 = dot( biconvexCenter - biconvexUp * sphereOffset, axis );          // bottom sphere
+        float t2 = dot( biconvexCenter + biconvexUp * sphereOffset, axis );          // top sphere
+        if ( t1 > t2 )
+            swap( t1, t2 );
+        s1 = t2 - sphereRadius;
+        s2 = t1 + sphereRadius;
+    }
 }
-*/
+
+#define TEST_BICONVEX_AXIS( axis )                                                  \
+{                                                                                   \
+    float s1,s2,t1,t2;                                                              \
+    BiconvexSupport_WorldSpace( biconvex, position_a, up_a, axis, s1, s2 );         \
+    BiconvexSupport_WorldSpace( biconvex, position_b, up_b, axis, t1, t2 );         \
+    if ( s2 + epsilon < t1 || t2 + epsilon < s1 )                                   \
+        return false;                                                               \
+}
+
+bool Biconvex_SAT( const Biconvex & biconvex,
+                   vec3f position_a,
+                   vec3f position_b,
+                   vec3f up_a,
+                   vec3f up_b,
+                   float epsilon = 0.001f )
+{
+    const float sphereOffset = biconvex.GetSphereOffset();
+
+    vec3f top_a = position_a + up_a * sphereOffset;
+    vec3f top_b = position_b + up_b * sphereOffset;
+
+    vec3f bottom_a = position_a - up_a * sphereOffset;
+    vec3f bottom_b = position_b - up_b * sphereOffset;
+
+    TEST_BICONVEX_AXIS( position_b - position_a );
+    TEST_BICONVEX_AXIS( top_b - top_a );
+    TEST_BICONVEX_AXIS( bottom_b - top_a );
+    TEST_BICONVEX_AXIS( top_b - bottom_a );
+    TEST_BICONVEX_AXIS( bottom_b - bottom_a );
+
+    return true;
+}
 
 #if VIRTUALGO_CONSOLE
 
@@ -348,7 +392,7 @@ inline void BiconvexSupport_WorldSpace( Biconvex & biconvex,
             CHECK_CLOSE( biconvex.GetHeight(), 1.0f, epsilon );
             CHECK_CLOSE( biconvex.GetSphereRadius(), 1.25f, epsilon );
             CHECK_CLOSE( biconvex.GetSphereOffset(), 0.75f, epsilon );
-            CHECK_CLOSE( biconvex.GetSphereDot(), 0.75f, epsilon );
+            CHECK_CLOSE( biconvex.GetSphereDot(), 0.6f, epsilon );
         }    
 
         TEST( intersect_ray_sphere_hit )
@@ -508,7 +552,7 @@ inline void BiconvexSupport_WorldSpace( Biconvex & biconvex,
             CHECK_CLOSE_VEC3( normal, vec3f(-1,0,0), epsilon );
         }
 
-        TEST( biconvex_support )
+        TEST( biconvex_support_local_space )
         {
             const float epsilon = 0.001f;
 
@@ -539,6 +583,55 @@ inline void BiconvexSupport_WorldSpace( Biconvex & biconvex,
             BiconvexSupport_LocalSpace( biconvex, vec3f(0,0,-1), s1, s2 );
             CHECK_CLOSE( s1, -1.0f, epsilon );
             CHECK_CLOSE( s2, 1.0f, epsilon );
+        }
+
+        TEST( biconvex_support_world_space )
+        {
+            const float epsilon = 0.001f;
+
+            Biconvex biconvex( 2.0f, 1.0f );
+            vec3f biconvexCenter(10,0,0);
+            vec3f biconvexUp(1,0,0);
+
+            float s1,s2;
+
+            BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(0,1,0), s1, s2 );
+            CHECK_CLOSE( s1, -1.0f, epsilon );
+            CHECK_CLOSE( s2, 1.0f, epsilon );
+
+            BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(0,-1,0), s1, s2 );
+            CHECK_CLOSE( s1, -1.0f, epsilon );
+            CHECK_CLOSE( s2, 1.0f, epsilon );
+
+            BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(1,0,0), s1, s2 );
+            CHECK_CLOSE( s1, 9.5f, epsilon );
+            CHECK_CLOSE( s2, 10.5f, epsilon );
+
+            BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(-1,0,0), s1, s2 );
+            CHECK_CLOSE( s1, -10.5f, epsilon );
+            CHECK_CLOSE( s2, -9.5f, epsilon );
+
+            BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(0,0,1), s1, s2 );
+            CHECK_CLOSE( s1, -1.0f, epsilon );
+            CHECK_CLOSE( s2, 1.0f, epsilon );
+
+            BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(0,0,-1), s1, s2 );
+            CHECK_CLOSE( s1, -1.0f, epsilon );
+            CHECK_CLOSE( s2, 1.0f, epsilon );
+        }
+
+        TEST( biconvex_sat )
+        {
+            const float epsilon = 0.001f;
+
+            Biconvex biconvex( 2.0f, 1.0f );
+
+            CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,0), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+
+            // todo: currently this test fails
+            // however it is definitely colliding, therefore the biconvex span function is incorrect
+            // probably due to how it handles transition from sphere edge to circle edge. FIX IT!
+            CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(1,0,0), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
         }
     }
 
