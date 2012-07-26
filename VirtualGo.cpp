@@ -36,7 +36,7 @@ public:
         sphereRadius = ( width*width + height*height ) / ( 4 * height );
         sphereRadiusSquared = sphereRadius * sphereRadius;
         sphereOffset = sphereRadius - height/2;
-        sphereDot = dot( vec3f(0,1,0), normalize( vec3f(width/2,0,0) - vec3f(0,-sphereOffset,0) ) );
+        sphereDot = dot( vec3f(0,1,0), normalize( vec3f( sphereOffset, width/2, 0 ) ) );
 
         circleRadius = width / 2;
 
@@ -280,7 +280,7 @@ inline void BiconvexSupport_LocalSpace( const Biconvex & biconvex,
                                         float & s2 )
 {
     const float sphereDot = biconvex.GetSphereDot();
-    if ( fabs( dot( axis, vec3f(0,1,0) ) ) < sphereDot )
+    if ( fabs( dot( axis, vec3f(0,1,0) ) ) < 1.0f - sphereDot )
     {
         // in this orientation the span is the circle edge projected onto the line
         const float circleRadius = biconvex.GetCircleRadius();
@@ -313,7 +313,7 @@ inline void BiconvexSupport_WorldSpace( const Biconvex & biconvex,
     // solid is not centered around (0,0,0) and is rotated
     // (this is the commmon case for the "other" biconvex)
     const float sphereDot = biconvex.GetSphereDot();
-    if ( fabs( dot( axis, biconvexUp ) ) < sphereDot )
+    if ( fabs( dot( axis, biconvexUp ) ) < 1.0 - sphereDot )
     {
         // in this orientation the span is the circle edge projected onto the line
         const float circleRadius = biconvex.GetCircleRadius();
@@ -336,7 +336,7 @@ inline void BiconvexSupport_WorldSpace( const Biconvex & biconvex,
     }
 }
 
-#define TEST_BICONVEX_AXIS( axis )                                                  \
+#define TEST_BICONVEX_AXIS( name, axis )                                            \
 {                                                                                   \
     float s1,s2,t1,t2;                                                              \
     BiconvexSupport_WorldSpace( biconvex, position_a, up_a, axis, s1, s2 );         \
@@ -344,6 +344,24 @@ inline void BiconvexSupport_WorldSpace( const Biconvex & biconvex,
     if ( s2 + epsilon < t1 || t2 + epsilon < s1 )                                   \
         return false;                                                               \
 }
+
+/*
+#define TEST_BICONVEX_AXIS( name, axis )                                            \
+{                                                                                   \
+    printf( "-----------------------------------\n" );                              \
+    printf( name ":\n" );                                                           \
+    printf( "-----------------------------------\n" );                              \
+    float s1,s2,t1,t2;                                                              \
+    BiconvexSupport_WorldSpace( biconvex, position_a, up_a, axis, s1, s2 );         \
+    BiconvexSupport_WorldSpace( biconvex, position_b, up_b, axis, t1, t2 );         \
+    printf( "(%f,%f) | (%f,%f)\n", s1, s2, t1, t2 );                                \
+    if ( s2 + epsilon < t1 || t2 + epsilon < s1 )                                   \
+    {                                                                               \
+        printf( "not intersecting\n" );                                             \
+        return false;                                                               \
+    }                                                                               \
+}
+*/
 
 bool Biconvex_SAT( const Biconvex & biconvex,
                    vec3f position_a,
@@ -360,11 +378,11 @@ bool Biconvex_SAT( const Biconvex & biconvex,
     vec3f bottom_a = position_a - up_a * sphereOffset;
     vec3f bottom_b = position_b - up_b * sphereOffset;
 
-    TEST_BICONVEX_AXIS( position_b - position_a );
-    TEST_BICONVEX_AXIS( top_b - top_a );
-    TEST_BICONVEX_AXIS( bottom_b - top_a );
-    TEST_BICONVEX_AXIS( top_b - bottom_a );
-    TEST_BICONVEX_AXIS( bottom_b - bottom_a );
+    TEST_BICONVEX_AXIS( "primary", normalize( position_b - position_a ) );
+    TEST_BICONVEX_AXIS( "top_a|top_b", normalize( top_b - top_a ) );
+    TEST_BICONVEX_AXIS( "top_a|bottom_b", normalize( bottom_b - top_a ) );
+    TEST_BICONVEX_AXIS( "bottom_a|top_b", normalize( top_b - bottom_a ) );
+    TEST_BICONVEX_AXIS( "bottom_b|top_a", normalize( bottom_b - bottom_a ) );
 
     return true;
 }
@@ -392,7 +410,7 @@ bool Biconvex_SAT( const Biconvex & biconvex,
             CHECK_CLOSE( biconvex.GetHeight(), 1.0f, epsilon );
             CHECK_CLOSE( biconvex.GetSphereRadius(), 1.25f, epsilon );
             CHECK_CLOSE( biconvex.GetSphereOffset(), 0.75f, epsilon );
-            CHECK_CLOSE( biconvex.GetSphereDot(), 0.6f, epsilon );
+            CHECK_CLOSE( biconvex.GetSphereDot(), 0.8f, epsilon );
         }    
 
         TEST( intersect_ray_sphere_hit )
@@ -627,11 +645,32 @@ bool Biconvex_SAT( const Biconvex & biconvex,
             Biconvex biconvex( 2.0f, 1.0f );
 
             CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,0), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+            CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,0), vec3f(0,1,0), vec3f(0,-1,0), epsilon ) );
+            CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,0), vec3f(0,1,0), vec3f(1,0,0), epsilon ) );
+            CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,0), vec3f(0,1,0), vec3f(-1,0,0), epsilon ) );
+            CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,0), vec3f(0,1,0), vec3f(0,0,1), epsilon ) );
+            CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,0), vec3f(0,1,0), vec3f(0,0,-1), epsilon ) );
 
-            // todo: currently this test fails
-            // however it is definitely colliding, therefore the biconvex span function is incorrect
-            // probably due to how it handles transition from sphere edge to circle edge. FIX IT!
             CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(1,0,0), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+            CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(-1,0,0), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+            CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,1,0), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+            CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,-1,0), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+            CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,1), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+            CHECK( Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,-1), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+
+            CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(10,0,0), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+            CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(-10,0,0), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+            CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,10,0), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+            CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,-10,0), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+            CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,10), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+            CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,-10), vec3f(0,1,0), vec3f(0,1,0), epsilon ) );
+
+            CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(10,0,0), vec3f(0,1,0), vec3f(1,0,0), epsilon ) );
+            CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(-10,0,0), vec3f(0,1,0), vec3f(1,0,0), epsilon ) );
+            CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,10,0), vec3f(0,1,0), vec3f(1,0,0), epsilon ) );
+            CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,-10,0), vec3f(0,1,0), vec3f(1,0,0), epsilon ) );
+            CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,10), vec3f(0,1,0), vec3f(1,0,0), epsilon ) );
+            CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,-10), vec3f(0,1,0), vec3f(1,0,0), epsilon ) );
         }
     }
 

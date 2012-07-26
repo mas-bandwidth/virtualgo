@@ -27,10 +27,6 @@ TODO:
 
     Biconvex vs. Biconvex
 
-        Test the biconvex SAT function and fix the biconvex span function
-        so that it gives correct results off the primary axes
-        (check the dot threshold!)
-
         Extend so that once we know intersection we can determine
         the point and normal to push out. Should this be done with
         SAT or some hand crafted test based on nearest features?
