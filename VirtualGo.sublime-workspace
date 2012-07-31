@@ -120,13 +120,18 @@
 	},
 	"file_history":
 	[
-		"/Users/gaffer/virtualgo/premake4.lua",
 		"/Users/gaffer/virtualgo/VirtualGo.cpp",
+		"/Users/gaffer/virtualgo/TODO",
+		"/Users/gaffer/Desktop/hosting meeting with OTG",
+		"/Users/gaffer/Desktop/hosting meeting with GH",
+		"/Users/gaffer/virtualgo/CHANGES",
+		"/Users/gaffer/virtualgo/vectorial/simd4f_scalar.h",
+		"/Users/gaffer/virtualgo/vectorial/mat4f.h",
+		"/Users/gaffer/virtualgo/vectorial/simd4x4f.h",
+		"/Users/gaffer/virtualgo/premake4.lua",
 		"/Users/gaffer/virtualgo/Platform.cpp",
 		"/Users/gaffer/virtualgo/Config.h",
 		"/Users/gaffer/virtualgo/Platform.h",
-		"/Users/gaffer/virtualgo/TODO",
-		"/Users/gaffer/virtualgo/CHANGES",
 		"/Users/gaffer/virtualgo/View.h",
 		"/Users/gaffer/git/cubes/client/Render.cpp",
 		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
@@ -242,12 +247,7 @@
 		"/Users/gaffer/git/network/README",
 		"/Users/gaffer/git/network/include/netSerialize.h",
 		"/Users/gaffer/git/network/incoming/mpTableManager.cpp",
-		"/Users/gaffer/git/network/include/netTableManager.h",
-		"/Users/gaffer/git/network/include/netRecorder.h",
-		"/Users/gaffer/git/network/test/TestRecorder.cpp",
-		"/Users/gaffer/git/network/src/netTime.cpp",
-		"/Users/gaffer/git/network/src/netLog.cpp",
-		"/Users/gaffer/git/network/include/netLog.h"
+		"/Users/gaffer/git/network/include/netTableManager.h"
 	],
 	"find":
 	{
@@ -285,6 +285,13 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"_span",
+			"sphereDot",
+			"_sat",
+			"direction",
+			"GetWidth() / 2",
+			"width / 2",
+			"width /2",
 			"vectorial::",
 			"vec",
 			"Version",
@@ -405,14 +412,7 @@
 			"BillieJean",
 			"NET_PROFILE",
 			"TableAllocator",
-			"Allocator",
-			"NETHACK",
-			"printf",
-			"NE_",
-			"user packet",
-			"printf",
-			"unix",
-			"new Sema"
+			"Allocator"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -487,6 +487,30 @@
 				"TODO"
 			],
 			[
+				"changes",
+				"CHANGES"
+			],
+			[
+				"virtualgo.cpp",
+				"VirtualGo.cpp"
+			],
+			[
+				"mat4f.h",
+				"vectorial/mat4f.h"
+			],
+			[
+				"mat4f",
+				"vectorial/mat4f.h"
+			],
+			[
+				"simd4x4",
+				"vectorial/simd4x4f.h"
+			],
+			[
+				"mat",
+				"vectorial/mat4f.h"
+			],
+			[
 				"platform.cpp",
 				"Platform.cpp"
 			],
@@ -501,10 +525,6 @@
 			[
 				"premake4.lua",
 				"premake4.lua"
-			],
-			[
-				"virtualgo.cpp",
-				"VirtualGo.cpp"
 			],
 			[
 				"prem",
@@ -525,10 +545,6 @@
 			[
 				"premake",
 				"premake4.lua"
-			],
-			[
-				"changes",
-				"CHANGES"
 			],
 			[
 				"gamemodes.json",
@@ -977,22 +993,6 @@
 			[
 				"arse",
 				"arse.lua"
-			],
-			[
-				"netstream.cpp",
-				"src/netStream.cpp"
-			],
-			[
-				"teststream.cpp",
-				"test/TestStream.cpp"
-			],
-			[
-				"testbitpacker.cpp",
-				"test/TestBitPacker.cpp"
-			],
-			[
-				"netbitpacker.h",
-				"include/netBitPacker.h"
 			]
 		],
 		"width": 0.0

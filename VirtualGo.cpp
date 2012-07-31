@@ -1,6 +1,6 @@
 /*
     Virtual Go
-    A networked simulation of a go board and stones
+    A networked physics simulation of a go board and stones
 */
 
 #include "Platform.h"
@@ -23,6 +23,15 @@
    
 using namespace platform;
 using namespace vectorial;
+
+/*
+    Biconvex solid.
+
+    The biconvex solid is the intersection of two equally sized spheres
+    The two spheres of specific radius are placed vertically relative to 
+    each other at a specific distance to generate a biconvex solid with
+    the desired width (circle diameter) and height (y axis top to bottom).
+*/
 
 class Biconvex
 {
@@ -67,7 +76,7 @@ private:
     float sphereRadius;                     // radius of spheres that intersect to generate this biconvex solid
     float sphereRadiusSquared;              // radius squared
     float sphereOffset;                     // vertical offset from biconvex origin to center of spheres
-    float sphereDot;                        // dot product of "up" with vector from to sphere center to "P" on biconvex edge circle
+    float sphereDot;                        // dot product threshold for detecting circle edge vs. sphere surface collision
 
     float circleRadius;                     // the radius of the circle edge at the intersection of the spheres surfaces
 
@@ -386,6 +395,166 @@ bool Biconvex_SAT( const Biconvex & biconvex,
 
     return true;
 }
+
+/*
+    Go board.
+
+    We model the go board as an axis aligned rectangular prism.
+    The top surface of the go board is along the y = 0 plane for simplicity.
+    Collision with the top surface is the common case, however we also need
+    to consider collisions with the side planes, the top edges and the top
+    corners.
+*/
+
+class Board
+{
+public:
+
+    Board( float width, float height, float thickness )
+    {
+        this->width = width;
+        this->height = height;
+        this->thickness = thickness;
+        halfWidth = width / 2;
+        halfHeight = height / 2;
+    }
+
+    float GetWidth() const
+    {
+        return width;
+    }
+
+    float GetHeight() const
+    {
+        return height;
+    }
+
+    float GetThickness() const
+    {
+        return thickness;
+    }
+
+    float GetHalfWidth() const
+    {
+        return halfWidth;
+    }
+
+    float GetHalfHeight() const
+    {
+        return halfHeight;
+    }
+
+private:
+
+    float width;                            // width of board (along x-axis)
+    float height;                           // depth of board (along z-axis)
+    float thickness;                        // thickness of board (along y-axis)
+
+    float halfWidth;
+    float halfHeight;
+};
+
+enum BoardEdges
+{
+    BOARD_EDGE_None = 0,
+    BOARD_EDGE_Left = 1,
+    BOARD_EDGE_Top = 2,
+    BOARD_EDGE_Right = 4,
+    BOARD_EDGE_Bottom = 8
+};
+
+enum StoneBoardCollisionType
+{
+    STONE_BOARD_COLLISION_None = 0xFFFFFFFF,            // no collision is possible (uncommon, stones are mostly on the board...)
+    STONE_BOARD_COLLISION_Primary = 0,                  // collision with the primary surface (the plane at y = 0). common case!
+    STONE_BOARD_COLLISION_LeftSide = BOARD_EDGE_None,
+    STONE_BOARD_COLLISION_TopSide = BOARD_EDGE_Top,
+    STONE_BOARD_COLLISION_RightSide = BOARD_EDGE_Right,
+    STONE_BOARD_COLLISION_BottomSide = BOARD_EDGE_Bottom,
+    STONE_BOARD_COLLISION_TopLeftCorner = BOARD_EDGE_Top | BOARD_EDGE_Left,
+    STONE_BOARD_COLLISION_TopRightCorner = BOARD_EDGE_Top | BOARD_EDGE_Right,
+    STONE_BOARD_COLLISION_BottomRightCorner = BOARD_EDGE_Bottom | BOARD_EDGE_Right,
+    STONE_BOARD_COLLISION_BottomLeftCorner = BOARD_EDGE_Bottom | BOARD_EDGE_Left
+};
+
+inline StoneBoardCollisionType DetermineStoneBoardCollisionType( const Board & board, vec3f position, float radius )
+{
+    // stone is above board surface by more than the radius
+    // of the bounding sphere, no collision is possible!
+    const float y = position.y();
+    if ( y > radius )
+        return STONE_BOARD_COLLISION_None;
+
+    // some collision is possible, determine whether we are potentially
+    // colliding width the edges of the board. the common case is that we are not!
+
+    const float x = position.x();
+    const float z = position.z();
+
+    const float w = board.GetHalfWidth();
+    const float h = board.GetHalfHeight();
+    const float r = radius;
+
+    uint32_t edges = BOARD_EDGE_None;
+
+    if ( x <= -w + r )                            // IMPORTANT: assumption that the board width/height is large 
+        edges |= BOARD_EDGE_Left;                 // relative to the bounding sphere, eg. that only one corner
+    else if ( x <= -w + r )                       // would potentially be intersecting with a stone at any time
+        edges |= BOARD_EDGE_Right;
+
+    if ( z <= -h + r )
+        edges |= BOARD_EDGE_Top;
+    else if ( z <= -h + r )
+        edges |= BOARD_EDGE_Bottom;
+
+    // common case: stone bounding sphere is entirely within the primary
+    // surface and cannot intersect with corners or edges of the board
+    if ( edges == 0 )
+        return STONE_BOARD_COLLISION_Primary;
+
+    // rare case: no collision if the stone is further than the bounding
+    // sphere radius from the sides of the board along the x or z axes.
+    if ( x < -w - r || x > w + r || z < -h - r || z > h + r )
+        return STONE_BOARD_COLLISION_None;
+
+    // otherwise: the edge bitfield maps to the set of collision cases
+    // these collision cases indicate which sides and corners need to be
+    // tested in addition to the primary surface.
+    return (StoneBoardCollisionType) edges;
+}
+
+inline bool IntersectStoneBoard( const Board & board, 
+                                 const Biconvex & biconvex, 
+                                 vec3f biconvexPosition,              // todo: i'd like to extract position from mat4f instead
+                                 mat4f biconvexLocalToWorld,
+                                 mat4f biconvexWorldToLocal,
+                                 vec3f & point,
+                                 vec3f & normal,
+                                 float & depth )
+{
+    const float boundingSphereRadius = biconvex.GetBoundingSphereRadius();
+
+    StoneBoardCollisionType collisionType = DetermineStoneBoardCollisionType( board, biconvexPosition, boundingSphereRadius );
+
+    if ( collisionType == STONE_BOARD_COLLISION_Primary )
+    {
+        // common case: collision with primary surface of board only
+        // no collision with edges or corners of board is possible
+
+        // todo: transform plane into local space of biconvex
+
+        // todo: call biconvex vs. plane intersection test in local space
+
+        // todo: if intersecting, transform point/normal into world space
+
+        return true;
+    }
+
+    // todo: handle other cases
+
+    return false;
+}
+
 
 #if VIRTUALGO_CONSOLE
 

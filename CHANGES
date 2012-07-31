@@ -1,5 +1,38 @@
-========================================================================
-22/8/2012: Added intersection and collision functions for biconvex solid 
+
+
+Implemented Biconvex vs. Biconvex SAT test (26/8/2012)
+======================================================
+
+    Write function to determine projection of biconvex onto a line.
+
+    Implement basic unit tests of the span across xyz axes
+
+    Determine set of axes to test one biconvex vs. another. 
+    I believe if it is all combinations of lines between sphere
+    centers, and a line from the center of each biconvex through
+    the circle plane, to the projection of the other biconvex center
+    onto the circle plane. YES!
+
+    Write a function that determines the projection of a biconvex
+    with a rigid body transform onto a line. This will be used for
+    determining the projection of the "other" biconvex.
+
+    Implement a biconvex vs. biconvex SAT function which accepts
+    world space position/up per-biconvex and returns true if they
+    are intersecting.
+
+
+
+Basic OpenGL display (24/8/2012):
+=================================
+
+    Link to OpenGL, Carbon etc from premake
+
+    Get a fullscreen opengl display going (bring in from "Cube" demo...)
+
+
+
+Added intersection and collision functions for biconvex solid (22/8/2012)
 ========================================================================
 
     Restore basic biconvex class with math to determine sphere radius
