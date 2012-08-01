@@ -465,9 +465,9 @@ enum BoardEdges
 
 enum StoneBoardCollisionType
 {
-    STONE_BOARD_COLLISION_None = 0xFFFFFFFF,            // no collision is possible (uncommon, stones are mostly on the board...)
-    STONE_BOARD_COLLISION_Primary = 0,                  // collision with the primary surface (the plane at y = 0). common case!
-    STONE_BOARD_COLLISION_LeftSide = BOARD_EDGE_None,
+    STONE_BOARD_COLLISION_None = 0xFFFFFFFF,             // no collision is possible (uncommon, stones are mostly on the board...)
+    STONE_BOARD_COLLISION_Primary = BOARD_EDGE_None,     // common case: collision with the primary surface (the plane at y = 0)
+    STONE_BOARD_COLLISION_LeftSide = BOARD_EDGE_Left,
     STONE_BOARD_COLLISION_TopSide = BOARD_EDGE_Top,
     STONE_BOARD_COLLISION_RightSide = BOARD_EDGE_Right,
     STONE_BOARD_COLLISION_BottomSide = BOARD_EDGE_Bottom,
@@ -497,14 +497,19 @@ inline StoneBoardCollisionType DetermineStoneBoardCollisionType( const Board & b
 
     uint32_t edges = BOARD_EDGE_None;
 
+    // todo: we can optimize this and cache the various
+    // min/max bounds per-axis because multiple stones
+    // with the same bounding radius are colliding with
+    // the same board every frame
+
     if ( x <= -w + r )                            // IMPORTANT: assumption that the board width/height is large 
         edges |= BOARD_EDGE_Left;                 // relative to the bounding sphere, eg. that only one corner
-    else if ( x <= -w + r )                       // would potentially be intersecting with a stone at any time
+    else if ( x >= w - r )                        // would potentially be intersecting with a stone at any time
         edges |= BOARD_EDGE_Right;
 
     if ( z <= -h + r )
         edges |= BOARD_EDGE_Top;
-    else if ( z <= -h + r )
+    else if ( z >= h - r )
         edges |= BOARD_EDGE_Bottom;
 
     // common case: stone bounding sphere is entirely within the primary
@@ -530,7 +535,8 @@ inline bool IntersectStoneBoard( const Board & board,
                                  mat4f biconvexWorldToLocal,
                                  vec3f & point,
                                  vec3f & normal,
-                                 float & depth )
+                                 float & depth,
+                                 float epsilon = 0.001f )
 {
     const float boundingSphereRadius = biconvex.GetBoundingSphereRadius();
 
@@ -571,6 +577,111 @@ inline bool IntersectStoneBoard( const Board & board,
 
     SUITE( Intersection )
     {
+        TEST( stone_board_collision_type )
+        {
+            const float w = 10.0f;
+            const float h = 10.0f;
+
+            Board board( w*2, h*2, 0.5 );
+
+            const float radius = 1.0f;
+
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,1.1f,0), radius ) == STONE_BOARD_COLLISION_None );
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(w*2,0,0), radius ) == STONE_BOARD_COLLISION_None );
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(-w*2,0,0), radius ) == STONE_BOARD_COLLISION_None );
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,0,h*2), radius ) == STONE_BOARD_COLLISION_None );
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,0,-h*2), radius ) == STONE_BOARD_COLLISION_None );
+
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,0,0), radius ) == STONE_BOARD_COLLISION_Primary );
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,-100,0), radius ) == STONE_BOARD_COLLISION_Primary );
+
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(-w,0,0), radius ) == STONE_BOARD_COLLISION_LeftSide );
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(+w,0,0), radius ) == STONE_BOARD_COLLISION_RightSide );
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,0,-h), radius ) == STONE_BOARD_COLLISION_TopSide );
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,0,+h), radius ) == STONE_BOARD_COLLISION_BottomSide );
+
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(-w,0,-h), radius ) == STONE_BOARD_COLLISION_TopLeftCorner );
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(+w,0,-h), radius ) == STONE_BOARD_COLLISION_TopRightCorner );
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(+w,0,+h), radius ) == STONE_BOARD_COLLISION_BottomRightCorner );
+            CHECK( DetermineStoneBoardCollisionType( board, vec3f(-w,0,+h), radius ) == STONE_BOARD_COLLISION_BottomLeftCorner );
+        }
+
+        TEST( stone_board_collision_none )
+        {
+            const float w = 10.0f;
+            const float h = 10.0f;
+
+            Board board( w*2, h*2, 0.5 );
+
+            Biconvex biconvex( 2.0f, 1.0f );
+
+            const float r = biconvex.GetBoundingSphereRadius();
+
+            mat4f localToWorld = mat4f::identity();
+            mat4f worldToLocal = mat4f::identity();
+
+            float depth;
+            vec3f point, normal;
+
+            CHECK( !IntersectStoneBoard( board, biconvex, vec3f(0,r*2,0), localToWorld, worldToLocal, point, normal, depth ) );
+            CHECK( !IntersectStoneBoard( board, biconvex, vec3f(-w-r*2,0,0), localToWorld, worldToLocal, point, normal, depth ) );
+            CHECK( !IntersectStoneBoard( board, biconvex, vec3f(+w+r*2,0,0), localToWorld, worldToLocal, point, normal, depth ) );
+            CHECK( !IntersectStoneBoard( board, biconvex, vec3f(0,0,-h-r*2), localToWorld, worldToLocal, point, normal, depth ) );
+            CHECK( !IntersectStoneBoard( board, biconvex, vec3f(0,0,+h+r*2), localToWorld, worldToLocal, point, normal, depth ) );
+        }
+
+        TEST( stone_board_collision_primary )
+        {
+            // todo: need a function to take rigid body transform (position, orientation quat)
+            // and then transform it into a 4x4 matrix for local -> world and world -> local
+
+            // ...
+        }
+
+        TEST( stone_board_collision_left_side )
+        {
+            // ...
+        }
+
+        TEST( stone_board_collision_right_side )
+        {
+            // ...
+        }
+
+        TEST( stone_board_collision_top_side )
+        {
+            // ...
+        }
+
+        TEST( stone_board_collision_bottom_side )
+        {
+            // ...
+        }
+
+        TEST( stone_board_collision_top_left_corner )
+        {
+            // ...
+        }
+
+        TEST( stone_board_collision_top_right_corner )
+        {
+            // ...
+        }
+
+        TEST( stone_board_collision_bottom_right_corner )
+        {
+            // ...
+        }
+
+        TEST( stone_board_collision_bottom_left_corner )
+        {
+            // ...
+        }
+
+        // =====================================================================================
+
+#if 0
+
         TEST( biconvex )
         {
             Biconvex biconvex( 2.0f, 1.0f );
@@ -841,6 +952,7 @@ inline bool IntersectStoneBoard( const Board & board,
             CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,10), vec3f(0,1,0), vec3f(1,0,0), epsilon ) );
             CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,-10), vec3f(0,1,0), vec3f(1,0,0), epsilon ) );
         }
+        #endif
     }
 
     class MyTestReporter : public UnitTest::TestReporterStdout

@@ -1,15 +1,16 @@
 DONE:
 
-    Categorize stone vs. board collision into cases, eg. primary
-    surface, no collision, left edge, top-right corner etc.
-
-    Sketch out stone vs. biconvex collision test function logic
+    ...
 
 TODO:
 
     Collision between Go Stones and Board
 
-        Unit test the board collision test function.
+        Need a function to take a position/quaternion and generate 
+        local -> world and world to local matrices.
+
+        Also need a function to take a given rotation matrix and position
+        and generate local -> world, world -> local matrices (for tests)
 
         Implement stone vs. board primary surface case:
 
