@@ -1,4 +1,15 @@
 
+Rigid Body Transform (2/8/2012)
+-------------------------------
+
+    Added "RigidBodyTransform" class with cached local -> world,
+    and world -> local transforms.
+
+    Added helper function to get world position from transform.
+
+    Implemented rigid body transform inverse, eg. world -> local.
+
+
 Added board class and stone vs. board collision type test (1/8/2012)
 --------------------------------------------------------------------
 

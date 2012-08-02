@@ -397,6 +397,74 @@ bool Biconvex_SAT( const Biconvex & biconvex,
 }
 
 /*
+    Rigid body class and support functions.
+    We need a nice way to cache the local -> world,
+    world -> local and position for a given rigid body.
+
+    The rigid body transform class lets us do this,
+    it's fundamentally a 4x4 rigid body transform matrix
+    but with the inverse cached, as well as position, rotation
+    and rotation inverse for quick lookup.
+
+    (I'm not too concerned about memory usage at this point)
+
+    In the future, we may want to split up into structure
+    of arrays instead when batch processing, but for now
+    this is just fine :)
+*/
+
+void PrintVector( vec4f vector )
+{
+    printf( "[%f,%f,%f,%f]\n", vector.x(), vector.y(), vector.z(), vector.w() );
+}
+
+void PrintMatrix( mat4f matrix )
+{
+    printf( "[%f,%f,%f,%f,\n %f,%f,%f,%f\n %f,%f,%f,%f\n %f,%f,%f,%f]\n", 
+        simd4f_get_x(matrix.value.x), 
+        simd4f_get_x(matrix.value.y), 
+        simd4f_get_x(matrix.value.z), 
+        simd4f_get_x(matrix.value.w), 
+        simd4f_get_y(matrix.value.x), 
+        simd4f_get_y(matrix.value.y), 
+        simd4f_get_y(matrix.value.z), 
+        simd4f_get_y(matrix.value.w), 
+        simd4f_get_z(matrix.value.x), 
+        simd4f_get_z(matrix.value.y), 
+        simd4f_get_z(matrix.value.z), 
+        simd4f_get_z(matrix.value.w), 
+        simd4f_get_w(matrix.value.x), 
+        simd4f_get_w(matrix.value.y), 
+        simd4f_get_w(matrix.value.z), 
+        simd4f_get_w(matrix.value.w) );
+}
+
+struct RigidBodyTransform
+{
+    mat4f localToWorld;
+    mat4f worldToLocal;
+
+    RigidBodyTransform( vec3f position, mat4f rotation = mat4f::identity() )
+    {
+        localToWorld = rotation;
+        localToWorld.value.w = simd4f_create( position.x(), position.y(), position.z(), 1 );
+
+        worldToLocal = transpose( rotation );
+        worldToLocal.value.w = simd4f_create( -position.x(), -position.y(), -position.z(), 1 );
+
+        /*
+        PrintMatrix( localToWorld );
+        PrintMatrix( worldToLocal );
+        */
+    }
+
+    vec3f position() const
+    {
+        return localToWorld.value.w;
+    }
+};
+
+/*
     Go board.
 
     We model the go board as an axis aligned rectangular prism.
@@ -530,15 +598,15 @@ inline StoneBoardCollisionType DetermineStoneBoardCollisionType( const Board & b
 
 inline bool IntersectStoneBoard( const Board & board, 
                                  const Biconvex & biconvex, 
-                                 vec3f biconvexPosition,              // todo: i'd like to extract position from mat4f instead
-                                 mat4f biconvexLocalToWorld,
-                                 mat4f biconvexWorldToLocal,
+                                 const RigidBodyTransform & biconvexTransform,
                                  vec3f & point,
                                  vec3f & normal,
                                  float & depth,
                                  float epsilon = 0.001f )
 {
     const float boundingSphereRadius = biconvex.GetBoundingSphereRadius();
+
+    vec3f biconvexPosition = biconvexTransform.position();
 
     StoneBoardCollisionType collisionType = DetermineStoneBoardCollisionType( board, biconvexPosition, boundingSphereRadius );
 
@@ -559,29 +627,6 @@ inline bool IntersectStoneBoard( const Board & board,
     // todo: handle other cases
 
     return false;
-}
-
-mat4f RigidBodyTransform( vec3f position, vec3f axis, float angle )
-{
-    mat4f matrix = mat4f::identity();
-
-    printf( "[%f,%f,%f,%f,\n%f,%f,%f,%f\n%f,%f,%f,%f\n%f,%f,%f,%f]\n", 
-        simd4f_get_x(v.value.x), 
-        simd4f_get_x(v.value.y), 
-        simd4f_get_x(v.value.z), 
-        simd4f_get_x(v.value.w), 
-        simd4f_get_y(v.value.x), 
-        simd4f_get_y(v.value.y), 
-        simd4f_get_y(v.value.z), 
-        simd4f_get_y(v.value.w), 
-        simd4f_get_z(v.value.x), 
-        simd4f_get_z(v.value.y), 
-        simd4f_get_z(v.value.z), 
-        simd4f_get_z(v.value.w), 
-        simd4f_get_w(v.value.x), 
-        simd4f_get_w(v.value.y), 
-        simd4f_get_w(v.value.z), 
-        simd4f_get_w(v.value.w) );
 }
 
 #if VIRTUALGO_CONSOLE
@@ -645,21 +690,24 @@ mat4f RigidBodyTransform( vec3f position, vec3f axis, float angle )
             float depth;
             vec3f point, normal;
 
-            CHECK( !IntersectStoneBoard( board, biconvex, vec3f(0,r*2,0), localToWorld, worldToLocal, point, normal, depth ) );
-            CHECK( !IntersectStoneBoard( board, biconvex, vec3f(-w-r*2,0,0), localToWorld, worldToLocal, point, normal, depth ) );
-            CHECK( !IntersectStoneBoard( board, biconvex, vec3f(+w+r*2,0,0), localToWorld, worldToLocal, point, normal, depth ) );
-            CHECK( !IntersectStoneBoard( board, biconvex, vec3f(0,0,-h-r*2), localToWorld, worldToLocal, point, normal, depth ) );
-            CHECK( !IntersectStoneBoard( board, biconvex, vec3f(0,0,+h+r*2), localToWorld, worldToLocal, point, normal, depth ) );
+            CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,r*2,0) ), point, normal, depth ) );
+            CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(-w-r*2,0,0) ), point, normal, depth ) );
+            CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(+w+r*2,0,0) ), point, normal, depth ) );
+            CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,0,-h-r*2) ), point, normal, depth ) );
+            CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,0,+h+r*2) ), point, normal, depth ) );
         }
 
         TEST( stone_board_collision_primary )
         {
-            // todo: need a function to take rigid body transform (position, orientation quat)
-            // and then transform it into a 4x4 matrix for local -> world and world -> local
+            RigidBodyTransform transform( vec3f(1,2,3), mat4f::identity() );
+
+            // todo: start testing primary collision cases, eg. key rotations at 90degrees
+            // and verify correct contact point, normal, penetration depth etc....
 
             // ...
         }
 
+        /*
         TEST( stone_board_collision_left_side )
         {
             // ...
@@ -699,10 +747,10 @@ mat4f RigidBodyTransform( vec3f position, vec3f axis, float angle )
         {
             // ...
         }
-
-        // =====================================================================================
+        */
 
 #if 0
+        // =====================================================================================
 
         TEST( biconvex )
         {
@@ -974,7 +1022,7 @@ mat4f RigidBodyTransform( vec3f position, vec3f axis, float angle )
             CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,10), vec3f(0,1,0), vec3f(1,0,0), epsilon ) );
             CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,-10), vec3f(0,1,0), vec3f(1,0,0), epsilon ) );
         }
-        #endif
+#endif
     }
 
     class MyTestReporter : public UnitTest::TestReporterStdout

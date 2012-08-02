@@ -1,20 +1,10 @@
 DONE:
 
-    ...
+    ....
 
 TODO:
 
     Collision between Go Stones and Board
-
-        Need a way to generate rigid body transform (rotation + position)
-
-        Also need a way to generate the inverse easily.
-
-        Once this is done I can start testing the 
-
-        For the moment, keep quaternions out of it -- however I would like to use quaternions
-        when I am doing the physics of the stones, eg. for integration and to avoid drift.
-
 
         Implement stone vs. board primary surface case:
 
