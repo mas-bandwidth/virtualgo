@@ -561,6 +561,28 @@ inline bool IntersectStoneBoard( const Board & board,
     return false;
 }
 
+mat4f RigidBodyTransform( vec3f position, vec3f axis, float angle )
+{
+    mat4f matrix = mat4f::identity();
+
+    printf( "[%f,%f,%f,%f,\n%f,%f,%f,%f\n%f,%f,%f,%f\n%f,%f,%f,%f]\n", 
+        simd4f_get_x(v.value.x), 
+        simd4f_get_x(v.value.y), 
+        simd4f_get_x(v.value.z), 
+        simd4f_get_x(v.value.w), 
+        simd4f_get_y(v.value.x), 
+        simd4f_get_y(v.value.y), 
+        simd4f_get_y(v.value.z), 
+        simd4f_get_y(v.value.w), 
+        simd4f_get_z(v.value.x), 
+        simd4f_get_z(v.value.y), 
+        simd4f_get_z(v.value.z), 
+        simd4f_get_z(v.value.w), 
+        simd4f_get_w(v.value.x), 
+        simd4f_get_w(v.value.y), 
+        simd4f_get_w(v.value.z), 
+        simd4f_get_w(v.value.w) );
+}
 
 #if VIRTUALGO_CONSOLE
 
