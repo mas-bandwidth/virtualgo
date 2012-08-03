@@ -250,6 +250,8 @@ inline vec3f GetNearestPointOnBiconvexSurface_LocalSpace( vec3f point,
     return a;
 }
 
+// todo: should probably pass in plane as vec4f natively
+
 inline float IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
                                                 float planeDistance,
                                                 const Biconvex & biconvex,
@@ -439,6 +441,53 @@ void PrintMatrix( mat4f matrix )
         simd4f_get_w(matrix.value.w) );
 }
 
+mat4f RigidBodyInverse( mat4f matrix )
+{
+    /*
+        IMPORTANT: How to invert a rigid body matrix
+        http://graphics.stanford.edu/courses/cs248-98-fall/Final/q4.html
+
+            [ux vx wx tx] -1   ( [1 0 0 tx]   [ux vx wx 0] ) -1
+            [uy vy wy ty]      ( [0 1 0 ty]   [uy vy wy 0] )
+            [uz vz wz tz]    = ( [0 0 1 tz] * [uz vz wz 0] )
+            [ 0  0  0  1]      ( [0 0 0  1]   [ 0  0  0 1] )
+
+                               [ux vx wx 0] -1   [1 0 0 tx] -1
+                               [uy vy wy 0]      [0 1 0 ty]
+                             = [ux vz wz 0]    * [0 0 1 tz]
+                               [ 0  0  0 1]      [0 0 0  1]
+
+                               [ux uy uz 0]   [1 0 0 -tx]
+                               [vx vy vz 0]   [0 1 0 -ty]
+                             = [wx wy wz 0] * [0 0 1 -tz]
+                               [ 0  0  0 1]   [0 0 0  1 ]
+
+                               [ux uy uz -ux*tx-uy*ty-uz*tz]
+                               [vx vy vz -vx*tx-vy*ty-vz*tz]
+                             = [wx wy wz -wx*tx-wy*ty-wz*tz]
+                               [ 0  0  0          1        ]
+
+                               [ux uy uz -dot(u,t)]
+                               [vx vy vz -dot(v,t)]
+                             = [wx wy wz -dot(w,t)]
+                               [ 0  0  0     1    ]
+    */
+
+    mat4f inverse = matrix;
+    
+    vec4f translation = matrix.value.w;
+
+    inverse.value.w = simd4f_create(0,0,0,1);
+    simd4x4f_transpose_inplace( &inverse.value );
+
+    inverse.value.w = simd4f_create( -dot( matrix.value.x, translation ),
+                                     -dot( matrix.value.y, translation ),
+                                     -dot( matrix.value.z, translation ),
+                                     1.0f );
+
+    return inverse;
+}
+
 struct RigidBodyTransform
 {
     mat4f localToWorld;
@@ -448,21 +497,32 @@ struct RigidBodyTransform
     {
         localToWorld = rotation;
         localToWorld.value.w = simd4f_create( position.x(), position.y(), position.z(), 1 );
-
-        worldToLocal = transpose( rotation );
-        worldToLocal.value.w = simd4f_create( -position.x(), -position.y(), -position.z(), 1 );
-
-        /*
-        PrintMatrix( localToWorld );
-        PrintMatrix( worldToLocal );
-        */
+        worldToLocal = RigidBodyInverse( localToWorld );
     }
 
-    vec3f position() const
+    vec3f GetPosition() const
     {
         return localToWorld.value.w;
     }
 };
+
+inline vec4f TransformPlane( mat4f matrix, vec4f plane )
+{
+    // IMPORTANT: to transform a plane (nx,ny,nz,d) by a matrix multiply it by the inverse of the transpose
+    // http://www.opengl.org/discussion_boards/showthread.php/159564-Clever-way-to-transform-plane-by-matrix
+    mat4f m = RigidBodyInverse( transpose( matrix ) );
+    return m * plane;
+}
+
+inline vec3f TransformPoint( mat4f matrix, vec3f point )
+{
+    return transformPoint( matrix, point );
+}
+
+inline vec3f TransformNormal( mat4f matrix, vec3f normal )
+{
+    return transformVector( matrix, normal );
+}
 
 /*
     Go board.
@@ -606,7 +666,7 @@ inline bool IntersectStoneBoard( const Board & board,
 {
     const float boundingSphereRadius = biconvex.GetBoundingSphereRadius();
 
-    vec3f biconvexPosition = biconvexTransform.position();
+    vec3f biconvexPosition = biconvexTransform.GetPosition();
 
     StoneBoardCollisionType collisionType = DetermineStoneBoardCollisionType( board, biconvexPosition, boundingSphereRadius );
 
@@ -615,16 +675,23 @@ inline bool IntersectStoneBoard( const Board & board,
         // common case: collision with primary surface of board only
         // no collision with edges or corners of board is possible
 
-        // todo: transform plane into local space of biconvex
+        vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,1,0,0) );
 
-        // todo: call biconvex vs. plane intersection test in local space
-
-        // todo: if intersecting, transform point/normal into world space
-
-        return true;
+        vec3f local_point;
+        vec3f local_normal;
+        depth = IntersectPlaneBiconvex_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), 
+                                                   plane.w(), biconvex, local_point, local_normal );
+        if ( depth > 0 )
+        {
+            point = TransformPoint( biconvexTransform.localToWorld, local_point );
+            normal = TransformNormal( biconvexTransform.localToWorld, local_normal );
+            return true;
+        }
     }
-
-    // todo: handle other cases
+    else
+    {
+        // todo: handle other cases
+    }
 
     return false;
 }
@@ -699,7 +766,25 @@ inline bool IntersectStoneBoard( const Board & board,
 
         TEST( stone_board_collision_primary )
         {
-            RigidBodyTransform transform( vec3f(1,2,3), mat4f::identity() );
+            const float epsilon = 0.001f;
+
+            const float w = 10.0f;
+            const float h = 10.0f;
+
+            Board board( w*2, h*2, 0.5 );
+
+            Biconvex biconvex( 2.0f, 1.0f );
+
+            RigidBodyTransform biconvexTransform( vec3f(0,0,0), mat4f::identity() );
+
+            float depth;
+            vec3f point, normal;
+
+            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+
+            CHECK_CLOSE( depth, 0.5f, epsilon );
+            CHECK_CLOSE_VEC3( point, vec3f(0,-0.5f,0), epsilon );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
 
             // todo: start testing primary collision cases, eg. key rotations at 90degrees
             // and verify correct contact point, normal, penetration depth etc....
