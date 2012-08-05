@@ -4,14 +4,7 @@ DONE:
 
 TODO:
 
-    ===========================================================
-
-    Extend go stone render to render in quad strips + triangle
-    strips for top section.
-
-    Render quads in wireframe
-
-    Render quads in wireframe with backface culling
+    ============================================================
 
     Render quads in flat shading with wireframe edges shown 
     (backface cull render on top) --> need zbias?

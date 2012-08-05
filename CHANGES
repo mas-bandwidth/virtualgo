@@ -1,5 +1,16 @@
 
 
+Render go stone as quads (5/8/2012):
+------------------------------------
+
+    Extend go stone render to render in quad strips + triangle
+    strips for top section.
+
+    Render quads in wireframe
+
+    Render quads in wireframe with backface culling
+
+
 Render go stone in wireframe (5/8/2012):
 ----------------------------------------
 

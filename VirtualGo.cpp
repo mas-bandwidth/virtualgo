@@ -1228,7 +1228,7 @@ float DegToRad( float degrees )
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
     }
 
-    void RenderBiconvex( const Biconvex & biconvex, int numSegments = 32, int numRings = 5 )
+    void RenderBiconvex_Lines( const Biconvex & biconvex, int numSegments = 32, int numRings = 5 )
     {
         glBegin( GL_LINES );
 
@@ -1277,6 +1277,88 @@ float DegToRad( float degrees )
                     const float z2 = sin( angle2 ) * radius;
                     glVertex3f( x1, y, z1 );
                     glVertex3f( x2, y, z2 );
+                }
+            }
+        }
+
+        glEnd();
+    }
+
+    void RenderBiconvex( const Biconvex & biconvex, int numSegments = 32, int numRings = 5 )
+    {
+        glBegin( GL_QUADS );
+
+        const float sphereRadius = biconvex.GetSphereRadius();
+        const float segmentAngle = 2*pi / numSegments;
+
+        // top surface of biconvex
+        {
+            const float center_y = -biconvex.GetSphereOffset();
+            const float delta_y = biconvex.GetHeight() / 2 / numRings;
+            for ( int i = 0; i < numRings; ++i )
+            {
+                const float y1 = i * delta_y;
+                const float s1 = y1 - center_y;
+                const float r1 = sqrt( sphereRadius*sphereRadius - (s1*s1) );
+                const float y2 = (i+1) * delta_y;
+                const float s2 = y2 - center_y;
+                const float r2 = sqrt( sphereRadius*sphereRadius - (s2*s2) );
+                for ( int j = 0; j < numSegments; ++j )
+                {
+                    const float angle1 = j * segmentAngle;
+                    const float angle2 = angle1 + segmentAngle;
+                    
+                    const float top_x1 = cos( angle1 ) * r1;
+                    const float top_z1 = sin( angle1 ) * r1;    
+                    const float top_x2 = cos( angle2 ) * r1;
+                    const float top_z2 = sin( angle2 ) * r1;
+
+                    const float bottom_x1 = cos( angle1 ) * r2;
+                    const float bottom_z1 = sin( angle1 ) * r2;    
+                    const float bottom_x2 = cos( angle2 ) * r2;
+                    const float bottom_z2 = sin( angle2 ) * r2;
+
+                    glVertex3f( bottom_x1, y2, bottom_z1 );
+                    glVertex3f( bottom_x2, y2, bottom_z2 );
+
+                    glVertex3f( top_x2, y1, top_z2 );
+                    glVertex3f( top_x1, y1, top_z1 );
+                }
+            }
+        }
+
+        // bottom surface of biconvex
+        {
+            const float center_y = biconvex.GetSphereOffset();
+            const float delta_y = biconvex.GetHeight() / 2 / numRings;
+            for ( int i = 0; i < numRings; ++i )
+            {
+                const float y1 = -i * delta_y;
+                const float s1 = y1 - center_y;
+                const float r1 = sqrt( sphereRadius*sphereRadius - (s1*s1) );
+                const float y2 = -(i+1) * delta_y;
+                const float s2 = y2 - center_y;
+                const float r2 = sqrt( sphereRadius*sphereRadius - (s2*s2) );
+                for ( int j = 0; j < numSegments; ++j )
+                {
+                    const float angle1 = j * segmentAngle;
+                    const float angle2 = angle1 + segmentAngle;
+                    
+                    const float top_x1 = cos( angle1 ) * r1;
+                    const float top_z1 = sin( angle1 ) * r1;    
+                    const float top_x2 = cos( angle2 ) * r1;
+                    const float top_z2 = sin( angle2 ) * r1;
+
+                    const float bottom_x1 = cos( angle1 ) * r2;
+                    const float bottom_z1 = sin( angle1 ) * r2;    
+                    const float bottom_x2 = cos( angle2 ) * r2;
+                    const float bottom_z2 = sin( angle2 ) * r2;
+
+                    glVertex3f( top_x1, y1, top_z1 );
+                    glVertex3f( top_x2, y1, top_z2 );
+
+                    glVertex3f( bottom_x2, y2, bottom_z2 );
+                    glVertex3f( bottom_x1, y2, bottom_z1 );
                 }
             }
         }
@@ -1351,6 +1433,9 @@ float DegToRad( float degrees )
             glEnable( GL_BLEND ); 
             glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
             glColor4f( 0.5f,0.5f,0.5f,1 );
+            glEnable( GL_CULL_FACE );
+            glCullFace( GL_BACK );
+            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
             RenderBiconvex( biconvex );
             
             UpdateDisplay( 1 );
