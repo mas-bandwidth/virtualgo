@@ -38,12 +38,14 @@ namespace platform
 {
 	// display stuff
 
-	void HideMouseCursor();
-	void ShowMouseCursor();
 	void GetDisplayResolution( int & width, int & height );
 	bool OpenDisplay( const char title[], int width, int height, int refresh = 60 );
 	void UpdateDisplay( int interval = 1 );
 	void CloseDisplay();
+
+    void HideMouseCursor();
+    void ShowMouseCursor();
+    void GetMousePosition( int & x, int & y );
 
 	// basic keyboard input
 

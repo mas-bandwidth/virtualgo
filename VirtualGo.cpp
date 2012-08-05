@@ -499,7 +499,7 @@ inline vec3f TransformPoint( mat4f matrix, vec3f point )
     return transformPoint( matrix, point );
 }
 
-inline vec3f TransformNormal( mat4f matrix, vec3f normal )
+inline vec3f TransformVector( mat4f matrix, vec3f normal )
 {
     return transformVector( matrix, normal );
 }
@@ -664,7 +664,7 @@ inline bool IntersectStoneBoard( const Board & board,
         if ( depth > 0 )
         {
             point = TransformPoint( biconvexTransform.localToWorld, local_point );
-            normal = TransformNormal( biconvexTransform.localToWorld, local_normal );
+            normal = TransformVector( biconvexTransform.localToWorld, local_normal );
             return true;
         }
     }
@@ -699,6 +699,36 @@ inline bool IntersectStoneBoard( const Board & board,
     else if ( collisionType == STONE_BOARD_COLLISION_BottomLeftCorner )
     {
         assert( false );
+    }
+
+    return false;
+}
+
+inline bool IntersectStoneRay( const Biconvex & biconvex, 
+                               const RigidBodyTransform & biconvexTransform,
+                               vec3f rayStart, 
+                               vec3f rayDirection, 
+                               float & t, 
+                               vec3f & point, 
+                               vec3f & normal )
+{
+    vec3f local_rayStart = TransformPoint( biconvexTransform.worldToLocal, rayStart );
+    vec3f local_rayDirection = TransformVector( biconvexTransform.worldToLocal, rayDirection );
+    
+    vec3f local_point, local_normal;
+
+    bool result = IntersectRayBiconvex_LocalSpace( local_rayStart, 
+                                                   local_rayDirection,
+                                                   biconvex,
+                                                   t,
+                                                   local_point,
+                                                   local_normal );
+
+    if ( result )
+    {
+        point = TransformPoint( biconvexTransform.localToWorld, local_point );
+        normal = TransformVector( biconvexTransform.localToWorld, local_normal );
+        return true;
     }
 
     return false;
@@ -882,7 +912,6 @@ float DegToRad( float degrees )
             }
         }
 
-        /*
         TEST( stone_board_collision_left_side )
         {
             // ...
@@ -922,9 +951,7 @@ float DegToRad( float degrees )
         {
             // ...
         }
-        */
 
-#if 0
         // =====================================================================================
 
         TEST( biconvex )
@@ -1197,7 +1224,6 @@ float DegToRad( float degrees )
             CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,10), vec3f(0,1,0), vec3f(1,0,0), epsilon ) );
             CHECK( !Biconvex_SAT( biconvex, vec3f(0,0,0), vec3f(0,0,-10), vec3f(0,1,0), vec3f(1,0,0), epsilon ) );
         }
-#endif
     }
 
     class MyTestReporter : public UnitTest::TestReporterStdout
@@ -1284,7 +1310,7 @@ float DegToRad( float degrees )
         glEnd();
     }
 
-    void RenderBiconvex( const Biconvex & biconvex, int numSegments = 32, int numRings = 5 )
+    void RenderBiconvex( const Biconvex & biconvex, int numSegments = 128, int numRings = 32 )
     {
         glBegin( GL_QUADS );
 
@@ -1380,13 +1406,13 @@ float DegToRad( float degrees )
 
         printf( "display resolution is %d x %d\n", displayWidth, displayHeight );
 
-        HideMouseCursor();
-        
         if ( !OpenDisplay( "Virtual Go", displayWidth, displayHeight ) )
         {
             printf( "error: failed to open display" );
             return 1;
         }
+
+        ShowMouseCursor();
 
         // anti-alias lines
         glEnable( GL_LINE_SMOOTH );
@@ -1398,7 +1424,14 @@ float DegToRad( float degrees )
 
         mat4f rotation = mat4f::identity();
 
+        double t = 0.0f;
+
+        bool prevSpace = false;
+        bool rotating = true;
         bool quit = false;
+
+        float smoothedRotation = 0.0f;
+
         while ( !quit )
         {
             platform::Input input;
@@ -1408,23 +1441,38 @@ float DegToRad( float degrees )
             if ( input.escape )
                 quit = true;
 
+            if ( input.space )
+            {
+                if ( !prevSpace )
+                    rotating = !rotating;
+                prevSpace = true;
+            }
+            else
+                prevSpace = false;
+
             ClearScreen( displayWidth, displayHeight );
 
             glMatrixMode( GL_PROJECTION );
             glLoadIdentity();
-            const float fov = 90.0f;
+            const float fov = 25.0f;
             gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
 
             glMatrixMode( GL_MODELVIEW );
             glLoadIdentity();
-            gluLookAt( 0, 0, -1.5f, 
+            gluLookAt( 0, 0, -5.0f, 
                        0, 0, 0, 
                        0, 1, 0 );
 
-            mat4f deltaRotation = mat4f::axisRotation( 0.2f, vec3f(1,2,3) );
+            // render stone
+
+            const float targetRotation = rotating ? 0.28f : 0.0f;
+            smoothedRotation += ( targetRotation - smoothedRotation ) * 0.08f;
+            mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(1,2,3) );
             rotation = rotation * deltaRotation;
 
             RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
+
+            glPushMatrix();
 
             float opengl_transform[16];
             biconvexTransform.localToWorld.store( opengl_transform );
@@ -1437,8 +1485,37 @@ float DegToRad( float degrees )
             glCullFace( GL_BACK );
             glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
             RenderBiconvex( biconvex );
+
+            glPopMatrix();
+
+            // render intersection between stone and ray
+
+            int mouse_x, mouse_y;
+            GetMousePosition( mouse_x, mouse_y );
+
+            // todo: create picking ray from camera matrix plus mouse x/y
+
+            vec3f rayStart(0.1f,0,-10);
+            vec3f rayDirection(0,0,1);
+            float ray_t; vec3f point,normal;
+            if ( IntersectStoneRay( biconvex, biconvexTransform, rayStart, rayDirection, ray_t, point, normal ) )
+            {
+                glColor4f( 0.7f,0,0,1 );
+                glBegin( GL_LINES );
+                vec3f p1 = point;
+                vec3f p2 = point + normal * 0.1f;
+                glVertex3f( p1.x(), p1.y(), p1.z() );
+                glVertex3f( p2.x(), p2.y(), p2.z() );
+                glEnd();
+            }
+
+            // update the display
             
             UpdateDisplay( 1 );
+
+            // update time
+
+            t += 1 / 60.0;
         }
 
         CloseDisplay();

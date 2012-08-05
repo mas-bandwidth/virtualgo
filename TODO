@@ -1,16 +1,33 @@
 DONE:
 
-    ...
+    Intersect ray with biconvex and render point and normal
+    of intersection if exists.
+
+    Don't hide the mouse
+
+    Space toggles rotation of the stone
+
+    Add function to get mouse xy coordinates 
 
 TODO:
 
     ============================================================
 
-    Render quads in flat shading with wireframe edges shown 
-    (backface cull render on top) --> need zbias?
+    Turn mouse xy into pick ray
+    http://stackoverflow.com/questions/2093096/implementing-ray-picking
 
-    Intersect ray with biconvex and render point and normal
-    of intersection if exists.
+    Verify that intersection under mouse *LOOKS* correct
+
+    ============================================================
+
+    Render the board in wireframe according to dimensions and some
+    tesselation factor
+
+    Now render the board and the stone in the same app
+
+    Verify that the board vs. stone intersection on primary is correct
+
+    ============================================================
 
     Work out other tests that I can visualize now.
 

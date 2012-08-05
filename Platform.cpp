@@ -354,18 +354,33 @@ namespace platform
 
 #if PLATFORM == PLATFORM_MAC
 
-	// display and input
+    static int mouse_x = 0;
+    static int mouse_y = 0;
 
-	#if __LP64__ 
 	static pascal OSErr quitEventHandler( const AppleEvent *appleEvt, AppleEvent *reply, void * stuff )
-	#else
-	static pascal OSErr quitEventHandler( const AppleEvent *appleEvt, AppleEvent *reply, SInt32 refcon )
-	#endif
 	{
         CloseDisplay();
 		exit( 0 );
 		return false;
 	}
+
+    static pascal OSStatus mouseEventHandler( EventHandlerCallRef nextHandler, EventRef event, void *userData )
+    {
+        UInt32 eventClass = GetEventClass( event );
+        UInt32 eventKind = GetEventKind( event );
+    
+        if ( eventClass == kEventClassMouse )
+        {
+            if ( eventKind == kEventMouseMoved )
+            {
+                Point mousePoint;
+                GetEventParameter( event, kEventParamMouseLocation, typeQDPoint, NULL, sizeof(mousePoint), NULL, &mousePoint );
+                mouse_x = ((uint16_t*)&mousePoint)[0];
+                mouse_y = ((uint16_t*)&mousePoint)[1];
+            }
+        }
+        return false;
+    }
 
 	#define QZ_ESCAPE		0x35
 	#define QZ_TAB			0x30
@@ -590,6 +605,12 @@ namespace platform
 		CGAssociateMouseAndMouseCursorPosition( true );
 		CGDisplayShowCursor( kCGNullDirectDisplay );
 	}
+
+    void GetMousePosition( int & x, int & y )
+    {
+        x = mouse_x;
+        y = mouse_y;
+    }
 	
  	CGDirectDisplayID GetDisplayId()
 	{
@@ -619,6 +640,23 @@ namespace platform
 
 	bool OpenDisplay( const char title[], int width, int height, int refresh )
 	{
+        // install quit handler
+
+        AEInstallEventHandler( kCoreEventClass, kAEQuitApplication, NewAEEventHandlerUPP(quitEventHandler), 0, false );
+
+        // install mouse handler
+
+        static const EventTypeSpec mouseControlEvents[] =
+        {
+            { kEventClassMouse, kEventMouseDown },
+            { kEventClassMouse, kEventMouseUp },
+            { kEventClassMouse, kEventMouseMoved },
+            { kEventClassMouse, kEventMouseDragged },
+            { kEventClassMouse, kEventMouseWheelMoved }
+        };
+    
+        InstallApplicationEventHandler( NewEventHandlerUPP( mouseEventHandler ), 5, &mouseControlEvents[0], NULL, NULL );
+
 		// install keyboard handler
 	
 		EventTypeSpec eventTypes[2];
@@ -733,17 +771,11 @@ namespace platform
 			return false;
 		}
 
-        // TODO: does this do anything?
-
         glEnable( GL_EXT_framebuffer_sRGB );
 
-		// install quit handler (via apple events)
+        return true;
+    }	
 
-		AEInstallEventHandler( kCoreEventClass, kAEQuitApplication, NewAEEventHandlerUPP(quitEventHandler), 0, false );
-
-		return true;
-	}
-	
 	void UpdateDisplay( int interval )
 	{
 		// set swap interval
