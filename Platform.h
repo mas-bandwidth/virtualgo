@@ -56,6 +56,8 @@ namespace platform
 			memset( this, 0, sizeof( Input ) );
 		}
 
+        // todo: this is shitty. do an array indexed by keycodes instead
+
 		bool left;
 		bool right;
 		bool up;

@@ -656,7 +656,6 @@ namespace platform
             const int mode_width = CGDisplayModeGetWidth( mode );
             const int mode_height = CGDisplayModeGetHeight( mode );
             const int mode_refresh = CGDisplayModeGetRefreshRate( mode );
-            //printf( "width = %d, height = %d, refresh = %d\n", mode_width, mode_height, mode_refresh );
             if ( mode_width == width && mode_height == height && ( mode_refresh == refresh || mode_refresh == 0 ) )
             {
                 matchingMode = mode;

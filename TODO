@@ -1,45 +1,80 @@
 DONE:
 
-    Implement stone vs. board primary surface case:
-
-        1. transform plane into biconvex local space
-        2. determine intersection in local space (done)
-        3. if intersecting, transform point/normal into world space
-
-    Unit tested simple case at identity transform (0,0,0), rotation identity.
+    ...
 
 TODO:
 
+    ===========================================================
+
+    Extend go stone render to render in quad strips + triangle
+    strips for top section.
+
+    Render quads in wireframe
+
+    Render quads in wireframe with backface culling
+
+    Render quads in flat shading with wireframe edges shown 
+    (backface cull render on top) --> need zbias?
+
+    Intersect ray with biconvex and render point and normal
+    of intersection if exists.
+
+    Work out other tests that I can visualize now.
+
     ============================================================
 
-        Unit test rotation identity, translated xz off origin
+    Implement biconvex vs. line intersection
 
-        Unit test rotation upside down, off xz off origin.
+    Assume that the line is infinite
 
-        Unit test rotation 90 degrees cases on left/right/top/bottom
-        circle edges with xz off origin.
-
-        At this point I can be confident that the transform plane
-        and transform of points/normals is working properly, and 
-        that the inverse of the rigid body matrix is correct.
+    Based around nearest point on the line to the sphere,
+    then it is just comparing the projected point to see
+    if it is on the biconvex surface.
 
     ============================================================
 
-    Collision between Go Stones and Board
+    Implement left edge case SAT:
 
-        Implement one edge case via SAT (left)
+        1. may collide with primary plane
+        2. may collide with left plane
+        3. may collide with edge between primary and left plane
 
-        Unit test edge case.
+    Primary surface case is already implemented
 
-        Extend the to all edges.
+    Left surface case is already implemented (plane again)
 
-        Unit test all edge cases.
+    Take the three cases and determine the area with the least
+    collision. If any case is not intersecting, then no collision.
 
-        Implement one corner case via SAT (top-left)
+    Unit test edge cases:
 
-        Unit test corner case.
+        not colliding (vertically above)                            -
+        not colliding (rotated such that not touching side plane)   |
+        not colliding (rotated such that not touching side edge)    /
 
-        Extend to all corners.
+        colliding (rotated such that touching primary surface)      |
+        colliding (rotated such that touching side surface)         -
+        colliding (rotated such that touching edge)                 \
+
+    Generalize fn so that it takes two planes as input, and finds
+    the edge from these planes, and uses that to implement SAT.
+
+    Therefore we should be comfortable that this case generalizes
+    to the other edges without hard coding all these cases!
+
+    Extend the to all edges.
+
+    Unit test all edge cases.
+
+    ============================================================
+
+    Implement one corner case via SAT (top-left)
+
+    Unit test corner case.
+
+    Extend to all corners.
+
+    ============================================================
 
     Biconvex vs. Biconvex
 
@@ -67,23 +102,6 @@ TODO:
         I should try to find a way to convert the simple binary SAT
         so that it doesn't require unit axis vectors. The sqrt here
         is going to significantly slow down the test.
-
-    Interactive Demo
-
-        Bring back Render.h/Camera.h in a basic form from the Cube demo
-        so I don't have to rewrite my own system again, but cut down
-        dramatically to just what I need.
-
-        Bring back code to generate the go stone given a biconvex share
-        and a desired amount of bevel along the edge (radius of bevel).
-
-        Get back to an interactive demo showing a go board and a single stone
-
-        The go board should be zoomed in, the stone should be a white stone
-
-        Need a wireframe mode and debug visualization so we can test various
-        queries, such as nearest point to biconvex, biconvex vs. plane,
-        biconvex vs. other biconvex interactively.
 
     Physics:
 

@@ -415,6 +415,11 @@ bool Biconvex_SAT( const Biconvex & biconvex,
     this is just fine :)
 */
 
+void PrintVector( vec3f vector )
+{
+    printf( "[%f,%f,%f]\n", vector.x(), vector.y(), vector.z() );
+}
+
 void PrintVector( vec4f vector )
 {
     printf( "[%f,%f,%f,%f]\n", vector.x(), vector.y(), vector.z(), vector.w() );
@@ -444,33 +449,8 @@ void PrintMatrix( mat4f matrix )
 mat4f RigidBodyInverse( mat4f matrix )
 {
     /*
-        IMPORTANT: How to invert a rigid body matrix
+        How to invert a rigid body matrix
         http://graphics.stanford.edu/courses/cs248-98-fall/Final/q4.html
-
-            [ux vx wx tx] -1   ( [1 0 0 tx]   [ux vx wx 0] ) -1
-            [uy vy wy ty]      ( [0 1 0 ty]   [uy vy wy 0] )
-            [uz vz wz tz]    = ( [0 0 1 tz] * [uz vz wz 0] )
-            [ 0  0  0  1]      ( [0 0 0  1]   [ 0  0  0 1] )
-
-                               [ux vx wx 0] -1   [1 0 0 tx] -1
-                               [uy vy wy 0]      [0 1 0 ty]
-                             = [ux vz wz 0]    * [0 0 1 tz]
-                               [ 0  0  0 1]      [0 0 0  1]
-
-                               [ux uy uz 0]   [1 0 0 -tx]
-                               [vx vy vz 0]   [0 1 0 -ty]
-                             = [wx wy wz 0] * [0 0 1 -tz]
-                               [ 0  0  0 1]   [0 0 0  1 ]
-
-                               [ux uy uz -ux*tx-uy*ty-uz*tz]
-                               [vx vy vz -vx*tx-vy*ty-vz*tz]
-                             = [wx wy wz -wx*tx-wy*ty-wz*tz]
-                               [ 0  0  0          1        ]
-
-                               [ux uy uz -dot(u,t)]
-                               [vx vy vz -dot(v,t)]
-                             = [wx wy wz -dot(w,t)]
-                               [ 0  0  0     1    ]
     */
 
     mat4f inverse = matrix;
@@ -688,12 +668,47 @@ inline bool IntersectStoneBoard( const Board & board,
             return true;
         }
     }
-    else
+    else if ( collisionType == STONE_BOARD_COLLISION_LeftSide )
     {
-        // todo: handle other cases
+        assert( false );
+    }
+    else if ( collisionType == STONE_BOARD_COLLISION_RightSide )
+    {
+        assert( false );
+    }
+    else if ( collisionType == STONE_BOARD_COLLISION_TopSide )
+    {
+        assert( false );
+    }
+    else if ( collisionType == STONE_BOARD_COLLISION_BottomSide )
+    {
+        assert( false );
+    }
+    else if ( collisionType == STONE_BOARD_COLLISION_TopLeftCorner )
+    {
+        assert( false );
+    }
+    else if ( collisionType == STONE_BOARD_COLLISION_TopRightCorner )
+    {
+        assert( false );
+    }
+    else if ( collisionType == STONE_BOARD_COLLISION_BottomRightCorner )
+    {
+        assert( false );
+    }
+    else if ( collisionType == STONE_BOARD_COLLISION_BottomLeftCorner )
+    {
+        assert( false );
     }
 
     return false;
+}
+
+const float pi = 3.14159265358979f;
+
+float DegToRad( float degrees )
+{
+    return ( degrees / 360.0f ) * 2 * pi;
 }
 
 #if VIRTUALGO_CONSOLE
@@ -775,21 +790,96 @@ inline bool IntersectStoneBoard( const Board & board,
 
             Biconvex biconvex( 2.0f, 1.0f );
 
-            RigidBodyTransform biconvexTransform( vec3f(0,0,0), mat4f::identity() );
-
             float depth;
             vec3f point, normal;
 
-            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+            // test at origin with identity rotation
+            {
+                RigidBodyTransform biconvexTransform( vec3f(0,0,0), mat4f::identity() );
 
-            CHECK_CLOSE( depth, 0.5f, epsilon );
-            CHECK_CLOSE_VEC3( point, vec3f(0,-0.5f,0), epsilon );
-            CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+                CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
 
-            // todo: start testing primary collision cases, eg. key rotations at 90degrees
-            // and verify correct contact point, normal, penetration depth etc....
+                CHECK_CLOSE( depth, 0.5f, epsilon );
+                CHECK_CLOSE_VEC3( point, vec3f(0,-0.5f,0), epsilon );
+                CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            }
+            
+            // test away from origin with identity rotation
+            {
+                RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::identity() );
 
-            // ...
+                CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+
+                CHECK_CLOSE( depth, 0.5f, epsilon );
+                CHECK_CLOSE_VEC3( point, vec3f(w/2,-0.5f,h/2), epsilon );
+                CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            }
+
+            // test at origin flipped upside down (180 degrees)
+            {
+                RigidBodyTransform biconvexTransform( vec3f(0,0,0), mat4f::axisRotation( 180, vec3f(0,0,1) ) );
+
+                CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+
+                CHECK_CLOSE( depth, 0.5f, epsilon );
+                CHECK_CLOSE_VEC3( point, vec3f(0,-0.5f,0), epsilon );
+                CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            }
+
+            // test away from origin flipped upside down (180degrees)
+            {
+                RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( 180, vec3f(0,0,1) ) );
+
+                CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+
+                CHECK_CLOSE( depth, 0.5f, epsilon );
+                CHECK_CLOSE_VEC3( point, vec3f(w/2,-0.5f,h/2), epsilon );
+                CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            }
+
+            // test away from origin rotated 90 degrees clockwise around z axis
+            {
+                RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( 90, vec3f(0,0,1) ) );
+
+                CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+
+                CHECK_CLOSE( depth, 1, epsilon );
+                CHECK_CLOSE_VEC3( point, vec3f(w/2,-1,h/2), epsilon );
+                CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            }
+
+            // test away from origin rotated 90 degrees counter-clockwise around z axis
+            {
+                RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( -90, vec3f(0,0,1) ) );
+
+                CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+
+                CHECK_CLOSE( depth, 1, epsilon );
+                CHECK_CLOSE_VEC3( point, vec3f(w/2,-1,h/2), epsilon );
+                CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            }
+
+            // test away from origin rotated 90 degrees clockwise around x axis
+            {
+                RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( 90, vec3f(1,0,0) ) );
+
+                CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+
+                CHECK_CLOSE( depth, 1, epsilon );
+                CHECK_CLOSE_VEC3( point, vec3f(w/2,-1,h/2), epsilon );
+                CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            }
+
+            // test away from origin rotated 90 degrees counter-clockwise around x axis
+            {
+                RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( -90, vec3f(1,0,0) ) );
+
+                CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+
+                CHECK_CLOSE( depth, 1, epsilon );
+                CHECK_CLOSE_VEC3( point, vec3f(w/2,-1,h/2), epsilon );
+                CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            }
         }
 
         /*
@@ -1129,6 +1219,71 @@ inline bool IntersectStoneBoard( const Board & board,
 
 #else
 
+    void ClearScreen( int displayWidth, int displayHeight )
+    {
+        glViewport( 0, 0, displayWidth, displayHeight );
+        glDisable( GL_SCISSOR_TEST );
+        glClearStencil( 0 );
+        glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );     
+        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+    }
+
+    void RenderBiconvex( const Biconvex & biconvex, int numSegments = 32, int numRings = 5 )
+    {
+        glBegin( GL_LINES );
+
+        const float sphereRadius = biconvex.GetSphereRadius();
+        const float segmentAngle = 2*pi / numSegments;
+
+        // top surface of biconvex
+        {
+            const float center_y = -biconvex.GetSphereOffset();
+            const float delta_y = biconvex.GetHeight() / 2 / numRings;
+            for ( int i = 0; i < numRings; ++i )
+            {
+                const float y = i * delta_y;
+                const float sy = y - center_y;
+                const float radius = sqrt( sphereRadius*sphereRadius - (sy*sy) );
+                for ( int j = 0; j < numSegments; ++j )
+                {
+                    const float angle1 = j * segmentAngle;
+                    const float angle2 = angle1 + segmentAngle;
+                    const float x1 = cos( angle1 ) * radius;
+                    const float z1 = sin( angle1 ) * radius;    
+                    const float x2 = cos( angle2 ) * radius;
+                    const float z2 = sin( angle2 ) * radius;
+                    glVertex3f( x1, y, z1 );
+                    glVertex3f( x2, y, z2 );
+                }
+            }
+        }
+
+        // todo: bottom surface of biconvex
+        {
+            const float center_y = +biconvex.GetSphereOffset();
+            const float delta_y = biconvex.GetHeight() / 2 / numRings;
+            for ( int i = 0; i < numRings; ++i )
+            {
+                const float y = - i * delta_y;
+                const float sy = y - center_y;
+                const float radius = sqrt( sphereRadius*sphereRadius - (sy*sy) );
+                for ( int j = 0; j < numSegments; ++j )
+                {
+                    const float angle1 = j * segmentAngle;
+                    const float angle2 = angle1 + segmentAngle;
+                    const float x1 = cos( angle1 ) * radius;
+                    const float z1 = sin( angle1 ) * radius;    
+                    const float x2 = cos( angle2 ) * radius;
+                    const float z2 = sin( angle2 ) * radius;
+                    glVertex3f( x1, y, z1 );
+                    glVertex3f( x2, y, z2 );
+                }
+            }
+        }
+
+        glEnd();
+    }
+
     int main()
     {
         printf( "[virtual go]\n" );
@@ -1150,7 +1305,17 @@ inline bool IntersectStoneBoard( const Board & board,
             printf( "error: failed to open display" );
             return 1;
         }
-        
+
+        // anti-alias lines
+        glEnable( GL_LINE_SMOOTH );
+        glEnable( GL_POLYGON_SMOOTH );
+        glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+        glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
+
+        Biconvex biconvex( 2, 1 );
+
+        mat4f rotation = mat4f::identity();
+
         bool quit = false;
         while ( !quit )
         {
@@ -1161,11 +1326,32 @@ inline bool IntersectStoneBoard( const Board & board,
             if ( input.escape )
                 quit = true;
 
-            glViewport( 0, 0, displayWidth, displayHeight );
-            glDisable( GL_SCISSOR_TEST );
-            glClearStencil( 0 );
-            glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );     
-            glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+            ClearScreen( displayWidth, displayHeight );
+
+            glMatrixMode( GL_PROJECTION );
+            glLoadIdentity();
+            const float fov = 90.0f;
+            gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
+
+            glMatrixMode( GL_MODELVIEW );
+            glLoadIdentity();
+            gluLookAt( 0, 0, -1.5f, 
+                       0, 0, 0, 
+                       0, 1, 0 );
+
+            mat4f deltaRotation = mat4f::axisRotation( 0.2f, vec3f(1,2,3) );
+            rotation = rotation * deltaRotation;
+
+            RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
+
+            float opengl_transform[16];
+            biconvexTransform.localToWorld.store( opengl_transform );
+            glMultMatrixf( opengl_transform );
+
+            glEnable( GL_BLEND ); 
+            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+            glColor4f( 0.5f,0.5f,0.5f,1 );
+            RenderBiconvex( biconvex );
             
             UpdateDisplay( 1 );
         }

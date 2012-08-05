@@ -1,4 +1,45 @@
 
+
+Render go stone in wireframe (5/8/2012):
+----------------------------------------
+
+    It should be reasonably easy to render a wireframe
+    go stone at the origin, pick a # of segments, then
+    radially rotate about the origin and draw
+
+    Then extend this to support a rigid body transform
+    for the go stone and render it with that
+
+    Next, allow the go stone to rotate about an axis
+    and visualize the intersection point and normal with
+    the board in wireframe
+
+
+Implemented stone vs. board primary surface case (4/8/2012):
+------------------------------------------------------------
+
+    To handle intersection between biconvex stone and plane:
+
+        1. transform plane into biconvex local space
+        2. determine intersection in local space (done)
+        3. if intersecting, transform point/normal into world space
+
+    Unit tested simple case at origin with no rotation.
+
+    Unit tested translated away from origin with no rotation.
+
+    Unit tested rotated 180 degrees at origin (upside down)
+
+    Unit tested rotated 180 degrees away from origin.
+
+    Unit tested +/- 90 degrees rotation cases away from origin 
+    (circle edge of biconvex solid)
+
+    I can now be confident that the local to world / world to 
+    local, transform plane, transform point, transform normal
+    fns are all working correctly.
+
+
 Rigid Body Transform (2/8/2012)
 -------------------------------
 
