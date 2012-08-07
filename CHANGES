@@ -1,4 +1,61 @@
 
+Visualized biconvex support along x-axis (6/8/2012):
+----------------------------------------------------
+
+    The dot threshold was incorrect. Was 1-sphereDot,
+    but sphereDot was the correct value.
+
+    When looking at biconvex circle span with ortho projection
+    it appears to be correct. The perspective was throwing it
+    off!
+
+    Biconvex support now looks visually correct!
+
+Visualized stone + board (6/8/2012):
+------------------------------------
+
+    Visualize stone vs. board intersection with blue line
+    from point out along normal
+
+    Stone vs. board intersection point appears to be incorrect
+    when the sphere surface is nearest to the plane.
+
+    Fixed calculation for sphere surface intersection point.
+
+
+Render stone + board (5/8/2012):
+--------------------------------
+
+    Find some way to switch between modes
+
+        eg. 1 = rotating stone
+            2 = stone + board
+
+    Zoom out to show the stone from a distance without rotation
+
+    Render the board in wireframe according to dimensions and some
+    tesselation factor
+
+    Now render the board and the stone in the same app
+
+
+Implemented mouse picking (5/8/2012):
+-------------------------------------
+
+    Intersect ray with biconvex and render point and normal
+    of intersection if exists.
+
+    Don't hide the mouse
+
+    Space toggles rotation of the stone
+
+    Add function to get mouse xy coordinates 
+
+    Turn mouse xy into pick ray
+    http://stackoverflow.com/questions/2093096/implementing-ray-picking
+
+    Verify that intersection under mouse *LOOKS* correct
+
 
 Render go stone as quads (5/8/2012):
 ------------------------------------

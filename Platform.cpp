@@ -375,8 +375,8 @@ namespace platform
             {
                 Point mousePoint;
                 GetEventParameter( event, kEventParamMouseLocation, typeQDPoint, NULL, sizeof(mousePoint), NULL, &mousePoint );
-                mouse_x = ((uint16_t*)&mousePoint)[0];
-                mouse_y = ((uint16_t*)&mousePoint)[1];
+                mouse_x = ((uint16_t*)&mousePoint)[1];
+                mouse_y = ((uint16_t*)&mousePoint)[0];
             }
         }
         return false;
@@ -640,6 +640,9 @@ namespace platform
 
 	bool OpenDisplay( const char title[], int width, int height, int refresh )
 	{
+        mouse_x = 0;
+        mouse_y = 0;
+
         // install quit handler
 
         AEInstallEventHandler( kCoreEventClass, kAEQuitApplication, NewAEEventHandlerUPP(quitEventHandler), 0, false );
@@ -776,26 +779,26 @@ namespace platform
         return true;
     }	
 
+    void UpdateEvents()
+    {
+        while ( true )
+        {
+            EventRef event = 0; 
+            OSStatus status = ReceiveNextEvent( 0, NULL, 0.0f, kEventRemoveFromQueue, &event ); 
+            if ( status == noErr && event )
+            { 
+                SendEventToEventTarget( event, GetEventDispatcherTarget() ); 
+                ReleaseEvent( event );
+            }
+            else
+                break;
+        }
+    }
+
 	void UpdateDisplay( int interval )
 	{
-		// set swap interval
-		
 		CGLSetParameter( contextObj, kCGLCPSwapInterval, &interval );
 		CGLFlushDrawable( contextObj );
-
-		// process events
-	
-		EventRef event = 0; 
-		OSStatus status = ReceiveNextEvent( 0, NULL, 0.0f, kEventRemoveFromQueue, &event ); 
-		if ( status == noErr && event )
-		{ 
-			bool sendEvent = true;
-
-			if ( sendEvent )
-				SendEventToEventTarget( event, GetEventDispatcherTarget() ); 
-		
-			ReleaseEvent( event );
-		}
 	}
 
 	void CloseDisplay()

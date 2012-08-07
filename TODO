@@ -1,35 +1,35 @@
 DONE:
 
-    Intersect ray with biconvex and render point and normal
-    of intersection if exists.
-
-    Don't hide the mouse
-
-    Space toggles rotation of the stone
-
-    Add function to get mouse xy coordinates 
+    ...
 
 TODO:
 
     ============================================================
 
-    Turn mouse xy into pick ray
-    http://stackoverflow.com/questions/2093096/implementing-ray-picking
+    Implement ray vs. plane intersection
 
-    Verify that intersection under mouse *LOOKS* correct
+    Implement ray vs. board intersection 
+    (for the moment, just test the primary surface and verify
+     that the ray hit is within width/height bounds on plane...)
 
-    ============================================================
+    Detect whether ray is hitting board or stones via t
 
-    Render the board in wireframe according to dimensions and some
-    tesselation factor
-
-    Now render the board and the stone in the same app
-
-    Verify that the board vs. stone intersection on primary is correct
+    Show normal when hitting board
 
     ============================================================
 
-    Work out other tests that I can visualize now.
+    When ray is not hitting stone, draw a yellow line between
+    the intersection with the plane and the nearest point on
+    the biconvex surface.
+
+    This will let me verify that the nearest point on biconvex
+    relative to another point is correct -- the point will always
+    by definition be *outside* the biconvex, otherwise the pick ray
+    would have hit the biconvex stone first.
+
+    Visualize the normal at the nearest point on the surface
+    so I can verify that the normal on biconvex surface is
+    correct.
 
     ============================================================
 

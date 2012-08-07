@@ -45,7 +45,7 @@ public:
         sphereRadius = ( width*width + height*height ) / ( 4 * height );
         sphereRadiusSquared = sphereRadius * sphereRadius;
         sphereOffset = sphereRadius - height/2;
-        sphereDot = dot( vec3f(0,1,0), normalize( vec3f( sphereOffset, width/2, 0 ) ) );
+        sphereDot = dot( vec3f(0,1,0), normalize( vec3f( width/2, sphereOffset, 0 ) ) );
 
         circleRadius = width / 2;
 
@@ -250,8 +250,6 @@ inline vec3f GetNearestPointOnBiconvexSurface_LocalSpace( vec3f point,
     return a;
 }
 
-// todo: should probably pass in plane as vec4f natively
-
 inline float IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
                                                 float planeDistance,
                                                 const Biconvex & biconvex,
@@ -266,7 +264,7 @@ inline float IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
         const float sphereRadius = biconvex.GetSphereRadius();
         const float sphereOffset = planeNormal.y() < 0 ? -biconvex.GetSphereOffset() : +biconvex.GetSphereOffset();
         vec3f sphereCenter( 0, sphereOffset, 0 );
-        point = sphereCenter + ( normalize( sphereCenter - planeNormal ) * sphereRadius );
+        point = sphereCenter - normalize( planeNormal ) * sphereRadius;
     }
     else
     {
@@ -274,7 +272,9 @@ inline float IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
         const float circleRadius = biconvex.GetCircleRadius();
         point = normalize( vec3f( -planeNormal.x(), 0, -planeNormal.z() ) ) * circleRadius;
     }
+
     normal = planeNormal;
+
     return dot( -planeNormal, point ) + planeDistance;
 }
 
@@ -291,7 +291,7 @@ inline void BiconvexSupport_LocalSpace( const Biconvex & biconvex,
                                         float & s2 )
 {
     const float sphereDot = biconvex.GetSphereDot();
-    if ( fabs( dot( axis, vec3f(0,1,0) ) ) < 1.0f - sphereDot )
+    if ( fabs( dot( axis, vec3f(0,1,0) ) ) < sphereDot )
     {
         // in this orientation the span is the circle edge projected onto the line
         const float circleRadius = biconvex.GetCircleRadius();
@@ -323,8 +323,9 @@ inline void BiconvexSupport_WorldSpace( const Biconvex & biconvex,
     // same function but for the case where the biconvex
     // solid is not centered around (0,0,0) and is rotated
     // (this is the commmon case for the "other" biconvex)
+    //const float sphereDot = biconvex.GetSphereDot();
     const float sphereDot = biconvex.GetSphereDot();
-    if ( fabs( dot( axis, biconvexUp ) ) < 1.0 - sphereDot )
+    if ( fabs( dot( axis, biconvexUp ) ) < sphereDot )
     {
         // in this orientation the span is the circle edge projected onto the line
         const float circleRadius = biconvex.GetCircleRadius();
@@ -483,6 +484,11 @@ struct RigidBodyTransform
     vec3f GetPosition() const
     {
         return localToWorld.value.w;
+    }
+
+    vec3f GetUp()
+    {
+        return transformVector( localToWorld, vec3f(0,1,0) );
     }
 };
 
@@ -708,7 +714,7 @@ inline bool IntersectStoneRay( const Biconvex & biconvex,
                                const RigidBodyTransform & biconvexTransform,
                                vec3f rayStart, 
                                vec3f rayDirection, 
-                               float & t, 
+                               float & t,
                                vec3f & point, 
                                vec3f & normal )
 {
@@ -962,7 +968,7 @@ float DegToRad( float degrees )
             CHECK_CLOSE( biconvex.GetHeight(), 1.0f, epsilon );
             CHECK_CLOSE( biconvex.GetSphereRadius(), 1.25f, epsilon );
             CHECK_CLOSE( biconvex.GetSphereOffset(), 0.75f, epsilon );
-            CHECK_CLOSE( biconvex.GetSphereDot(), 0.8f, epsilon );
+            CHECK_CLOSE( biconvex.GetSphereDot(), 0.599945f, epsilon );
         }    
 
         TEST( intersect_ray_sphere_hit )
@@ -1392,6 +1398,73 @@ float DegToRad( float degrees )
         glEnd();
     }
 
+    void GetMousePickRay( int mouse_x, int mouse_y, vec3f & rayStart, vec3f & rayDirection )
+    {
+        // IMPORTANT: discussion about various ways to convert mouse coordinates -> pick ray
+        // http://stackoverflow.com/questions/2093096/implementing-ray-picking
+
+        GLint viewport[4];
+        GLdouble modelview[16];
+        GLdouble projection[16];
+        glGetIntegerv( GL_VIEWPORT, viewport );
+        glGetDoublev( GL_MODELVIEW_MATRIX, modelview );
+        glGetDoublev( GL_PROJECTION_MATRIX, projection );
+
+        const float displayHeight = viewport[3];
+
+        float x = mouse_x;
+        float y = displayHeight - mouse_y;
+
+        GLdouble x1,y1,z1;
+        GLdouble x2,y2,z2;
+
+        gluUnProject( x, y, 0, modelview, projection, viewport, &x1, &y1, &z1 );
+        gluUnProject( x, y, 1, modelview, projection, viewport, &x2, &y2, &z2 );
+
+        vec3f ray1( x1,y1,z1 );
+        vec3f ray2( x2,y2,z2 );
+
+        rayStart = ray1;
+        rayDirection = normalize( ray2 - ray1 );
+    }
+
+    void RenderBoard( const Board & board )
+    {
+        glBegin( GL_QUADS );
+
+        const float width = board.GetWidth();
+        const float height = board.GetHeight();
+
+        const float ideal = 1.0f;
+
+        const int steps_x = (int) ceil( width / ideal ); 
+        const int steps_y = (int) ceil( height / ideal );
+
+        const float dx = width / steps_x;
+        const float dy = height / steps_y;
+
+        float x = - width / 2;
+
+        for ( int i = 0; i < steps_x; ++i )
+        {
+            float y = - height / 2;
+
+            for ( int j = 0; j < steps_x; ++j )
+            {
+                glVertex3f( x + dx, 0.0f, y );
+                glVertex3f( x, 0.0f, y );
+                glVertex3f( x, 0.0f, y + dy );
+                glVertex3f( x + dx, 0.0f, y + dy );
+
+                y += dy;
+            }
+
+            x += dx;
+        }
+
+        glEnd();
+    }
+
     int main()
     {
         printf( "[virtual go]\n" );
@@ -1414,7 +1487,6 @@ float DegToRad( float degrees )
 
         ShowMouseCursor();
 
-        // anti-alias lines
         glEnable( GL_LINE_SMOOTH );
         glEnable( GL_POLYGON_SMOOTH );
         glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
@@ -1432,8 +1504,18 @@ float DegToRad( float degrees )
 
         float smoothedRotation = 0.0f;
 
+        enum Mode
+        {
+            Stone,
+            StoneAndBoard
+        };
+
+        Mode mode = Stone;
+
         while ( !quit )
         {
+            UpdateEvents();
+
             platform::Input input;
             
             input = platform::Input::Sample();
@@ -1450,63 +1532,182 @@ float DegToRad( float degrees )
             else
                 prevSpace = false;
 
+            if ( input.one )
+                mode = Stone;
+
+            if ( input.two )
+                mode = StoneAndBoard;
+
             ClearScreen( displayWidth, displayHeight );
 
-            glMatrixMode( GL_PROJECTION );
-            glLoadIdentity();
-            const float fov = 25.0f;
-            gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
-
-            glMatrixMode( GL_MODELVIEW );
-            glLoadIdentity();
-            gluLookAt( 0, 0, -5.0f, 
-                       0, 0, 0, 
-                       0, 1, 0 );
-
-            // render stone
-
-            const float targetRotation = rotating ? 0.28f : 0.0f;
-            smoothedRotation += ( targetRotation - smoothedRotation ) * 0.08f;
-            mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(1,2,3) );
-            rotation = rotation * deltaRotation;
-
-            RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
-
-            glPushMatrix();
-
-            float opengl_transform[16];
-            biconvexTransform.localToWorld.store( opengl_transform );
-            glMultMatrixf( opengl_transform );
-
-            glEnable( GL_BLEND ); 
-            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-            glColor4f( 0.5f,0.5f,0.5f,1 );
-            glEnable( GL_CULL_FACE );
-            glCullFace( GL_BACK );
-            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-            RenderBiconvex( biconvex );
-
-            glPopMatrix();
-
-            // render intersection between stone and ray
-
-            int mouse_x, mouse_y;
-            GetMousePosition( mouse_x, mouse_y );
-
-            // todo: create picking ray from camera matrix plus mouse x/y
-
-            vec3f rayStart(0.1f,0,-10);
-            vec3f rayDirection(0,0,1);
-            float ray_t; vec3f point,normal;
-            if ( IntersectStoneRay( biconvex, biconvexTransform, rayStart, rayDirection, ray_t, point, normal ) )
+            if ( mode == Stone )
             {
-                glColor4f( 0.7f,0,0,1 );
+                glMatrixMode( GL_PROJECTION );
+                glLoadIdentity();
+                /*
+                const float fov = 25.0f;
+                gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
+                */
+                glOrtho( -1.5, +1.5f, -1.0f, +1.0f, 0.1f, 100.0f );
+
+                glMatrixMode( GL_MODELVIEW );
+                glLoadIdentity();
+                gluLookAt( 0, 0, -5.0f, 
+                           0, 0, 0, 
+                           0, 1, 0 );
+
+                // render stone
+
+                const float targetRotation = rotating ? 0.28f : 0.0f;
+                smoothedRotation += ( targetRotation - smoothedRotation ) * 0.15f;
+                mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(1,2,3) );
+                rotation = rotation * deltaRotation;
+
+                RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
+
+                glPushMatrix();
+
+                float opengl_transform[16];
+                biconvexTransform.localToWorld.store( opengl_transform );
+                glMultMatrixf( opengl_transform );
+
+                glEnable( GL_BLEND ); 
+                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+                glLineWidth( 1 );
+                glColor4f( 0.5f,0.5f,0.5f,1 );
+                glEnable( GL_CULL_FACE );
+                glCullFace( GL_BACK );
+                glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+                RenderBiconvex( biconvex );
+
+                glPopMatrix();
+
+                // render intersection between stone and mouse pick ray
+
+                int mouse_x, mouse_y;
+                GetMousePosition( mouse_x, mouse_y );
+
+                vec3f rayStart, rayDirection;
+                GetMousePickRay( mouse_x, mouse_y, rayStart, rayDirection );
+
+                float t;
+                vec3f point,normal;
+                if ( IntersectStoneRay( biconvex, biconvexTransform, rayStart, rayDirection, t, point, normal ) )
+                {
+                    glLineWidth( 2 );
+                    glColor4f( 0.7f,0,0,1 );
+                    glBegin( GL_LINES );
+                    vec3f p1 = point;
+                    vec3f p2 = point + normal * 0.1f;
+                    glVertex3f( p1.x(), p1.y(), p1.z() );
+                    glVertex3f( p2.x(), p2.y(), p2.z() );
+                    glEnd();
+                }
+
+                // render biconvex support along x axis
+
+                vec3f biconvexCenter = biconvexTransform.GetPosition();
+                vec3f biconvexUp = biconvexTransform.GetUp();
+                float s1,s2;
+                BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(1,0,0), s1, s2 );
+
+                glLineWidth( 3 );
+                glColor4f( 0,0,0.8f,1 );
                 glBegin( GL_LINES );
-                vec3f p1 = point;
-                vec3f p2 = point + normal * 0.1f;
-                glVertex3f( p1.x(), p1.y(), p1.z() );
-                glVertex3f( p2.x(), p2.y(), p2.z() );
+                glVertex3f( s1, -10, 0 );
+                glVertex3f( s1, +10, 0 );
+                glVertex3f( s2, -10, 0 );
+                glVertex3f( s2, +10, 0 );
                 glEnd();
+            }
+            else if ( mode == StoneAndBoard )
+            {
+                glMatrixMode( GL_PROJECTION );
+                glLoadIdentity();
+                const float fov = 25.0f;
+                gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
+
+                glMatrixMode( GL_MODELVIEW );
+                glLoadIdentity();
+                gluLookAt( 0, 5, -20.0f, 
+                           0, 0, 0, 
+                           0, 1, 0 );
+
+                glEnable( GL_CULL_FACE );
+                glCullFace( GL_BACK );
+                glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
+                // render board
+
+                Board board( 20.0f, 20.0f, 1.0f );
+
+                glLineWidth( 1 );
+                glColor4f( 0.5f,0.5f,0.5f,1 );
+
+                RenderBoard( board );
+
+                // render stone
+
+                const float targetRotation = rotating ? 0.28f : 0.0f;
+                smoothedRotation += ( targetRotation - smoothedRotation ) * 0.15f;
+                mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(1,2,3) );
+                rotation = rotation * deltaRotation;
+
+                RigidBodyTransform biconvexTransform( vec3f(0,biconvex.GetHeight()/2,0), rotation );
+
+                glPushMatrix();
+
+                float opengl_transform[16];
+                biconvexTransform.localToWorld.store( opengl_transform );
+                glMultMatrixf( opengl_transform );
+
+                glEnable( GL_BLEND ); 
+                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+                glLineWidth( 1 );
+                glColor4f( 0.5f,0.5f,0.5f,1 );
+                RenderBiconvex( biconvex, 50, 10 );
+
+                glPopMatrix();
+
+                // render intersection between stone and mouse pick ray
+                {
+                    int mouse_x, mouse_y;
+                    GetMousePosition( mouse_x, mouse_y );
+
+                    vec3f rayStart, rayDirection;
+                    GetMousePickRay( mouse_x, mouse_y, rayStart, rayDirection );
+
+                    float t;
+                    vec3f point,normal;
+                    if ( IntersectStoneRay( biconvex, biconvexTransform, rayStart, rayDirection, t, point, normal ) )
+                    {
+                        glLineWidth( 2 );
+                        glColor4f( 0.7f,0,0,1 );
+                        glBegin( GL_LINES );
+                        vec3f p1 = point;
+                        vec3f p2 = point + normal * 0.5f;
+                        glVertex3f( p1.x(), p1.y(), p1.z() );
+                        glVertex3f( p2.x(), p2.y(), p2.z() );
+                        glEnd();
+                    }
+                }
+
+                // render intersection between stone and board
+                {
+                    float depth;
+                    vec3f point,normal;
+                    if ( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) )
+                    {
+                        glLineWidth( 2 );
+                        glColor4f( 0,0,0.85f,1 );
+                        glBegin( GL_LINES );
+                        vec3f p1 = point;
+                        vec3f p2 = point + normal * 0.5f;
+                        glVertex3f( p1.x(), p1.y(), p1.z() );
+                        glVertex3f( p2.x(), p2.y(), p2.z() );
+                        glEnd();
+                    }
+                }
             }
 
             // update the display
