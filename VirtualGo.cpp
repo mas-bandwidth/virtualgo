@@ -84,6 +84,22 @@ private:
     float boundingSphereRadiusSquared;      // bounding sphere radius squared
 };
 
+inline bool IntersectRayPlane( vec3f rayStart,
+                               vec3f rayDirection,
+                               vec3f planeNormal,
+                               float planeDistance,
+                               float & t,
+                               float epsilon = 0.001f )
+{
+    // IMPORTANT: we only consider intersections *in front* the ray start, eg. t >= 0
+    const float d = dot( rayDirection, planeNormal );
+    if ( d > -epsilon )
+        return false;
+    t = - ( dot( rayStart, planeNormal ) + planeDistance ) / d;
+    assert( t >= 0 );
+    return true;
+}
+
 inline bool IntersectRaySphere( vec3f rayStart,
                                 vec3f rayDirection, 
                                 vec3f sphereCenter, 
@@ -642,6 +658,36 @@ inline StoneBoardCollisionType DetermineStoneBoardCollisionType( const Board & b
     return (StoneBoardCollisionType) edges;
 }
 
+inline float IntersectRayBoard( const Board & board,
+                                vec3f rayStart,
+                                vec3f rayDirection,
+                                vec3f & point,
+                                vec3f & normal,
+                                float epsilon = 0.001f )
+{ 
+    // first check with the primary surface
+    // statistically speaking this is the most likely
+    {
+        float t;
+        if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,1,0), 0, t, epsilon ) )
+        {
+            point = rayStart + rayDirection * t;
+            normal = vec3f(0,1,0);
+            const float w = board.GetHalfWidth();
+            const float h = board.GetHalfHeight();
+            const float px = point.x();
+            const float pz = point.z();
+            if ( px >= -w && px <= w && pz >= -h && pz <= h )
+                return t;
+        }
+    }
+
+    // todo: other cases
+    // left side, right side, top side, bottom side
+
+    return -1;
+}
+
 inline bool IntersectStoneBoard( const Board & board, 
                                  const Biconvex & biconvex, 
                                  const RigidBodyTransform & biconvexTransform,
@@ -710,18 +756,19 @@ inline bool IntersectStoneBoard( const Board & board,
     return false;
 }
 
-inline bool IntersectStoneRay( const Biconvex & biconvex, 
-                               const RigidBodyTransform & biconvexTransform,
-                               vec3f rayStart, 
-                               vec3f rayDirection, 
-                               float & t,
-                               vec3f & point, 
-                               vec3f & normal )
+inline float IntersectRayStone( const Biconvex & biconvex, 
+                                const RigidBodyTransform & biconvexTransform,
+                                vec3f rayStart, 
+                                vec3f rayDirection, 
+                                vec3f & point, 
+                                vec3f & normal )
 {
     vec3f local_rayStart = TransformPoint( biconvexTransform.worldToLocal, rayStart );
     vec3f local_rayDirection = TransformVector( biconvexTransform.worldToLocal, rayDirection );
     
     vec3f local_point, local_normal;
+
+    float t;
 
     bool result = IntersectRayBiconvex_LocalSpace( local_rayStart, 
                                                    local_rayDirection,
@@ -734,10 +781,10 @@ inline bool IntersectStoneRay( const Biconvex & biconvex,
     {
         point = TransformPoint( biconvexTransform.localToWorld, local_point );
         normal = TransformVector( biconvexTransform.localToWorld, local_normal );
-        return true;
+        return t;
     }
 
-    return false;
+    return -1;
 }
 
 const float pi = 3.14159265358979f;
@@ -1589,10 +1636,10 @@ float DegToRad( float degrees )
 
                 vec3f rayStart, rayDirection;
                 GetMousePickRay( mouse_x, mouse_y, rayStart, rayDirection );
-
-                float t;
+                
                 vec3f point,normal;
-                if ( IntersectStoneRay( biconvex, biconvexTransform, rayStart, rayDirection, t, point, normal ) )
+                float t = IntersectRayStone( biconvex, biconvexTransform, rayStart, rayDirection, point, normal );
+                if ( t >= 0 )
                 {
                     glLineWidth( 2 );
                     glColor4f( 0.7f,0,0,1 );
@@ -1669,7 +1716,7 @@ float DegToRad( float degrees )
 
                 glPopMatrix();
 
-                // render intersection between stone and mouse pick ray
+                // render nearest intersection with picking ray: stone or board
                 {
                     int mouse_x, mouse_y;
                     GetMousePosition( mouse_x, mouse_y );
@@ -1677,15 +1724,31 @@ float DegToRad( float degrees )
                     vec3f rayStart, rayDirection;
                     GetMousePickRay( mouse_x, mouse_y, rayStart, rayDirection );
 
-                    float t;
-                    vec3f point,normal;
-                    if ( IntersectStoneRay( biconvex, biconvexTransform, rayStart, rayDirection, t, point, normal ) )
+                    vec3f board_point, board_normal, stone_point, stone_normal;
+                    const float board_t = IntersectRayBoard( board, rayStart, rayDirection, board_point, board_normal );
+                    const float stone_t = IntersectRayStone( biconvex, biconvexTransform, rayStart, rayDirection, stone_point, stone_normal );
+
+                    // display stone intersection if it is nearest or the board was not hit
+                    if ( ( stone_t >= 0.0f && board_t < 0.0f ) || ( stone_t >= 0.0f && stone_t < board_t ) )
                     {
                         glLineWidth( 2 );
                         glColor4f( 0.7f,0,0,1 );
                         glBegin( GL_LINES );
-                        vec3f p1 = point;
-                        vec3f p2 = point + normal * 0.5f;
+                        vec3f p1 = stone_point;
+                        vec3f p2 = stone_point + stone_normal * 0.5f;
+                        glVertex3f( p1.x(), p1.y(), p1.z() );
+                        glVertex3f( p2.x(), p2.y(), p2.z() );
+                        glEnd();
+                    }
+
+                    // display board intersection if it is nearest, or we did not hit the stone
+                    if ( ( board_t >= 0.0f && stone_t < 0.0f ) || ( board_t >= 0.0f && board_t < stone_t ) )
+                    {
+                        glLineWidth( 2 );
+                        glColor4f( 0.7f,0,0,1 );
+                        glBegin( GL_LINES );
+                        vec3f p1 = board_point;
+                        vec3f p2 = board_point + board_normal * 0.5f;
                         glVertex3f( p1.x(), p1.y(), p1.z() );
                         glVertex3f( p2.x(), p2.y(), p2.z() );
                         glEnd();

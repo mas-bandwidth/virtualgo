@@ -1,4 +1,19 @@
 
+
+Implement ray vs. board intersection (7/8/2012):
+------------------------------------------------
+
+    Implement ray vs. plane intersection
+
+    Implement ray vs. board intersection 
+    (for the moment, just test the primary surface and verify
+     that the ray hit is within width/height bounds on plane...)
+
+    Detect whether ray is hitting board or stones via t
+
+    Show normal when hitting board
+
+
 Visualized biconvex support along x-axis (6/8/2012):
 ----------------------------------------------------
 
@@ -10,6 +25,7 @@ Visualized biconvex support along x-axis (6/8/2012):
     off!
 
     Biconvex support now looks visually correct!
+
 
 Visualized stone + board (6/8/2012):
 ------------------------------------

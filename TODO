@@ -6,18 +6,6 @@ TODO:
 
     ============================================================
 
-    Implement ray vs. plane intersection
-
-    Implement ray vs. board intersection 
-    (for the moment, just test the primary surface and verify
-     that the ray hit is within width/height bounds on plane...)
-
-    Detect whether ray is hitting board or stones via t
-
-    Show normal when hitting board
-
-    ============================================================
-
     When ray is not hitting stone, draw a yellow line between
     the intersection with the plane and the nearest point on
     the biconvex surface.
@@ -26,10 +14,6 @@ TODO:
     relative to another point is correct -- the point will always
     by definition be *outside* the biconvex, otherwise the pick ray
     would have hit the biconvex stone first.
-
-    Visualize the normal at the nearest point on the surface
-    so I can verify that the normal on biconvex surface is
-    correct.
 
     ============================================================
 
