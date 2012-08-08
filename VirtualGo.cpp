@@ -463,7 +463,176 @@ void PrintMatrix( mat4f matrix )
         simd4f_get_w(matrix.value.w) );
 }
 
-mat4f RigidBodyInverse( mat4f matrix )
+struct quat4f
+{
+    float x,y,z,w;
+
+    quat4f()
+    {
+        // ...
+    }
+
+    quat4f( float w, float x, float y, float z )
+    {
+        this->w = w;
+        this->x = x;
+        this->y = y;
+        this->z = z;
+    }
+
+    static quat4f identity()
+    {
+        quat4f q;
+        q.x = 0;
+        q.y = 0;
+        q.z = 0;
+        q.w = 1;
+        return q;
+    }
+
+    static quat4f axisRotation( float angleRadians, vec3f axis )
+    {
+        const float a = angleRadians * 0.5f;
+        const float s = (float) sin( a );
+        const float c = (float) cos( a );
+        quat4f q;
+        q.w = c;
+        q.x = axis.x() * s;
+        q.y = axis.y() * s;
+        q.z = axis.z() * s;
+        return q;
+    }
+
+    float length() const
+    {
+        return sqrt( x*x + y*y + z*z + w*w );
+    }
+
+    void toMatrix( mat4f & matrix ) const
+    {
+        float fTx  = 2.0f*x;
+        float fTy  = 2.0f*y;
+        float fTz  = 2.0f*z;
+        float fTwx = fTx*w;
+        float fTwy = fTy*w;
+        float fTwz = fTz*w;
+        float fTxx = fTx*x;
+        float fTxy = fTy*x;
+        float fTxz = fTz*x;
+        float fTyy = fTy*y;
+        float fTyz = fTz*y;
+        float fTzz = fTz*z;
+
+        const float array[] = 
+        {
+            // todo: not sure if this is correct order or not (may be transposed?!)
+            1.0f - ( fTyy + fTzz ), fTxy - fTwz, fTxz + fTwy, 0,
+            fTxy + fTwz, 1.0f - ( fTxx + fTzz ), fTyz - fTwx, 0,
+            fTxz - fTwy, fTyz + fTwx, 1.0f - ( fTxx + fTyy ), 0,
+            0, 0, 0, 1
+        };
+
+        matrix.load( array );
+    }
+
+    void toAxisAngle( vec3f & axis, float & angle, const float epsilonSquared = 0.001f * 0.001f ) const
+    {
+        const float squareLength = x*x + y*y + z*z;
+        if ( squareLength > epsilonSquared )
+        {
+            angle = 2.0f * (float) acos( w );
+            const float inverseLength = 1.0f / (float) sqrt( squareLength );
+            axis = vec3f( x, y, z ) * inverseLength;
+        }
+        else
+        {
+            axis = vec3f(1,0,0);
+            angle = 0.0f;
+        }
+    }
+};
+
+// todo: quat4f should probably just be vec4f derived. fast operations like add, mult by scalar at least...
+
+inline quat4f multiply( const quat4f & q1, const quat4f & q2 )
+{
+    quat4f result;
+    result.w = q1.w*q2.w - q1.x*q2.x - q1.y*q2.y - q1.z*q2.z;
+    result.x = q1.w*q2.x + q1.x*q2.w + q1.y*q2.z - q1.z*q2.y;
+    result.y = q1.w*q2.y - q1.x*q2.z + q1.y*q2.w + q1.z*q2.x;
+    result.z = q1.w*q2.z + q1.x*q2.y - q1.y*q2.x + q1.z*q2.w;
+    return result;
+}
+
+inline quat4f normalize( const quat4f & q, const float epsilon = 0.0001f )
+{
+    const float length = q.length();
+    assert( length > epsilon  );
+    float inv = 1.0f / length;
+    quat4f result;
+    result.x = q.x * inv;
+    result.y = q.y * inv;
+    result.z = q.z * inv;
+    result.w = q.w * inv;
+    return result;
+}
+
+inline quat4f & operator += ( quat4f & q1, const quat4f & q2 )
+{
+    q1.x += q2.x;
+    q1.y += q2.y;
+    q1.z += q2.z;
+    q1.w += q2.w;
+    return q1;
+}
+
+inline quat4f operator * ( const quat4f & q1, const quat4f & q2 )
+{
+    return multiply( q1, q2 );
+}
+
+inline quat4f operator * ( const quat4f & q, float s )
+{
+    quat4f result;
+    result.x = q.x * s;
+    result.y = q.y * s;
+    result.z = q.z * s;
+    result.w = q.w * s;
+    return result;
+}
+
+inline quat4f operator * ( float s, const quat4f & q )
+{
+    quat4f result;
+    result.x = q.x * s;
+    result.y = q.y * s;
+    result.z = q.z * s;
+    result.w = q.w * s;
+    return result;
+}
+
+struct RigidBody
+{
+    vec3f position;
+    quat4f orientation;
+    vec3f linearVelocity;
+    vec3f angularVelocity;
+
+    RigidBody()
+    {
+        position = vec3f(0,0,0);
+        orientation = quat4f::identity();
+        linearVelocity = vec3f(0,0,0);
+        angularVelocity = vec3f(0,0,0);
+    }
+};
+
+inline quat4f AngularVelocityToSpin( const quat4f & orientation, vec3f angularVelocity )
+{
+    return 0.5f * quat4f( 0, angularVelocity.x(), angularVelocity.y(), angularVelocity.z() ) * orientation;
+}
+
+inline mat4f RigidBodyInverse( mat4f matrix )
 {
     /*
         How to invert a rigid body matrix
@@ -493,6 +662,13 @@ struct RigidBodyTransform
     RigidBodyTransform( vec3f position, mat4f rotation = mat4f::identity() )
     {
         localToWorld = rotation;
+        localToWorld.value.w = simd4f_create( position.x(), position.y(), position.z(), 1 );
+        worldToLocal = RigidBodyInverse( localToWorld );
+    }
+
+    RigidBodyTransform( vec3f position, quat4f rotation )
+    {
+        rotation.toMatrix( localToWorld );
         localToWorld.value.w = simd4f_create( position.x(), position.y(), position.z(), 1 );
         worldToLocal = RigidBodyInverse( localToWorld );
     }
@@ -1520,6 +1696,28 @@ float DegToRad( float degrees )
         glEnd();
     }
 
+    inline int random( int maximum )
+    {
+        assert( maximum > 0 );
+        int randomNumber = 0;
+        randomNumber = rand() % maximum;
+        return randomNumber;
+    }
+
+    inline float random_float( float min, float max )
+    {
+        assert( max > min );
+        return random( 1000000 ) / 1000000.f * ( max - min ) + min;
+    }
+
+    inline bool chance( float probability )
+    {
+        assert( probability >= 0.0f );
+        assert( probability <= 1.0f );
+        const int percent = (int) ( probability * 100.0f );
+        return random(100) <= percent;
+    }
+
     int main()
     {
         printf( "[virtual go]\n" );
@@ -1568,6 +1766,13 @@ float DegToRad( float degrees )
 
         Mode mode = FallingStone;
 
+        // for falling stone mode
+        RigidBody stoneRigidBody;
+        stoneRigidBody.position = vec3f(0,10.0f,0);
+        stoneRigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
+
+        const float dt = 0.25f * 1.0f / 60.0f;
+
         while ( !quit )
         {
             UpdateEvents();
@@ -1582,7 +1787,14 @@ float DegToRad( float degrees )
             if ( input.space )
             {
                 if ( !prevSpace )
+                {
                     rotating = !rotating;
+
+                    stoneRigidBody = RigidBody();
+                    stoneRigidBody.position = vec3f(0,10.0f,0);
+                    stoneRigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
+                }
+
                 prevSpace = true;
             }
             else
@@ -1821,12 +2033,18 @@ float DegToRad( float degrees )
 
                 RenderBoard( board );
 
+                // update stone physics
+
+                const float gravity = 9.8f * 10;    // cms/sec^2
+                stoneRigidBody.linearVelocity += vec3f(0,-gravity,0) * dt;
+                stoneRigidBody.position += stoneRigidBody.linearVelocity * dt;
+                quat4f spin = AngularVelocityToSpin( stoneRigidBody.orientation, stoneRigidBody.angularVelocity );
+                stoneRigidBody.orientation += spin * dt;
+                stoneRigidBody.orientation = normalize( stoneRigidBody.orientation );
+
                 // render stone
 
-                vec3f stonePosition(0,8.5f,0);
-                mat4f stoneRotation = mat4f::identity();
-
-                RigidBodyTransform biconvexTransform( stonePosition, stoneRotation );
+                RigidBodyTransform biconvexTransform( stoneRigidBody.position, stoneRigidBody.orientation );
 
                 glPushMatrix();
 
@@ -1849,7 +2067,7 @@ float DegToRad( float degrees )
 
             // update time
 
-            t += 1 / 60.0;
+            t += dt;
         }
 
         CloseDisplay();

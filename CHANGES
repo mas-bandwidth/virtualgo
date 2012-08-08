@@ -1,6 +1,28 @@
 
 
-Visualize nearest point on biconvex function (7/7/2012):
+Angular motion for stone (8/8/2012):
+------------------------------------
+
+    Bring back quaternion class
+
+    Implement simple integration of angular velocity -> quat delta (spin)
+
+    Convert position/quaternion combo to rigid body matrix
+
+    Stone should now tumble as it falls
+
+    Randomize initial stone angular velocity
+
+
+First pass stone kinematics (7/8/2012):
+---------------------------------------
+
+    Added a new demo that shows a falling stone with linear motion only
+
+    Stone falls under gravity and passes right through the board
+
+
+Visualize nearest point on biconvex function (7/8/2012):
 --------------------------------------------------------
 
     When ray is not hitting stone, draw a yellow line between

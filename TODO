@@ -6,17 +6,9 @@ TODO:
 
     ============================================================
 
-    Add a new demo that shows a falling stone under kinematics.
-
-    Implement proper stone kinematics.
-
-    Stone will tumble and fall right through the board initially
-
-    ============================================================
-
     Implement continuous collision detection between stone and board
 
-    Next, I need a boolean function that just says:
+    I need a boolean function that just says:
 
         Stone vs. Board intersecting? (true/false)
 
