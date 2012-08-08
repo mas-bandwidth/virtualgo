@@ -6,18 +6,54 @@ TODO:
 
     ============================================================
 
-    When ray is not hitting stone, draw a yellow line between
-    the intersection with the plane and the nearest point on
-    the biconvex surface.
+    Add a new demo that shows a falling stone under kinematics.
 
-    This will let me verify that the nearest point on biconvex
-    relative to another point is correct -- the point will always
-    by definition be *outside* the biconvex, otherwise the pick ray
-    would have hit the biconvex stone first.
+    Implement proper stone kinematics.
+
+    Stone will tumble and fall right through the board initially
 
     ============================================================
 
+    Implement continuous collision detection between stone and board
+
+    Next, I need a boolean function that just says:
+
+        Stone vs. Board intersecting? (true/false)
+
+    Use SAT to do this. This test will *NOT* need to generate
+    collision point, normal etc.
+
+    Then I can start subdividing along the motion for the stone,
+    and stop (without collision response) at the exact point
+    nearest within tolerance, but not colliding.
+
+    Next, I need a function that gives me the nearest two features
+    between the biconvex and the board, this will be used to
+    determine the collision normal at the point just before
+    collision.
+
+    ============================================================
+
+    Implement collision response
+
+    Initially collisions will be with coefficient of restitution
+    set to 0.
+
+    Eventually I would like to have a coefficient of restitution
+    that is a function of the speed of the stone, eg. when it is
+    coming to rest make it act like the bounce is lessened, but
+    when dropped from a height it does have some bounce.
+
+    ============================================================
+
+    MUCH LATER BELOW...
+    
+    ============================================================
+
     Implement biconvex vs. line intersection
+
+    IMPORTANT: not ray intersection, but point/normal
+    of intersection of biconvex against an edge!
 
     Assume that the line is infinite
 
@@ -96,22 +132,3 @@ TODO:
         I should try to find a way to convert the simple binary SAT
         so that it doesn't require unit axis vectors. The sqrt here
         is going to significantly slow down the test.
-
-    Physics:
-
-        Once satisfied that the basic queries are good quality implement physics
-
-        The idea would be that an impulse based simulation is probably the best
-        way to go, ideally reusing the idea of speculative contacts so resting
-        contact is completely stable with no jitter.
-
-        First implement the stone drop with gravity with only linear motion
-
-        Verify that the stone properly drops and bounces against the plane
-        without linear motion and does not penetrate.
-
-        Next, determine how to implement angular collision response
-
-        Next, determine how to implement friction
-
-        At this point the stone should bounce and move realistically.

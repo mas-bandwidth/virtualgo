@@ -756,6 +756,14 @@ inline bool IntersectStoneBoard( const Board & board,
     return false;
 }
 
+inline vec3f NearestPointOnStone( const Biconvex & biconvex, 
+                                 const RigidBodyTransform & biconvexTransform, 
+                                 vec3f point )
+{
+    vec3f nearest_local = GetNearestPointOnBiconvexSurface_LocalSpace( TransformPoint( biconvexTransform.worldToLocal, point ), biconvex );
+    return TransformPoint( biconvexTransform.localToWorld, nearest_local );
+}
+
 inline float IntersectRayStone( const Biconvex & biconvex, 
                                 const RigidBodyTransform & biconvexTransform,
                                 vec3f rayStart, 
@@ -1554,10 +1562,11 @@ float DegToRad( float degrees )
         enum Mode
         {
             Stone,
-            StoneAndBoard
+            StoneAndBoard,
+            FallingStone
         };
 
-        Mode mode = Stone;
+        Mode mode = FallingStone;
 
         while ( !quit )
         {
@@ -1584,6 +1593,9 @@ float DegToRad( float degrees )
 
             if ( input.two )
                 mode = StoneAndBoard;
+
+            if ( input.three )
+                mode = FallingStone;
 
             ClearScreen( displayWidth, displayHeight );
 
@@ -1752,6 +1764,17 @@ float DegToRad( float degrees )
                         glVertex3f( p1.x(), p1.y(), p1.z() );
                         glVertex3f( p2.x(), p2.y(), p2.z() );
                         glEnd();
+
+                        // if we hit the board, then render yellow line between board intersection
+                        // and the nearest point on the stone. this we can test that nearest point
+                        // on biconvex fn is working properly.
+                        vec3f nearest = NearestPointOnStone( biconvex, biconvexTransform, board_point );
+                        glLineWidth( 2 );
+                        glColor4f( 0.9f,0.9f,0.3f,1 );
+                        glBegin( GL_LINES );
+                        glVertex3f( p1.x(), p1.y(), p1.z() );
+                        glVertex3f( nearest.x(), nearest.y(), nearest.z() );
+                        glEnd();
                     }
                 }
 
@@ -1771,6 +1794,53 @@ float DegToRad( float degrees )
                         glEnd();
                     }
                 }
+            }
+            else if ( mode == FallingStone )
+            {
+                glMatrixMode( GL_PROJECTION );
+                glLoadIdentity();
+                const float fov = 25.0f;
+                gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
+
+                glMatrixMode( GL_MODELVIEW );
+                glLoadIdentity();
+                gluLookAt( 0, 7, -25.0f, 
+                           0, 4, 0, 
+                           0, 1, 0 );
+
+                glEnable( GL_CULL_FACE );
+                glCullFace( GL_BACK );
+                glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
+                // render board
+
+                Board board( 20.0f, 20.0f, 1.0f );
+
+                glLineWidth( 1 );
+                glColor4f( 0.5f,0.5f,0.5f,1 );
+
+                RenderBoard( board );
+
+                // render stone
+
+                vec3f stonePosition(0,8.5f,0);
+                mat4f stoneRotation = mat4f::identity();
+
+                RigidBodyTransform biconvexTransform( stonePosition, stoneRotation );
+
+                glPushMatrix();
+
+                float opengl_transform[16];
+                biconvexTransform.localToWorld.store( opengl_transform );
+                glMultMatrixf( opengl_transform );
+
+                glEnable( GL_BLEND ); 
+                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+                glLineWidth( 1 );
+                glColor4f( 0.5f,0.5f,0.5f,1 );
+                RenderBiconvex( biconvex, 50, 10 );
+
+                glPopMatrix();
             }
 
             // update the display

@@ -1,5 +1,18 @@
 
 
+Visualize nearest point on biconvex function (7/7/2012):
+--------------------------------------------------------
+
+    When ray is not hitting stone, draw a yellow line between
+    the intersection with the plane and the nearest point on
+    the biconvex surface.
+
+    This will let me verify that the nearest point on biconvex
+    relative to another point is correct -- the point will always
+    by definition be *outside* the biconvex, otherwise the pick ray
+    would have hit the biconvex stone first.
+
+
 Implement ray vs. board intersection (7/8/2012):
 ------------------------------------------------
 
