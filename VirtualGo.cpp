@@ -1,6 +1,7 @@
 /*
     Virtual Go
     A networked physics simulation of a go board and stones
+    Copyright (c) 2005-2012, Glenn Fiedler. All rights reserved.
 */
 
 #include "Platform.h"
