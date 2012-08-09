@@ -6,35 +6,123 @@ TODO:
 
     ============================================================
 
-    Implement continuous collision detection between stone and board
+    Convert stone vs. board intersection test to use SAT
+    instead of using exact point/normal plane test w. biconvex
 
-    I need a boolean function that just says:
+    We only care about the binary result we do not want the 
+    collision point and normal.
 
-        Stone vs. Board intersecting? (true/false)
+    ============================================================
 
-    Use SAT to do this. This test will *NOT* need to generate
-    collision point, normal etc.
+    Bisect to find exact point of collision
 
-    Then I can start subdividing along the motion for the stone,
-    and stop (without collision response) at the exact point
-    nearest within tolerance, but not colliding.
+    The stone moves so fast that it tunnels inside the plane
+    when it falls from a height.
 
-    Next, I need a function that gives me the nearest two features
-    between the biconvex and the board, this will be used to
-    determine the collision normal at the point just before
-    collision.
+    Fix this by subdividing the step searching for the first
+    time where the stone collides with the board.
+
+    Freeze the stone at this time and verify visually
+    that it is not penetrating (eg: perhaps put the camera
+    down on the line, and give it an ortho transform? +
+    draw collision plane in thick blue line
+
+    ============================================================
+
+    Next we need to determine the point of collision
+
+    Now we need a function that gives us the closest point
+    on the biconvex to the plane.
+
+    We also need to decide what the normal should be
+
+    Should the normal always be directly up? OR in the case of
+    the circle edge touching the plane should the normal be back
+    towards the biconvex center from the nearest point?
 
     ============================================================
 
     Implement collision response
 
-    Initially collisions will be with coefficient of restitution
-    set to 0.
+    Determine velocity at a point for rigid body (add fn to
+    rigid body class). 
 
-    Eventually I would like to have a coefficient of restitution
-    that is a function of the speed of the stone, eg. when it is
-    coming to rest make it act like the bounce is lessened, but
-    when dropped from a height it does have some bounce.
+    Perform collision response such that an impulse is applied
+    that removes the velocity *into* the plane surface at the
+    point of collision.
+
+    ============================================================
+
+    Implement damping
+
+    There should be some small damping added to the simulation
+    to linear and rotational velocity.
+
+    Research the best way to implement this that is 
+    most appropriate resistance against motion in air.
+
+    ============================================================
+
+    Implement friction
+
+    Study Coulomb friction and how it works
+
+    Study how impulse based systems approximate friction
+
+    I want proper resting friction, eg. static and dynamic
+    friction because the effects are required for stones to
+    rest on each other without looking slimy or fake.
+
+    ============================================================
+
+    Visualize stone vs. stone SAT
+
+    Two stones rotating next to each other.
+
+    Visualize their x/y axis supports for each stone.
+
+    Add some vis when they are colliding.
+
+    Consider whether or not we need additional separating
+    axes than the current, it should be clear from the vis.
+
+    ============================================================
+
+    Implement nearest point on biconvex vs. biconvex
+
+    This is required to determine the collision point and normal
+    between two stones after bisecting to find intersection t.
+
+    Visualize nearest points between biconvex if not intersecting
+    in yellow.
+
+    Add some key to move the biconvex further away from each other
+    or closer together (left/right)
+
+    ============================================================
+
+    Generalize stones to an array of rigid bodies, array of
+    biconvex shapes (don't assume all the same size...)
+
+    Determine algorithm for detecting collisions globally
+
+    Study speculative contacts approach and think through
+
+    What about "ghost" contacts?!
+
+    End result, should have a bunch of stones falling while you
+    are holding space bar down. These stones should tumble and
+    collide and come to rest on the board.
+
+    ============================================================
+
+
+
+
+
+
+
+
 
     ============================================================
 
@@ -97,30 +185,3 @@ TODO:
     Extend to all corners.
 
     ============================================================
-
-    Biconvex vs. Biconvex
-
-        Extend so that once we know intersection we can determine
-        the point and normal to push out. Should this be done with
-        SAT or some hand crafted test based on nearest features?
-
-        I think with the SAT test the way it is sorted, I already know
-        the nearest feature being considered, eg. it is a point on the
-        sphere edge, or a point on the circle edge.
-
-        In fact, by determining the point first, and skipping cases 
-        where the nearest point feature is on the shadow side of the
-        sphere, it will probably make the SAT test faster.
-
-        I think that I should have two versions of the test
-
-            1. A fast version that just determines intersecting yes/no
-
-            2. A slow version that determines normal, point of intersection
-
-        This would allow me to keep the simple test as is, and add a
-        more complicated one that would track nearest feature etc.
-
-        I should try to find a way to convert the simple binary SAT
-        so that it doesn't require unit axis vectors. The sqrt here
-        is going to significantly slow down the test.

@@ -867,6 +867,37 @@ inline float IntersectRayBoard( const Board & board,
 inline bool IntersectStoneBoard( const Board & board, 
                                  const Biconvex & biconvex, 
                                  const RigidBodyTransform & biconvexTransform,
+                                 float epsilon = 0.001f )
+{
+    const float boundingSphereRadius = biconvex.GetBoundingSphereRadius();
+
+    vec3f biconvexPosition = biconvexTransform.GetPosition();
+
+    StoneBoardCollisionType collisionType = DetermineStoneBoardCollisionType( board, biconvexPosition, boundingSphereRadius );
+
+    // todo: do this with SAT test -- we only want a binary result,
+    // we don't care about collision point or normal!
+
+    if ( collisionType == STONE_BOARD_COLLISION_Primary )
+    {
+        vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,1,0,0) );
+
+        vec3f local_point;
+        vec3f local_normal;
+        float depth = IntersectPlaneBiconvex_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), 
+                                                         plane.w(), biconvex, local_point, local_normal );
+        if ( depth > 0 )
+            return true;
+    }
+
+    // todo: other cases
+
+    return false;
+}
+
+inline bool IntersectStoneBoard( const Board & board, 
+                                 const Biconvex & biconvex, 
+                                 const RigidBodyTransform & biconvexTransform,
                                  vec3f & point,
                                  vec3f & normal,
                                  float & depth,
@@ -1760,18 +1791,20 @@ float DegToRad( float degrees )
         enum Mode
         {
             Stone,
+            BiconvexSupport,
             StoneAndBoard,
-            FallingStone
+            FallingStone,
+            Bisection
         };
 
-        Mode mode = FallingStone;
+        Mode mode = Stone;
 
-        // for falling stone mode
-        RigidBody stoneRigidBody;
-        stoneRigidBody.position = vec3f(0,10.0f,0);
-        stoneRigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
+        // for falling stone + bisection mode
+        RigidBody rigidBody;
+        rigidBody.position = vec3f(0,10.0f,0);
+        rigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
 
-        const float dt = 0.25f * 1.0f / 60.0f;
+        const float dt = 1.0f / 60.0f;
 
         while ( !quit )
         {
@@ -1788,11 +1821,15 @@ float DegToRad( float degrees )
             {
                 if ( !prevSpace )
                 {
-                    rotating = !rotating;
+                    if ( mode == Stone || mode == BiconvexSupport )
+                        rotating = !rotating;
 
-                    stoneRigidBody = RigidBody();
-                    stoneRigidBody.position = vec3f(0,10.0f,0);
-                    stoneRigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
+                    if ( mode == FallingStone || mode == Bisection )
+                    {
+                        rigidBody = RigidBody();
+                        rigidBody.position = vec3f(0,10.0f,0);
+                        rigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
+                    }
                 }
 
                 prevSpace = true;
@@ -1804,22 +1841,34 @@ float DegToRad( float degrees )
                 mode = Stone;
 
             if ( input.two )
-                mode = StoneAndBoard;
+                mode = BiconvexSupport;
 
             if ( input.three )
+                mode = StoneAndBoard;
+
+            if ( input.four )
                 mode = FallingStone;
+
+            if ( input.five )
+                mode = Bisection;
 
             ClearScreen( displayWidth, displayHeight );
 
-            if ( mode == Stone )
+            if ( mode == Stone || mode == BiconvexSupport )
             {
-                glMatrixMode( GL_PROJECTION );
-                glLoadIdentity();
-                /*
-                const float fov = 25.0f;
-                gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
-                */
-                glOrtho( -1.5, +1.5f, -1.0f, +1.0f, 0.1f, 100.0f );
+                if ( mode == Stone )
+                {
+                    const float fov = 25.0f;
+                    glMatrixMode( GL_PROJECTION );
+                    glLoadIdentity();
+                    gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
+                }
+                else
+                {
+                    glMatrixMode( GL_PROJECTION );
+                    glLoadIdentity();
+                    glOrtho( -1.5, +1.5f, -1.0f, +1.0f, 0.1f, 100.0f );
+                }
 
                 glMatrixMode( GL_MODELVIEW );
                 glLoadIdentity();
@@ -1875,21 +1924,24 @@ float DegToRad( float degrees )
                     glEnd();
                 }
 
-                // render biconvex support along x axis
+                if ( mode == BiconvexSupport )
+                {
+                    // render biconvex support along x axis
 
-                vec3f biconvexCenter = biconvexTransform.GetPosition();
-                vec3f biconvexUp = biconvexTransform.GetUp();
-                float s1,s2;
-                BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(1,0,0), s1, s2 );
+                    vec3f biconvexCenter = biconvexTransform.GetPosition();
+                    vec3f biconvexUp = biconvexTransform.GetUp();
+                    float s1,s2;
+                    BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(1,0,0), s1, s2 );
 
-                glLineWidth( 3 );
-                glColor4f( 0,0,0.8f,1 );
-                glBegin( GL_LINES );
-                glVertex3f( s1, -10, 0 );
-                glVertex3f( s1, +10, 0 );
-                glVertex3f( s2, -10, 0 );
-                glVertex3f( s2, +10, 0 );
-                glEnd();
+                    glLineWidth( 3 );
+                    glColor4f( 0,0,0.8f,1 );
+                    glBegin( GL_LINES );
+                    glVertex3f( s1, -10, 0 );
+                    glVertex3f( s1, +10, 0 );
+                    glVertex3f( s2, -10, 0 );
+                    glVertex3f( s2, +10, 0 );
+                    glEnd();
+                }
             }
             else if ( mode == StoneAndBoard )
             {
@@ -2007,22 +2059,38 @@ float DegToRad( float degrees )
                     }
                 }
             }
-            else if ( mode == FallingStone )
+            else if ( mode == FallingStone || mode == Bisection )
             {
-                glMatrixMode( GL_PROJECTION );
-                glLoadIdentity();
-                const float fov = 25.0f;
-                gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
+                if ( mode == FallingStone )
+                {
+                    const float fov = 25.0f;
+                    glMatrixMode( GL_PROJECTION );
+                    glLoadIdentity();
+                    gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
+    
+                    glMatrixMode( GL_MODELVIEW );    
+                    glLoadIdentity();
+                    gluLookAt( 0, 7, -25.0f, 
+                               0, 4, 0, 
+                               0, 1, 0 );
 
-                glMatrixMode( GL_MODELVIEW );
-                glLoadIdentity();
-                gluLookAt( 0, 7, -25.0f, 
-                           0, 4, 0, 
-                           0, 1, 0 );
+                    glEnable( GL_CULL_FACE );
+                    glCullFace( GL_BACK );
+                    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+                }
+                else if ( mode == Bisection )
+                {
+                    glMatrixMode( GL_PROJECTION );
+                    glLoadIdentity();
+                    glOrtho( -3, +3, -2, +2, -10, +10.0f );
 
-                glEnable( GL_CULL_FACE );
-                glCullFace( GL_BACK );
-                glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+                    glMatrixMode( GL_MODELVIEW );
+                    glLoadIdentity();
+
+                    glEnable( GL_CULL_FACE );
+                    glCullFace( GL_BACK );
+                    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+                }
 
                 // render board
 
@@ -2035,16 +2103,27 @@ float DegToRad( float degrees )
 
                 // update stone physics
 
+                RigidBody previous = rigidBody;
+
+                const float scaled_dt = mode == FallingStone ? 0.25f * dt : dt;
+
                 const float gravity = 9.8f * 10;    // cms/sec^2
-                stoneRigidBody.linearVelocity += vec3f(0,-gravity,0) * dt;
-                stoneRigidBody.position += stoneRigidBody.linearVelocity * dt;
-                quat4f spin = AngularVelocityToSpin( stoneRigidBody.orientation, stoneRigidBody.angularVelocity );
-                stoneRigidBody.orientation += spin * dt;
-                stoneRigidBody.orientation = normalize( stoneRigidBody.orientation );
+                rigidBody.linearVelocity += vec3f(0,-gravity,0) * scaled_dt;
+                rigidBody.position += rigidBody.linearVelocity * scaled_dt;
+                quat4f spin = AngularVelocityToSpin( rigidBody.orientation, rigidBody.angularVelocity );
+                rigidBody.orientation += spin * scaled_dt;
+                rigidBody.orientation = normalize( rigidBody.orientation );
+
+                // test if board and stone are intersecting
+
+                RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
+
+                bool intersecting = IntersectStoneBoard( board, biconvex, biconvexTransform );
+
+                if ( intersecting )
+                    rigidBody = previous;
 
                 // render stone
-
-                RigidBodyTransform biconvexTransform( stoneRigidBody.position, stoneRigidBody.orientation );
 
                 glPushMatrix();
 
@@ -2059,6 +2138,18 @@ float DegToRad( float degrees )
                 RenderBiconvex( biconvex, 50, 10 );
 
                 glPopMatrix();
+
+                if ( mode == Bisection )
+                {
+                    // render line representing board surface in ortho projection
+
+                    glLineWidth( 3 );
+                    glColor4f( 0,0,0.8f,1 );
+                    glBegin( GL_LINES );
+                    glVertex3f( -10, 0, 0 );
+                    glVertex3f( +10, 0, 0 );
+                    glEnd();
+                }
             }
 
             // update the display
@@ -2067,7 +2158,10 @@ float DegToRad( float degrees )
 
             // update time
 
-            t += dt;
+            if ( mode == FallingStone )
+                t += 0.25f * dt;
+            else
+                t += dt;
         }
 
         CloseDisplay();
