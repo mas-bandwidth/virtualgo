@@ -4,45 +4,39 @@ DONE:
 
 TODO:
 
-    ============================================================
+    There is some very strange problem with the collision
+    response. It appears to get "stuck" often, indicating
+    that the bisection is not 100% correct?
 
-    Add a new demo for collision response (7)
+    My guess would be that the bisection is incorrectly
+    thinking that the stone is moving towards the board
+    and stopping dt advancement
 
-    This demo should be completely separate from the other existing
-    demos except for space bar resetting stone position.
+    The collision response is not properly implementing
+    the sort of sliding behavior I am looking for if a stone
+    slides down on a surface edge it should slide out.
 
-    Determine velocity at a point for rigid body (add fn to
-    rigid body class). 
+    It seems that my understanding of speculative contacts
+    was entirely incorrect. It seems I am implementing
+    something different, also I do not understand how
+    rolling and sliding contacts work within speculative
+    contacts...
 
-    Perform collision response such that an impulse is applied
-    that removes the velocity *into* the plane surface at the
-    point of collision.
 
-    Need to decide what collision means -- for example, colliding
-    is only true if the point of collision is moving TOWARDS 
-    the contact normal. How does this affect the bisection SAT?!
-
-    ============================================================
-
-    Implement damping
-
-    There should be some small damping added to the simulation
-    to linear and rotational velocity.
-
-    Research the best way to implement this that is 
-    most appropriate resistance against motion in air.
 
     ============================================================
 
-    Implement friction
+    MUCH LATER BELOW...
+    
+    ============================================================
+
+    ============================================================
+
+    Implement proper friction
 
     Study Coulomb friction and how it works
 
     Study how impulse based systems approximate friction
-
-    I want proper resting friction, eg. static and dynamic
-    friction because the effects are required for stones to
-    rest on each other without looking slimy or fake.
 
     ============================================================
 
@@ -85,20 +79,6 @@ TODO:
     are holding space bar down. These stones should tumble and
     collide and come to rest on the board.
 
-    ============================================================
-
-
-
-
-
-
-
-
-
-    ============================================================
-
-    MUCH LATER BELOW...
-    
     ============================================================
 
     Implement biconvex vs. line intersection

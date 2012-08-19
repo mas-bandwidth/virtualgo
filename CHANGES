@@ -1,5 +1,30 @@
 
 
+Really crappy collision response + friction (19/8/2012):
+--------------------------------------------------------
+
+    Added a small amount of damping to linear and angular
+    velocity so the system does not explode.
+
+    Also added a totally bullshit friction impulse to the
+    collision response so the impulse is not purely in the
+    plane normal direction (the stone tumbles around)
+
+
+First pass collision response (19/8/2012):
+------------------------------------------
+
+    Need a function to determine rigid body velocity at point
+
+    Need a function to apply an impulse at a point
+
+    Add a new demo for collision response (7)
+
+    Perform collision response such that an impulse is applied
+    that removes the velocity *into* the plane surface at the
+    point of collision.
+
+
 Added function to determine closest features on board and stone (18/8/2012):
 ----------------------------------------------------------------------------
 
