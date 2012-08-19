@@ -6,43 +6,10 @@ TODO:
 
     ============================================================
 
-    Convert stone vs. board intersection test to use SAT
-    instead of using exact point/normal plane test w. biconvex
+    Add a new demo for collision response (7)
 
-    We only care about the binary result we do not want the 
-    collision point and normal.
-
-    ============================================================
-
-    Bisect to find exact point of collision
-
-    The stone moves so fast that it tunnels inside the plane
-    when it falls from a height.
-
-    Fix this by subdividing the step searching for the first
-    time where the stone collides with the board.
-
-    Freeze the stone at this time and verify visually
-    that it is not penetrating (eg: perhaps put the camera
-    down on the line, and give it an ortho transform? +
-    draw collision plane in thick blue line
-
-    ============================================================
-
-    Next we need to determine the point of collision
-
-    Now we need a function that gives us the closest point
-    on the biconvex to the plane.
-
-    We also need to decide what the normal should be
-
-    Should the normal always be directly up? OR in the case of
-    the circle edge touching the plane should the normal be back
-    towards the biconvex center from the nearest point?
-
-    ============================================================
-
-    Implement collision response
+    This demo should be completely separate from the other existing
+    demos except for space bar resetting stone position.
 
     Determine velocity at a point for rigid body (add fn to
     rigid body class). 
@@ -50,6 +17,10 @@ TODO:
     Perform collision response such that an impulse is applied
     that removes the velocity *into* the plane surface at the
     point of collision.
+
+    Need to decide what collision means -- for example, colliding
+    is only true if the point of collision is moving TOWARDS 
+    the contact normal. How does this affect the bisection SAT?!
 
     ============================================================
 

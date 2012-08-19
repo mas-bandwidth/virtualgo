@@ -1,5 +1,62 @@
 
 
+Added function to determine closest features on board and stone (18/8/2012):
+----------------------------------------------------------------------------
+
+    Now we need a function that gives us the closest point
+    on the biconvex to the plane.
+
+    Basically, we want to ask the question -- what is the 
+    closest (or deepest) point on the biconvex re. the plane,
+    and then we want to project this point onto the plane surface
+
+    The logic on this should be similar to finding the point
+    that is projected onto the axis for the SAT, eg. this 
+    would be the point that becomes projected s1
+
+    The normal should always be directly up.
+
+    Extended function so that it returns separate points and normals
+    on the stone and on the board, eg:
+
+        stonePoint
+        stoneNormal
+        boardPoint
+        boardNormal
+
+    Visualized board point+normal as red line, and stone point+normal
+    as yellow line. Verified that they are working properly.
+
+    Worked around a problem with transforming a plane, the W coordinate
+    was not being correctly transformed. Slow workaround function is 
+    working properly in the interim.
+
+
+Bisect to find point of stone/board collision (18/8/2012):
+----------------------------------------------------------
+
+    Bisect to find exact point of collision
+
+    The stone moves so fast that it tunnels inside the plane
+    when it falls from a height.
+
+    Fix this by subdividing the step searching for the first
+    time where the stone collides with the board.
+
+    Freeze the stone at this time and verify visually
+    that it is not penetrating with ortho projection.
+
+
+Stone board collision test now uses SAT (18/8/2012):
+----------------------------------------------------
+
+    Convert stone vs. board intersection test to use SAT
+    instead of using exact point/normal plane test w. biconvex
+
+    We only care about the binary result we do not want the 
+    collision point and normal.
+
+
 Added bisection demo in ortho projection (9/8/2012):
 ----------------------------------------------------
 

@@ -67,19 +67,19 @@
 	"build_system": "Packages/Makefile/Make.sublime-build",
 	"command_palette":
 	{
-		"height": 392.0,
+		"height": 107.0,
 		"selected_items":
 		[
+			[
+				"TODO",
+				"Package Control: Discover Packages"
+			],
 			[
 				"git",
 				"Git: Commit history"
 			],
 			[
 				"",
-				"Package Control: Discover Packages"
-			],
-			[
-				"TODO",
 				"Package Control: Discover Packages"
 			],
 			[
@@ -120,21 +120,27 @@
 	},
 	"file_history":
 	[
-		"/Users/gaffer/virtualgo/VirtualGo.cpp",
+		"/Users/gaffer/virtualgo/vectorial/vec4f.h",
 		"/Users/gaffer/virtualgo/TODO",
+		"/Users/gaffer/virtualgo/VirtualGo.cpp",
+		"/Users/gaffer/virtualgo/CHANGES",
+		"/Users/gaffer/virtualgo/vectorial/mat4f.h",
+		"/Users/gaffer/virtualgo/Platform.h",
+		"/Users/gaffer/virtualgo/Platform.cpp",
+		"/Users/gaffer/virtualgo/obj/Debug/VirtualGo/Platform.d",
+		"/Users/gaffer/virtualgo/vectorial/simd4x4f.h",
+		"/Users/gaffer/virtualgo/Config.h",
+		"/Users/gaffer/virtualgo/build/obj/Debug/CurrentTest.d",
+		"/Users/gaffer/virtualgo/build/obj/Debug/TestRunner.d",
+		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
+		"/Users/gaffer/virtualgo/VirtualGo.sublime-project",
+		"/Users/gaffer/virtualgo/build/obj/Debug/TimeConstraint.d",
 		"/Users/gaffer/Desktop/hosting meeting with OTG",
 		"/Users/gaffer/Desktop/hosting meeting with GH",
-		"/Users/gaffer/virtualgo/CHANGES",
 		"/Users/gaffer/virtualgo/vectorial/simd4f_scalar.h",
-		"/Users/gaffer/virtualgo/vectorial/mat4f.h",
-		"/Users/gaffer/virtualgo/vectorial/simd4x4f.h",
 		"/Users/gaffer/virtualgo/premake4.lua",
-		"/Users/gaffer/virtualgo/Platform.cpp",
-		"/Users/gaffer/virtualgo/Config.h",
-		"/Users/gaffer/virtualgo/Platform.h",
 		"/Users/gaffer/virtualgo/View.h",
 		"/Users/gaffer/git/cubes/client/Render.cpp",
-		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
 		"/Users/gaffer/git/network/premake4.lua",
 		"/Users/gaffer/Desktop/Intersection of Ellipsoids.pdf",
 		"/Users/gaffer/git/cubes/PreCompiled.h",
@@ -241,13 +247,7 @@
 		"/Users/gaffer/git/network/shadow/SubWads.txt",
 		"/Users/gaffer/git/network/test/TestNDL.cpp",
 		"/Users/gaffer/git/network/include/netDataTypes.h",
-		"/Users/gaffer/git/network/include/netConfig.h",
-		"/Users/gaffer/git/network/shadow/m4/GameModes.net.14152",
-		"/Users/gaffer/git/network/ruby/ndl/Enums.net",
-		"/Users/gaffer/git/network/README",
-		"/Users/gaffer/git/network/include/netSerialize.h",
-		"/Users/gaffer/git/network/incoming/mpTableManager.cpp",
-		"/Users/gaffer/git/network/include/netTableManager.h"
+		"/Users/gaffer/git/network/include/netConfig.h"
 	],
 	"find":
 	{
@@ -285,6 +285,69 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"stoneRigidBody",
+			"Angula",
+			"struct quat4f",
+			"Spin",
+			".space",
+			"struct RigidBody",
+			"IntersectBoard",
+			"IntersectRayBoard",
+			"IntersectBoard",
+			"IntersectStoneRay",
+			"IntersectBoard",
+			"Intersect",
+			"IntersectBoardRay",
+			"IntersetBoardRay",
+			"Board",
+			"IntersectRayBoard",
+			"Support",
+			"ortho",
+			"Support_",
+			"biconvexUp",
+			"Support",
+			"Span",
+			"IntersectPlaneBiconvex_LocalSpace",
+			"IntersectStoneBoard",
+			"rotation = ",
+			"BiconvexTransform",
+			"IntersectPlaneBiconvex_Local",
+			"sphereDot = ",
+			"IntersectBiconvexPlane",
+			"IntersectPlaneBiconvex",
+			"GetSphereDot",
+			"IntersectStoneRay",
+			"IntersectPlaneBiconvex_LocalSpace",
+			"Board board",
+			"mouse_y",
+			"mouse_x",
+			"ShowMouse",
+			"Point",
+			"quit",
+			"quitEvent",
+			"TransformVector",
+			"IntersectRayBiconvex",
+			"TransformNora",
+			"StoneBoard",
+			"Intersect",
+			"anti",
+			"CloseDisplay",
+			"PrintMatrix",
+			"PrintVector",
+			"simd4x4f_axis_rotation",
+			"IntersectStoneBoard",
+			"TransformPoint",
+			"WorldToLocal",
+			"IntersectPlaneBiconvex",
+			"2.",
+			"PlaneTo",
+			"PlanoTo",
+			".position",
+			"StoneBoard",
+			"#endif",
+			"simd4x4f_lookat",
+			"Quat",
+			"IntersectBiconvexPlane",
 			"_span",
 			"sphereDot",
 			"_sat",
@@ -349,70 +412,7 @@
 			"pretty_generate",
 			"json ",
 			".generate root",
-			"nice",
-			"basewads.json",
-			"getSubWads",
-			"BaseWad.new",
-			"getBaseWad",
-			"@nameToGameModeId",
-			"joinHash",
-			"NETHACK",
-			"SafeToSetPhase",
-			"Game Modes.txt",
-			"NETHACK",
-			"join index = %d",
-			"GetBaseWadInfo",
-			"::GetBaseWadInfo",
-			"singleParent =",
-			"baseWadIndex",
-			"basewad_index",
-			"singleParent =",
-			"flags",
-			"numParents",
-			"NETHACK",
-			"flags",
-			"=begin",
-			"joinHash",
-			"basewad",
-			"join",
-			"to_s",
-			"-1",
-			"basewad_index",
-			"raise UserError ",
-			"hash collision",
-			"getGameModeId",
-			"subwad",
-			"@wadHeaders",
-			"phases",
-			"parseSubWads",
-			"Parse",
-			"NETHACK",
-			"gamemodes",
-			"NETHACK",
-			"gamemodes",
-			"Version",
-			"log",
-			"print",
-			"ParseSubwads",
-			"levels",
-			"subwads",
-			"parseGameModes",
-			"subwads",
-			"test_ndl_",
-			"TestLevelData.h",
-			"Levels.bin",
-			"Shortcuts",
-			"subwads args",
-			"subwads",
-			"Building Subwads",
-			"Generated",
-			"SubWads.net",
-			"NEW_SUBWADS_PER_GAMEMODE",
-			"ArenaTest",
-			"BillieJean",
-			"NET_PROFILE",
-			"TableAllocator",
-			"Allocator"
+			"nice"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -483,40 +483,68 @@
 		"selected_items":
 		[
 			[
-				"todo",
-				"TODO"
-			],
-			[
 				"changes",
 				"CHANGES"
+			],
+			[
+				"todo",
+				"TODO"
 			],
 			[
 				"virtualgo.cpp",
 				"VirtualGo.cpp"
 			],
 			[
+				"vec4f.h",
+				"vectorial/vec4f.h"
+			],
+			[
 				"mat4f.h",
 				"vectorial/mat4f.h"
 			],
 			[
-				"mat4f",
-				"vectorial/mat4f.h"
-			],
-			[
-				"simd4x4",
-				"vectorial/simd4x4f.h"
-			],
-			[
-				"mat",
-				"vectorial/mat4f.h"
+				"platform.h",
+				"Platform.h"
 			],
 			[
 				"platform.cpp",
 				"Platform.cpp"
 			],
 			[
-				"platform.h",
+				"con",
+				"Config.h"
+			],
+			[
+				"plat",
 				"Platform.h"
+			],
+			[
+				"done",
+				"build/obj/Debug/TestRunner.d"
+			],
+			[
+				"sim",
+				"vectorial/simd4x4f.h"
+			],
+			[
+				"vec3f.h",
+				"vectorial/vec3f.h"
+			],
+			[
+				"simd",
+				"vectorial/simd4x4f.h"
+			],
+			[
+				"mat4f",
+				"vectorial/mat4f.h"
+			],
+			[
+				"mat",
+				"vectorial/mat4f.h"
+			],
+			[
+				"simd4x4",
+				"vectorial/simd4x4f.h"
 			],
 			[
 				"view.h",
@@ -533,10 +561,6 @@
 			[
 				"pm",
 				"premake4.lua"
-			],
-			[
-				"vec3f.h",
-				"vectorial/vec3f.h"
 			],
 			[
 				"lua",
@@ -969,30 +993,6 @@
 			[
 				"testnodemesh.cpp",
 				"test/TestNodeMesh.cpp"
-			],
-			[
-				"netprotocol.h",
-				"include/netProtocol.h"
-			],
-			[
-				"ndlconstants.h",
-				"generated/ndlConstants.h"
-			],
-			[
-				"netatom.h",
-				"include/netAtom.h"
-			],
-			[
-				"readme",
-				"README"
-			],
-			[
-				"profile.cpp",
-				"test/Profile.cpp"
-			],
-			[
-				"arse",
-				"arse.lua"
 			]
 		],
 		"width": 0.0
