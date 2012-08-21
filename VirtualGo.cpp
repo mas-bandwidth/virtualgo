@@ -645,7 +645,7 @@ struct RigidBody
     void ApplyImpulse( vec3f point, vec3f impulse )
     {
         vec3f linearDV = impulse;
-        vec3f angularDV = cross( impulse, point - position );
+        vec3f angularDV = 2.0f / 5.0f * cross( impulse, point - position );
         // todo: need mass / inertia tensor!
         linearVelocity += linearDV;
         angularVelocity += angularDV;
@@ -972,6 +972,7 @@ inline bool IntersectStoneBoard( const Board & board,
             return true;
         }
     }
+    /*
     else if ( collisionType == STONE_BOARD_COLLISION_LeftSide )
     {
         assert( false );
@@ -1004,6 +1005,7 @@ inline bool IntersectStoneBoard( const Board & board,
     {
         assert( false );
     }
+    */
 
     return false;
 }
@@ -1198,7 +1200,6 @@ inline bool BisectStoneBoardCollision( const Biconvex & biconvex,
 
         if ( intersect_t0 )
         {
-            printf( "intersect t0\n" );
             rigidBody.position = startPosition;
             rigidBody.orientation = normalize( startOrientation + spin * dt );
             return true;
@@ -2027,10 +2028,11 @@ float DegToRad( float degrees )
             WithBisection,
             LinearCollisionResponse,
             AngularCollisionResponse,
-            AngularCollisionResponseWithFriction
+            AngularCollisionResponseWithFriction,
+            SpeculativeContacts,
         };
 
-        Mode mode = AngularCollisionResponse;
+        Mode mode = SpeculativeContacts;
 
         // for falling stone + bisection mode
         RigidBody rigidBody;
@@ -2061,7 +2063,7 @@ float DegToRad( float degrees )
                         rotating = !rotating;
 
                     if ( mode == FallingStone || mode == WithoutBisection || mode == WithBisection || 
-                         mode == LinearCollisionResponse || mode == AngularCollisionResponse || mode == AngularCollisionResponseWithFriction )
+                         mode == LinearCollisionResponse || mode == AngularCollisionResponse || mode == AngularCollisionResponseWithFriction || mode == SpeculativeContacts )
                     {
                         rigidBody = RigidBody();
                         rigidBody.position = vec3f(0,10.0f,0);
@@ -2103,6 +2105,9 @@ float DegToRad( float degrees )
 
             if ( input.nine )
                 mode = AngularCollisionResponseWithFriction;
+
+            if ( input.zero )
+                mode = SpeculativeContacts;
 
             ClearScreen( displayWidth, displayHeight );
 
@@ -2568,6 +2573,138 @@ float DegToRad( float degrees )
                             rigidBody.ApplyImpulse( stonePoint, -frictionVelocity );
                     }
                 }
+
+                // apply damping
+
+                rigidBody.linearVelocity *= 0.9995f;
+                rigidBody.angularVelocity *= 0.9995f;
+            }
+            else if ( mode == SpeculativeContacts )
+            {
+                const float fov = 25.0f;
+                glMatrixMode( GL_PROJECTION );
+                glLoadIdentity();
+                gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
+
+                glMatrixMode( GL_MODELVIEW );    
+                glLoadIdentity();
+                gluLookAt( 0, 7, -25.0f, 
+                           0, 4, 0, 
+                           0, 1, 0 );
+
+                glEnable( GL_CULL_FACE );
+                glCullFace( GL_BACK );
+                glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
+                // render board
+
+                Board board( 20.0f, 20.0f, 1.0f );
+
+                glLineWidth( 1 );
+                glColor4f( 0.5f,0.5f,0.5f,1 );
+
+                RenderBoard( board );
+
+                // update stone physics
+
+                RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
+
+                bool colliding = false;
+
+                const float scaled_dt = dt * 0.5f;
+
+                const float gravity = 9.8f * 10;    // cms/sec^2
+                rigidBody.linearVelocity += vec3f(0,-gravity,0) * scaled_dt;
+                quat4f spin = AngularVelocityToSpin( rigidBody.orientation, rigidBody.angularVelocity );
+                rigidBody.orientation += spin * scaled_dt;
+                rigidBody.orientation = normalize( rigidBody.orientation );
+
+                // speculative contact: if not colliding already but about to
+                // remove exactly the amount of velocity required to just be touching
+                // at the end of the frame
+
+                vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
+                /*
+                ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
+
+                if ( stonePoint.y() > 0 && stonePoint.y() + rigidBody.linearVelocity.y() * scaled_dt <= 0.0f )
+                {
+                    rigidBody.linearVelocity = vec3f( rigidBody.linearVelocity.x(), - ( stonePoint.y() / scaled_dt ), rigidBody.linearVelocity.z() );
+                    colliding = true;
+                }
+                */
+
+                rigidBody.position += rigidBody.linearVelocity * scaled_dt;
+
+                // end of frame: if object is penetrating with the board, push it out
+
+                biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
+
+                float depth;
+                vec3f point, normal;
+                if ( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) )
+                {
+                    rigidBody.position += normal * depth;
+                    colliding = true;
+                }
+
+                // end of frame: apply collision response
+
+                if ( colliding )
+                {
+                    biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
+
+                    ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
+
+                    vec3f velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
+
+                    const float velocityIntoContact = dot( velocityAtPoint, -boardNormal );
+
+                    if ( velocityIntoContact > 0 )
+                    {
+                        const float r = 0.5;
+
+                        rigidBody.ApplyImpulse( stonePoint, boardNormal * velocityIntoContact * ( 1 + r ) );
+
+                        float frictionPlaneD = 0;
+                        vec3f frictionVelocity = vec3f( velocityAtPoint.x(), 0, velocityAtPoint.z() );
+
+                        rigidBody.linearVelocity *= 0.9f;
+                        rigidBody.angularVelocity *= 0.9f;
+
+                        //rigidBody.ApplyImpulse( stonePoint, -frictionVelocity * 0.5f );
+                    }
+                }
+
+                // render stone
+
+                biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
+
+                glPushMatrix();
+
+                float opengl_transform[16];
+                biconvexTransform.localToWorld.store( opengl_transform );
+                glMultMatrixf( opengl_transform );
+
+                glEnable( GL_BLEND ); 
+                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+                glLineWidth( 1 );
+                glColor4f( 0.5f,0.5f,0.5f,1 );
+                RenderBiconvex( biconvex, 50, 10 );
+
+                glPopMatrix();
+
+                // render closest features on stone & board
+
+                glLineWidth( 3 );
+
+                glColor4f( 1,0,0,1 );
+                glBegin( GL_LINES );
+                vec3f p1 = boardPoint;
+                vec3f p2 = stonePoint;
+                glVertex3f( p1.x(), p1.y(), p1.z() );
+                glVertex3f( p2.x(), p2.y(), p2.z() );
+                glEnd();
 
                 // apply damping
 

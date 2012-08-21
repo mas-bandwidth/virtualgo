@@ -4,23 +4,23 @@ DONE:
 
 TODO:
 
-    There is some very strange problem with the collision
-    response. It appears to get "stuck" often, indicating
-    that the bisection is not 100% correct?
+    Reimplement speculative contacts without POI
 
-    My guess would be that the bisection is incorrectly
-    thinking that the stone is moving towards the board
-    and stopping dt advancement
+    The idea is to use nearest feature and detect when linear
+    motion would cause penetration.
 
-    The collision response is not properly implementing
-    the sort of sliding behavior I am looking for if a stone
-    slides down on a surface edge it should slide out.
+    Then, remove exactly this velocity from the object that
+    would result in the objects just touching at the end
+    of the frame
 
-    It seems that my understanding of speculative contacts
-    was entirely incorrect. It seems I am implementing
-    something different, also I do not understand how
-    rolling and sliding contacts work within speculative
-    contacts...
+    Now apply collision response and penalty force push-out
+    for these objects at the end of the frame.
+
+    Push out is required because the object can rotate into
+    collision, and this is not considered with the nearest
+    feature
+
+
 
 
     ============================================================
