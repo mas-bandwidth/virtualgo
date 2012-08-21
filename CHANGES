@@ -1,4 +1,25 @@
 
+Aborted POI approach. I misunderstood speculative contacts! (21/8/2012):
+------------------------------------------------------------------------
+
+    There is some very strange problem with the collision
+    response. It appears to get "stuck" often, indicating
+    that the bisection is not 100% correct?
+
+    My guess would be that the bisection is incorrectly
+    thinking that the stone is moving towards the board
+    and stopping dt advancement
+
+    The collision response is not properly implementing
+    the sort of sliding behavior I am looking for if a stone
+    slides down on a surface edge it should slide out.
+
+    It seems that my understanding of speculative contacts
+    was entirely incorrect. It seems I am implementing
+    something different, also I do not understand how
+    rolling and sliding contacts work within speculative
+    contacts...
+
 
 Really crappy collision response + friction (19/8/2012):
 --------------------------------------------------------

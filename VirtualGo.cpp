@@ -1197,7 +1197,12 @@ inline bool BisectStoneBoardCollision( const Biconvex & biconvex,
         }
 
         if ( intersect_t0 )
-            break;
+        {
+            printf( "intersect t0\n" );
+            rigidBody.position = startPosition;
+            rigidBody.orientation = normalize( startOrientation + spin * dt );
+            return true;
+        }
 
         if ( i == 0 && !intersect_t0 && !intersect_t1 && !intersect_t2 )
         {
@@ -2025,7 +2030,7 @@ float DegToRad( float degrees )
             AngularCollisionResponseWithFriction
         };
 
-        Mode mode = LinearCollisionResponse;
+        Mode mode = AngularCollisionResponse;
 
         // for falling stone + bisection mode
         RigidBody rigidBody;
@@ -2476,11 +2481,13 @@ float DegToRad( float degrees )
 
                 vec3f prevLinearVelocity = rigidBody.linearVelocity;
 
+                float scaled_dt = dt * 0.1f;
+
                 float t = 0.0f;
                 const float gravity = 9.8f * 10;    // cms/sec^2
-                rigidBody.linearVelocity += vec3f(0,-gravity,0) * dt;
+                rigidBody.linearVelocity += vec3f(0,-gravity,0) * scaled_dt;
 
-                intersecting = BisectStoneBoardCollision( biconvex, board, rigidBody, dt, t );
+                intersecting = BisectStoneBoardCollision( biconvex, board, rigidBody, scaled_dt, t );
 
                 biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
 
@@ -2554,6 +2561,9 @@ float DegToRad( float degrees )
 
                         rigidBody.ApplyImpulse( stonePoint, boardNormal * velocityIntoContact * ( 1 + r ) );
 
+                        vec3f velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
+                        const float velocityIntoContact = dot( velocityAtPoint, -boardNormal );
+
                         if ( mode == AngularCollisionResponseWithFriction )
                             rigidBody.ApplyImpulse( stonePoint, -frictionVelocity );
                     }
@@ -2571,10 +2581,7 @@ float DegToRad( float degrees )
 
             // update time
 
-            if ( mode == FallingStone )
-                t += 0.25f * dt;
-            else
-                t += dt;
+            t += dt;
         }
 
         CloseDisplay();
