@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"true",
+				"TestRunner"
+			],
+			[
 				"PC",
 				"PC_LE"
 			],
@@ -120,13 +124,15 @@
 	},
 	"file_history":
 	[
-		"/Users/gaffer/virtualgo/vectorial/vec4f.h",
-		"/Users/gaffer/virtualgo/TODO",
+		"/Users/gaffer/virtualgo/Platform.cpp",
 		"/Users/gaffer/virtualgo/VirtualGo.cpp",
+		"/Users/gaffer/opengl/OpenGL.cpp",
+		"/Users/gaffer/virtualgo/premake4.lua",
+		"/Users/gaffer/virtualgo/TODO",
 		"/Users/gaffer/virtualgo/CHANGES",
+		"/Users/gaffer/virtualgo/vectorial/vec4f.h",
 		"/Users/gaffer/virtualgo/vectorial/mat4f.h",
 		"/Users/gaffer/virtualgo/Platform.h",
-		"/Users/gaffer/virtualgo/Platform.cpp",
 		"/Users/gaffer/virtualgo/obj/Debug/VirtualGo/Platform.d",
 		"/Users/gaffer/virtualgo/vectorial/simd4x4f.h",
 		"/Users/gaffer/virtualgo/Config.h",
@@ -138,7 +144,6 @@
 		"/Users/gaffer/Desktop/hosting meeting with OTG",
 		"/Users/gaffer/Desktop/hosting meeting with GH",
 		"/Users/gaffer/virtualgo/vectorial/simd4f_scalar.h",
-		"/Users/gaffer/virtualgo/premake4.lua",
 		"/Users/gaffer/virtualgo/View.h",
 		"/Users/gaffer/git/cubes/client/Render.cpp",
 		"/Users/gaffer/git/network/premake4.lua",
@@ -246,8 +251,7 @@
 		"/Users/gaffer/git/network/include/netLevelStateMachine.h",
 		"/Users/gaffer/git/network/shadow/SubWads.txt",
 		"/Users/gaffer/git/network/test/TestNDL.cpp",
-		"/Users/gaffer/git/network/include/netDataTypes.h",
-		"/Users/gaffer/git/network/include/netConfig.h"
+		"/Users/gaffer/git/network/include/netDataTypes.h"
 	],
 	"find":
 	{
@@ -285,6 +289,26 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"velocityIntoContact",
+			"const float r =",
+			"float r =",
+			"e =",
+			"printf",
+			"ApplyImpulse",
+			"r =",
+			"GetVelocityAtPoint",
+			"VelocityatPoint",
+			"Bisect",
+			"printf",
+			"TransformPlane",
+			"planeDistance",
+			"Bisect",
+			"Bisection",
+			"prevEnter",
+			"enter",
+			"+=",
+			"Bisect",
+			"IntersectStoneBoard",
 			"stoneRigidBody",
 			"Angula",
 			"struct quat4f",
@@ -392,27 +416,7 @@
 			"shadow",
 			"$bits",
 			"netMake",
-			"= 4",
-			"PS3",
-			"m_protocolId",
-			"loopback",
-			"recv",
-			"PacketData",
-			"GetNumEntries",
-			"Info",
-			"$shortcuts",
-			"Section",
-			".csv",
-			"@hash",
-			"@root",
-			"makeDir",
-			".json",
-			"pretty_generate",
-			"JSON.generate",
-			"pretty_generate",
-			"json ",
-			".generate root",
-			"nice"
+			"= 4"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -483,16 +487,28 @@
 		"selected_items":
 		[
 			[
+				"virtualgo.cpp",
+				"VirtualGo.cpp"
+			],
+			[
+				"platform.cpp",
+				"Platform.cpp"
+			],
+			[
+				"pre",
+				"premake4.lua"
+			],
+			[
+				"premake",
+				"premake4.lua"
+			],
+			[
 				"changes",
 				"CHANGES"
 			],
 			[
 				"todo",
 				"TODO"
-			],
-			[
-				"virtualgo.cpp",
-				"VirtualGo.cpp"
 			],
 			[
 				"vec4f.h",
@@ -505,10 +521,6 @@
 			[
 				"platform.h",
 				"Platform.h"
-			],
-			[
-				"platform.cpp",
-				"Platform.cpp"
 			],
 			[
 				"con",
@@ -564,10 +576,6 @@
 			],
 			[
 				"lua",
-				"premake4.lua"
-			],
-			[
-				"premake",
 				"premake4.lua"
 			],
 			[
@@ -909,10 +917,6 @@
 			[
 				"netlog.h",
 				"include/netLog.h"
-			],
-			[
-				"pre",
-				"premake4.lua"
 			],
 			[
 				"netsem",

@@ -3,22 +3,27 @@ DONE:
     ...
 
 TODO:
+    
+    Magnitude of normal impulse does not seem to be
+    totally correct, for example a slightly tilted stone
+    when hitting the floor results in a very large rotation
+    which is incorrect!
 
-    Reimplement speculative contacts without POI
+    Work out why this is happening! Is there something
+    wrong with how I am applying impulse at a point?
 
-    The idea is to use nearest feature and detect when linear
-    motion would cause penetration.
 
-    Then, remove exactly this velocity from the object that
-    would result in the objects just touching at the end
-    of the frame
 
-    Now apply collision response and penalty force push-out
-    for these objects at the end of the frame.
+    Apply friction impulse from Erin's GDC tutorial
 
-    Push out is required because the object can rotate into
-    collision, and this is not considered with the nearest
-    feature
+    Extend impulse calculation so that it supports
+    elastic collisions with coefficient of restitution.
+
+    Calculate proper inertia tensor for biconvex solid.
+
+
+
+
 
 
 

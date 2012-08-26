@@ -365,6 +365,11 @@ inline void BiconvexSupport_WorldSpace( const Biconvex & biconvex,
     }
 }
 
+inline float max( float v1, float v2 )
+{
+    return v1 > v2 ? v1 : v2;
+}
+
 #define TEST_BICONVEX_AXIS( name, axis )                                            \
 {                                                                                   \
     float s1,s2,t1,t2;                                                              \
@@ -628,6 +633,10 @@ struct RigidBody
     quat4f orientation;
     vec3f linearVelocity;
     vec3f angularVelocity;
+    float mass;
+    float inverseMass;
+    mat4f inertiaTensor;
+    mat4f inverseInertiaTensor;
 
     RigidBody()
     {
@@ -635,6 +644,22 @@ struct RigidBody
         orientation = quat4f::identity();
         linearVelocity = vec3f(0,0,0);
         angularVelocity = vec3f(0,0,0);
+
+        // HACK -- dummy mass of 1.0 and inertia tensor of sphere for now
+        mass = 1.0f;
+        inverseMass = 1.0f / mass;
+        const float r = 1.0f;
+        const float i = 2.0f / 5.0f * mass * r * r;
+        float values[] = { i, 0, 0, 0, 
+                           0, i, 0, 0,
+                           0, 0, i, 0,
+                           0, 0, 0, 1 };
+        float inverse_values[] = { 1/i,  0,   0,   0, 
+                                    0, 1/i,   0,   0, 
+                                    0,   0, 1/i,   0,
+                                    0,   0,   0,   1 };
+        inertiaTensor.load( values );
+        inverseInertiaTensor.load( inverse_values );
     }
 
     vec3f GetVelocityAtPoint( vec3f point )
@@ -644,11 +669,8 @@ struct RigidBody
 
     void ApplyImpulse( vec3f point, vec3f impulse )
     {
-        vec3f linearDV = impulse;
-        vec3f angularDV = 2.0f / 5.0f * cross( impulse, point - position );
-        // todo: need mass / inertia tensor!
-        linearVelocity += linearDV;
-        angularVelocity += angularDV;
+        linearVelocity += impulse / mass;
+        angularVelocity += transformVector( inverseInertiaTensor, cross( impulse, point - position ) );
     }
 };
 
@@ -1129,107 +1151,6 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         assert( false );
     }
     */
-}
-
-inline bool BisectStoneBoardCollision( const Biconvex & biconvex, 
-                                       const Board & board,
-                                       RigidBody & rigidBody, 
-                                       float dt,
-                                       float & t )
-{
-    quat4f spin = AngularVelocityToSpin( rigidBody.orientation, rigidBody.angularVelocity );
-    
-    vec3f startPosition = rigidBody.position;
-    quat4f startOrientation = rigidBody.orientation;
-
-    float t0 = 0;
-    float t1 = dt * 0.5f;
-    float t2 = dt;
-
-    for ( int i = 0; i < 10; ++i )
-    {
-        // note: yes, this is incredibly pig-headedly coded and inefficient
-        // i *know* i'm just trying to hack this out before rewriting it entirely!
-
-        vec3f position_t0 = startPosition + rigidBody.linearVelocity * t0;
-        quat4f orientation_t0 = normalize( startOrientation + spin * t0 );
-        RigidBodyTransform transform_t0( position_t0, orientation_t0 );
-
-        vec3f position_t1 = startPosition + rigidBody.linearVelocity * t1;
-        quat4f orientation_t1 = normalize( startOrientation + spin * t1 );
-        RigidBodyTransform transform_t1( position_t1, orientation_t1 );
-
-        vec3f position_t2 = startPosition + rigidBody.linearVelocity * t2;
-        quat4f orientation_t2 = normalize( startOrientation + spin * t2 );
-        RigidBodyTransform transform_t2( position_t2, orientation_t2 );
-
-        bool intersect_t0 = IntersectStoneBoard( board, biconvex, transform_t0 );
-        bool intersect_t1 = IntersectStoneBoard( board, biconvex, transform_t1 );
-        bool intersect_t2 = IntersectStoneBoard( board, biconvex, transform_t2 );
-
-        vec3f stonePoint_t0, stoneNormal_t0, boardPoint_t0, boardNormal_t0;
-        vec3f stonePoint_t1, stoneNormal_t1, boardPoint_t1, boardNormal_t1;
-        vec3f stonePoint_t2, stoneNormal_t2, boardPoint_t2, boardNormal_t2;
-        ClosestFeaturesStoneBoard( board, biconvex, transform_t0, stonePoint_t0, stoneNormal_t0, boardPoint_t0, boardNormal_t0 );
-        ClosestFeaturesStoneBoard( board, biconvex, transform_t1, stonePoint_t1, stoneNormal_t1, boardPoint_t1, boardNormal_t1 );
-        ClosestFeaturesStoneBoard( board, biconvex, transform_t2, stonePoint_t2, stoneNormal_t2, boardPoint_t2, boardNormal_t2 );
-
-        if ( intersect_t0 )
-        {
-            vec3f velocityAtPoint_t0 = rigidBody.linearVelocity + cross( rigidBody.angularVelocity, stonePoint_t0 - position_t0 );
-            const float velocityIntoContact = dot( velocityAtPoint_t0, -boardNormal_t0 );
-            if ( velocityIntoContact < 0 )
-                intersect_t0 = false;
-        }
-
-        if ( intersect_t1 )
-        {
-            vec3f velocityAtPoint_t1 = rigidBody.linearVelocity + cross( rigidBody.angularVelocity, stonePoint_t1 - position_t1 );
-            const float velocityIntoContact = dot( velocityAtPoint_t1, -boardNormal_t1 );
-            if ( velocityIntoContact < 0 )
-                intersect_t1 = false;
-        }
-
-        if ( intersect_t2 )
-        {
-            vec3f velocityAtPoint_t2 = rigidBody.linearVelocity + cross( rigidBody.angularVelocity, stonePoint_t2 - position_t2 );
-            const float velocityIntoContact = dot( velocityAtPoint_t2, -boardNormal_t2 );
-            if ( velocityIntoContact < 0 )
-                intersect_t2 = false;
-        }
-
-        if ( intersect_t0 )
-        {
-            rigidBody.position = startPosition;
-            rigidBody.orientation = normalize( startOrientation + spin * dt );
-            return true;
-        }
-
-        if ( i == 0 && !intersect_t0 && !intersect_t1 && !intersect_t2 )
-        {
-            t = t2;
-            rigidBody.position = startPosition + rigidBody.linearVelocity * t;
-            rigidBody.orientation = normalize( startOrientation + spin * t );
-            return false;
-        }
-
-        if ( intersect_t1 )
-        {
-            t2 = t1;
-            t1 = ( t2 + t0 ) / 2;
-        }
-        else
-        {
-            t0 = t1;
-            t1 = ( t0 + t2 ) / 2;
-        }
-    }
-
-    t = t0;
-    rigidBody.position = startPosition + rigidBody.linearVelocity * t0;
-    rigidBody.orientation = normalize( startOrientation + spin * t0 );
-
-    return true;
 }
 
 const float pi = 3.14159265358979f;
@@ -2024,23 +1945,15 @@ float DegToRad( float degrees )
             BiconvexSupport,
             StoneAndBoard,
             FallingStone,
-            WithoutBisection,
-            WithBisection,
-            LinearCollisionResponse,
-            AngularCollisionResponse,
-            AngularCollisionResponseWithFriction,
-            SpeculativeContacts,
+            CollisionResponse
         };
 
-        Mode mode = SpeculativeContacts;
+        Mode mode = CollisionResponse;
 
         // for falling stone + bisection mode
         RigidBody rigidBody;
         rigidBody.position = vec3f(0,10.0f,0);
-        if ( mode != LinearCollisionResponse )
-            rigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
-        else
-            rigidBody.angularVelocity = vec3f(0,0,0);
+        rigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
 
         const float dt = 1.0f / 60.0f;
 
@@ -2062,15 +1975,11 @@ float DegToRad( float degrees )
                     if ( mode == Stone || mode == BiconvexSupport )
                         rotating = !rotating;
 
-                    if ( mode == FallingStone || mode == WithoutBisection || mode == WithBisection || 
-                         mode == LinearCollisionResponse || mode == AngularCollisionResponse || mode == AngularCollisionResponseWithFriction || mode == SpeculativeContacts )
+                    if ( mode == FallingStone || mode == CollisionResponse )
                     {
                         rigidBody = RigidBody();
                         rigidBody.position = vec3f(0,10.0f,0);
-                        if ( mode != LinearCollisionResponse )
-                            rigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
-                        else
-                            rigidBody.angularVelocity = vec3f(0,0,0);
+                        rigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
                     }
                 }
 
@@ -2092,22 +2001,7 @@ float DegToRad( float degrees )
                 mode = FallingStone;
 
             if ( input.five )
-                mode = WithoutBisection;
-
-            if ( input.six )
-                mode = WithBisection;
-
-            if ( input.seven )
-                mode = LinearCollisionResponse;
-
-            if ( input.eight )
-                mode = AngularCollisionResponse;
-
-            if ( input.nine )
-                mode = AngularCollisionResponseWithFriction;
-
-            if ( input.zero )
-                mode = SpeculativeContacts;
+                mode = CollisionResponse;
 
             ClearScreen( displayWidth, displayHeight );
 
@@ -2316,143 +2210,7 @@ float DegToRad( float degrees )
                     }
                 }
             }
-            else if ( mode == FallingStone || mode == WithoutBisection || mode == WithBisection )
-            {
-                if ( mode == FallingStone )
-                {
-                    const float fov = 25.0f;
-                    glMatrixMode( GL_PROJECTION );
-                    glLoadIdentity();
-                    gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
-    
-                    glMatrixMode( GL_MODELVIEW );    
-                    glLoadIdentity();
-                    gluLookAt( 0, 7, -25.0f, 
-                               0, 4, 0, 
-                               0, 1, 0 );
-
-                    glEnable( GL_CULL_FACE );
-                    glCullFace( GL_BACK );
-                    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-                }
-                else if ( mode == WithoutBisection || mode == WithBisection )
-                {
-                    glMatrixMode( GL_PROJECTION );
-                    glLoadIdentity();
-                    glOrtho( -3, +3, -1, +3, -10, +10.0f );
-
-                    glMatrixMode( GL_MODELVIEW );
-                    glLoadIdentity();
-
-                    glEnable( GL_CULL_FACE );
-                    glCullFace( GL_BACK );
-                    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-                }
-
-                // render board
-
-                Board board( 20.0f, 20.0f, 1.0f );
-
-                glLineWidth( 1 );
-                glColor4f( 0.5f,0.5f,0.5f,1 );
-
-                RenderBoard( board );
-
-                // update stone physics and test if board and stone are intersecting
-
-                RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
-
-                bool intersecting = false;
-
-                vec3f prevLinearVelocity = rigidBody.linearVelocity;
-
-                if ( mode != WithBisection )
-                {
-                    RigidBody previous = rigidBody;
-
-                    const float scaled_dt = mode == FallingStone ? 0.25f * dt : dt;
-
-                    const float gravity = 9.8f * 10;    // cms/sec^2
-                    rigidBody.linearVelocity += vec3f(0,-gravity,0) * scaled_dt;
-                    rigidBody.position += rigidBody.linearVelocity * scaled_dt;
-                    quat4f spin = AngularVelocityToSpin( rigidBody.orientation, rigidBody.angularVelocity );
-                    rigidBody.orientation += spin * scaled_dt;
-                    rigidBody.orientation = normalize( rigidBody.orientation );
-
-                    intersecting = IntersectStoneBoard( board, biconvex, biconvexTransform );
-
-                    if ( intersecting )
-                        rigidBody = previous;
-                }
-                else
-                {
-                    float t = 0.0f;
-                    const float gravity = 9.8f * 10;    // cms/sec^2
-                    rigidBody.linearVelocity += vec3f(0,-gravity,0) * dt;
-
-                    intersecting = BisectStoneBoardCollision( biconvex, board, rigidBody, dt, t );
-
-                    biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
-                }
-
-                if ( intersecting )
-                    rigidBody.linearVelocity = prevLinearVelocity;
-
-                // render stone
-
-                glPushMatrix();
-
-                float opengl_transform[16];
-                biconvexTransform.localToWorld.store( opengl_transform );
-                glMultMatrixf( opengl_transform );
-
-                glEnable( GL_BLEND ); 
-                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-                glLineWidth( 1 );
-                glColor4f( 0.5f,0.5f,0.5f,1 );
-                RenderBiconvex( biconvex, 50, 10 );
-
-                glPopMatrix();
-
-                if ( mode == WithoutBisection || mode == WithBisection )
-                {
-                    // render line representing board surface in ortho projection
-
-                    glLineWidth( 3 );
-                    glColor4f( 0,0,0.8f,1 );
-                    glBegin( GL_LINES );
-                    glVertex3f( -10, 0, 0 );
-                    glVertex3f( +10, 0, 0 );
-                    glEnd();
-                }
-
-                if ( intersecting && mode == WithBisection )
-                {
-                    // render closest features on stone & board
-
-                    vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
-                    ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
-
-                    glLineWidth( 3 );
-
-                    glColor4f( 1,0,0,1 );
-                    glBegin( GL_LINES );
-                    vec3f p1 = boardPoint;
-                    vec3f p2 = boardPoint + boardNormal;
-                    glVertex3f( p1.x(), p1.y(), p1.z() );
-                    glVertex3f( p2.x(), p2.y(), p2.z() );
-                    glEnd();
-
-                    glColor4f( 1,1,0,1 );
-                    glBegin( GL_LINES );
-                    p1 = stonePoint;
-                    p2 = stonePoint + stoneNormal;
-                    glVertex3f( p1.x(), p1.y(), p1.z() );
-                    glVertex3f( p2.x(), p2.y(), p2.z() );
-                    glEnd();
-                }
-            }
-            else if ( mode == LinearCollisionResponse || mode == AngularCollisionResponse || mode == AngularCollisionResponseWithFriction )
+            else if ( mode == FallingStone || mode == CollisionResponse )
             {
                 const float fov = 25.0f;
                 glMatrixMode( GL_PROJECTION );
@@ -2473,137 +2231,14 @@ float DegToRad( float degrees )
 
                 Board board( 20.0f, 20.0f, 1.0f );
 
-                glLineWidth( 1 );
-                glColor4f( 0.5f,0.5f,0.5f,1 );
-
-                RenderBoard( board );
-
-                // update stone physics and test if board and stone are intersecting
-
-                RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
-
-                bool intersecting = false;
-
-                vec3f prevLinearVelocity = rigidBody.linearVelocity;
-
-                float scaled_dt = dt * 0.1f;
-
-                float t = 0.0f;
-                const float gravity = 9.8f * 10;    // cms/sec^2
-                rigidBody.linearVelocity += vec3f(0,-gravity,0) * scaled_dt;
-
-                intersecting = BisectStoneBoardCollision( biconvex, board, rigidBody, scaled_dt, t );
-
-                biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
-
-                // render stone
-
-                glPushMatrix();
-
-                float opengl_transform[16];
-                biconvexTransform.localToWorld.store( opengl_transform );
-                glMultMatrixf( opengl_transform );
-
-                glEnable( GL_BLEND ); 
-                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-                glLineWidth( 1 );
-                glColor4f( 0.5f,0.5f,0.5f,1 );
-                RenderBiconvex( biconvex, 50, 10 );
-
-                glPopMatrix();
-
-                if ( intersecting )
+                if ( mode != FallingStone )
                 {
-                    // render closest features on stone & board
 
-                    vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
-                    ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
+                    glLineWidth( 1 );
+                    glColor4f( 0.5f,0.5f,0.5f,1 );
 
-                    glLineWidth( 3 );
-
-                    glColor4f( 1,0,0,1 );
-                    glBegin( GL_LINES );
-                    vec3f p1 = boardPoint;
-                    vec3f p2 = boardPoint + boardNormal;
-                    glVertex3f( p1.x(), p1.y(), p1.z() );
-                    glVertex3f( p2.x(), p2.y(), p2.z() );
-                    glEnd();
-
-                    glColor4f( 1,1,0,1 );
-                    glBegin( GL_LINES );
-                    p1 = stonePoint;
-                    p2 = stonePoint + stoneNormal;
-                    glVertex3f( p1.x(), p1.y(), p1.z() );
-                    glVertex3f( p2.x(), p2.y(), p2.z() );
-                    glEnd();
-
-                    // render direction of stone velocity at point
-
-                    vec3f velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
-                    const float speedAtPoint = length( velocityAtPoint );
-                    if ( speedAtPoint > 0.0001f )
-                    {
-                        vec3f velocityDirection = normalize( velocityAtPoint );
-                        glColor4f( 0,0.5f,0,1 );
-                        glBegin( GL_LINES );
-                        p1 = stonePoint;
-                        p2 = stonePoint + velocityDirection;
-                        glVertex3f( p1.x(), p1.y(), p1.z() );
-                        glVertex3f( p2.x(), p2.y(), p2.z() );
-                        glEnd();
-                    }
-
-                    // perform collision response
-
-                    const float velocityIntoContact = dot( velocityAtPoint, -boardNormal );
-
-                    if ( velocityIntoContact > 0 )
-                    {
-                        float frictionPlaneD = dot( boardNormal, boardPoint );
-                        vec3f frictionVelocity = velocityAtPoint - boardNormal * ( dot( boardNormal, velocityAtPoint ) - frictionPlaneD );
-
-                        const float r = 0.8f;
-
-                        rigidBody.ApplyImpulse( stonePoint, boardNormal * velocityIntoContact * ( 1 + r ) );
-
-                        vec3f velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
-                        const float velocityIntoContact = dot( velocityAtPoint, -boardNormal );
-
-                        if ( mode == AngularCollisionResponseWithFriction )
-                            rigidBody.ApplyImpulse( stonePoint, -frictionVelocity );
-                    }
+                    RenderBoard( board );
                 }
-
-                // apply damping
-
-                rigidBody.linearVelocity *= 0.9995f;
-                rigidBody.angularVelocity *= 0.9995f;
-            }
-            else if ( mode == SpeculativeContacts )
-            {
-                const float fov = 25.0f;
-                glMatrixMode( GL_PROJECTION );
-                glLoadIdentity();
-                gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
-
-                glMatrixMode( GL_MODELVIEW );    
-                glLoadIdentity();
-                gluLookAt( 0, 7, -25.0f, 
-                           0, 4, 0, 
-                           0, 1, 0 );
-
-                glEnable( GL_CULL_FACE );
-                glCullFace( GL_BACK );
-                glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
-                // render board
-
-                Board board( 20.0f, 20.0f, 1.0f );
-
-                glLineWidth( 1 );
-                glColor4f( 0.5f,0.5f,0.5f,1 );
-
-                RenderBoard( board );
 
                 // update stone physics
 
@@ -2611,69 +2246,72 @@ float DegToRad( float degrees )
 
                 bool colliding = false;
 
-                const float scaled_dt = dt * 0.5f;
+                const float scaled_dt = dt * 0.1f;
 
                 const float gravity = 9.8f * 10;    // cms/sec^2
                 rigidBody.linearVelocity += vec3f(0,-gravity,0) * scaled_dt;
+                rigidBody.position += rigidBody.linearVelocity * scaled_dt;
                 quat4f spin = AngularVelocityToSpin( rigidBody.orientation, rigidBody.angularVelocity );
                 rigidBody.orientation += spin * scaled_dt;
                 rigidBody.orientation = normalize( rigidBody.orientation );
 
-                // speculative contact: if not colliding already but about to
-                // remove exactly the amount of velocity required to just be touching
-                // at the end of the frame
-
-                vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
-                /*
-                ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
-
-                if ( stonePoint.y() > 0 && stonePoint.y() + rigidBody.linearVelocity.y() * scaled_dt <= 0.0f )
+                if ( mode == CollisionResponse )
                 {
-                    rigidBody.linearVelocity = vec3f( rigidBody.linearVelocity.x(), - ( stonePoint.y() / scaled_dt ), rigidBody.linearVelocity.z() );
-                    colliding = true;
-                }
-                */
+                    // end of frame: if object is penetrating with the board, push it out
 
-                rigidBody.position += rigidBody.linearVelocity * scaled_dt;
-
-                // end of frame: if object is penetrating with the board, push it out
-
-                biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
-
-                float depth;
-                vec3f point, normal;
-                if ( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) )
-                {
-                    rigidBody.position += normal * depth;
-                    colliding = true;
-                }
-
-                // end of frame: apply collision response
-
-                if ( colliding )
-                {
                     biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
 
-                    ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
-
-                    vec3f velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
-
-                    const float velocityIntoContact = dot( velocityAtPoint, -boardNormal );
-
-                    if ( velocityIntoContact > 0 )
+                    float depth;
+                    vec3f point, normal;
+                    if ( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) )
                     {
-                        const float r = 0.5;
-
-                        rigidBody.ApplyImpulse( stonePoint, boardNormal * velocityIntoContact * ( 1 + r ) );
-
-                        float frictionPlaneD = 0;
-                        vec3f frictionVelocity = vec3f( velocityAtPoint.x(), 0, velocityAtPoint.z() );
-
-                        rigidBody.linearVelocity *= 0.9f;
-                        rigidBody.angularVelocity *= 0.9f;
-
-                        //rigidBody.ApplyImpulse( stonePoint, -frictionVelocity * 0.5f );
+                        rigidBody.position += normal * depth;
+                        colliding = true;
                     }
+
+                    // end of frame: apply collision response
+
+                    if ( colliding )
+                    {
+                        biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
+
+                        vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
+                        ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
+
+                        const vec3f velocity_point = rigidBody.GetVelocityAtPoint( stonePoint );
+
+                        vec3f r = stonePoint - rigidBody.position;
+
+                        const float mass = rigidBody.mass;
+
+                        const float k_linear = 1.0f / mass;
+                        const float k_angular = dot( transformVector( rigidBody.inverseInertiaTensor, cross( cross( r, boardNormal ), r ) ), boardNormal );
+
+                        const float k = k_linear + k_angular;
+
+                        const float p = max( dot( -velocity_point, boardNormal ) / k, 0 );
+
+                        rigidBody.ApplyImpulse( stonePoint, p * boardNormal );
+
+                        // render impulse at point of application
+
+                        glLineWidth( 3 );
+
+                        glColor4f( 0,0,1,1 );
+                        glBegin( GL_LINES );
+                        vec3f p1 = stonePoint;
+                        vec3f p2 = stonePoint + 0.1f * ( p * boardNormal );
+                        glVertex3f( p1.x(), p1.y(), p1.z() );
+                        glVertex3f( p2.x(), p2.y(), p2.z() );
+                        glEnd();
+                    }
+    
+                    // IMPORTANT: clamp maximum angular velocity
+
+                    const float angularSpeed = length( rigidBody.angularVelocity );
+                    const float angularThreshold = pi/8 / dt;
+                    if ( angularSpeed > angularThreshold )
+                        rigidBody.angularVelocity = normalize( rigidBody.angularVelocity ) * angularThreshold;
                 }
 
                 // render stone
@@ -2693,18 +2331,6 @@ float DegToRad( float degrees )
                 RenderBiconvex( biconvex, 50, 10 );
 
                 glPopMatrix();
-
-                // render closest features on stone & board
-
-                glLineWidth( 3 );
-
-                glColor4f( 1,0,0,1 );
-                glBegin( GL_LINES );
-                vec3f p1 = boardPoint;
-                vec3f p2 = stonePoint;
-                glVertex3f( p1.x(), p1.y(), p1.z() );
-                glVertex3f( p2.x(), p2.y(), p2.z() );
-                glEnd();
 
                 // apply damping
 

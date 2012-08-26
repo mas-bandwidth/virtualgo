@@ -1,4 +1,37 @@
 
+Clamped maximum angular speed per-frame (26/8/2012):
+----------------------------------------------------
+
+    In order to get correct angular response behavior
+    without exploding (eg. spinning faster and faster...)
+    it is necessary to clamp the maximum amount of angular
+    velocity per-frame
+
+    I theorize that this is because of the integrator
+    being a linear integrator, that it is less accurate
+    as the amount of rotation per-timestep approaches
+    a full revolution.
+
+    I'm not 100% sure about this though, but I have no
+    other explanation for the behavior I was seeing, and
+    the angular velocity is *MUCH* better behaved in slow
+    motion... so it seems correct
+
+    Hey, I have another theory. If the object is rotating
+    very quickly, it is likely that I am pushing the object
+    up out of penetration by some large amount. Could this
+    be the source of added energy that I am seeing?
+
+
+Fixed normal impulse calculation (26/8/2012):
+---------------------------------------------
+
+    Normal impulse calculation is *INCORRECT*
+    it is clearly not solving for correct velocity post impulse
+
+    Implement normal impulse from Erin's GDC tutorial
+
+
 Aborted POI approach. I misunderstood speculative contacts! (21/8/2012):
 ------------------------------------------------------------------------
 
