@@ -2461,19 +2461,10 @@ float DegToRad( float degrees )
                         }
                     }
 
-                    /*
-                    // IMPORTANT: clamp maximum angular velocity
-
-                    const float angularSpeed = length( rigidBody.angularVelocity );
-                    const float angularThreshold = pi/4 / step_dt;
-                    if ( angularSpeed > angularThreshold )
-                        rigidBody.angularVelocity = normalize( rigidBody.angularVelocity ) * angularThreshold;
-                        */
-
                     // apply some damping
 
                     rigidBody.linearVelocity *= 0.9995f;
-                    rigidBody.angularVelocity *= 0.999f;
+                    rigidBody.angularVelocity *= 0.9992f;
 
                     // integrate with velocities post collision response
 
