@@ -1950,10 +1950,12 @@ float DegToRad( float degrees )
         Mode mode = CollisionResponseWithFriction;
 
         RigidBody rigidBody;
-        rigidBody.position = vec3f(0,10.0f,0);
+        rigidBody.position = vec3f(0,20.0f,0);
         //rigidBody.orientation = quat4f::axisRotation( DegToRad(-65), vec3f(0,0,1) );
         rigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
         //rigidBody.angularVelocity = vec3f(0,0,0);
+
+        bool prevCollision = false;
 
         const float dt = 1.0f / 60.0f;
 
@@ -1978,7 +1980,7 @@ float DegToRad( float degrees )
                     if ( mode == FallingStone || mode == LinearCollisionResponse || mode == AngularCollisionResponse || mode == CollisionResponseWithFriction )
                     {
                         rigidBody = RigidBody();
-                        rigidBody.position = vec3f(0,10.0f,0);
+                        rigidBody.position = vec3f(0,20.0f,0);
                         //rigidBody.orientation = quat4f::axisRotation( DegToRad(-65), vec3f(0,0,1) );
                         rigidBody.angularVelocity = vec3f( random_float(-20,20), random_float(-20,20), random_float(-20,20) );
                         //rigidBody.angularVelocity = vec3f(0,0,0);
@@ -2248,235 +2250,242 @@ float DegToRad( float degrees )
 
                 // update stone physics
 
-                RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
+                const int steps = 10;
 
-                bool colliding = false;
+                const float step_dt = dt / steps;
 
-                const float scaled_dt = dt * 0.1f;
-
-                const float gravity = 9.8f * 10;    // cms/sec^2
-                rigidBody.linearVelocity += vec3f(0,-gravity,0) * scaled_dt;
-
-                if ( mode == LinearCollisionResponse )
+                for ( int i = 0; i < steps; ++i )
                 {
-                    // if object is penetrating with the board, push it out
+                    RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
 
-                    biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
+                    bool colliding = false;
 
-                    float depth;
-                    vec3f point, normal;
-                    if ( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) )
+                    const float gravity = 9.8f * 10;    // cms/sec^2
+                    rigidBody.linearVelocity += vec3f(0,-gravity,0) * step_dt;
+
+                    if ( mode == LinearCollisionResponse )
                     {
-                        rigidBody.position += normal * depth;
-                        colliding = true;
-                    }
+                        // if object is penetrating with the board, push it out
 
-                    // apply linear collision response
-
-                    if ( colliding )
-                    {
                         biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
 
-                        vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
-                        ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
-
-                        const vec3f velocityAtPoint = rigidBody.linearVelocity;
-
-                        const float e = 1.0f;
-
-                        const float k = rigidBody.inverseMass;
-
-                        const float j = max( - ( 1 + e ) * dot( velocityAtPoint, boardNormal ) / k, 0 );
-
-                        rigidBody.linearVelocity += j * rigidBody.inverseMass * boardNormal;
-                    }
-                }
-                else if ( mode == AngularCollisionResponse )
-                {
-                    // if object is penetrating with the board, push it out
-
-                    biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
-
-                    float depth;
-                    vec3f point, normal;
-                    if ( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) )
-                    {
-                        rigidBody.position += normal * depth;
-                        colliding = true;
-                    }
-
-                    // apply linear collision response
-
-                    if ( colliding )
-                    {
-                        biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
-
-                        vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
-                        ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
-
-                        vec3f velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
-
-                        if ( velocityAtPoint.y() < 0 )
+                        float depth;
+                        vec3f point, normal;
+                        if ( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) )
                         {
-                            // calculate inverse inertia tensor in world space
+                            rigidBody.position += normal * depth;
+                            colliding = true;
+                        }
 
-                            mat4f rotation;
-                            rigidBody.orientation.toMatrix( rotation );
-                            mat4f transposeRotation = transpose( rotation );
+                        // apply linear collision response
 
-                            mat4f i = rotation * rigidBody.inverseInertiaTensor * transposeRotation;
+                        if ( colliding )
+                        {
+                            biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
 
-                            // calculate normal impulse
+                            vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
+                            ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
 
-                            const float e = 0.5f;
+                            const vec3f velocityAtPoint = rigidBody.linearVelocity;
 
-                            vec3f r = stonePoint - rigidBody.position;
+                            const float e = 1.0f;
 
-                            vec3f cross_1 = cross( r, boardNormal );
-                            vec3f cross_2 = cross( cross_1, r );
-                            vec3f cross_3 = transformVector( i, cross_2 );
+                            const float k = rigidBody.inverseMass;
 
-                            const float linear_k = rigidBody.inverseMass;
-                            const float angular_k = dot( cross_3, boardNormal );
+                            const float j = max( - ( 1 + e ) * dot( velocityAtPoint, boardNormal ) / k, 0 );
 
-                            const float k = linear_k + angular_k;
-
-                            const float nv = dot( velocityAtPoint, boardNormal );
-
-                            const float j = - ( 1 + e ) * nv / k;
-
-                            vec3f p = j * boardNormal;
-
-                            // apply impulse
-
-                            rigidBody.linearVelocity += p;
-                            rigidBody.angularVelocity -= transformVector( i, cross( p, stonePoint - rigidBody.position ) );
-
-                            // hack: i have no idea why I must invert the angular velocity above
-                            // clearly there is something wrong in my orientation math elsewhere
-
-                            /*
-                            float prev = dot( velocityAtPoint, boardNormal );
-                            velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
-                            printf( "normal velocity: %f -> %f\n", prev, dot( velocityAtPoint, boardNormal ) );
-                            */
+                            rigidBody.linearVelocity += j * rigidBody.inverseMass * boardNormal;
                         }
                     }
-                }
-                else if ( mode == CollisionResponseWithFriction )
-                {
-                    // if object is penetrating with the board, push it out
-
-                    biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
-
-                    float depth;
-                    vec3f point, normal;
-                    if ( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) )
+                    else if ( mode == AngularCollisionResponse )
                     {
-                        rigidBody.position += normal * depth;
-                        colliding = true;
-                    }
+                        // if object is penetrating with the board, push it out
 
-                    // apply linear collision response
-
-                    if ( colliding )
-                    {
                         biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
 
-                        vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
-                        ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
-
-                        vec3f velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
-
-                        if ( velocityAtPoint.y() < 0 )
+                        float depth;
+                        vec3f point, normal;
+                        if ( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) )
                         {
-                            // calculate inverse inertia tensor in world space
+                            rigidBody.position += normal * depth;
+                            colliding = true;
+                        }
 
-                            mat4f rotation;
-                            rigidBody.orientation.toMatrix( rotation );
-                            mat4f transposeRotation = transpose( rotation );
+                        // apply linear collision response
 
-                            mat4f i = rotation * rigidBody.inverseInertiaTensor * transposeRotation;
+                        if ( colliding )
+                        {
+                            biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
 
-                            // calculate normal impulse
+                            vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
+                            ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
 
-                            const float e = 0.5f;
+                            vec3f velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
 
-                            vec3f r = stonePoint - rigidBody.position;
-
-                            vec3f cross_1 = cross( r, boardNormal );
-                            vec3f cross_2 = cross( cross_1, r );
-                            vec3f cross_3 = transformVector( i, cross_2 );
-
-                            const float linear_k = rigidBody.inverseMass;
-                            const float angular_k = dot( cross_3, boardNormal );
-
-                            const float k = linear_k + angular_k;
-
-                            const float nv = dot( velocityAtPoint, boardNormal );
-
-                            const float j = - ( 1 + e ) * nv / k;
-
-                            vec3f p = j * boardNormal;
-
-                            // calculate tangent impulse (friction)
-
-                            vec3f tangentVelocity = velocityAtPoint - boardNormal * dot( velocityAtPoint, boardNormal );
-
-                            if ( length_squared( tangentVelocity ) > 0.01f * 0.01f )
+                            if ( velocityAtPoint.y() < 0 )
                             {
-                                vec3f tangent = normalize( tangentVelocity );
+                                // calculate inverse inertia tensor in world space
 
-                                const float u = 0.1f;
+                                mat4f rotation;
+                                rigidBody.orientation.toMatrix( rotation );
+                                mat4f transposeRotation = transpose( rotation );
 
-                                const float vt = dot( velocityAtPoint, tangent );
+                                mat4f i = rotation * rigidBody.inverseInertiaTensor * transposeRotation;
 
-                                const float kt = rigidBody.inverseMass + dot( transformVector( i, cross( cross( r, tangent ), r ) ), tangent );
+                                // calculate normal impulse
 
-                                const float pt = clamp( -vt / kt, -u * j, u * j );
+                                const float e = 0.5f;
 
-                                p += pt * tangent;
+                                vec3f r = stonePoint - rigidBody.position;
+
+                                vec3f cross_1 = cross( r, boardNormal );
+                                vec3f cross_2 = cross( cross_1, r );
+                                vec3f cross_3 = transformVector( i, cross_2 );
+
+                                const float linear_k = rigidBody.inverseMass;
+                                const float angular_k = dot( cross_3, boardNormal );
+
+                                const float k = linear_k + angular_k;
+
+                                const float nv = dot( velocityAtPoint, boardNormal );
+
+                                const float j = - ( 1 + e ) * nv / k;
+
+                                vec3f p = j * boardNormal;
+
+                                // apply impulse
+
+                                rigidBody.linearVelocity += p;
+                                rigidBody.angularVelocity -= transformVector( i, cross( p, stonePoint - rigidBody.position ) );
+
+                                // hack: i have no idea why I must invert the angular velocity above
+                                // clearly there is something wrong in my orientation math elsewhere
+
+                                /*
+                                float prev = dot( velocityAtPoint, boardNormal );
+                                velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
+                                printf( "normal velocity: %f -> %f\n", prev, dot( velocityAtPoint, boardNormal ) );
+                                */
                             }
-
-                            // apply impulse
-
-                            rigidBody.linearVelocity += p;
-                            rigidBody.angularVelocity -= transformVector( i, cross( p, stonePoint - rigidBody.position ) );
-
-                            // hack: i have no idea why I must invert the angular velocity above
-                            // clearly there is something wrong in my orientation math elsewhere
-
-                            /*
-                            float prev = dot( velocityAtPoint, boardNormal );
-                            velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
-                            printf( "normal velocity: %f -> %f\n", prev, dot( velocityAtPoint, boardNormal ) );
-                            */
                         }
                     }
+                    else if ( mode == CollisionResponseWithFriction )
+                    {
+                        // if object is penetrating with the board, push it out
+
+                        biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
+
+                        float depth;
+                        vec3f point, normal;
+                        if ( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) )
+                        {
+                            rigidBody.position += normal * depth;
+                            colliding = true;
+                        }
+
+                        // apply linear collision response
+
+                        if ( colliding )
+                        {
+                            biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
+
+                            vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
+                            ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
+
+                            vec3f velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
+
+                            const float nv = dot( velocityAtPoint, boardNormal );
+
+                            if ( nv < 0 )
+                            {
+                                // calculate inverse inertia tensor in world space
+
+                                mat4f rotation;
+                                rigidBody.orientation.toMatrix( rotation );
+                                mat4f transposeRotation = transpose( rotation );
+
+                                mat4f i = rotation * rigidBody.inverseInertiaTensor * transposeRotation;
+
+                                // calculate normal impulse
+
+                                const float e = 0.5f;
+
+                                vec3f r = stonePoint - rigidBody.position;
+
+                                vec3f cross_1 = cross( r, boardNormal );
+                                vec3f cross_2 = cross( cross_1, r );
+                                vec3f cross_3 = transformVector( i, cross_2 );
+
+                                const float linear_k = rigidBody.inverseMass;
+                                const float angular_k = dot( cross_3, boardNormal );
+
+                                const float k = linear_k + angular_k;
+
+                                const float j = - ( 1 + e ) * nv / k;
+
+                                vec3f p = j * boardNormal;
+
+                                // calculate tangent impulse (friction)
+
+                                vec3f tangentVelocity = velocityAtPoint - boardNormal * dot( velocityAtPoint, boardNormal );
+
+                                if ( length_squared( tangentVelocity ) > 0.01f * 0.01f )
+                                {
+                                    vec3f tangent = normalize( tangentVelocity );
+
+                                    float u = 0.15f;
+
+                                    const float vt = dot( velocityAtPoint, tangent );
+
+                                    const float kt = rigidBody.inverseMass + dot( transformVector( i, cross( cross( r, tangent ), r ) ), tangent );
+
+                                    const float pt = clamp( -vt / kt, -u * j, u * j );
+
+                                    p += pt * tangent;
+                                }
+
+                                // apply impulse
+
+                                rigidBody.linearVelocity += p;
+                                rigidBody.angularVelocity -= transformVector( i, cross( p, stonePoint - rigidBody.position ) );
+
+                                // hack: i have no idea why I must invert the angular velocity above
+                                // clearly there is something wrong in my orientation math elsewhere
+
+                                /*
+                                float prev = dot( velocityAtPoint, boardNormal );
+                                velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
+                                printf( "normal velocity: %f -> %f\n", prev, dot( velocityAtPoint, boardNormal ) );
+                                */
+                            }
+                        }
+                    }
+
+                    /*
+                    // IMPORTANT: clamp maximum angular velocity
+
+                    const float angularSpeed = length( rigidBody.angularVelocity );
+                    const float angularThreshold = pi/4 / step_dt;
+                    if ( angularSpeed > angularThreshold )
+                        rigidBody.angularVelocity = normalize( rigidBody.angularVelocity ) * angularThreshold;
+                        */
+
+                    // apply some damping
+
+                    rigidBody.linearVelocity *= 0.9995f;
+                    rigidBody.angularVelocity *= 0.999f;
+
+                    // integrate with velocities post collision response
+
+                    rigidBody.position += rigidBody.linearVelocity * step_dt;
+                    quat4f spin = AngularVelocityToSpin( rigidBody.orientation, rigidBody.angularVelocity );
+                    rigidBody.orientation += spin * step_dt;
+                    rigidBody.orientation = normalize( rigidBody.orientation );
                 }
-
-                // IMPORTANT: clamp maximum angular velocity
-
-                const float angularSpeed = length( rigidBody.angularVelocity );
-                const float angularThreshold = pi/4 / scaled_dt;
-                if ( angularSpeed > angularThreshold )
-                    rigidBody.angularVelocity = normalize( rigidBody.angularVelocity ) * angularThreshold;
-
-                // apply some damping
-
-                rigidBody.linearVelocity *= 0.999f;
-                rigidBody.angularVelocity *= 0.999f;
-
-                // integrate with velocities post collision response
-
-                rigidBody.position += rigidBody.linearVelocity * scaled_dt;
-                quat4f spin = AngularVelocityToSpin( rigidBody.orientation, rigidBody.angularVelocity );
-                rigidBody.orientation += spin * scaled_dt;
-                rigidBody.orientation = normalize( rigidBody.orientation );
 
                 // render stone
 
-                biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
+                RigidBodyTransform biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
 
                 glPushMatrix();
 
