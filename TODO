@@ -4,20 +4,10 @@ DONE:
 
 TODO:
     
-    Magnitude of normal impulse does not seem to be
-    totally correct, for example a slightly tilted stone
-    when hitting the floor results in a very large rotation
-    which is incorrect!
-
-    Work out why this is happening! Is there something
-    wrong with how I am applying impulse at a point?
-
-
-
-    Apply friction impulse from Erin's GDC tutorial
-
-    Extend impulse calculation so that it supports
-    elastic collisions with coefficient of restitution.
+    There is something wrong with my angular velocity math
+    or with my velocity at point function, because I have
+    had to explicitly invert the quaternion -> matrix
+    conversion, and negate the angular impulse
 
     Calculate proper inertia tensor for biconvex solid.
 
@@ -33,14 +23,6 @@ TODO:
     MUCH LATER BELOW...
     
     ============================================================
-
-    ============================================================
-
-    Implement proper friction
-
-    Study Coulomb friction and how it works
-
-    Study how impulse based systems approximate friction
 
     ============================================================
 
