@@ -540,7 +540,7 @@ struct quat4f
 
         const float array[] = 
         {
-            // todo: not sure if this is correct order or not (may be transposed?!)
+            // todo: transpose here instead of below
             1.0f - ( fTyy + fTzz ), fTxy - fTwz, fTxz + fTwy, 0,
             fTxy + fTwz, 1.0f - ( fTxx + fTzz ), fTyz - fTwx, 0,
             fTxz - fTwy, fTyz + fTwx, 1.0f - ( fTxx + fTyy ), 0,
@@ -655,7 +655,7 @@ struct RigidBody
         linearVelocity = vec3f(0,0,0);
         angularVelocity = vec3f(0,0,0);
 
-        // HACK -- dummy mass of 1.0 and inertia tensor of sphere for now
+        // todo: calculate proper inertia tensor for biconvex
         mass = 1.0f;
         inverseMass = 1.0f / mass;
         const float r = 1.0f;
@@ -691,7 +691,7 @@ inline quat4f AngularVelocityToSpin( const quat4f & orientation, vec3f angularVe
     return 0.5f * quat4f( 0, angularVelocity.x(), angularVelocity.y(), angularVelocity.z() ) * orientation;
 }
 
-inline mat4f RigidBodyInverse( mat4f matrix )
+inline mat4f RigidBodyInverse( const mat4f & matrix )
 {
     /*
         How to invert a rigid body matrix
@@ -755,8 +755,7 @@ inline vec3f TransformVector( mat4f matrix, vec3f normal )
 
 inline vec4f TransformPlane( mat4f matrix, vec4f plane )
 {
-    // todo: code below doesn't seem to get proper w coordinate
-
+    // hack: slow version -- original code is commented it. it does not seem to be getting correct w coordinate?!
     vec3f normal( plane.x(), plane.y(), plane.z() );
     float d = plane.w();
     vec3f point = normal * d;
@@ -1670,62 +1669,6 @@ float DegToRad( float degrees )
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
     }
 
-    void RenderBiconvex_Lines( const Biconvex & biconvex, int numSegments = 32, int numRings = 5 )
-    {
-        glBegin( GL_LINES );
-
-        const float sphereRadius = biconvex.GetSphereRadius();
-        const float segmentAngle = 2*pi / numSegments;
-
-        // top surface of biconvex
-        {
-            const float center_y = -biconvex.GetSphereOffset();
-            const float delta_y = biconvex.GetHeight() / 2 / numRings;
-            for ( int i = 0; i < numRings; ++i )
-            {
-                const float y = i * delta_y;
-                const float sy = y - center_y;
-                const float radius = sqrt( sphereRadius*sphereRadius - (sy*sy) );
-                for ( int j = 0; j < numSegments; ++j )
-                {
-                    const float angle1 = j * segmentAngle;
-                    const float angle2 = angle1 + segmentAngle;
-                    const float x1 = cos( angle1 ) * radius;
-                    const float z1 = sin( angle1 ) * radius;    
-                    const float x2 = cos( angle2 ) * radius;
-                    const float z2 = sin( angle2 ) * radius;
-                    glVertex3f( x1, y, z1 );
-                    glVertex3f( x2, y, z2 );
-                }
-            }
-        }
-
-        // todo: bottom surface of biconvex
-        {
-            const float center_y = +biconvex.GetSphereOffset();
-            const float delta_y = biconvex.GetHeight() / 2 / numRings;
-            for ( int i = 0; i < numRings; ++i )
-            {
-                const float y = - i * delta_y;
-                const float sy = y - center_y;
-                const float radius = sqrt( sphereRadius*sphereRadius - (sy*sy) );
-                for ( int j = 0; j < numSegments; ++j )
-                {
-                    const float angle1 = j * segmentAngle;
-                    const float angle2 = angle1 + segmentAngle;
-                    const float x1 = cos( angle1 ) * radius;
-                    const float z1 = sin( angle1 ) * radius;    
-                    const float x2 = cos( angle2 ) * radius;
-                    const float z2 = sin( angle2 ) * radius;
-                    glVertex3f( x1, y, z1 );
-                    glVertex3f( x2, y, z2 );
-                }
-            }
-        }
-
-        glEnd();
-    }
-
     void RenderBiconvex( const Biconvex & biconvex, int numSegments = 128, int numRings = 32 )
     {
         glBegin( GL_QUADS );
@@ -1761,10 +1704,10 @@ float DegToRad( float degrees )
                     const float bottom_z2 = sin( angle2 ) * r2;
 
                     glVertex3f( bottom_x1, y2, bottom_z1 );
+                    glVertex3f( top_x1, y1, top_z1 );
+                    glVertex3f( top_x2, y1, top_z2 );
                     glVertex3f( bottom_x2, y2, bottom_z2 );
 
-                    glVertex3f( top_x2, y1, top_z2 );
-                    glVertex3f( top_x1, y1, top_z1 );
                 }
             }
         }
@@ -1797,10 +1740,9 @@ float DegToRad( float degrees )
                     const float bottom_z2 = sin( angle2 ) * r2;
 
                     glVertex3f( top_x1, y1, top_z1 );
-                    glVertex3f( top_x2, y1, top_z2 );
-
-                    glVertex3f( bottom_x2, y2, bottom_z2 );
                     glVertex3f( bottom_x1, y2, bottom_z1 );
+                    glVertex3f( bottom_x2, y2, bottom_z2 );
+                    glVertex3f( top_x2, y1, top_z2 );
                 }
             }
         }
@@ -1862,9 +1804,9 @@ float DegToRad( float degrees )
             for ( int j = 0; j < steps_x; ++j )
             {
                 glVertex3f( x + dx, 0.0f, y );
-                glVertex3f( x, 0.0f, y );
-                glVertex3f( x, 0.0f, y + dy );
                 glVertex3f( x + dx, 0.0f, y + dy );
+                glVertex3f( x, 0.0f, y + dy );
+                glVertex3f( x, 0.0f, y );
 
                 y += dy;
             }
@@ -1931,6 +1873,7 @@ float DegToRad( float degrees )
         double t = 0.0f;
 
         bool prevSpace = false;
+        bool prevEnter = false;
         bool rotating = true;
         bool quit = false;
 
@@ -1949,11 +1892,13 @@ float DegToRad( float degrees )
 
         Mode mode = CollisionResponseWithFriction;
 
+        srand( time( NULL ) );
+
         RigidBody rigidBody;
+        //rigidBody.position = vec3f(-5.0f,5.0f,0);
         rigidBody.position = vec3f(0,20.0f,0);
-        //rigidBody.orientation = quat4f::axisRotation( DegToRad(-65), vec3f(0,0,1) );
         rigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
-        //rigidBody.angularVelocity = vec3f(0,0,0);
+        //rigidBody.angularVelocity = vec3f(0,0,20);
 
         bool prevCollision = false;
 
@@ -1991,6 +1936,15 @@ float DegToRad( float degrees )
             }
             else
                 prevSpace = false;
+
+            if ( input.enter )
+            {
+                if ( !prevEnter )
+                    rigidBody.linearVelocity += vec3f( -1 - random_float(0,1),0,0 );
+                prevEnter = true;
+            }
+            else
+                prevEnter = false;
 
             if ( input.one )
                 mode = Stone;
@@ -2030,6 +1984,12 @@ float DegToRad( float degrees )
                     glLoadIdentity();
                     glOrtho( -1.5, +1.5f, -1.0f, +1.0f, 0.1f, 100.0f );
                 }
+
+                float flipX[] = { -1,0,0,0,
+                                   0,1,0,0,
+                                   0,0,1,0,
+                                   0,0,0,1 };
+                glMultMatrixf( flipX );
 
                 glMatrixMode( GL_MODELVIEW );
                 glLoadIdentity();
@@ -2110,6 +2070,12 @@ float DegToRad( float degrees )
                 glLoadIdentity();
                 const float fov = 25.0f;
                 gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
+
+                float flipX[] = { -1,0,0,0,
+                                   0,1,0,0,
+                                   0,0,1,0,
+                                   0,0,0,1 };
+                glMultMatrixf( flipX );
 
                 glMatrixMode( GL_MODELVIEW );
                 glLoadIdentity();
@@ -2225,6 +2191,11 @@ float DegToRad( float degrees )
                 const float fov = 25.0f;
                 glMatrixMode( GL_PROJECTION );
                 glLoadIdentity();
+                float flipX[] = { -1,0,0,0,
+                                   0,1,0,0,
+                                   0,0,1,0,
+                                   0,0,0,1 };
+                glMultMatrixf( flipX );
                 gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
 
                 glMatrixMode( GL_MODELVIEW );    
