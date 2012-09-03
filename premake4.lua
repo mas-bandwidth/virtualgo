@@ -72,6 +72,7 @@ if not os.is "windows" then
             end
         end
     }
+    
     newaction
     {
         trigger     = "go",

@@ -1,4 +1,28 @@
 
+Numerically integrated inertia tensor for biconvex solid (3/9/2012):
+--------------------------------------------------------------------
+
+    The inertia tensor is the sum of all moments (r^2*point mass)
+
+    So I just iterated across the xyz bounds and summed up the
+    moments numerically. This gives me an approximation for the
+    inertia tensor which is pretty sweet.
+
+    It seems that the ratio of the inertia tensor to the mass,
+    or the *closeness* of it to 1.0 elements is quite important
+    for the stability of the simulation.
+
+    It would seem really that the only thing that matters is
+    the ratio between the xz and the y inertia tensor, and (possibly)
+    the ratio between the mass and the inertia tensor values
+
+    But linear mass is probably irrelevent in the collision between
+    stone and board, since the board is treated as having infinite
+    mass.
+
+    It would only kick in when I do stone vs. stone collision?
+
+
 Switched to ellipsoid inertia tensor (2/9/2012):
 ------------------------------------------------
 

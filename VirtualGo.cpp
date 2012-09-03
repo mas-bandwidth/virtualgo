@@ -669,6 +669,59 @@ void CalculateEllipsoidInertiaTensor( float mass, float a, float b, float c, mat
     inverseInertiaTensor.load( inverse_values );
 }
 
+void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, mat4f & inertiaTensor, mat4f & inverseInertiaTensor )
+{
+    const double resolution = 0.005;
+    const double width = biconvex.GetWidth();
+    const double height = biconvex.GetHeight();
+    const double xz_steps = ceil( width / resolution );
+    const double y_steps = ceil( height / resolution );
+    const double dx = width / xz_steps;
+    const double dy = height / y_steps;
+    const double dz = width / xz_steps;
+    double sx = -width / 2;
+    double sy = -height / 2;
+    double sz = -width / 2;
+    double ix = 0.0;
+    double iy = 0.0;
+    double iz = 0.0;
+    const double m = dx*dy*dz;
+    for ( int index_z = 0; index_z < xz_steps; ++index_z )
+    {
+        for ( int index_y = 0; index_y < y_steps; ++index_y )
+        {
+            for ( int index_x = 0; index_x < xz_steps; ++index_x )
+            {
+                const double x = sx + index_x * dx;
+                const double y = sy + index_y * dy;
+                const double z = sz + index_z * dz;
+
+                const double rx = sqrt( z*z + y*y );
+                const double ry = sqrt( x*x + z*z );
+                const double rz = sqrt( x*x + y*y );
+
+                ix += rx * m;
+                iy += ry * m;
+                iz += rz * m;
+            }
+        }
+    }
+    const float p = 0.1f;
+    ix *= p;
+    iy *= p;
+    iz *= p;
+    const float values[] = { ix,  0,  0, 0, 
+                              0, iy,  0, 0, 
+                              0,  0, iz, 0, 
+                              0,  0,  0, 1 };
+    const float inverseValues[] = { 1/ix,    0,    0, 0, 
+                                       0, 1/iy,    0, 0, 
+                                       0,    0, 1/iz, 0, 
+                                       0,    0,    0, 1 };
+    inertiaTensor.load( values );
+    inverseInertiaTensor.load( inverseValues );
+}
+
 struct RigidBody
 {
     vec3f position;
@@ -1183,6 +1236,12 @@ float DegToRad( float degrees )
     int main()
     {
         Biconvex biconvex( 2.0f, 1.0f );
+        RigidBody rigidBody;
+        printf( "calculating biconvex inertia tensor...\n" );
+        CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
+        printf( "done." );
+        PrintMatrix( rigidBody.inertiaTensor );
+        PrintMatrix( rigidBody.inverseInertiaTensor );
         return 0;
     }
 
@@ -1860,15 +1919,12 @@ float DegToRad( float degrees )
         return random(100) <= percent;
     }
 
-    void RandomStone( RigidBody & rigidBody )
+    void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody )
     {
-        rigidBody = RigidBody();
         rigidBody.position = vec3f(0,12.0f,0);
+        rigidBody.orientation = quat4f(0,0,0,1);
+        rigidBody.linearVelocity = vec3f(0,0,0);
         rigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
-        rigidBody.mass = 1.0f;
-        rigidBody.inverseMass = 1.0f / rigidBody.mass;
-//        CalculateSphereInertiaTensor( rigidBody.mass, 1.0f, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
-        CalculateEllipsoidInertiaTensor( rigidBody.mass, 1.0f, 0.5f, 1.0f, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
     }
 
     int main()
@@ -1927,7 +1983,13 @@ float DegToRad( float degrees )
         srand( time( NULL ) );
 
         RigidBody rigidBody;
-        RandomStone( rigidBody );
+        rigidBody.mass = 1.0f;
+        rigidBody.inverseMass = 1.0f / rigidBody.mass;
+//        CalculateSphereInertiaTensor( rigidBody.mass, 1.0f, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
+//        CalculateEllipsoidInertiaTensor( rigidBody.mass, 1.0f, 0.5f, 1.0f, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
+        CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
+
+        RandomStone( biconvex, rigidBody );
 
         bool prevCollision = false;
 
@@ -1952,7 +2014,7 @@ float DegToRad( float degrees )
                         rotating = !rotating;
 
                     if ( mode == FallingStone || mode == LinearCollisionResponse || mode == AngularCollisionResponse || mode == CollisionResponseWithFriction )
-                        RandomStone( rigidBody );
+                        RandomStone( biconvex, rigidBody );
                 }
 
                 prevSpace = true;

@@ -8,7 +8,21 @@ TODO:
 
     Work out why the angular impulse needs the sign flipped
 
-    Bevel the stone edges?! :)
+    Show kinetic energy as a graph, try to determine if energy
+    is being added or removed as a result of the collision
+
+    If energy is being added, why?
+
+    Can it be clamped? Eg. clamp the linear/angular velocity
+    such that it has restitution 
+
+    Does the friction force add energy or is it the normal
+    force? I think the friction force is most likely.
+
+    Is there anything I can do about this?
+
+    Why does the system behave so strangly with different
+    mass values, the behavior does not make sense!
 
 
 
@@ -21,12 +35,6 @@ TODO:
 
 
  
-    ============================================================
-
-    MUCH LATER BELOW...
-    
-    ============================================================
-
     ============================================================
 
     Visualize stone vs. stone SAT
