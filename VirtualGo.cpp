@@ -671,7 +671,7 @@ void CalculateEllipsoidInertiaTensor( float mass, float a, float b, float c, mat
 
 void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, mat4f & inertiaTensor, mat4f & inverseInertiaTensor )
 {
-    const double resolution = 0.005;
+    const double resolution = 0.01;
     const double width = biconvex.GetWidth();
     const double height = biconvex.GetHeight();
     const double xz_steps = ceil( width / resolution );
@@ -696,17 +696,22 @@ void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, mat4
                 const double y = sy + index_y * dy;
                 const double z = sz + index_z * dz;
 
-                const double rx = sqrt( z*z + y*y );
-                const double ry = sqrt( x*x + z*z );
-                const double rz = sqrt( x*x + y*y );
+                vec3f point(x,y,z);
 
-                ix += rx * m;
-                iy += ry * m;
-                iz += rz * m;
+                if ( PointInsideBiconvex_LocalSpace( point, biconvex ) )
+                {
+                    const double rx = sqrt( z*z + y*y );
+                    const double ry = sqrt( x*x + z*z );
+                    const double rz = sqrt( x*x + y*y );
+
+                    ix += rx * m;
+                    iy += ry * m;
+                    iz += rz * m;
+                }
             }
         }
     }
-    const float p = 0.1f;
+    const float p = 0.4f;
     ix *= p;
     iy *= p;
     iz *= p;
@@ -2464,7 +2469,7 @@ float DegToRad( float degrees )
 
                                 // calculate normal impulse
 
-                                const float e = 0.325f;
+                                const float e = 0.4f;
 
                                 vec3f r = stonePoint - rigidBody.position;
 
@@ -2489,7 +2494,7 @@ float DegToRad( float degrees )
                                 {
                                     vec3f tangent = normalize( tangentVelocity );
 
-                                    float u = 0.125f;
+                                    float u = 0.15f;
 
                                     const float vt = dot( velocityAtPoint, tangent );
 

@@ -22,6 +22,10 @@ Numerically integrated inertia tensor for biconvex solid (3/9/2012):
 
     It would only kick in when I do stone vs. stone collision?
 
+    No. I think it matters because the mass is an input to the
+    collision response even vs. the board. Should study the effect
+    that the ratio of the mass vs. the inertia tensor values has
+
 
 Switched to ellipsoid inertia tensor (2/9/2012):
 ------------------------------------------------
