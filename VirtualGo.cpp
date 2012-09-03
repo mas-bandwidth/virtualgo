@@ -637,6 +637,38 @@ inline quat4f operator * ( float s, const quat4f & q )
     return result;
 }
 
+void CalculateSphereInertiaTensor( float mass, float r, mat4f & inertiaTensor, mat4f & inverseInertiaTensor )
+{
+    const float i = 2.0f / 5.0f * mass * r * r;
+    float values[] = { i, 0, 0, 0, 
+                       0, i, 0, 0,
+                       0, 0, i, 0,
+                       0, 0, 0, 1 };
+    float inverse_values[] = { 1/i,  0,   0,   0, 
+                                0, 1/i,   0,   0, 
+                                0,   0, 1/i,   0,
+                                0,   0,   0,   1 };
+    inertiaTensor.load( values );
+    inverseInertiaTensor.load( inverse_values );
+}
+
+void CalculateEllipsoidInertiaTensor( float mass, float a, float b, float c, mat4f & inertiaTensor, mat4f & inverseInertiaTensor )
+{
+    const float i_a = 1.0f/5.0f * mass * ( b*b + c*c );
+    const float i_b = 1.0f/5.0f * mass * ( a*a + c*c );
+    const float i_c = 1.0f/5.0f * mass * ( a*a + b*b );
+    float values[] = { i_a,   0,   0, 0, 
+                         0, i_b,   0, 0,
+                         0,   0, i_c, 0,
+                         0,   0,   0, 1 };
+    float inverse_values[] = { 1/i_a,     0,     0,   0, 
+                                   0, 1/i_b,     0,   0, 
+                                   0,     0, 1/i_c,   0,
+                                   0,     0,     0,   1 };
+    inertiaTensor.load( values );
+    inverseInertiaTensor.load( inverse_values );
+}
+
 struct RigidBody
 {
     vec3f position;
@@ -654,22 +686,10 @@ struct RigidBody
         orientation = quat4f::identity();
         linearVelocity = vec3f(0,0,0);
         angularVelocity = vec3f(0,0,0);
-
-        // todo: calculate proper inertia tensor for biconvex
         mass = 1.0f;
         inverseMass = 1.0f / mass;
-        const float r = 1.0f;
-        const float i = 2.0f / 5.0f * mass * r * r;
-        float values[] = { i, 0, 0, 0, 
-                           0, i, 0, 0,
-                           0, 0, i, 0,
-                           0, 0, 0, 1 };
-        float inverse_values[] = { 1/i,  0,   0,   0, 
-                                    0, 1/i,   0,   0, 
-                                    0,   0, 1/i,   0,
-                                    0,   0,   0,   1 };
-        inertiaTensor.load( values );
-        inverseInertiaTensor.load( inverse_values );
+        inertiaTensor = mat4f::identity();
+        inverseInertiaTensor = mat4f::identity();
     }
 
     vec3f GetVelocityAtPoint( vec3f point )
@@ -677,6 +697,7 @@ struct RigidBody
         return linearVelocity + cross( angularVelocity, point - position );
     }
 
+    // todo: bring this back once I sort out why the angular impulse needs negative sign
     /*
     void ApplyImpulse( vec3f localPoint, vec3f impulse )
     {
@@ -1839,6 +1860,17 @@ float DegToRad( float degrees )
         return random(100) <= percent;
     }
 
+    void RandomStone( RigidBody & rigidBody )
+    {
+        rigidBody = RigidBody();
+        rigidBody.position = vec3f(0,12.0f,0);
+        rigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
+        rigidBody.mass = 1.0f;
+        rigidBody.inverseMass = 1.0f / rigidBody.mass;
+//        CalculateSphereInertiaTensor( rigidBody.mass, 1.0f, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
+        CalculateEllipsoidInertiaTensor( rigidBody.mass, 1.0f, 0.5f, 1.0f, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
+    }
+
     int main()
     {
         printf( "[virtual go]\n" );
@@ -1895,10 +1927,7 @@ float DegToRad( float degrees )
         srand( time( NULL ) );
 
         RigidBody rigidBody;
-        //rigidBody.position = vec3f(-5.0f,5.0f,0);
-        rigidBody.position = vec3f(0,20.0f,0);
-        rigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
-        //rigidBody.angularVelocity = vec3f(0,0,20);
+        RandomStone( rigidBody );
 
         bool prevCollision = false;
 
@@ -1923,13 +1952,7 @@ float DegToRad( float degrees )
                         rotating = !rotating;
 
                     if ( mode == FallingStone || mode == LinearCollisionResponse || mode == AngularCollisionResponse || mode == CollisionResponseWithFriction )
-                    {
-                        rigidBody = RigidBody();
-                        rigidBody.position = vec3f(0,20.0f,0);
-                        //rigidBody.orientation = quat4f::axisRotation( DegToRad(-65), vec3f(0,0,1) );
-                        rigidBody.angularVelocity = vec3f( random_float(-20,20), random_float(-20,20), random_float(-20,20) );
-                        //rigidBody.angularVelocity = vec3f(0,0,0);
-                    }
+                        RandomStone( rigidBody );
                 }
 
                 prevSpace = true;
@@ -1940,7 +1963,7 @@ float DegToRad( float degrees )
             if ( input.enter )
             {
                 if ( !prevEnter )
-                    rigidBody.linearVelocity += vec3f( -1 - random_float(0,1),0,0 );
+                    rigidBody.linearVelocity += vec3f( -2,0,0 );
                 prevEnter = true;
             }
             else
@@ -2200,7 +2223,7 @@ float DegToRad( float degrees )
 
                 glMatrixMode( GL_MODELVIEW );    
                 glLoadIdentity();
-                gluLookAt( 0, 7, -25.0f, 
+                gluLookAt( 0, 5, -25.0f, 
                            0, 4, 0, 
                            0, 1, 0 );
 
@@ -2379,7 +2402,7 @@ float DegToRad( float degrees )
 
                                 // calculate normal impulse
 
-                                const float e = 0.5f;
+                                const float e = 0.325f;
 
                                 vec3f r = stonePoint - rigidBody.position;
 
@@ -2400,11 +2423,11 @@ float DegToRad( float degrees )
 
                                 vec3f tangentVelocity = velocityAtPoint - boardNormal * dot( velocityAtPoint, boardNormal );
 
-                                if ( length_squared( tangentVelocity ) > 0.01f * 0.01f )
+                                if ( length_squared( tangentVelocity ) > 0.0001f * 0.0001f )
                                 {
                                     vec3f tangent = normalize( tangentVelocity );
 
-                                    float u = 0.15f;
+                                    float u = 0.125f;
 
                                     const float vt = dot( velocityAtPoint, tangent );
 
@@ -2434,8 +2457,8 @@ float DegToRad( float degrees )
 
                     // apply some damping
 
-                    rigidBody.linearVelocity *= 0.9995f;
-                    rigidBody.angularVelocity *= 0.9992f;
+                    rigidBody.linearVelocity *= 0.9999f;
+                    rigidBody.angularVelocity *= 0.9995f;
 
                     // integrate with velocities post collision response
 

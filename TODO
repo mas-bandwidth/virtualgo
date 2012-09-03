@@ -3,38 +3,12 @@ DONE:
     ...
 
 TODO:
-    
-    There is something wrong with my angular velocity math
-    or with my velocity at point function, because I have
-    had to explicitly invert the quaternion -> matrix
-    conversion, and negate the angular impulse
 
-    OpenGL coordinate system is right handed.
+    Derive proper inertia tensor for the biconvex solid *exactly*
 
-    Thought it was left handed. Switched!
+    Work out why the angular impulse needs the sign flipped
 
-    Verified that quat -> matrix needs transpose,
-    otherwise rotation is in the opposite direction
-    to what I expect.
-
-    Verified that angular velocity is integrating properly
-    eg. angular velocity of (0,0,20) rotates counter-clockwise
-    around the z axis (positive direction, left handed rule)
-
-    So then where is the inversion?
-
-    It would SEEM that it must be inside my impulse calculation
-    or in my velocity at point on rigid body function, because
-    the angular velocity integration is working properly!
-
-    
-
-
-
-
-    ------------------------------------------------------------
-
-    Calculate proper inertia tensor for biconvex solid.
+    Bevel the stone edges?! :)
 
 
 
@@ -43,6 +17,10 @@ TODO:
 
 
 
+
+
+
+ 
     ============================================================
 
     MUCH LATER BELOW...

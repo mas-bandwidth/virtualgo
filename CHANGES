@@ -1,4 +1,43 @@
 
+Switched to ellipsoid inertia tensor (2/9/2012):
+------------------------------------------------
+
+    Write function for inertia tensor of a sphere given radius/mass
+
+    Write function for inertia tensor of an ellipsoid    
+
+    Retuned simulation based around inertia tensor given
+    an ellipsoid with axes (1,0.5,1), which isn't EXACT
+    but it's pretty damn close!
+
+
+Switch to left handed coordinate system (2/9/2012):
+---------------------------------------------------
+
+    There is something wrong with my angular velocity math
+    or with my velocity at point function, because I have
+    had to explicitly invert the quaternion -> matrix
+    conversion, and negate the angular impulse
+
+    OpenGL coordinate system is right handed.
+
+    Thought it was left handed. Switched!
+
+    Verified that quat -> matrix needs transpose,
+    otherwise rotation is in the opposite direction
+    to what I expect.
+
+    Verified that angular velocity is integrating properly
+    eg. angular velocity of (0,0,20) rotates counter-clockwise
+    around the z axis (positive direction, left handed rule)
+
+    So then where is the inversion?
+
+    It would SEEM that it must be inside my impulse calculation
+    or in my velocity at point on rigid body function, because
+    the angular velocity integration is working properly!
+
+
 Implemented normal impulse and coulomb friction impulse (27/8/2012):
 --------------------------------------------------------------------
 
