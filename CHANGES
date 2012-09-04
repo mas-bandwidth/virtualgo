@@ -17,7 +17,7 @@ Calculated volume of biconvex solid (3/9/2012):
     Fixed a bug where linear impulse was not being scaled
     by inverse mass. This is explains the strange behavior
     that was occuring with different mass values.
-
+    
 
 Numerically integrated inertia tensor for biconvex solid (3/9/2012):
 --------------------------------------------------------------------
