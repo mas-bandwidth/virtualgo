@@ -4,79 +4,61 @@ DONE:
 
 TODO:
 
-    Derive proper inertia tensor for the biconvex solid *exactly*
+    ===============================================================
 
-    Work out why the angular impulse needs the sign flipped
+    Work out the integral for the inertia tensor exactly
 
-    Show kinetic energy as a graph, try to determine if energy
-    is being added or removed as a result of the collision
+    Compare with the numerically integrated result until correct
 
-    If energy is being added, why?
-
-    Can it be clamped? Eg. clamp the linear/angular velocity
-    such that it has restitution 
-
-    Does the friction force add energy or is it the normal
-    force? I think the friction force is most likely.
-
-    Is there anything I can do about this?
-
-    Why does the system behave so strangly with different
-    mass values, the behavior does not make sense!
+    ===============================================================
 
 
 
 
 
 
+    ==============================================================
 
+    Basic Rendering
 
+    Render the stone with a white texture
 
+    Render the board with a wood texture
 
+    What should the background be? Black? Grey?
 
- 
-    ============================================================
+    Render the lines and the circles at the star points (9x9)
 
-    Visualize stone vs. stone SAT
+    ==============================================================
 
-    Two stones rotating next to each other.
+    Advanced Rendering
 
-    Visualize their x/y axis supports for each stone.
+    Enable anti-aliasing
 
-    Add some vis when they are colliding.
+    Enable anisotropic filtering
 
-    Consider whether or not we need additional separating
-    axes than the current, it should be clear from the vis.
+    Study the OpenGL shader guide to work out how to render stuff
 
-    ============================================================
+    Write a function to determine the silhouette edge of a stone
 
-    Implement nearest point on biconvex vs. biconvex
+    Implement silhouette edge for board so it can cast shadows
+    on the floor.
 
-    This is required to determine the collision point and normal
-    between two stones after bisecting to find intersection t.
+    Add a toggle mode to rotate between different camera views
 
-    Visualize nearest points between biconvex if not intersecting
-    in yellow.
-
-    Add some key to move the biconvex further away from each other
-    or closer together (left/right)
+    Render a blurred out reflection of the stones on the board
 
     ============================================================
 
-    Generalize stones to an array of rigid bodies, array of
-    biconvex shapes (don't assume all the same size...)
 
-    Determine algorithm for detecting collisions globally
 
-    Study speculative contacts approach and think through
 
-    What about "ghost" contacts?!
 
-    End result, should have a bunch of stones falling while you
-    are holding space bar down. These stones should tumble and
-    collide and come to rest on the board.
+
 
     ============================================================
+
+    *** IMPLEMENT STONE VS. BOARD EDGE AND CORNER CASES! ***
 
     Implement biconvex vs. line intersection
 
@@ -133,3 +115,48 @@ TODO:
     Extend to all corners.
 
     ============================================================
+
+
+
+
+ 
+    ============================================================
+
+    Visualize stone vs. stone SAT
+
+    Two stones rotating next to each other.
+
+    Visualize their x/y axis supports for each stone.
+
+    Add some vis when they are colliding.
+
+    Consider whether or not we need additional separating
+    axes than the current, it should be clear from the vis.
+
+    ============================================================
+
+    Implement nearest point on biconvex vs. biconvex
+
+    This is required to determine the collision point and normal
+    between two stones after bisecting to find intersection t.
+
+    Visualize nearest points between biconvex if not intersecting
+    in yellow.
+
+    Add some key to move the biconvex further away from each other
+    or closer together (left/right)
+
+    ============================================================
+
+    Generalize stones to an array of rigid bodies, array of
+    biconvex shapes (don't assume all the same size...)
+
+    Determine algorithm for detecting collisions globally
+
+    Study speculative contacts approach and think through
+
+    What about "ghost" contacts?!
+
+    End result, should have a bunch of stones falling while you
+    are holding space bar down. These stones should tumble and
+    collide and come to rest on the board.

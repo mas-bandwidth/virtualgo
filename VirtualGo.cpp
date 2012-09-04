@@ -85,6 +85,13 @@ private:
     float boundingSphereRadiusSquared;      // bounding sphere radius squared
 };
 
+const float pi = 3.14159265358979f;
+
+float DegToRad( float degrees )
+{
+    return ( degrees / 360.0f ) * 2 * pi;
+}
+
 inline bool IntersectRayPlane( vec3f rayStart,
                                vec3f rayDirection,
                                vec3f planeNormal,
@@ -540,15 +547,13 @@ struct quat4f
 
         const float array[] = 
         {
-            // todo: transpose here instead of below
-            1.0f - ( fTyy + fTzz ), fTxy - fTwz, fTxz + fTwy, 0,
-            fTxy + fTwz, 1.0f - ( fTxx + fTzz ), fTyz - fTwx, 0,
-            fTxz - fTwy, fTyz + fTwx, 1.0f - ( fTxx + fTyy ), 0,
-            0, 0, 0, 1
+            1.0f - ( fTyy + fTzz ), fTxy + fTwz, fTxz - fTwy, 0,
+            fTxy - fTwz, 1.0f - ( fTxx + fTzz ), fTyz + fTwx, 0, 
+            fTxz + fTwy, fTyz - fTwx, 1.0f - ( fTxx + fTyy ), 0,
+            0, 0, 0, 1 
         };
 
         matrix.load( array );
-        matrix = transpose( matrix );
     }
 
     void toAxisAngle( vec3f & axis, float & angle, const float epsilonSquared = 0.001f * 0.001f ) const
@@ -669,6 +674,13 @@ void CalculateEllipsoidInertiaTensor( float mass, float a, float b, float c, mat
     inverseInertiaTensor.load( inverse_values );
 }
 
+float CalculateBiconvexVolume( const Biconvex & biconvex )
+{
+    const float r = biconvex.GetSphereRadius();
+    const float h = r - biconvex.GetHeight() / 2;
+    return h*h + ( pi * r / 4 + pi * h / 24 );
+}
+
 void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, mat4f & inertiaTensor, mat4f & inverseInertiaTensor )
 {
     const double resolution = 0.01;
@@ -685,7 +697,9 @@ void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, mat4
     double ix = 0.0;
     double iy = 0.0;
     double iz = 0.0;
-    const double m = dx*dy*dz;
+    const double v = CalculateBiconvexVolume( biconvex );
+    const double p = mass / v;
+    const double m = dx*dy*dz * p;
     for ( int index_z = 0; index_z < xz_steps; ++index_z )
     {
         for ( int index_y = 0; index_y < y_steps; ++index_y )
@@ -711,10 +725,6 @@ void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, mat4
             }
         }
     }
-    const float p = 0.4f;
-    ix *= p;
-    iy *= p;
-    iz *= p;
     const float values[] = { ix,  0,  0, 0, 
                               0, iy,  0, 0, 
                               0,  0, iz, 0, 
@@ -754,15 +764,6 @@ struct RigidBody
     {
         return linearVelocity + cross( angularVelocity, point - position );
     }
-
-    // todo: bring this back once I sort out why the angular impulse needs negative sign
-    /*
-    void ApplyImpulse( vec3f localPoint, vec3f impulse )
-    {
-        linearVelocity += impulse * inverseMass;
-        angularVelocity += transformVector( inverseInertiaTensor, cross( impulse, localPoint ) );
-    }
-    */
 };
 
 inline quat4f AngularVelocityToSpin( const quat4f & orientation, vec3f angularVelocity )
@@ -1227,13 +1228,6 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         assert( false );
     }
     */
-}
-
-const float pi = 3.14159265358979f;
-
-float DegToRad( float degrees )
-{
-    return ( degrees / 360.0f ) * 2 * pi;
 }
 
 #if VIRTUALGO_CONSOLE
@@ -1924,9 +1918,20 @@ float DegToRad( float degrees )
         return random(100) <= percent;
     }
 
-    void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody )
+    enum Mode
     {
-        rigidBody.position = vec3f(0,12.0f,0);
+        Stone,
+        BiconvexSupport,
+        StoneAndBoard,
+        FallingStone,
+        LinearCollisionResponse,
+        AngularCollisionResponse,
+        CollisionResponseWithFriction
+    };
+
+    void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
+    {
+        rigidBody.position = vec3f( 0, mode > LinearCollisionResponse ? 15.0f : 10.0f, 0 );
         rigidBody.orientation = quat4f(0,0,0,1);
         rigidBody.linearVelocity = vec3f(0,0,0);
         rigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
@@ -1972,29 +1977,16 @@ float DegToRad( float degrees )
 
         float smoothedRotation = 0.0f;
 
-        enum Mode
-        {
-            Stone,
-            BiconvexSupport,
-            StoneAndBoard,
-            FallingStone,
-            LinearCollisionResponse,
-            AngularCollisionResponse,
-            CollisionResponseWithFriction
-        };
-
         Mode mode = CollisionResponseWithFriction;
 
         srand( time( NULL ) );
 
         RigidBody rigidBody;
-        rigidBody.mass = 1.0f;
+        rigidBody.mass = 0.01f;
         rigidBody.inverseMass = 1.0f / rigidBody.mass;
-//        CalculateSphereInertiaTensor( rigidBody.mass, 1.0f, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
-//        CalculateEllipsoidInertiaTensor( rigidBody.mass, 1.0f, 0.5f, 1.0f, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
         CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
 
-        RandomStone( biconvex, rigidBody );
+        RandomStone( biconvex, rigidBody, mode );
 
         bool prevCollision = false;
 
@@ -2019,7 +2011,7 @@ float DegToRad( float degrees )
                         rotating = !rotating;
 
                     if ( mode == FallingStone || mode == LinearCollisionResponse || mode == AngularCollisionResponse || mode == CollisionResponseWithFriction )
-                        RandomStone( biconvex, rigidBody );
+                        RandomStone( biconvex, rigidBody, mode );
                 }
 
                 prevSpace = true;
@@ -2046,16 +2038,28 @@ float DegToRad( float degrees )
                 mode = StoneAndBoard;
 
             if ( input.four )
+            {
                 mode = FallingStone;
+                RandomStone( biconvex, rigidBody, mode );
+            }
 
             if ( input.five )
+            {
                 mode = LinearCollisionResponse;
+                RandomStone( biconvex, rigidBody, mode );
+            }
 
             if ( input.six )
+            {
                 mode = AngularCollisionResponse;
+                RandomStone( biconvex, rigidBody, mode );
+            }
 
             if ( input.seven )
+            {
                 mode = CollisionResponseWithFriction;
+                RandomStone( biconvex, rigidBody, mode );
+            }
 
             ClearScreen( displayWidth, displayHeight );
 
@@ -2311,9 +2315,9 @@ float DegToRad( float degrees )
 
                 // update stone physics
 
-                const int steps = 10;
+                const int steps = ( mode == FallingStone ? 1 : 10 );
 
-                const float step_dt = dt / steps;
+                const float step_dt = dt / steps * ( mode == FallingStone ? 0.1f : 1.0f );
 
                 for ( int i = 0; i < steps; ++i )
                 {
@@ -2416,17 +2420,8 @@ float DegToRad( float degrees )
 
                                 // apply impulse
 
-                                rigidBody.linearVelocity += p;
-                                rigidBody.angularVelocity -= transformVector( i, cross( p, stonePoint - rigidBody.position ) );
-
-                                // hack: i have no idea why I must invert the angular velocity above
-                                // clearly there is something wrong in my orientation math elsewhere
-
-                                /*
-                                float prev = dot( velocityAtPoint, boardNormal );
-                                velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
-                                printf( "normal velocity: %f -> %f\n", prev, dot( velocityAtPoint, boardNormal ) );
-                                */
+                                rigidBody.linearVelocity += p * rigidBody.inverseMass;
+                                rigidBody.angularVelocity += transformVector( i, cross( stonePoint - rigidBody.position, p ) );
                             }
                         }
                     }
@@ -2469,7 +2464,7 @@ float DegToRad( float degrees )
 
                                 // calculate normal impulse
 
-                                const float e = 0.4f;
+                                const float e = 0.45f;
 
                                 vec3f r = stonePoint - rigidBody.position;
 
@@ -2507,17 +2502,8 @@ float DegToRad( float degrees )
 
                                 // apply impulse
 
-                                rigidBody.linearVelocity += p;
-                                rigidBody.angularVelocity -= transformVector( i, cross( p, stonePoint - rigidBody.position ) );
-
-                                // hack: i have no idea why I must invert the angular velocity above
-                                // clearly there is something wrong in my orientation math elsewhere
-
-                                /*
-                                float prev = dot( velocityAtPoint, boardNormal );
-                                velocityAtPoint = rigidBody.GetVelocityAtPoint( stonePoint );
-                                printf( "normal velocity: %f -> %f\n", prev, dot( velocityAtPoint, boardNormal ) );
-                                */
+                                rigidBody.linearVelocity += p * rigidBody.inverseMass;
+                                rigidBody.angularVelocity += transformVector( i, cross( stonePoint - rigidBody.position, p ) );
                             }
                         }
                     }

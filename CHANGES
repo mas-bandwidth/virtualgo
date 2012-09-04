@@ -1,4 +1,24 @@
 
+Calculated volume of biconvex solid (3/9/2012):
+-----------------------------------------------
+
+    Write a function to calculate the volume of the stone
+    given biconvex width and height
+
+    This means I'll need to do an integral for sphere volume
+    but only for the top bit and bottom bits of the sphere
+
+    Measure how much the stone weighs in real life
+
+    Determine approximately what the density of the stone
+    is, this will allow me to calculate the inertia tensor
+    via the numerical integration
+
+    Fixed a bug where linear impulse was not being scaled
+    by inverse mass. This is explains the strange behavior
+    that was occuring with different mass values.
+
+
 Numerically integrated inertia tensor for biconvex solid (3/9/2012):
 --------------------------------------------------------------------
 
