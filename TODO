@@ -4,6 +4,60 @@ DONE:
 
 TODO:
 
+    If I reduce to 1 step, then there is substantial jittering
+
+    It would seem that if I have some cushion zone where if you
+    are inside this zone, you are always colliding, I could avoid
+    such jittering behavior.
+
+    Lets try it...
+
+    Hmmm. no luck.
+
+    There also still energy being added. I think this energy
+    is either coming from the friction impulse or the push stone
+    out from board step (gravitational potential energy).
+
+    At this point I think it is more likely to be the tangential
+    friction impluse.
+
+    It's time to calculate the energy before/after collision
+    to validate that we are not adding energy. IMPORTANT
+
+    Actually, I'm starting to think that the only reason why
+    the inertia tensor hack worked is that I was restricting
+    rotation around the z axis
+
+    I think now I'm seeing energy added when off z-axis and I'm
+    not sure why this is the case.
+
+    Trick would be to adjust camera look down x axis and very
+    correct behavior in the same way -- if no energy is added
+    here then I know the inertia tensor is correct.
+
+    OK. So X axis is OK, and XZ axis is also OK
+
+    It seems that the strange energy adding behavior starts
+    occuring when the rotation includes rotation about the Y
+    axis.
+
+    Print the inertia tensor and see how different X Z and Y
+    are -- is all of this caused by the difference?
+
+    It's approximately 2X easier to rotate about Y axis
+
+    My guess would be that we are adding energy due to friction
+    about the Y axis.
+
+    I think I need to start researching how to avoid adding
+    energy due to friction response. This is almost certainly
+    where it is coming from.
+
+    Also noticing some rotation about Y axis is being induced
+    when just pushing the board (purely in the -X axis direction).
+
+    This shouldn't happen!
+
     ===============================================================
 
     Work out the integral for the inertia tensor exactly
@@ -73,7 +127,7 @@ TODO:
     The non-friction case appears to be much better behaved than
     the friction case.
 
-    In order to fix this, I may need to study Mirich's derivation
+    In order to fix this, I may need to study Mirtich's derivation
     of the friction DE, to see how he avoids adding energy to the
     system (I would assume this is why it is non-trivial...)
 

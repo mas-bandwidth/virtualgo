@@ -663,9 +663,6 @@ void CalculateEllipsoidInertiaTensor( float mass, float a, float b, float c, mat
     const float i_a = 1.0f/5.0f * mass * ( b*b + c*c );
     const float i_b = 1.0f/5.0f * mass * ( a*a + c*c );
     const float i_c = 1.0f/5.0f * mass * ( a*a + b*b );
-    printf( "ellipsoid ix = %f\n", i_a );
-    printf( "ellipsoid iy = %f\n", i_b );
-    printf( "ellipsoid iz = %f\n", i_c );
     float values[] = { i_a,   0,   0, 0, 
                          0, i_b,   0, 0,
                          0,   0, i_c, 0,
@@ -730,8 +727,6 @@ void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, mat4
         }
     }
 
-    printf( "p = %f\n", p );
-
     printf( "approx ix = %f\n", ix );
     printf( "approx iy = %f\n", iy );
 
@@ -763,6 +758,9 @@ void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, mat4
                                        0,    0,    0, 1 };
     inertiaTensor.load( values );
     inverseInertiaTensor.load( inverseValues );
+
+    PrintMatrix( inertiaTensor );
+    PrintMatrix( inverseInertiaTensor );
 }
 
 struct RigidBody
@@ -1045,7 +1043,7 @@ inline float IntersectRayBoard( const Board & board,
 inline bool IntersectStoneBoard( const Board & board, 
                                  const Biconvex & biconvex, 
                                  const RigidBodyTransform & biconvexTransform,
-                                 float epsilon = 0.001f )
+                                 float epsilon = 0.0001f )
 {
     const float boundingSphereRadius = biconvex.GetBoundingSphereRadius();
 
@@ -1059,7 +1057,7 @@ inline bool IntersectStoneBoard( const Board & board,
         vec3f biconvexUp = biconvexTransform.GetUp();
         vec3f biconvexCenter = biconvexTransform.GetPosition();
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(0,1,0), s1, s2 );
-        return s1 < 0;
+        return s1 <= 0;
     }
 
     // todo: other cases
@@ -1073,7 +1071,7 @@ inline bool IntersectStoneBoard( const Board & board,
                                  vec3f & point,
                                  vec3f & normal,
                                  float & depth,
-                                 float epsilon = 0.001f )
+                                 float epsilon = 0.0001f )
 {
     const float boundingSphereRadius = biconvex.GetBoundingSphereRadius();
 
@@ -1092,7 +1090,7 @@ inline bool IntersectStoneBoard( const Board & board,
         vec3f local_normal;
         depth = IntersectPlaneBiconvex_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), 
                                                    plane.w(), biconvex, local_point, local_normal );
-        if ( depth > 0 )
+        if ( depth >= 0.0f )
         {
             point = TransformPoint( biconvexTransform.localToWorld, local_point );
             normal = TransformVector( biconvexTransform.localToWorld, local_normal );
@@ -1961,10 +1959,36 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
     void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     {
-        rigidBody.position = vec3f( 0, mode > LinearCollisionResponse ? 15.0f : 10.0f, 0 );
+        /*
+        // this one is good for seeing nice pleasing bounce behavior
+        rigidBody.position = vec3f( 0, 10.0f, 0 );
         rigidBody.orientation = quat4f(0,0,0,1);
         rigidBody.linearVelocity = vec3f(0,0,0);
-        rigidBody.angularVelocity = vec3f( random_float(-10,10), random_float(-10,10), random_float(-10,10) );
+        rigidBody.angularVelocity = vec3f( random_float(-1,1), random_float(-1,1), random_float(-1,1) );
+        */
+        
+        // this one is good for debugging collision response about the z axis
+        /*
+        rigidBody.position = vec3f( 0, mode > LinearCollisionResponse ? 15.0f : 10.0f, 0 );
+        rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f(0,0,1) );
+        rigidBody.linearVelocity = vec3f(0,0,0);
+        rigidBody.angularVelocity = vec3f(0,0,0);
+        */
+
+        // this one is good for debugging collision response about the x axis
+        /*
+        rigidBody.position = vec3f( 0, mode > LinearCollisionResponse ? 15.0f : 10.0f, 0 );
+        rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f(1,0,0) );
+        rigidBody.linearVelocity = vec3f(0,0,0);
+        rigidBody.angularVelocity = vec3f(0,0,0);
+        */
+
+        // does the same think apply when rotating about an off-primary axis?
+        // yes it does.
+        rigidBody.position = vec3f( 0, mode > LinearCollisionResponse ? 15.0f : 10.0f, 0 );
+        rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f(1,0,1) );
+        rigidBody.linearVelocity = vec3f(0,0,0);
+        rigidBody.angularVelocity = vec3f(0,0,0);
     }
 
     int main()
@@ -1994,7 +2018,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
         glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
-        Biconvex biconvex( 2, 1 );
+        Biconvex biconvex( 2.2f, 1.13f );
 
         mat4f rotation = mat4f::identity();
 
@@ -2012,7 +2036,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         srand( time( NULL ) );
 
         RigidBody rigidBody;
-        rigidBody.mass = 0.01f;
+        rigidBody.mass = 1.0f;
         rigidBody.inverseMass = 1.0f / rigidBody.mass;
         CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
 
@@ -2345,6 +2369,8 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
                 // update stone physics
 
+                // hack: substeps are required for the impulse
+                // to look stable and not jitter at rest. why?!
                 const int steps = ( mode == FallingStone ? 1 : 10 );
 
                 const float step_dt = dt / steps * ( mode == FallingStone ? 0.1f : 1.0f );
@@ -2425,7 +2451,9 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                                 rigidBody.orientation.toMatrix( rotation );
                                 mat4f transposeRotation = transpose( rotation );
 
-                                mat4f i = rotation * rigidBody.inverseInertiaTensor * transposeRotation;
+                                // hack: for some reason I must also change the order of this matrix transform
+                                // something is wrong with my treatment of rotations, generally!!!
+                                mat4f i = transposeRotation * rigidBody.inverseInertiaTensor * rotation;
 
                                 // calculate normal impulse
 
@@ -2451,13 +2479,15 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                                 // apply impulse
 
                                 rigidBody.linearVelocity += p * rigidBody.inverseMass;
+
+                                // hack: for some reason, I must switch this cross product order for it to work
                                 rigidBody.angularVelocity += transformVector( i, cross( stonePoint - rigidBody.position, p ) );
                             }
                         }
                     }
                     else if ( mode == CollisionResponseWithFriction )
                     {
-                        // if object is penetrating with the board, push it out
+                        // detect collision
 
                         biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
 
@@ -2490,11 +2520,13 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                                 rigidBody.orientation.toMatrix( rotation );
                                 mat4f transposeRotation = transpose( rotation );
 
-                                mat4f i = rotation * rigidBody.inverseInertiaTensor * transposeRotation;
+                                // hack: for some reason I must also change the order of this matrix transform
+                                // something is wrong with my treatment of rotations, generally!!!
+                                mat4f i = transposeRotation * rigidBody.inverseInertiaTensor * rotation;
 
                                 // calculate normal impulse
 
-                                const float e = 0.4f;
+                                const float e = 0.5f;
 
                                 vec3f r = stonePoint - rigidBody.position;
 
@@ -2533,6 +2565,8 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                                 // apply impulse
 
                                 rigidBody.linearVelocity += p * rigidBody.inverseMass;
+
+                                // hack: for some reason, I must switch this cross product order for it to work
                                 rigidBody.angularVelocity += transformVector( i, cross( stonePoint - rigidBody.position, p ) );
                             }
                         }
@@ -2540,7 +2574,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
                     // apply some damping
 
-                    rigidBody.linearVelocity *= 0.9999f;
+                    rigidBody.linearVelocity *= 0.9995f;
                     rigidBody.angularVelocity *= 0.9995f;
 
                     // integrate with velocities post collision response
