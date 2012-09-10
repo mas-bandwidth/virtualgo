@@ -868,7 +868,7 @@ inline vec3f TransformVector( mat4f matrix, vec3f normal )
 
 inline vec4f TransformPlane( mat4f matrix, vec4f plane )
 {
-    // hack: slow version -- original code is commented it. it does not seem to be getting correct w coordinate?!
+    // hack: slow version -- original code is commented out. it does not seem to be getting correct w coordinate?!
     vec3f normal( plane.x(), plane.y(), plane.z() );
     float d = plane.w();
     vec3f point = normal * d;
@@ -1966,43 +1966,8 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
     void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     {
-        // this one is good for seeing nice pleasing bounce behavior
-        /*
-        rigidBody.position = vec3f( 0, 10.0f, 0 );
-        rigidBody.orientation = quat4f(0,0,0,1);
-        rigidBody.linearVelocity = vec3f(0,0,0);
-        rigidBody.angularVelocity = vec3f( random_float(-1,1), random_float(-1,1), random_float(-1,1) );
-        */
-        
-        // this one is good for debugging collision response about the z axis
-        /*
         rigidBody.position = vec3f( 0, mode > LinearCollisionResponse ? 15.0f : 10.0f, 0 );
-        rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f(0,0,1) );
-        rigidBody.linearVelocity = vec3f(0,0,0);
-        rigidBody.angularVelocity = vec3f(0,0,0);
-        */
-
-        // this one is good for debugging collision response about the x axis
-        /*
-        rigidBody.position = vec3f( 0, mode > LinearCollisionResponse ? 15.0f : 10.0f, 0 );
-        rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f(1,0,0) );
-        rigidBody.linearVelocity = vec3f(0,0,0);
-        rigidBody.angularVelocity = vec3f(0,0,0);
-        */
-
-        // does the same think apply when rotating about an off-primary axis?
-        // yes it does.
-        /*
-        rigidBody.position = vec3f( 0, mode > LinearCollisionResponse ? 15.0f : 10.0f, 0 );
-        rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f(1,0,1) );
-        rigidBody.linearVelocity = vec3f(0,0,0);
-        rigidBody.angularVelocity = vec3f(0,0,0);
-        */
-
-        // what about an axis that involves the y axis?
-        // hack: this one adds energy. there is something wrong with rotation about the y axis adding energy!
-        rigidBody.position = vec3f( 0, mode > LinearCollisionResponse ? 15.0f : 10.0f, 0 );
-        rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f(1,1,1) );
+        rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
         rigidBody.linearVelocity = vec3f(0,0,0);
         rigidBody.angularVelocity = vec3f(0,0,0);
     }
