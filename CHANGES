@@ -2,39 +2,8 @@
 Solved strange energy adding effects (9/9/2012):
 ------------------------------------------------
 
-    It seems that even though we have an elasticity of 0.4,
-    when the stone hits dead on with no angular component,
-    we are losing a lot more energy than expected.
-
-    Similarly, there seems to be a problem with the rotation
-    on sides adding energy. Is this caused by the inertia tensor?
-
-    I've verified that the linear case is correct (it is reflecting
-    with 0.4 coefficient of restitution.)
-
-    However, when I add *no* additional angular velocity or friction
-    the stone seems to have MUCH more energy in the bounce, eg. it
-    bounces higher and has large amounts of rotation post-collision.
-
-    I think there is something wrong with how the rotational effect
-    is being applied, eg. it is doubling up or something -- this does
-    seem to be exacerbated by the correct inertia tensor, but I don't
-    think that is the root cause...
-
-    It's probably just some mass weighting that is not properly
-    being inversed when applied, therefore when non-1 inertia
-    tensor values exist, it is applying more energy than it should.
-
-    To fix this, first I should confirm that energy is being added
-    then I can look through to see *WHAT* is adding the energy.
-
-    SOLVED: The transform of the inertia tensor needed reverse order
-    to be correct. eg: R * I * RT, vs. RT * I * R
-
-    Now there is no strange energy adding effects...
-
-    Of course, there is now the question why are many of my rotations
-    in the wrong order? What have I done wrong to cause this behavior?
+    Reworked the collision response from scratch and verified 
+    that no additional energy is added.
 
 
 Calculated volume of biconvex solid (3/9/2012):

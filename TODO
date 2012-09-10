@@ -4,136 +4,17 @@ DONE:
 
 TODO:
 
-    If I reduce to 1 step, then there is substantial jittering
+    --------------------------------------------------------------------
 
-    It would seem that if I have some cushion zone where if you
-    are inside this zone, you are always colliding, I could avoid
-    such jittering behavior.
+    Determine why the stone jitters at one step.
 
-    Lets try it...
+    What is going on? Where does the jitter come from?
 
-    Hmmm. no luck.
+    Why is it reduced with multiple substeps?
 
-    There also still energy being added. I think this energy
-    is either coming from the friction impulse or the push stone
-    out from board step (gravitational potential energy).
+    Can I reduce the jitter without multiple substeps?
 
-    At this point I think it is more likely to be the tangential
-    friction impluse.
-
-    It's time to calculate the energy before/after collision
-    to validate that we are not adding energy. IMPORTANT
-
-    Actually, I'm starting to think that the only reason why
-    the inertia tensor hack worked is that I was restricting
-    rotation around the z axis
-
-    I think now I'm seeing energy added when off z-axis and I'm
-    not sure why this is the case.
-
-    Trick would be to adjust camera look down x axis and very
-    correct behavior in the same way -- if no energy is added
-    here then I know the inertia tensor is correct.
-
-    OK. So X axis is OK, and XZ axis is also OK
-
-    It seems that the strange energy adding behavior starts
-    occuring when the rotation includes rotation about the Y
-    axis.
-
-    Print the inertia tensor and see how different X Z and Y
-    are -- is all of this caused by the difference?
-
-    It's approximately 2X easier to rotate about Y axis
-
-    My guess would be that we are adding energy due to friction
-    about the Y axis.
-
-    I think I need to start researching how to avoid adding
-    energy due to friction response. This is almost certainly
-    where it is coming from.
-
-    Also noticing some rotation about Y axis is being induced
-    when just pushing the board (purely in the -X axis direction).
-
-    This shouldn't happen!
-
-    ===============================================================
-
-    Work out the integral for the inertia tensor exactly
-
-    Compare with the numerically integrated result until correct
-
-    Does not match...
-
-    At this point I am unsure which one is incorrect :)
-
-    Actually, I found that the integral was only 1/2 of the inertia
-    tensor, because it was only the top half of the stone. 
-
-    After doubling the value, it seems that it is IN THE BALLPARK
-
-    In fact, when comparing the approx value vs. the exact 
-    ellipsoid value, it seems that the approx value is the
-    incorrect one *because* the approx biconvex iy should
-    be LESS than the ellipsoid one (less distant mass)
-
-    So I should look over the approx integral and determine if
-    there is any mistake there... perhaps I have the density
-    calculation incorrect, or it is the point mass assumption
-    that is throwing it off.
-
-    Found it! I was not squaring the r coordinate. It needs
-    to be squared, this also saves time because it removes
-    the sqrt!
-
-    ===============================================================
-
-    THEORY #1:
-
-    Energy is being added to the system when I push the stone up
-
-    This is normally not a large amount, but if the stone rotates
-    very rapidly, it can tunnel significantly and add potential
-    energy when pushing up.
-
-    It would be cool to determine how much energy I am adding
-    by pushing the stone up, then remove this energy from the
-    angular and linear component
-
-    This way I should not add any energy to the system.
-
-    In order to do this, I need to know the total energy of the
-    stone, eg. kinetic energy of the rigid body + gravitational
-    potential energy.
-
-    ==============================================================
-
-    THEORY #2:
-
-    Somehow the coulomb friction forces are adding energy to the
-    system. This would seem to make sense given that faster rotation
-    of the stone is likely to greatly increase the normal force n,
-    and increase the amount of friction applied.
-
-    Could determine if this is the case by watching non-friction
-    and see if it has the same oscilliation and energy add as
-    the friction impulse does.
-
-    ==============================================================
-
-    I'm pretty sure at this point that it is theory #2, not #1
-
-    The non-friction case appears to be much better behaved than
-    the friction case.
-
-    In order to fix this, I may need to study Mirtich's derivation
-    of the friction DE, to see how he avoids adding energy to the
-    system (I would assume this is why it is non-trivial...)
-
-    ===============================================================
-
-
+    --------------------------------------------------------------------
 
 
 
