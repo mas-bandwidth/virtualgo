@@ -4,6 +4,11 @@ DONE:
 
 TODO:
 
+    Need to add a concept of rolling friction. Otherwise the stone
+    never comes to rest if it is spinning around the Y axis on the board.
+
+    (the point is not moving, therefore no friction force is applied)
+
     --------------------------------------------------------------------
 
     Determine why the stone jitters at one step.

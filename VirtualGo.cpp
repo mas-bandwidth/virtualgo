@@ -2118,6 +2118,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                                    0,1,0,0,
                                    0,0,1,0,
                                    0,0,0,1 };
+
                 glMultMatrixf( flipX );
 
                 glMatrixMode( GL_MODELVIEW );
@@ -2204,6 +2205,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                                    0,1,0,0,
                                    0,0,1,0,
                                    0,0,0,1 };
+
                 glMultMatrixf( flipX );
 
                 glMatrixMode( GL_MODELVIEW );
@@ -2318,17 +2320,24 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
             else if ( mode == FallingStone || mode == LinearCollisionResponse || mode == AngularCollisionResponse || mode == CollisionResponseWithFriction )
             {
                 const float fov = 25.0f;
+
                 glMatrixMode( GL_PROJECTION );
+                
                 glLoadIdentity();
+                
                 float flipX[] = { -1,0,0,0,
                                    0,1,0,0,
                                    0,0,1,0,
                                    0,0,0,1 };
+                
                 glMultMatrixf( flipX );
+
                 gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
 
                 glMatrixMode( GL_MODELVIEW );    
+
                 glLoadIdentity();
+
                 gluLookAt( 0, 5, -25.0f, 
                            0, 4, 0, 
                            0, 1, 0 );
