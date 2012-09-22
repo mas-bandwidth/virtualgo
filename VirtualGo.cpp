@@ -2322,7 +2322,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                 const float fov = 25.0f;
 
                 glMatrixMode( GL_PROJECTION );
-                
+
                 glLoadIdentity();
                 
                 float flipX[] = { -1,0,0,0,
@@ -2453,7 +2453,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
                                 // apply collision impulse
 
-                                const float e = 0.5f;
+                                const float e = 0.6f;
 
                                 const float linear_k = rigidBody.inverseMass;
                                 const float angular_k = dot( cross( transformVector( i, cross( r, n ) ), r ), n );
@@ -2493,7 +2493,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
                                 const float ke_after = rigidBody.GetKineticEnergy();
 
-                                assert( ke_after <= ke_before );
+                                assert( ke_after <= ke_before + 0.001f );
                             }
                         }
                     }
