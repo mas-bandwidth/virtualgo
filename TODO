@@ -1,27 +1,24 @@
 DONE:
 
-    ...
+    Render the stone with gouraud shading
+
+    Enable anti-aliasing
 
 TODO:
 
+    Render a stone with a white texture
 
-    ==============================================================
+    Render the stone with specular highlight
 
-    Basic Rendering
-
-    Render the stone with a white texture
+    ----------------------------------------------
 
     Render the board with a wood texture
 
-    What should the background be? Black? Grey?
-
     Render the lines and the circles at the star points (9x9)
 
-    ==============================================================
+    ----------------------------------------------
 
     Advanced Rendering
-
-    Enable anti-aliasing
 
     Enable anisotropic filtering
 

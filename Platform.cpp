@@ -638,7 +638,7 @@ namespace platform
 
     static CGDisplayModeRef originalDisplayMode;
 
-	bool OpenDisplay( const char title[], int width, int height, int refresh )
+	bool OpenDisplay( const char title[], int width, int height, int bits, int refresh )
 	{
         mouse_x = 0;
         mouse_y = 0;
@@ -697,7 +697,21 @@ namespace platform
             const int mode_width = CGDisplayModeGetWidth( mode );
             const int mode_height = CGDisplayModeGetHeight( mode );
             const int mode_refresh = CGDisplayModeGetRefreshRate( mode );
-            if ( mode_width == width && mode_height == height && ( mode_refresh == refresh || mode_refresh == 0 ) )
+
+            CFStringRef mode_pixel_encoding = CGDisplayModeCopyPixelEncoding( mode );
+
+            size_t mode_bits = 0;
+                
+            if ( CFStringCompare( mode_pixel_encoding, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive ) == kCFCompareEqualTo )
+                mode_bits = 32;
+            else if(CFStringCompare( mode_pixel_encoding, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo )
+                mode_bits = 16;
+            else if(CFStringCompare( mode_pixel_encoding, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo )
+                mode_bits = 8;
+
+            CFRelease( mode_pixel_encoding );
+
+            if ( mode_width == width && mode_height == height && ( mode_refresh == refresh || mode_refresh == 0 ) && mode_bits == bits )
             {
                 matchingMode = mode;
                 break;

@@ -1,0 +1,38 @@
+
+Virtual Go - Simulating rigid body dynamics of a go board and stones
+
+Takeaway:
+
+    Attendees will learn the basics of rigid body kinematics, collision detection 
+    and impulse-based collision response in the context of a worked example.
+
+Outline:
+
+    Introduction to the game of Go.
+
+    The go stone shape: Intersection of two spheres = Biconvex solid.
+
+    Work through various properties of the shape: How to generate a stone of the desired dimensions.
+
+    How does the stone move? Rigid body kinematics overview.
+
+    How to detect collision with the board board? Separating Axis Test. 
+    Determine span of biconvex along axis. Break down cases of collision with board.
+
+    How does the stone bounce? Impulse based collision response. 
+    
+    Linear effects. Coefficient of restitution. 
+
+    Angular effects.
+
+    Derive inertia tensor for go stone: numerically first, then closed form. 
+
+    Develop an intuitive understanding for inertia tensor + the angular component 
+    of the collision response along the normal direction.
+
+    Friction effects.
+
+    Basics of coulomb friction. Friction = component of collision response along the tangent direction. Intuitive understanding of the friction component of collision response and the part that it plays in realistic bouncing/tumbling motion.
+
+    End result: A go stone bouncing with realistic collision response and friction then coming to rest on the board.
+    

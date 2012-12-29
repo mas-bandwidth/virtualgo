@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"Collision",
+				"CollisionResponseWithFriction"
+			],
+			[
 				"true",
 				"TestRunner"
 			],
@@ -124,21 +128,29 @@
 	},
 	"file_history":
 	[
-		"/Users/gaffer/virtualgo/Platform.cpp",
-		"/Users/gaffer/virtualgo/VirtualGo.cpp",
-		"/Users/gaffer/opengl/OpenGL.cpp",
-		"/Users/gaffer/virtualgo/premake4.lua",
+		"/Volumes/KINGSTON/VirtualGo.cpp",
+		"/Users/gaffer/Desktop/issues",
+		"/Users/gaffer/virtualgo/UnitTest.make",
 		"/Users/gaffer/virtualgo/TODO",
+		"/Users/gaffer/virtualgo/VirtualGo.cpp",
+		"/Users/gaffer/Library/LaunchAgents/LaunchQuicksilverAtStartup.plist",
 		"/Users/gaffer/virtualgo/CHANGES",
-		"/Users/gaffer/virtualgo/vectorial/vec4f.h",
+		"/Users/gaffer/virtualgo/output.txt",
+		"/Users/gaffer/virtualgo/vectorial/simd4f_neon.h",
+		"/Users/gaffer/virtualgo/UnitTest++/Posix/SignalTranslator.cpp",
+		"/Users/gaffer/virtualgo/premake4.lua",
 		"/Users/gaffer/virtualgo/vectorial/mat4f.h",
+		"/Users/gaffer/virtualgo/vectorial/simd4x4f.h",
+		"/Users/gaffer/virtualgo/Platform.cpp",
+		"/Users/gaffer/bio.txt",
+		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
+		"/Users/gaffer/opengl/OpenGL.cpp",
+		"/Users/gaffer/virtualgo/vectorial/vec4f.h",
 		"/Users/gaffer/virtualgo/Platform.h",
 		"/Users/gaffer/virtualgo/obj/Debug/VirtualGo/Platform.d",
-		"/Users/gaffer/virtualgo/vectorial/simd4x4f.h",
 		"/Users/gaffer/virtualgo/Config.h",
 		"/Users/gaffer/virtualgo/build/obj/Debug/CurrentTest.d",
 		"/Users/gaffer/virtualgo/build/obj/Debug/TestRunner.d",
-		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
 		"/Users/gaffer/virtualgo/VirtualGo.sublime-project",
 		"/Users/gaffer/virtualgo/build/obj/Debug/TimeConstraint.d",
 		"/Users/gaffer/Desktop/hosting meeting with OTG",
@@ -243,15 +255,7 @@
 		"/Users/gaffer/git/network/test/TestLevelStateMachine.h",
 		"/Users/gaffer/git/network/test/TestLevelStateMachine.cpp",
 		"/Users/gaffer/git/network/test/TestSubWads.cpp",
-		"/Users/gaffer/git/network/src/netLevelStateMachine.cpp",
-		"/Users/gaffer/git/network/test/TestLevelData.cpp",
-		"/Users/gaffer/git/network/test/TestGameFixture.cpp",
-		"/Users/gaffer/git/network/build/obj/x64/Debug/UnitTest++/MemoryOutStream.d",
-		"/Users/gaffer/git/network/include/netLevelData.h",
-		"/Users/gaffer/git/network/include/netLevelStateMachine.h",
-		"/Users/gaffer/git/network/shadow/SubWads.txt",
-		"/Users/gaffer/git/network/test/TestNDL.cpp",
-		"/Users/gaffer/git/network/include/netDataTypes.h"
+		"/Users/gaffer/git/network/src/netLevelStateMachine.cpp"
 	],
 	"find":
 	{
@@ -289,6 +293,84 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"Quaternion",
+			"flipX",
+			"hack",
+			"todo",
+			"hack",
+			"steps = ",
+			"ke_before",
+			"GetVelocityAtPoint",
+			"inverseInertiaTensor",
+			"inertiaTensor",
+			"BiconvexInertiaTensor",
+			"inertiaTensor",
+			"KineticEnergy",
+			"Kinetic",
+			"hack",
+			"printf",
+			"x axis",
+			"RandomStone",
+			"IntersectStoneBoard",
+			"epsilon",
+			"printf",
+			"i = ",
+			"printf",
+			"mass = ",
+			"Calculate",
+			"mass = ",
+			"todo",
+			"0.1f *",
+			"0.1 *",
+			"todo",
+			"* 0.1",
+			"angularVelocity",
+			"todo",
+			"p = ",
+			"CalculateBiconvex",
+			"RandomStone",
+			"Biconvex",
+			"BiconvexInr",
+			"Biconvex biconvex",
+			"RandomStone",
+			"Biconvex bicon",
+			"Ellip",
+			"zero",
+			"RandomStone",
+			"prevEnter",
+			"steps",
+			"RandomStone",
+			"float mass",
+			"RigidBody()",
+			"Ellipsoid",
+			"Biconvex",
+			"todo",
+			"flipX",
+			"scaled_dt",
+			"angularVelocity",
+			"scaled_dt",
+			"RenderBiconvex_Lines",
+			"prevSpace",
+			"scaled",
+			"scaleddt",
+			"e =",
+			"0.0",
+			"PrintMatrix",
+			"QuaternionTo",
+			"angularVelocity",
+			".worldTO",
+			"ApplyImpulse",
+			"LinearCollisionResponse",
+			"clamp",
+			"ApplyImpulse",
+			"GetVelocityAtPoint",
+			"dtscal",
+			"dt",
+			"ApplyImpulse",
+			"inertiaTensor",
+			"Bisect",
+			"ApplyImpulse",
+			"printf",
 			"velocityIntoContact",
 			"const float r =",
 			"float r =",
@@ -338,85 +420,7 @@
 			"IntersectPlaneBiconvex_Local",
 			"sphereDot = ",
 			"IntersectBiconvexPlane",
-			"IntersectPlaneBiconvex",
-			"GetSphereDot",
-			"IntersectStoneRay",
-			"IntersectPlaneBiconvex_LocalSpace",
-			"Board board",
-			"mouse_y",
-			"mouse_x",
-			"ShowMouse",
-			"Point",
-			"quit",
-			"quitEvent",
-			"TransformVector",
-			"IntersectRayBiconvex",
-			"TransformNora",
-			"StoneBoard",
-			"Intersect",
-			"anti",
-			"CloseDisplay",
-			"PrintMatrix",
-			"PrintVector",
-			"simd4x4f_axis_rotation",
-			"IntersectStoneBoard",
-			"TransformPoint",
-			"WorldToLocal",
-			"IntersectPlaneBiconvex",
-			"2.",
-			"PlaneTo",
-			"PlanoTo",
-			".position",
-			"StoneBoard",
-			"#endif",
-			"simd4x4f_lookat",
-			"Quat",
-			"IntersectBiconvexPlane",
-			"_span",
-			"sphereDot",
-			"_sat",
-			"direction",
-			"GetWidth() / 2",
-			"width / 2",
-			"width /2",
-			"vectorial::",
-			"vec",
-			"Version",
-			"generate",
-			"Version",
-			"lams",
-			"BaseWad.new",
-			"shortcut",
-			"dump",
-			"generate",
-			"phaseWadsBuilt",
-			"subwads",
-			"levelInfo",
-			"@levelInfo",
-			"NEW_SPAWN_BRANCH",
-			"Version",
-			"@version",
-			"Version",
-			"levelWads",
-			"levelBuilt",
-			"built =",
-			"MaxBaseWads",
-			"NETSEC",
-			"NETBAD",
-			"NETSEC",
-			"NETSEC-",
-			"NETSPU",
-			"NETPPU",
-			"NETOPT",
-			"NETTODO",
-			"NETHACK",
-			"UserError ",
-			"mkdir",
-			"bin",
-			"shadow",
-			"$bits",
-			"netMake",
-			"= 4"
+			"IntersectPlaneBiconvex"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -491,32 +495,60 @@
 				"VirtualGo.cpp"
 			],
 			[
-				"platform.cpp",
-				"Platform.cpp"
+				"todo",
+				"TODO"
 			],
 			[
-				"pre",
-				"premake4.lua"
+				"vitualgo.cpp",
+				"VirtualGo.cpp"
 			],
 			[
-				"premake",
-				"premake4.lua"
+				"",
+				"VirtualGo.cpp"
 			],
 			[
 				"changes",
 				"CHANGES"
 			],
 			[
-				"todo",
-				"TODO"
+				"output.txt",
+				"output.txt"
 			],
 			[
-				"vec4f.h",
-				"vectorial/vec4f.h"
+				"output.tx",
+				"output.txt"
+			],
+			[
+				"out",
+				"output.txt"
+			],
+			[
+				"pre",
+				"premake4.lua"
+			],
+			[
+				"simd",
+				"vectorial/simd4x4f.h"
 			],
 			[
 				"mat4f.h",
 				"vectorial/mat4f.h"
+			],
+			[
+				"platform.cpp",
+				"Platform.cpp"
+			],
+			[
+				"vec3f",
+				"vectorial/vec3f.h"
+			],
+			[
+				"premake",
+				"premake4.lua"
+			],
+			[
+				"vec4f.h",
+				"vectorial/vec4f.h"
 			],
 			[
 				"platform.h",
@@ -541,10 +573,6 @@
 			[
 				"vec3f.h",
 				"vectorial/vec3f.h"
-			],
-			[
-				"simd",
-				"vectorial/simd4x4f.h"
 			],
 			[
 				"mat4f",
@@ -725,10 +753,6 @@
 			[
 				"prebuild.cpp",
 				"test/PreBuild.cpp"
-			],
-			[
-				"",
-				"ruby/fileWriter.rb"
 			],
 			[
 				"filewriter.rb",
@@ -977,26 +1001,6 @@
 			[
 				"output",
 				"bin/output.txt"
-			],
-			[
-				"mesh.",
-				"src/lanMesh.cpp"
-			],
-			[
-				"protocolconstants.h",
-				"include/ProtocolConstants.h"
-			],
-			[
-				"protocoluser.h",
-				"include/ProtocolUser.h"
-			],
-			[
-				"testmesh",
-				"test/TestNodeMesh.cpp"
-			],
-			[
-				"testnodemesh.cpp",
-				"test/TestNodeMesh.cpp"
 			]
 		],
 		"width": 0.0

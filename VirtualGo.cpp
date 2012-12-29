@@ -1779,7 +1779,8 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         glViewport( 0, 0, displayWidth, displayHeight );
         glDisable( GL_SCISSOR_TEST );
         glClearStencil( 0 );
-        glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );     
+        // HACK: black clear color
+        glClearColor( 0, 0, 0, 1 );//1.0f, 1.0f, 1.0f, 1.0f );     
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
     }
 
@@ -1794,6 +1795,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         {
             const float center_y = -biconvex.GetSphereOffset();
             const float delta_y = biconvex.GetHeight() / 2 / numRings;
+
             for ( int i = 0; i < numRings; ++i )
             {
                 const float y1 = i * delta_y;
@@ -1802,6 +1804,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                 const float y2 = (i+1) * delta_y;
                 const float s2 = y2 - center_y;
                 const float r2 = sqrt( sphereRadius*sphereRadius - (s2*s2) );
+
                 for ( int j = 0; j < numSegments; ++j )
                 {
                     const float angle1 = j * segmentAngle;
@@ -1817,11 +1820,29 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                     const float bottom_x2 = cos( angle2 ) * r2;
                     const float bottom_z2 = sin( angle2 ) * r2;
 
-                    glVertex3f( bottom_x1, y2, bottom_z1 );
-                    glVertex3f( top_x1, y1, top_z1 );
-                    glVertex3f( top_x2, y1, top_z2 );
-                    glVertex3f( bottom_x2, y2, bottom_z2 );
+                    vec3f a( bottom_x1, y2, bottom_z1 );
+                    vec3f b( top_x1, y1, top_z1 );
+                    vec3f c( top_x2, y1, top_z2 );
+                    vec3f d( bottom_x2, y2, bottom_z2 );
 
+                    vec3f center( 0, center_y, 0 );
+
+                    vec3f na = normalize( a - center );
+                    vec3f nb = normalize( b - center );
+                    vec3f nc = normalize( c - center );
+                    vec3f nd = normalize( d - center );
+
+                    glNormal3f( na.x(), na.y(), na.z() );
+                    glVertex3f( a.x(), a.y(), a.z() );
+                    
+                    glNormal3f( nb.x(), nb.y(), nb.z() );
+                    glVertex3f( b.x(), b.y(), b.z() );
+
+                    glNormal3f( nc.x(), nc.y(), nc.z() );
+                    glVertex3f( c.x(), c.y(), c.z() );
+                    
+                    glNormal3f( nd.x(), nd.y(), nd.z() );
+                    glVertex3f( d.x(), d.y(), d.z() );
                 }
             }
         }
@@ -1830,6 +1851,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         {
             const float center_y = biconvex.GetSphereOffset();
             const float delta_y = biconvex.GetHeight() / 2 / numRings;
+
             for ( int i = 0; i < numRings; ++i )
             {
                 const float y1 = -i * delta_y;
@@ -1838,6 +1860,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                 const float y2 = -(i+1) * delta_y;
                 const float s2 = y2 - center_y;
                 const float r2 = sqrt( sphereRadius*sphereRadius - (s2*s2) );
+
                 for ( int j = 0; j < numSegments; ++j )
                 {
                     const float angle1 = j * segmentAngle;
@@ -1853,10 +1876,29 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                     const float bottom_x2 = cos( angle2 ) * r2;
                     const float bottom_z2 = sin( angle2 ) * r2;
 
-                    glVertex3f( top_x1, y1, top_z1 );
-                    glVertex3f( bottom_x1, y2, bottom_z1 );
-                    glVertex3f( bottom_x2, y2, bottom_z2 );
-                    glVertex3f( top_x2, y1, top_z2 );
+                    vec3f a( top_x1, y1, top_z1 );
+                    vec3f b( bottom_x1, y2, bottom_z1 );
+                    vec3f c( bottom_x2, y2, bottom_z2 );
+                    vec3f d( top_x2, y1, top_z2 );
+
+                    vec3f center( 0, center_y, 0 );
+
+                    vec3f na = normalize( a - center );
+                    vec3f nb = normalize( b - center );
+                    vec3f nc = normalize( c - center );
+                    vec3f nd = normalize( d - center );
+
+                    glNormal3f( na.x(), na.y(), na.z() );
+                    glVertex3f( a.x(), a.y(), a.z() );
+                    
+                    glNormal3f( nb.x(), nb.y(), nb.z() );
+                    glVertex3f( b.x(), b.y(), b.z() );
+
+                    glNormal3f( nc.x(), nc.y(), nc.z() );
+                    glVertex3f( c.x(), c.y(), c.z() );
+                    
+                    glNormal3f( nd.x(), nd.y(), nd.z() );
+                    glVertex3f( d.x(), d.y(), d.z() );
                 }
             }
         }
@@ -1986,7 +2028,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
         printf( "display resolution is %d x %d\n", displayWidth, displayHeight );
 
-        if ( !OpenDisplay( "Virtual Go", displayWidth, displayHeight ) )
+        if ( !OpenDisplay( "Virtual Go", displayWidth, displayHeight, 32 ) )
         {
             printf( "error: failed to open display" );
             return 1;
@@ -2012,7 +2054,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
         float smoothedRotation = 0.0f;
 
-        Mode mode = CollisionResponseWithFriction;
+        Mode mode = Stone;//CollisionResponseWithFriction;
 
         srand( time( NULL ) );
 
@@ -2136,19 +2178,44 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
                 RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
 
+
+                // setup lights
+
+                vec3f lightPosition( +10, +10, -10 );
+
+                glEnable( GL_LIGHTING );
+                glEnable( GL_LIGHT0 );
+
+                glShadeModel( GL_SMOOTH );
+
+                //GLfloat lightAmbientColor[] = { 0.5, 0.5, 0.5, 1.0 };
+                //glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
+
+                //glLightf( GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.01f );
+
+                GLfloat position[4];
+                position[0] = lightPosition.x();
+                position[1] = lightPosition.y();
+                position[2] = lightPosition.z();
+                position[3] = 1.0f;
+                glLightfv( GL_LIGHT0, GL_POSITION, position );
+
+
+                glEnable( GL_BLEND ); 
+                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+                //glLineWidth( 1 );
+                //glColor4f( 0.5f,0.5f,0.5f,1 );
+                glEnable( GL_CULL_FACE );
+                glCullFace( GL_BACK );
+                //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
+
                 glPushMatrix();
 
                 float opengl_transform[16];
                 biconvexTransform.localToWorld.store( opengl_transform );
                 glMultMatrixf( opengl_transform );
 
-                glEnable( GL_BLEND ); 
-                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-                glLineWidth( 1 );
-                glColor4f( 0.5f,0.5f,0.5f,1 );
-                glEnable( GL_CULL_FACE );
-                glCullFace( GL_BACK );
-                glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
                 RenderBiconvex( biconvex );
 
                 glPopMatrix();

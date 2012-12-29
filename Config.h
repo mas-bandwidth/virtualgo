@@ -4,7 +4,7 @@
 #define LETTERBOX
 #define WIDESCREEN
 #define SHADOWS
-//#define MULTISAMPLING
+#define MULTISAMPLING
 //#define MULTITHREADED
 #define THREAD_STACK_SIZE 8 * 1024 * 1024
 
