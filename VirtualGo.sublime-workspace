@@ -128,27 +128,32 @@
 	},
 	"file_history":
 	[
+		"/Users/gaffer/virtualgo/CHANGES",
+		"/Users/gaffer/virtualgo/TALK",
+		"/Users/gaffer/virtualgo/Config.h",
+		"/Users/gaffer/virtualgo/Platform.h",
+		"/Users/gaffer/virtualgo/TODO",
+		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Core/MeshFactory.h",
+		"/Users/gaffer/virtualgo/Platform.cpp",
+		"/Users/gaffer/virtualgo/VirtualGo.cpp",
+		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/VirtualGo/VirtualGo.cpp",
+		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Mathematics/Biconvex.h",
+		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Physics/Physics.cpp",
 		"/Volumes/KINGSTON/VirtualGo.cpp",
 		"/Users/gaffer/Desktop/issues",
 		"/Users/gaffer/virtualgo/UnitTest.make",
-		"/Users/gaffer/virtualgo/TODO",
-		"/Users/gaffer/virtualgo/VirtualGo.cpp",
 		"/Users/gaffer/Library/LaunchAgents/LaunchQuicksilverAtStartup.plist",
-		"/Users/gaffer/virtualgo/CHANGES",
 		"/Users/gaffer/virtualgo/output.txt",
 		"/Users/gaffer/virtualgo/vectorial/simd4f_neon.h",
 		"/Users/gaffer/virtualgo/UnitTest++/Posix/SignalTranslator.cpp",
 		"/Users/gaffer/virtualgo/premake4.lua",
 		"/Users/gaffer/virtualgo/vectorial/mat4f.h",
 		"/Users/gaffer/virtualgo/vectorial/simd4x4f.h",
-		"/Users/gaffer/virtualgo/Platform.cpp",
 		"/Users/gaffer/bio.txt",
 		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
 		"/Users/gaffer/opengl/OpenGL.cpp",
 		"/Users/gaffer/virtualgo/vectorial/vec4f.h",
-		"/Users/gaffer/virtualgo/Platform.h",
 		"/Users/gaffer/virtualgo/obj/Debug/VirtualGo/Platform.d",
-		"/Users/gaffer/virtualgo/Config.h",
 		"/Users/gaffer/virtualgo/build/obj/Debug/CurrentTest.d",
 		"/Users/gaffer/virtualgo/build/obj/Debug/TestRunner.d",
 		"/Users/gaffer/virtualgo/VirtualGo.sublime-project",
@@ -163,7 +168,6 @@
 		"/Users/gaffer/git/cubes/PreCompiled.h",
 		"/Users/gaffer/virtualgo/vectorial/config.h",
 		"/Users/gaffer/git/cubes/shared/Engine.cpp",
-		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Mathematics/Biconvex.h",
 		"/Users/gaffer/Downloads/scoopr-vectorial-85caa38/README",
 		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Core/Stone.h",
 		"/Users/gaffer/Desktop/Biconvex.h",
@@ -251,11 +255,7 @@
 		"/Users/gaffer/git/network/data/wads/network/Levels.json",
 		"/Users/gaffer/git/network/test/TestGameModeData.h",
 		"/Users/gaffer/git/network/test/TestLevelData.h",
-		"/Users/gaffer/git/network/test/TestTokenManager.cpp",
-		"/Users/gaffer/git/network/test/TestLevelStateMachine.h",
-		"/Users/gaffer/git/network/test/TestLevelStateMachine.cpp",
-		"/Users/gaffer/git/network/test/TestSubWads.cpp",
-		"/Users/gaffer/git/network/src/netLevelStateMachine.cpp"
+		"/Users/gaffer/git/network/test/TestTokenManager.cpp"
 	],
 	"find":
 	{
@@ -293,6 +293,16 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"RenderBiconvex",
+			"SMOOTH",
+			"RenderBiconvex",
+			"OpenDisplay",
+			"Normal",
+			"RenderBiconvex",
+			"ClearScreen",
+			"RenderBiconvex",
+			"HACK",
+			"TODO",
 			"Quaternion",
 			"flipX",
 			"hack",
@@ -410,17 +420,7 @@
 			"Support",
 			"ortho",
 			"Support_",
-			"biconvexUp",
-			"Support",
-			"Span",
-			"IntersectPlaneBiconvex_LocalSpace",
-			"IntersectStoneBoard",
-			"rotation = ",
-			"BiconvexTransform",
-			"IntersectPlaneBiconvex_Local",
-			"sphereDot = ",
-			"IntersectBiconvexPlane",
-			"IntersectPlaneBiconvex"
+			"biconvexUp"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -495,15 +495,27 @@
 				"VirtualGo.cpp"
 			],
 			[
+				"config.h",
+				"Config.h"
+			],
+			[
+				"platform.cpp",
+				"Platform.cpp"
+			],
+			[
+				"platform.h",
+				"Platform.h"
+			],
+			[
 				"todo",
 				"TODO"
 			],
 			[
-				"vitualgo.cpp",
-				"VirtualGo.cpp"
+				"",
+				"CHANGES"
 			],
 			[
-				"",
+				"vitualgo.cpp",
 				"VirtualGo.cpp"
 			],
 			[
@@ -535,10 +547,6 @@
 				"vectorial/mat4f.h"
 			],
 			[
-				"platform.cpp",
-				"Platform.cpp"
-			],
-			[
 				"vec3f",
 				"vectorial/vec3f.h"
 			],
@@ -549,10 +557,6 @@
 			[
 				"vec4f.h",
 				"vectorial/vec4f.h"
-			],
-			[
-				"platform.h",
-				"Platform.h"
 			],
 			[
 				"con",
@@ -997,10 +1001,6 @@
 			[
 				"lanmesh.cpp",
 				"src/lanMesh.cpp"
-			],
-			[
-				"output",
-				"bin/output.txt"
 			]
 		],
 		"width": 0.0

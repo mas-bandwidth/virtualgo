@@ -21,7 +21,7 @@
 #include <OpenGL/glext.h>
 #include <OpenGL/OpenGL.h>
 #endif
-   
+
 using namespace platform;
 using namespace vectorial;
 
@@ -1906,6 +1906,154 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         glEnd();
     }
 
+    void SubdivideBiconvexMesh( const Biconvex & biconvex, 
+                                bool i, bool j, bool k,
+                                vec3f a, vec3f b, vec3f c,
+                                vec3f an, vec3f bn, vec3f cn,
+                                vec3f sphereCenter,
+                                int depth, int subdivisions )
+    {
+        // edges: i = c -> a
+        //        j = a -> b
+        //        k = b -> c
+
+        // vertices:
+        //
+        //        a
+        //
+        //     e     d 
+        //
+        //  b     f     c
+
+        if ( depth < subdivisions )
+        {
+            vec3f d = ( a + c ) / 2;
+            vec3f e = ( a + b ) / 2;
+            vec3f f = ( b + c ) / 2;
+
+            vec3f dn, en, fn;
+
+            const float circleRadius = biconvex.GetCircleRadius();
+            const float sphereRadius = biconvex.GetSphereRadius();
+
+            if ( i )
+            {
+                d = vec3f( d.x(), d.y(), 0 );
+                d = normalize( d ) * circleRadius;
+                dn = normalize( d - sphereCenter );
+            }
+            else
+            {
+                dn = normalize( d - sphereCenter );
+                d = sphereCenter + dn * sphereRadius;
+            }
+
+            if ( j )
+            {
+                e = vec3f( e.x(), e.y(), 0 );
+                e = normalize( e ) * circleRadius;
+                en = normalize( e - sphereCenter );
+            }
+            else
+            {
+                en = normalize( e - sphereCenter );
+                e = sphereCenter + en * sphereRadius;
+            }
+
+            if ( k )
+            {
+                f = vec3f( f.x(), f.y(), 0 );
+                f = normalize( f ) * circleRadius;
+                fn = normalize( f - sphereCenter );
+            }
+            else
+            {
+                fn = normalize( f - sphereCenter );
+                f = sphereCenter + fn * sphereRadius;
+            }
+
+            depth++;
+
+            // vertices:
+            //
+            //        a
+            //
+            //     e     d 
+            //
+            //  b     f     c
+
+            SubdivideBiconvexMesh( biconvex, i, j, false, a, e, d, an, en, dn, sphereCenter, depth, subdivisions );
+            SubdivideBiconvexMesh( biconvex, false, j, k, e, b, f, en, bn, fn, sphereCenter, depth, subdivisions );
+            SubdivideBiconvexMesh( biconvex, i, false, k, d, f, c, dn, fn, cn, sphereCenter, depth, subdivisions );
+            SubdivideBiconvexMesh( biconvex, false, false, false, d, e, f, dn, en, fn, sphereCenter, depth, subdivisions );
+        }
+        else
+        {
+            glNormal3f( an.x(), an.y(), an.z() );
+            glVertex3f( a.x(), a.y(), a.z() );
+
+            glNormal3f( bn.x(), bn.y(), bn.z() );
+            glVertex3f( b.x(), b.y(), b.z() );
+
+            glNormal3f( cn.x(), cn.y(), cn.z() );
+            glVertex3f( c.x(), c.y(), c.z() );
+        }
+    }
+
+    void GenerateBiconvexMesh( const Biconvex & biconvex, int subdivisions = 5 )
+    {
+        // HACK: render with glBegin/glEnd first to verify -- then convert to vertex buffer
+        glBegin( GL_TRIANGLES );
+
+        const float circleRadius = biconvex.GetCircleRadius();
+
+        const int numTriangles = 5;
+
+        const float deltaAngle = 360.0f / numTriangles;
+
+        // top
+
+        for ( int i = 0; i < numTriangles; ++i )
+        {
+            mat4f r1 = mat4f::axisRotation( deltaAngle * i, vec3f(0,0,1) );
+            mat4f r2 = mat4f::axisRotation( deltaAngle * ( i + 1 ), vec3f(0,0,1) );
+
+            vec3f a = vec3f( 0, 0, -biconvex.GetSphereOffset() + biconvex.GetSphereRadius() );
+            vec3f b = transformPoint( r1, vec3f( 0, circleRadius, 0 ) );
+            vec3f c = transformPoint( r2, vec3f( 0, circleRadius, 0 ) );
+
+            const vec3f sphereCenter = vec3f( 0, 0, -biconvex.GetSphereOffset() );
+
+            vec3f an = normalize( a - sphereCenter );
+            vec3f bn = normalize( b - sphereCenter );
+            vec3f cn = normalize( c - sphereCenter );
+
+            SubdivideBiconvexMesh( biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, 0, subdivisions );
+        }
+
+        // bottom
+
+        for ( int i = 0; i < numTriangles; ++i )
+        {
+            mat4f r1 = mat4f::axisRotation( deltaAngle * i, vec3f(0,0,1) );
+            mat4f r2 = mat4f::axisRotation( deltaAngle * ( i + 1 ), vec3f(0,0,1) );
+
+            vec3f a = vec3f( 0, 0, biconvex.GetSphereOffset() - biconvex.GetSphereRadius() );
+            vec3f b = transformPoint( r1, vec3f( 0, circleRadius, 0 ) );
+            vec3f c = transformPoint( r2, vec3f( 0, circleRadius, 0 ) );
+
+            const vec3f sphereCenter = vec3f( 0, 0, biconvex.GetSphereOffset() );
+
+            vec3f an = normalize( a - sphereCenter );
+            vec3f bn = normalize( b - sphereCenter );
+            vec3f cn = normalize( c - sphereCenter );
+
+            SubdivideBiconvexMesh( biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, 0, subdivisions );
+        }
+
+        glEnd();
+    }
+
     void GetMousePickRay( int mouse_x, int mouse_y, vec3f & rayStart, vec3f & rayDirection )
     {
         // IMPORTANT: discussion about various ways to convert mouse coordinates -> pick ray
@@ -2018,6 +2166,20 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
     {
         printf( "[virtual go]\n" );
 
+        Mode mode = Stone;//CollisionResponseWithFriction;
+
+        Biconvex biconvex( 2.2f, 1.13f );
+
+        RigidBody rigidBody;
+        rigidBody.mass = 1.0f;
+        rigidBody.inverseMass = 1.0f / rigidBody.mass;
+        CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
+
+        RandomStone( biconvex, rigidBody, mode );
+
+        // HACK
+        //GenerateBiconvexMesh( biconvex );
+
         int displayWidth, displayHeight;
         GetDisplayResolution( displayWidth, displayHeight );
 
@@ -2041,8 +2203,6 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
         glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
-        Biconvex biconvex( 2.2f, 1.13f );
-
         mat4f rotation = mat4f::identity();
 
         double t = 0.0f;
@@ -2054,16 +2214,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
         float smoothedRotation = 0.0f;
 
-        Mode mode = Stone;//CollisionResponseWithFriction;
-
         srand( time( NULL ) );
-
-        RigidBody rigidBody;
-        rigidBody.mass = 1.0f;
-        rigidBody.inverseMass = 1.0f / rigidBody.mass;
-        CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
-
-        RandomStone( biconvex, rigidBody, mode );
 
         bool prevCollision = false;
 
@@ -2216,7 +2367,8 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                 biconvexTransform.localToWorld.store( opengl_transform );
                 glMultMatrixf( opengl_transform );
 
-                RenderBiconvex( biconvex );
+                //RenderBiconvex( biconvex );
+                GenerateBiconvexMesh( biconvex );       // HACK
 
                 glPopMatrix();
 

@@ -4,7 +4,61 @@ DONE:
 
     Enable anti-aliasing
 
+    Integrate GNU Tesselation Library
+    http://gts.sourceforge.net/index.html
+
+    Recover code from original Virtual Go that performed
+    the tesselation of the go stone via GTS.
+
+    Code is crap. Discarded.
+
+    Subdivide the spherical cap by starting with a n-gon shape
+    projected on to the sphere, and subdividing the triangles
+    in the hexagon shape and projecting out to the sphere.
+
+    5-gon seems to give best result (triangles close to equilateral)
+
+    Generate the bottom of the biconvex
+
 TODO:
+
+    Convert the generate biconvex to write out a vertex buffer
+
+    Optimize by determining number of triangles and point to
+    vertices, when adding a vertex, search for some vertex
+    within a hash of its coordinates rounded to some 3d grid
+
+    If the vertex already exists within some threshold,
+    weld the vertex and do not emit a new vertex -- triangle
+    refers to old vertex index
+
+    Design data structure to walk this algorithm while
+    emitting triangle (index buffer), and vertex buffer
+    (with enough hash/memory to find weldable verts easily)
+
+    ----------------------------------------------
+
+    Next, determine how to mathematically define the ideal
+    torus for the smooth edge on the biconvex solid.
+
+    The input should be the height of the bevel,
+    this can then be used to determine the tangent
+    at the edge of the sphere
+
+    Knowing the tangent at the edge it should be 
+    possible to determine both the sphere radius
+    and the offset of the center of the torus 
+    generating sphere from the edge of the biconvex
+    
+    (need to define this better)
+
+    But basically, you have the option of an
+    infinite number of torus radius, but given
+    that it must match the given bevel height
+    and the tangents at the end should narrow
+    it down to only one potential torus.
+
+    ----------------------------------------------
 
     Render a stone with a white texture
 
@@ -22,12 +76,7 @@ TODO:
 
     Enable anisotropic filtering
 
-    Study the OpenGL shader guide to work out how to render stuff
-
-    Write a function to determine the silhouette edge of a stone
-
-    Implement silhouette edge for board so it can cast shadows
-    on the floor.
+    Study the OpenGL shader guide to work out how to do basic shaders
 
     Add a toggle mode to rotate between different camera views
 
