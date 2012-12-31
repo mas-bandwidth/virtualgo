@@ -22,21 +22,9 @@ DONE:
 
 TODO:
 
-    Convert the generate biconvex to write out a vertex buffer
+    Split up the code into headers to make it easier to manage
 
-    Optimize by determining number of triangles and point to
-    vertices, when adding a vertex, search for some vertex
-    within a hash of its coordinates rounded to some 3d grid
-
-    If the vertex already exists within some threshold,
-    weld the vertex and do not emit a new vertex -- triangle
-    refers to old vertex index
-
-    Design data structure to walk this algorithm while
-    emitting triangle (index buffer), and vertex buffer
-    (with enough hash/memory to find weldable verts easily)
-
-    ----------------------------------------------
+    ------------------------------------------
 
     Next, determine how to mathematically define the ideal
     torus for the smooth edge on the biconvex solid.
@@ -57,6 +45,22 @@ TODO:
     that it must match the given bevel height
     and the tangents at the end should narrow
     it down to only one potential torus.
+
+    ----------------------------------------------
+
+    Convert the generate biconvex to write out a vertex buffer
+
+    Optimize by determining number of triangles and point to
+    vertices, when adding a vertex, search for some vertex
+    within a hash of its coordinates rounded to some 3d grid
+
+    If the vertex already exists within some threshold,
+    weld the vertex and do not emit a new vertex -- triangle
+    refers to old vertex index
+
+    Design data structure to walk this algorithm while
+    emitting triangle (index buffer), and vertex buffer
+    (with enough hash/memory to find weldable verts easily)
 
     ----------------------------------------------
 

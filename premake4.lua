@@ -22,41 +22,21 @@ project "UnitTest++"
 
 project "VirtualGo"
     kind "ConsoleApp"
-    files { "*.h", "*.cpp" }
+    files { "*.h", "VirtualGo.cpp", "Platform.cpp" }
+    defines { "VIRTUALGO_CONSOLE" }
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
 project "UnitTest"
     kind "ConsoleApp"
-    files { "VirtualGo.cpp" }
+    files { "UnitTest.cpp" }
     links { "UnitTest++" }
-    defines { "VIRTUALGO_TEST" }
-
-project "Console"
-    kind "ConsoleApp"
-    files { "VirtualGo.cpp" }
-    defines { "VIRTUALGO_CONSOLE" }
 
 if _ACTION == "clean" then
     os.rmdir "obj"
 end
 
 if not os.is "windows" then
-
-    newaction
-    {
-        trigger     = "dev",
-        description = "Build and run dev console app",
-        valid_kinds = premake.action.get("gmake").valid_kinds,
-        valid_languages = premake.action.get("gmake").valid_languages,
-        valid_tools = premake.action.get("gmake").valid_tools,
-     
-        execute = function ()
-            if os.execute "make -j32 Console" == 0 then
-                os.execute "./Console"
-            end
-        end
-    }
 
     newaction
     {
