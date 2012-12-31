@@ -9,6 +9,28 @@ using namespace vectorial;
 
 const float pi = 3.14159265358979f;
 
+inline int random( int maximum )
+{
+    assert( maximum > 0 );
+    int randomNumber = 0;
+    randomNumber = rand() % maximum;
+    return randomNumber;
+}
+
+inline float random_float( float min, float max )
+{
+    assert( max > min );
+    return random( 1000000 ) / 1000000.f * ( max - min ) + min;
+}
+
+inline bool chance( float probability )
+{
+    assert( probability >= 0.0f );
+    assert( probability <= 1.0f );
+    const int percent = (int) ( probability * 100.0f );
+    return random(100) <= percent;
+}
+
 float DegToRad( float degrees )
 {
     return ( degrees / 360.0f ) * 2 * pi;

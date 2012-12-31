@@ -15,15 +15,19 @@ class Biconvex
 {
 public:
 
-    Biconvex( float _width, float _height )
+    Biconvex( float _width, float _height, float _bevel = 0 )
     {
         width = _width;
         height = _height;
+        bevel = _bevel;
 
         sphereRadius = ( width*width + height*height ) / ( 4 * height );
         sphereRadiusSquared = sphereRadius * sphereRadius;
         sphereOffset = sphereRadius - height/2;
         sphereDot = dot( vec3f(0,1,0), normalize( vec3f( width/2, sphereOffset, 0 ) ) );
+
+        const float y = ( bevel/2 + sphereOffset );
+        bevelRadius = sqrt( sphereRadiusSquared - y*y );
 
         circleRadius = width / 2;
 
@@ -36,11 +40,14 @@ public:
 
     float GetWidth() const { return width; }
     float GetHeight() const { return height; }
+    float GetBevel() const { return bevel; }
 
     float GetSphereRadius() const { return sphereRadius; }
     float GetSphereRadiusSquared() const { return sphereRadiusSquared; }
     float GetSphereOffset() const { return sphereOffset; }
     float GetSphereDot() const { return sphereDot; }
+
+    float GetBevelRadius() const { return bevelRadius; }
 
     float GetCircleRadius() const { return circleRadius; }
 
@@ -50,11 +57,14 @@ private:
 
     float width;                            // width of biconvex solid
     float height;                           // height of biconvex solid
+    float bevel;
 
     float sphereRadius;                     // radius of spheres that intersect to generate this biconvex solid
     float sphereRadiusSquared;              // radius squared
     float sphereOffset;                     // vertical offset from biconvex origin to center of spheres
     float sphereDot;                        // dot product threshold for detecting circle edge vs. sphere surface collision
+
+    float bevelRadius;                      // radius of circle at start of bevel. if no bevel then equal to circle radius
 
     float circleRadius;                     // the radius of the circle edge at the intersection of the spheres surfaces
 
