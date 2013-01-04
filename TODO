@@ -1,50 +1,19 @@
 DONE:
 
-    Render the stone with gouraud shading
-
-    Enable anti-aliasing
-
-    Integrate GNU Tesselation Library
-    http://gts.sourceforge.net/index.html
-
-    Recover code from original Virtual Go that performed
-    the tesselation of the go stone via GTS.
-
-    Code is crap. Discarded.
-
-    Subdivide the spherical cap by starting with a n-gon shape
-    projected on to the sphere, and subdividing the triangles
-    in the hexagon shape and projecting out to the sphere.
-
-    5-gon seems to give best result (triangles close to equilateral)
-
-    Generate the bottom of the biconvex
-
-    Split up the code into headers to make it easier to manage
+    Tesselate the bevel torus with quads.
 
 TODO:
 
-    ------------------------------------------
+    Convert tesselation to triangles.
 
-    Next, determine how to mathematically define the ideal
-    torus for the smooth edge on the biconvex solid.
+    Properly weld the tesselation between the sphere
+    and the bevel by sorting the points at the base
+    of the sphere.
 
-    The input should be the height of the bevel,
-    this can then be used to determine the tangent
-    at the edge of the sphere
-
-    Knowing the tangent at the edge it should be 
-    possible to determine both the sphere radius
-    and the offset of the center of the torus 
-    generating sphere from the edge of the biconvex
-    
-    (need to define this better)
-
-    But basically, you have the option of an
-    infinite number of torus radius, but given
-    that it must match the given bevel height
-    and the tangents at the end should narrow
-    it down to only one potential torus.
+    Split off a "Tesselation.cpp" demo app with lots
+    of commands to switch between two different render
+    modes for the stone, to adjust tesselation level,
+    to highlight in RED the tesselation of the 
 
     ----------------------------------------------
 
@@ -61,6 +30,10 @@ TODO:
     Design data structure to walk this algorithm while
     emitting triangle (index buffer), and vertex buffer
     (with enough hash/memory to find weldable verts easily)
+
+    ----------------------------------------------
+
+    Implement talk overview with title slides and notes
 
     ----------------------------------------------
 

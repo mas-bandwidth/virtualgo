@@ -1,4 +1,45 @@
 
+Calculated bevel torus for biconvex stone (3/1/2013):
+-----------------------------------------------------
+
+    Determine how to mathematically define the ideal
+    torus for the smooth edge on the biconvex solid.
+
+    The input should be the height of the bevel,
+    this can then be used to determine the tangent
+    at the edge of the sphere
+
+    Knowing the tangent at the edge it should be 
+    possible to determine the major and minor radii
+    of the torus.
+
+
+Improved stone tesselation added lighting etc. (1/1/2013):
+----------------------------------------------------------
+
+    Render the stone with gouraud shading
+
+    Enable anti-aliasing
+
+    Integrate GNU Tesselation Library
+    http://gts.sourceforge.net/index.html
+
+    Recover code from original Virtual Go that performed
+    the tesselation of the go stone via GTS.
+
+    Code is crap. Discarded.
+
+    Subdivide the spherical cap by starting with a n-gon shape
+    projected on to the sphere, and subdividing the triangles
+    in the hexagon shape and projecting out to the sphere.
+
+    5-gon seems to give best result (triangles close to equilateral)
+
+    Generate the bottom of the biconvex
+
+    Split up the code into headers to make it easier to manage
+
+
 Solved strange energy adding effects (9/9/2012):
 ------------------------------------------------
 

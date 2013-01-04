@@ -26,9 +26,6 @@ public:
         sphereOffset = sphereRadius - height/2;
         sphereDot = dot( vec3f(0,1,0), normalize( vec3f( width/2, sphereOffset, 0 ) ) );
 
-        const float y = ( bevel/2 + sphereOffset );
-        bevelRadius = sqrt( sphereRadiusSquared - y*y );
-
         circleRadius = width / 2;
 
         boundingSphereRadius = width * 0.5f;
@@ -36,6 +33,11 @@ public:
 
         assert( sphereOffset > 0.0f );
         assert( sphereRadius > 0.0f );
+
+        const float y = ( bevel/2 + sphereOffset );
+        bevelCircleRadius = sqrt( sphereRadiusSquared - y*y );
+        bevelTorusMajorRadius = ( sphereOffset * bevelCircleRadius ) / ( sphereOffset + bevel/2 );
+        bevelTorusMinorRadius = length( vec3f( bevelCircleRadius, bevel/2, 0 ) - vec3f( bevelTorusMajorRadius, 0, 0 ) );
     }
 
     float GetWidth() const { return width; }
@@ -47,29 +49,33 @@ public:
     float GetSphereOffset() const { return sphereOffset; }
     float GetSphereDot() const { return sphereDot; }
 
-    float GetBevelRadius() const { return bevelRadius; }
+    float GetBoundingSphereRadius() const { return boundingSphereRadius; }
 
     float GetCircleRadius() const { return circleRadius; }
 
-    float GetBoundingSphereRadius() const { return boundingSphereRadius; }
+    float GetBevelCircleRadius() const { return bevelCircleRadius; }
+    float GetBevelTorusMajorRadius() const { return bevelTorusMajorRadius; }
+    float GetBevelTorusMinorRadius() const { return bevelTorusMinorRadius; }
 
 private:
 
     float width;                            // width of biconvex solid
     float height;                           // height of biconvex solid
-    float bevel;
+    float bevel;                            // height of bevel measured vertically looking at the stone side-on
 
     float sphereRadius;                     // radius of spheres that intersect to generate this biconvex solid
     float sphereRadiusSquared;              // radius squared
     float sphereOffset;                     // vertical offset from biconvex origin to center of spheres
     float sphereDot;                        // dot product threshold for detecting circle edge vs. sphere surface collision
 
-    float bevelRadius;                      // radius of circle at start of bevel. if no bevel then equal to circle radius
-
     float circleRadius;                     // the radius of the circle edge at the intersection of the spheres surfaces
 
     float boundingSphereRadius;             // bounding sphere radius for biconvex shape
     float boundingSphereRadiusSquared;      // bounding sphere radius squared
+
+    float bevelCircleRadius;                // radius of circle on sphere at start of bevel. if no bevel then equal to circle radius
+    float bevelTorusMajorRadius;            // the major radius of the torus generating the bevel
+    float bevelTorusMinorRadius;            // the minor radius of the torus generating the bevel
 };
 
 inline bool PointInsideBiconvex_LocalSpace( vec3f point,

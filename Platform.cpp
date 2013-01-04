@@ -638,10 +638,16 @@ namespace platform
 
     static CGDisplayModeRef originalDisplayMode;
 
+    static int displayWidth = 0;
+    static int displayHeight = 0;
+
 	bool OpenDisplay( const char title[], int width, int height, int bits, int refresh )
 	{
         mouse_x = 0;
         mouse_y = 0;
+
+        displayWidth = width;
+        displayHeight = height;
 
         // install quit handler
 
@@ -818,6 +824,14 @@ namespace platform
 	void CloseDisplay()
 	{	
 		printf( "close display\n" );
+
+        glViewport( 0, 0, displayWidth, displayHeight );
+        glDisable( GL_SCISSOR_TEST );
+        glClearStencil( 0 );
+        glClearColor( 0, 0, 0, 1 );
+        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+
+        UpdateDisplay();
 
         CGReleaseAllDisplays();
         CGRestorePermanentDisplayConfiguration();

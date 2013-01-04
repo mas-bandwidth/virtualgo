@@ -148,6 +148,7 @@ void SubdivideBiconvexMesh( const Biconvex & biconvex,
                             vec3f a, vec3f b, vec3f c,
                             vec3f an, vec3f bn, vec3f cn,
                             vec3f sphereCenter,
+                            bool clockwise,
                             float h, int depth, int subdivisions )
 {
     // edges: i = c -> a
@@ -170,14 +171,14 @@ void SubdivideBiconvexMesh( const Biconvex & biconvex,
 
         vec3f dn, en, fn;
 
-        const float bevelRadius = biconvex.GetBevelRadius();
         const float sphereRadius = biconvex.GetSphereRadius();
+        const float bevelCircleRadius = biconvex.GetBevelCircleRadius();
 
         vec3f bevelOffset( 0, 0, h );
 
         if ( i )
         {
-            d = normalize( d - bevelOffset ) * bevelRadius + bevelOffset;
+            d = normalize( d - bevelOffset ) * bevelCircleRadius + bevelOffset;
             dn = normalize( d - sphereCenter );
         }
         else
@@ -188,7 +189,7 @@ void SubdivideBiconvexMesh( const Biconvex & biconvex,
 
         if ( j )
         {
-            e = normalize( e - bevelOffset ) * bevelRadius + bevelOffset;
+            e = normalize( e - bevelOffset ) * bevelCircleRadius + bevelOffset;
             en = normalize( e - sphereCenter );
         }
         else
@@ -199,7 +200,7 @@ void SubdivideBiconvexMesh( const Biconvex & biconvex,
 
         if ( k )
         {
-            f = normalize( f - bevelOffset ) * bevelRadius + bevelOffset;
+            f = normalize( f - bevelOffset ) * bevelCircleRadius + bevelOffset;
             fn = normalize( f - sphereCenter );
         }
         else
@@ -218,21 +219,35 @@ void SubdivideBiconvexMesh( const Biconvex & biconvex,
         //
         //  b     f     c
 
-        SubdivideBiconvexMesh( biconvex, i, j, false, a, e, d, an, en, dn, sphereCenter, h, depth, subdivisions );
-        SubdivideBiconvexMesh( biconvex, false, j, k, e, b, f, en, bn, fn, sphereCenter, h, depth, subdivisions );
-        SubdivideBiconvexMesh( biconvex, i, false, k, d, f, c, dn, fn, cn, sphereCenter, h, depth, subdivisions );
-        SubdivideBiconvexMesh( biconvex, false, false, false, d, e, f, dn, en, fn, sphereCenter, h, depth, subdivisions );
+        SubdivideBiconvexMesh( biconvex, i, j, false, a, e, d, an, en, dn, sphereCenter, clockwise, h, depth, subdivisions );
+        SubdivideBiconvexMesh( biconvex, false, j, k, e, b, f, en, bn, fn, sphereCenter, clockwise, h, depth, subdivisions );
+        SubdivideBiconvexMesh( biconvex, i, false, k, d, f, c, dn, fn, cn, sphereCenter, clockwise, h, depth, subdivisions );
+        SubdivideBiconvexMesh( biconvex, false, false, false, d, e, f, dn, en, fn, sphereCenter, clockwise, h, depth, subdivisions );
     }
     else
     {
-        glNormal3f( an.x(), an.y(), an.z() );
-        glVertex3f( a.x(), a.y(), a.z() );
+        if ( !clockwise )
+        {
+            glNormal3f( an.x(), an.y(), an.z() );
+            glVertex3f( a.x(), a.y(), a.z() );
 
-        glNormal3f( bn.x(), bn.y(), bn.z() );
-        glVertex3f( b.x(), b.y(), b.z() );
+            glNormal3f( bn.x(), bn.y(), bn.z() );
+            glVertex3f( b.x(), b.y(), b.z() );
 
-        glNormal3f( cn.x(), cn.y(), cn.z() );
-        glVertex3f( c.x(), c.y(), c.z() );
+            glNormal3f( cn.x(), cn.y(), cn.z() );
+            glVertex3f( c.x(), c.y(), c.z() );
+        }
+        else
+        {
+            glNormal3f( an.x(), an.y(), an.z() );
+            glVertex3f( a.x(), a.y(), a.z() );
+
+            glNormal3f( cn.x(), cn.y(), cn.z() );
+            glVertex3f( c.x(), c.y(), c.z() );
+
+            glNormal3f( bn.x(), bn.y(), bn.z() );
+            glVertex3f( b.x(), b.y(), b.z() );
+        }
     }
 }
 
@@ -243,7 +258,7 @@ void GenerateBiconvexMesh( const Biconvex & biconvex, int subdivisions = 5 )
 
     const float h = biconvex.GetBevel() / 2;
 
-    const float bevelRadius = biconvex.GetBevelRadius();
+    const float bevelCircleRadius = biconvex.GetBevelCircleRadius();
 
     const int numTriangles = 5;
 
@@ -257,8 +272,8 @@ void GenerateBiconvexMesh( const Biconvex & biconvex, int subdivisions = 5 )
         mat4f r2 = mat4f::axisRotation( deltaAngle * ( i + 1 ), vec3f(0,0,1) );
 
         vec3f a = vec3f( 0, 0, -biconvex.GetSphereOffset() + biconvex.GetSphereRadius() );
-        vec3f b = transformPoint( r1, vec3f( 0, bevelRadius, h ) );
-        vec3f c = transformPoint( r2, vec3f( 0, bevelRadius, h ) );
+        vec3f b = transformPoint( r1, vec3f( 0, bevelCircleRadius, h ) );
+        vec3f c = transformPoint( r2, vec3f( 0, bevelCircleRadius, h ) );
 
         const vec3f sphereCenter = vec3f( 0, 0, -biconvex.GetSphereOffset() );
 
@@ -266,7 +281,7 @@ void GenerateBiconvexMesh( const Biconvex & biconvex, int subdivisions = 5 )
         vec3f bn = normalize( b - sphereCenter );
         vec3f cn = normalize( c - sphereCenter );
 
-        SubdivideBiconvexMesh( biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, h, 0, subdivisions );
+        SubdivideBiconvexMesh( biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, false, h, 0, subdivisions );
     }
 
     // bottom
@@ -277,8 +292,8 @@ void GenerateBiconvexMesh( const Biconvex & biconvex, int subdivisions = 5 )
         mat4f r2 = mat4f::axisRotation( deltaAngle * ( i + 1 ), vec3f(0,0,1) );
 
         vec3f a = vec3f( 0, 0, biconvex.GetSphereOffset() - biconvex.GetSphereRadius() );
-        vec3f b = transformPoint( r1, vec3f( 0, bevelRadius, -h ) );
-        vec3f c = transformPoint( r2, vec3f( 0, bevelRadius, -h ) );
+        vec3f b = transformPoint( r1, vec3f( 0, bevelCircleRadius, -h ) );
+        vec3f c = transformPoint( r2, vec3f( 0, bevelCircleRadius, -h ) );
 
         const vec3f sphereCenter = vec3f( 0, 0, biconvex.GetSphereOffset() );
 
@@ -286,7 +301,68 @@ void GenerateBiconvexMesh( const Biconvex & biconvex, int subdivisions = 5 )
         vec3f bn = normalize( b - sphereCenter );
         vec3f cn = normalize( c - sphereCenter );
 
-        SubdivideBiconvexMesh( biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, -h, 0, subdivisions );
+        SubdivideBiconvexMesh( biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, true, -h, 0, subdivisions );
+    }
+
+    glEnd();
+
+    // bevel
+
+    glBegin( GL_QUADS );                // HACK: todo - emit triangles instead
+
+    const int numBevelRings = 16;
+    const int numBevelSegments = 256;
+
+    const float segmentAngle = 2*pi / numBevelSegments;
+
+    const float torusMajorRadius = biconvex.GetBevelTorusMajorRadius();
+    const float torusMinorRadius = biconvex.GetBevelTorusMinorRadius();
+
+    const float delta_z = biconvex.GetBevel() / numBevelRings;
+
+    for ( int i = 0; i < numBevelRings; ++i )
+    {
+        const float z1 = biconvex.GetBevel() / 2 - i * delta_z;
+        const float z2 = biconvex.GetBevel() / 2 - (i+1) * delta_z;
+
+        for ( int j = 0; j < numBevelSegments; ++j )
+        {
+            const float angle1 = j * segmentAngle;
+            const float angle2 = angle1 + segmentAngle;
+
+            vec3f circleCenter1 = vec3f( cos( angle1 ), sin( angle1 ), 0 ) * torusMajorRadius;
+            vec3f circleCenter2 = vec3f( cos( angle2 ), sin( angle2 ), 0 ) * torusMajorRadius;
+
+            vec3f circleUp( 0, 0, 1 );
+
+            vec3f circleRight1 = normalize( circleCenter1 );
+            vec3f circleRight2 = normalize( circleCenter2 );
+
+            const float circleX1 = sqrt( torusMinorRadius*torusMinorRadius - z1*z1 );
+            const float circleX2 = sqrt( torusMinorRadius*torusMinorRadius - z2*z2 );
+
+            vec3f a = circleCenter1 + circleX1 * circleRight1 + z1 * circleUp;
+            vec3f b = circleCenter1 + circleX2 * circleRight1 + z2 * circleUp;
+            vec3f c = circleCenter2 + circleX2 * circleRight2 + z2 * circleUp;
+            vec3f d = circleCenter2 + circleX1 * circleRight2 + z1 * circleUp;
+
+            vec3f na = normalize( a - circleCenter1 );
+            vec3f nb = normalize( b - circleCenter1 );
+            vec3f nc = normalize( c - circleCenter2 );
+            vec3f nd = normalize( d - circleCenter2 );
+
+            glNormal3f( na.x(), na.y(), na.z() );
+            glVertex3f( a.x(), a.y(), a.z() );
+            
+            glNormal3f( nb.x(), nb.y(), nb.z() );
+            glVertex3f( b.x(), b.y(), b.z() );
+
+            glNormal3f( nc.x(), nc.y(), nc.z() );
+            glVertex3f( c.x(), c.y(), c.z() );
+            
+            glNormal3f( nd.x(), nd.y(), nd.z() );
+            glVertex3f( d.x(), d.y(), d.z() );
+        }
     }
 
     glEnd();
