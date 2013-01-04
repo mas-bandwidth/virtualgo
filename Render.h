@@ -3,6 +3,7 @@
 
 #include "Stone.h"
 #include "Board.h"
+#include "Mesh.h"
 
 #if PLATFORM == PLATFORM_MAC
 #include <OpenGl/gl.h>
@@ -11,13 +12,12 @@
 #include <OpenGL/OpenGL.h>
 #endif
 
-void ClearScreen( int displayWidth, int displayHeight )
+void ClearScreen( int displayWidth, int displayHeight, float r = 0, float g = 0, float b = 0 )
 {
     glViewport( 0, 0, displayWidth, displayHeight );
     glDisable( GL_SCISSOR_TEST );
     glClearStencil( 0 );
-    // HACK: black clear color
-    glClearColor( 0, 0, 0, 1 );//1.0f, 1.0f, 1.0f, 1.0f );     
+    glClearColor( r, g, b, 1 );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 }
 
@@ -143,7 +143,8 @@ void RenderBiconvex( const Biconvex & biconvex, int numSegments = 128, int numRi
     glEnd();
 }
 
-void SubdivideBiconvexMesh( const Biconvex & biconvex, 
+void SubdivideBiconvexMesh( Mesh & mesh,
+                            const Biconvex & biconvex, 
                             bool i, bool j, bool k,
                             vec3f a, vec3f b, vec3f c,
                             vec3f an, vec3f bn, vec3f cn,
@@ -219,10 +220,10 @@ void SubdivideBiconvexMesh( const Biconvex & biconvex,
         //
         //  b     f     c
 
-        SubdivideBiconvexMesh( biconvex, i, j, false, a, e, d, an, en, dn, sphereCenter, clockwise, h, depth, subdivisions );
-        SubdivideBiconvexMesh( biconvex, false, j, k, e, b, f, en, bn, fn, sphereCenter, clockwise, h, depth, subdivisions );
-        SubdivideBiconvexMesh( biconvex, i, false, k, d, f, c, dn, fn, cn, sphereCenter, clockwise, h, depth, subdivisions );
-        SubdivideBiconvexMesh( biconvex, false, false, false, d, e, f, dn, en, fn, sphereCenter, clockwise, h, depth, subdivisions );
+        SubdivideBiconvexMesh( mesh, biconvex, i, j, false, a, e, d, an, en, dn, sphereCenter, clockwise, h, depth, subdivisions );
+        SubdivideBiconvexMesh( mesh, biconvex, false, j, k, e, b, f, en, bn, fn, sphereCenter, clockwise, h, depth, subdivisions );
+        SubdivideBiconvexMesh( mesh, biconvex, i, false, k, d, f, c, dn, fn, cn, sphereCenter, clockwise, h, depth, subdivisions );
+        SubdivideBiconvexMesh( mesh, biconvex, false, false, false, d, e, f, dn, en, fn, sphereCenter, clockwise, h, depth, subdivisions );
     }
     else
     {
@@ -251,7 +252,7 @@ void SubdivideBiconvexMesh( const Biconvex & biconvex,
     }
 }
 
-void GenerateBiconvexMesh( const Biconvex & biconvex, int subdivisions = 5 )
+void GenerateBiconvexMesh( Mesh & mesh, const Biconvex & biconvex, int subdivisions = 5 )
 {
     // HACK: render with glBegin/glEnd first to verify -- then convert to vertex buffer
     glBegin( GL_TRIANGLES );
@@ -281,7 +282,7 @@ void GenerateBiconvexMesh( const Biconvex & biconvex, int subdivisions = 5 )
         vec3f bn = normalize( b - sphereCenter );
         vec3f cn = normalize( c - sphereCenter );
 
-        SubdivideBiconvexMesh( biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, false, h, 0, subdivisions );
+        SubdivideBiconvexMesh( mesh, biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, false, h, 0, subdivisions );
     }
 
     // bottom
@@ -301,14 +302,10 @@ void GenerateBiconvexMesh( const Biconvex & biconvex, int subdivisions = 5 )
         vec3f bn = normalize( b - sphereCenter );
         vec3f cn = normalize( c - sphereCenter );
 
-        SubdivideBiconvexMesh( biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, true, -h, 0, subdivisions );
+        SubdivideBiconvexMesh( mesh, biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, true, -h, 0, subdivisions );
     }
 
-    glEnd();
-
     // bevel
-
-    glBegin( GL_QUADS );                // HACK: todo - emit triangles instead
 
     const int numBevelRings = 16;
     const int numBevelSegments = 256;
@@ -357,6 +354,12 @@ void GenerateBiconvexMesh( const Biconvex & biconvex, int subdivisions = 5 )
             glNormal3f( nb.x(), nb.y(), nb.z() );
             glVertex3f( b.x(), b.y(), b.z() );
 
+            glNormal3f( nc.x(), nc.y(), nc.z() );
+            glVertex3f( c.x(), c.y(), c.z() );
+            
+            glNormal3f( na.x(), na.y(), na.z() );
+            glVertex3f( a.x(), a.y(), a.z() );
+            
             glNormal3f( nc.x(), nc.y(), nc.z() );
             glVertex3f( c.x(), c.y(), c.z() );
             
@@ -431,6 +434,15 @@ void RenderBoard( const Board & board )
 
         x += dx;
     }
+
+    glEnd();
+}
+
+void RenderMesh( Mesh & mesh )
+{
+    glBegin( GL_TRIANGLES );
+
+    // TODO
 
     glEnd();
 }

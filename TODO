@@ -2,40 +2,51 @@ DONE:
 
     Tesselate the bevel torus with quads.
 
+    Split off a "Tesselation.cpp" demo app
+
+    Create vertex buffer structure with normals
+
+    vec3f position
+    vec3f normal
+
+    Sketch out interface to build mesh
+
+    Implement grid cell -> hash bucket function
+
+    Convert bevel tesselation to triangles.
+
 TODO:
 
-    Convert tesselation to triangles.
+    Add triangles to mesh when generating biconvex
 
-    Properly weld the tesselation between the sphere
-    and the bevel by sorting the points at the base
-    of the sphere.
+    Add a temporary function to render mesh via glBegin/glEnd
 
-    Split off a "Tesselation.cpp" demo app with lots
-    of commands to switch between two different render
-    modes for the stone, to adjust tesselation level,
-    to highlight in RED the tesselation of the 
+    Verify that biconvex mesh renders properly
 
     ----------------------------------------------
 
-    Convert the generate biconvex to write out a vertex buffer
+    Finish implementing vertex welding
 
-    Optimize by determining number of triangles and point to
-    vertices, when adding a vertex, search for some vertex
-    within a hash of its coordinates rounded to some 3d grid
+    Determine grid cell for vertex (x,y,z)
 
-    If the vertex already exists within some threshold,
-    weld the vertex and do not emit a new vertex -- triangle
-    refers to old vertex index
+    Given epsilon, determine if we need to search adjacent cells (rare)
 
-    Design data structure to walk this algorithm while
-    emitting triangle (index buffer), and vertex buffer
-    (with enough hash/memory to find weldable verts easily)
+    Search in the bucket for a vertex with close enough position *and* normal!
+
+    Add code to insert vertex into bucket if doesn't already exist (eg. push back on list)
 
     ----------------------------------------------
 
     Implement talk overview with title slides and notes
 
     ----------------------------------------------
+
+    Create proper OpenGL vertex buffer / index buffer object 
+    using code from cube demo. Should be much faster to render stone
+
+    ----------------------------------------------
+
+    Write a vertex shader to generate uvs as a function of xy
 
     Render a stone with a white texture
 

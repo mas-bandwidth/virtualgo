@@ -20,10 +20,15 @@ project "UnitTest++"
     targetdir "lib"
     location "build"
 
+project "Tesselation"
+    kind "ConsoleApp"
+    files { "*.h", "Tesselation.cpp", "Platform.cpp" }
+    configuration { "macosx" }
+        links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
+
 project "VirtualGo"
     kind "ConsoleApp"
     files { "*.h", "VirtualGo.cpp", "Platform.cpp" }
-    defines { "VIRTUALGO_CONSOLE" }
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
@@ -37,6 +42,36 @@ if _ACTION == "clean" then
 end
 
 if not os.is "windows" then
+    
+    newaction
+    {
+        trigger     = "tess",
+        description = "Build and run tesselation demo",
+        valid_kinds = premake.action.get("gmake").valid_kinds,
+        valid_languages = premake.action.get("gmake").valid_languages,
+        valid_tools = premake.action.get("gmake").valid_tools,
+     
+        execute = function ()
+            if os.execute "make -j32 Tesselation" == 0 then
+                os.execute "./Tesselation"
+            end
+        end
+    }
+
+    newaction
+    {
+        trigger     = "go",
+        description = "Build and run virtual go",
+        valid_kinds = premake.action.get("gmake").valid_kinds,
+        valid_languages = premake.action.get("gmake").valid_languages,
+        valid_tools = premake.action.get("gmake").valid_tools,
+     
+        execute = function ()
+            if os.execute "make -j32 VirtualGo" == 0 then
+                os.execute "./VirtualGo"
+            end
+        end
+    }
 
     newaction
     {
@@ -49,21 +84,6 @@ if not os.is "windows" then
         execute = function ()
             if os.execute "make -j32 UnitTest" == 0 then
                 os.execute "./UnitTest"
-            end
-        end
-    }
-    
-    newaction
-    {
-        trigger     = "go",
-        description = "Build and run virtual go",
-        valid_kinds = premake.action.get("gmake").valid_kinds,
-        valid_languages = premake.action.get("gmake").valid_languages,
-        valid_tools = premake.action.get("gmake").valid_tools,
-     
-        execute = function ()
-            if os.execute "make -j32 VirtualGo" == 0 then
-                os.execute "./VirtualGo"
             end
         end
     }
