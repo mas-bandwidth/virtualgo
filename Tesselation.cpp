@@ -15,6 +15,10 @@
 
 using namespace platform;
 
+static Biconvex biconvex( 2.2f, 1.13f );
+
+static Biconvex biconvexWithBevel( 2.2f, 1.13f, 0.22f );
+
 enum Mode
 {
     Naive,
@@ -22,17 +26,45 @@ enum Mode
     SubdivisionWithBevel
 };
 
+struct TesselationData
+{
+    Mode mode;
+    int subdivisions;
+
+    TesselationData()
+    {
+        mode = Naive;
+        subdivisions = 5;
+    }
+};
+
+TesselationData tesselation;
+
+void UpdateTesselation( Mesh & mesh, Mode mode, int subdivisions )
+{
+    if ( mode == tesselation.mode && subdivisions == tesselation.subdivisions )
+        return;
+
+    mesh.Clear();
+
+    if ( mode == SubdivisionWithBevel )
+        GenerateBiconvexMesh( mesh, biconvexWithBevel, subdivisions );
+    else
+        GenerateBiconvexMesh( mesh, biconvex, subdivisions );
+
+    tesselation.mode = mode;
+    tesselation.subdivisions = subdivisions;
+}
+
 int main()
 {
     srand( time( NULL ) );
 
     printf( "[tesselation]\n" );
 
-    Biconvex biconvex( 2.2f, 1.13f );
-
-    Biconvex biconvexWithBevel( 2.2f, 1.13f, 0.22f );
-
     Mode mode = Naive;
+
+    int subdivisions = 5;
 
     RigidBody rigidBody;
     rigidBody.mass = 1.0f;
@@ -40,7 +72,6 @@ int main()
     CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
 
     Mesh mesh;
-    GenerateBiconvexMesh( mesh, biconvex );
     
     int displayWidth, displayHeight;
     GetDisplayResolution( displayWidth, displayHeight );
@@ -72,14 +103,14 @@ int main()
 
     glShadeModel( GL_SMOOTH );
 
-    GLfloat lightAmbientColor[] = { 0.5, 0.5, 0.5, 1.0 };
+    GLfloat lightAmbientColor[] = { 0.75, 0.75, 0.75, 1.0 };
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
 
     glLightf( GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.01f );
 
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-    glLineWidth( 1 );
+    glLineWidth( 4 );
     glColor4f( 0.5f,0.5f,0.5f,1 );
     glEnable( GL_CULL_FACE );
     glCullFace( GL_BACK );
@@ -88,6 +119,8 @@ int main()
 
     mat4f rotation = mat4f::identity();
 
+    bool prevLeft = false;
+    bool prevRight = false;
     bool prevSpace = false;
     bool rotating = true;
     bool quit = false;
@@ -116,35 +149,33 @@ int main()
         else if ( input.two )
         {
             mode = Subdivision;
-            mesh.Clear();
-            GenerateBiconvexMesh( mesh, biconvex );
-            printf( "num vertices = %d, num zero buckets = %d, average bucket = %.1f, largest bucket = %d (2)\n", 
-                mesh.GetNumVertices(), 
-                mesh.GetNumZeroBuckets(),
-                mesh.GetAverageBucketSize(), 
-                mesh.GetLargestBucketSize() );
         }
         else if ( input.three )
         {
             mode = SubdivisionWithBevel;
-            mesh.Clear();
-            GenerateBiconvexMesh( mesh, biconvexWithBevel );
-            printf( "num vertices = %d, num zero buckets = %d, average bucket = %.1f, largest bucket = %d (3)\n", 
-                mesh.GetNumVertices(), 
-                mesh.GetNumZeroBuckets(),
-                mesh.GetAverageBucketSize(), 
-                mesh.GetLargestBucketSize() );
         }
 
-        if ( input.space )
+        if ( input.space && !prevSpace )
+            rotating = !rotating;
+        prevSpace = input.space;
+
+        if ( input.right && !prevRight )
         {
-            if ( !prevSpace )
-                rotating = !rotating;
-
-            prevSpace = true;
+            subdivisions++;
+            if ( subdivisions > 5 )
+                subdivisions = 5;
         }
-        else
-            prevSpace = false;
+        prevRight = input.right;
+
+        if ( input.left && !prevLeft )
+        {
+            subdivisions--;
+            if ( subdivisions < 0 )
+                subdivisions = 0;
+        }
+        prevLeft = input.left;
+
+        UpdateTesselation( mesh, mode, subdivisions );
 
         ClearScreen( displayWidth, displayHeight );
 

@@ -1,6 +1,8 @@
 #ifndef BICONVEX_H
 #define BICONVEX_H
 
+#include <algorithm>
+
 /*
     Biconvex solid.
 
@@ -207,7 +209,7 @@ inline void BiconvexSupport_LocalSpace( const Biconvex & biconvex,
         float t1 = dot( vec3f(0,-sphereOffset,0), axis );          // bottom sphere
         float t2 = dot( vec3f(0,sphereOffset,0), axis );           // top sphere
         if ( t1 > t2 )
-            swap( t1, t2 );
+            std::swap( t1, t2 );
         s1 = t2 - sphereRadius;
         s2 = t1 + sphereRadius;
     }
@@ -242,7 +244,7 @@ inline void BiconvexSupport_WorldSpace( const Biconvex & biconvex,
         float t1 = dot( biconvexCenter - biconvexUp * sphereOffset, axis );          // bottom sphere
         float t2 = dot( biconvexCenter + biconvexUp * sphereOffset, axis );          // top sphere
         if ( t1 > t2 )
-            swap( t1, t2 );
+            std::swap( t1, t2 );
         s1 = t2 - sphereRadius;
         s2 = t1 + sphereRadius;
     }

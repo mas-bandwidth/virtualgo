@@ -51,13 +51,6 @@ float DegToRad( float degrees )
     return ( degrees / 360.0f ) * 2 * pi;
 }
 
-template <typename T> void swap( T & a, T & b )
-{
-    T tmp = a;
-    a = b;
-    b = tmp;
-}
-
 inline float max( float v1, float v2 )
 {
     return v1 > v2 ? v1 : v2;

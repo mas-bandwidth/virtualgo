@@ -3,8 +3,9 @@
 
 #include "Common.h"
 
-#include <vector>
 #include <list>
+#include <vector>
+#include <algorithm>
 #include <assert.h>
 
 struct Vertex
@@ -17,7 +18,7 @@ class Mesh
 {
 public:
 
-    Mesh( int numBuckets = 1024 )
+    Mesh( int numBuckets = 2048 )
     {
         this->numBuckets = numBuckets;
         buckets = new std::list<int>[numBuckets];
@@ -283,7 +284,7 @@ void SubdivideBiconvexMesh( Mesh & mesh,
     }
 }
 
-void GenerateBiconvexMesh( Mesh & mesh, const Biconvex & biconvex, int subdivisions = 5, int numTriangles = 5 )
+void GenerateBiconvexMesh( Mesh & mesh, const Biconvex & biconvex, int subdivisions = 5, int numTriangles = 5, float epsilon = 0.001f )
 {
     const float bevelCircleRadius = biconvex.GetBevelCircleRadius();
 
@@ -311,36 +312,29 @@ void GenerateBiconvexMesh( Mesh & mesh, const Biconvex & biconvex, int subdivisi
         SubdivideBiconvexMesh( mesh, biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, true, h, 0, subdivisions );
     }
 
-    // bottom
-
-    for ( int i = 0; i < numTriangles; ++i )
-    {
-        mat4f r1 = mat4f::axisRotation( deltaAngle * i, vec3f(0,1,0) );
-        mat4f r2 = mat4f::axisRotation( deltaAngle * ( i + 1 ), vec3f(0,1,0) );
-
-        vec3f a = vec3f( 0, biconvex.GetSphereOffset() - biconvex.GetSphereRadius(), 0 );
-        vec3f b = transformPoint( r1, vec3f( 0, -h, bevelCircleRadius ) );
-        vec3f c = transformPoint( r2, vec3f( 0, -h, bevelCircleRadius ) );
-
-        const vec3f sphereCenter = vec3f( 0, biconvex.GetSphereOffset(), 0 );
-
-        vec3f an = normalize( a - sphereCenter );
-        vec3f bn = normalize( b - sphereCenter );
-        vec3f cn = normalize( c - sphereCenter );
-
-        SubdivideBiconvexMesh( mesh, biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, false, -h, 0, subdivisions );
-    }
-
     // bevel
 
     const float bevel = biconvex.GetBevel();
 
     if ( bevel > 0.001f )
     {
-        const int numBevelRings = 16;
-        const int numBevelSegments = 256;
+        // find bottom circle edge of biconvex top
 
-        const float segmentAngle = 2*pi / numBevelSegments;
+        std::vector<float> circleAngles;
+
+        int numVertices = mesh.GetNumVertices();
+        Vertex * vertices = mesh.GetVertexBuffer();
+        for ( int i = 0; i < numVertices; ++i )
+        {
+            if ( vertices[i].position.y() < h + epsilon )
+                circleAngles.push_back( atan2( vertices[i].position.z(), vertices[i].position.x() ) );
+        }
+
+        std::sort( circleAngles.begin(), circleAngles.end() );
+
+        // tesselate the bevel
+
+        const int numBevelRings = 8;
 
         const float torusMajorRadius = biconvex.GetBevelTorusMajorRadius();
         const float torusMinorRadius = biconvex.GetBevelTorusMinorRadius();
@@ -352,10 +346,10 @@ void GenerateBiconvexMesh( Mesh & mesh, const Biconvex & biconvex, int subdivisi
             const float y1 = bevel / 2 - i * delta_y;
             const float y2 = bevel / 2 - (i+1) * delta_y;
 
-            for ( int j = 0; j < numBevelSegments; ++j )
+            for ( int j = 0; j < circleAngles.size(); ++j )
             {
-                const float angle1 = j * segmentAngle;
-                const float angle2 = angle1 + segmentAngle;
+                const float angle1 = circleAngles[j];
+                const float angle2 = circleAngles[(j+1)%circleAngles.size()];
 
                 vec3f circleCenter1 = vec3f( cos( angle1 ), 0, sin( angle1 ) ) * torusMajorRadius;
                 vec3f circleCenter2 = vec3f( cos( angle2 ), 0, sin( angle2 ) ) * torusMajorRadius;
@@ -403,6 +397,26 @@ void GenerateBiconvexMesh( Mesh & mesh, const Biconvex & biconvex, int subdivisi
                 mesh.AddTriangle( v1, v2, v3 );
             }
         }
+    }
+
+    // bottom
+
+    for ( int i = 0; i < numTriangles; ++i )
+    {
+        mat4f r1 = mat4f::axisRotation( deltaAngle * i, vec3f(0,1,0) );
+        mat4f r2 = mat4f::axisRotation( deltaAngle * ( i + 1 ), vec3f(0,1,0) );
+
+        vec3f a = vec3f( 0, biconvex.GetSphereOffset() - biconvex.GetSphereRadius(), 0 );
+        vec3f b = transformPoint( r1, vec3f( 0, -h, bevelCircleRadius ) );
+        vec3f c = transformPoint( r2, vec3f( 0, -h, bevelCircleRadius ) );
+
+        const vec3f sphereCenter = vec3f( 0, biconvex.GetSphereOffset(), 0 );
+
+        vec3f an = normalize( a - sphereCenter );
+        vec3f bn = normalize( b - sphereCenter );
+        vec3f cn = normalize( c - sphereCenter );
+
+        SubdivideBiconvexMesh( mesh, biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, false, -h, 0, subdivisions );
     }
 }
 

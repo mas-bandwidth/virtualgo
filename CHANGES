@@ -1,4 +1,69 @@
 
+Properly weld bevel to biconvex at various tesselation levels (4/1/2013):
+-------------------------------------------------------------------------
+
+    left/right: adjust tesselation depth, 1 to maximum 5
+
+    Find the vertices at the bottom edge of the biconvex top 
+    and sort according to angle around the +y axis
+
+    Next use these vertices as the start vertices for the bevel
+
+    Finally, make the bevel # of rings be determined by the angle
+    between the start and finish bevel, this way it should tesselate
+    uniformly for various sizes of bevel.
+
+
+Tesselated bevel torus + implement vertex welding (4/1/2013):
+-------------------------------------------------------------
+
+    Tesselate the bevel torus with quads.
+
+    Create vertex buffer structure with normals
+
+    vec3f position
+    vec3f normal
+
+    Sketch out interface to build mesh
+
+    Implement grid cell -> hash bucket function
+
+    Determine grid cell for vertex (x,y,z)
+
+    Search in the bucket for a vertex with close enough position *and* normal!
+
+    Add code to insert vertex into bucket if doesn't already exist (eg. push back on list)
+
+    Verify that vertices have actually been welded (eg. print out per-weld w. static counter)
+
+    If vertex is being added within epsilon of another grid cell,
+    insert the index to that vertex in the other grid cell as well.
+
+    Without vertex welding:
+
+        18432 triangles
+        55296 vertices
+        55296 indices
+
+    With vertex welding:
+
+        18432 triangles
+        9636 vertices
+        55296 indices    
+
+    With vertex welding + non-diagonal adjacent cells:
+
+        18432 triangles
+        9570 vertices       <--- correct! it is less!
+        55296 indices
+
+    With vertex welding + all adjacent cells (including diagonals):
+
+        18432 triangles
+        9570 vertices
+        55296 indices
+
+
 Calculated bevel torus for biconvex stone (3/1/2013):
 -----------------------------------------------------
 
