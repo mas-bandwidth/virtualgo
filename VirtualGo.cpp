@@ -40,7 +40,7 @@ int main()
 
     Mode mode = Stone;//CollisionResponseWithFriction;
 
-    Biconvex biconvex( 2.2f, 1.13f, 0.22f );
+    Biconvex biconvex( 2.2f, 1.13f, 0.1f );
 
     RigidBody rigidBody;
     rigidBody.mass = 1.0f;
@@ -49,8 +49,8 @@ int main()
 
     RandomStone( biconvex, rigidBody, mode );
 
-    // HACK
-    //GenerateBiconvexMesh( biconvex );
+    Mesh mesh;
+    GenerateBiconvexMesh( mesh, biconvex );
 
     int displayWidth, displayHeight;
     GetDisplayResolution( displayWidth, displayHeight );
@@ -242,8 +242,7 @@ int main()
                 biconvexTransform.localToWorld.store( opengl_transform );
                 glMultMatrixf( opengl_transform );
 
-                //RenderBiconvex( biconvex );
-                GenerateBiconvexMesh( biconvex );       // HACK
+                RenderMesh( mesh );
 
                 glPopMatrix();
 
@@ -345,7 +344,7 @@ int main()
                 glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
                 glLineWidth( 1 );
                 glColor4f( 0.5f,0.5f,0.5f,1 );
-                RenderBiconvex( biconvex, 50, 10 );
+                RenderMesh( mesh );
 
                 glPopMatrix();
 
@@ -619,7 +618,7 @@ int main()
                 glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
                 glLineWidth( 1 );
                 glColor4f( 0.5f,0.5f,0.5f,1 );
-                RenderBiconvex( biconvex, 50, 10 );
+                RenderMesh( mesh );
 
                 glPopMatrix();
             }

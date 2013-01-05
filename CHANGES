@@ -1,4 +1,15 @@
 
+Finished tesselation demo (5/1/2013):
+-------------------------------------
+
+    Find a way to interpret 0-5 in the naive biconvex render
+    so the naive tesselation changes with left/right as wall.
+
+    Add a render mode to tesselation to view the stone
+    not in wireframe. Ideally, this would be textured
+    as well with better lighting but that can wait!
+
+
 Properly weld bevel to biconvex at various tesselation levels (4/1/2013):
 -------------------------------------------------------------------------
 

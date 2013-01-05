@@ -21,7 +21,105 @@ void ClearScreen( int displayWidth, int displayHeight, float r = 0, float g = 0,
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 }
 
-void RenderBiconvex_Naive( const Biconvex & biconvex, int numSegments = 128, int numRings = 32 )
+void GetMousePickRay( int mouse_x, int mouse_y, vec3f & rayStart, vec3f & rayDirection )
+{
+    // IMPORTANT: discussion about various ways to convert mouse coordinates -> pick ray
+    // http://stackoverflow.com/questions/2093096/implementing-ray-picking
+
+    GLint viewport[4];
+    GLdouble modelview[16];
+    GLdouble projection[16];
+    glGetIntegerv( GL_VIEWPORT, viewport );
+    glGetDoublev( GL_MODELVIEW_MATRIX, modelview );
+    glGetDoublev( GL_PROJECTION_MATRIX, projection );
+
+    const float displayHeight = viewport[3];
+
+    float x = mouse_x;
+    float y = displayHeight - mouse_y;
+
+    GLdouble x1,y1,z1;
+    GLdouble x2,y2,z2;
+
+    gluUnProject( x, y, 0, modelview, projection, viewport, &x1, &y1, &z1 );
+    gluUnProject( x, y, 1, modelview, projection, viewport, &x2, &y2, &z2 );
+
+    vec3f ray1( x1,y1,z1 );
+    vec3f ray2( x2,y2,z2 );
+
+    rayStart = ray1;
+    rayDirection = normalize( ray2 - ray1 );
+}
+
+void RenderBoard( const Board & board )
+{
+    glBegin( GL_QUADS );
+
+    const float width = board.GetWidth();
+    const float height = board.GetHeight();
+
+    const float ideal = 1.0f;
+
+    const int steps_x = (int) ceil( width / ideal ); 
+    const int steps_y = (int) ceil( height / ideal );
+
+    const float dx = width / steps_x;
+    const float dy = height / steps_y;
+
+    float x = - width / 2;
+
+    for ( int i = 0; i < steps_x; ++i )
+    {
+        float y = - height / 2;
+
+        for ( int j = 0; j < steps_x; ++j )
+        {
+            glVertex3f( x + dx, 0.0f, y );
+            glVertex3f( x + dx, 0.0f, y + dy );
+            glVertex3f( x, 0.0f, y + dy );
+            glVertex3f( x, 0.0f, y );
+
+            y += dy;
+        }
+
+        x += dx;
+    }
+
+    glEnd();
+}
+
+void RenderMesh( Mesh & mesh )
+{
+    glBegin( GL_TRIANGLES );
+
+    int numTriangles = mesh.GetNumTriangles();
+    int * indexBuffer = mesh.GetIndexBuffer();
+    Vertex * vertexBuffer = mesh.GetVertexBuffer();
+
+    for ( int i = 0; i < numTriangles; ++i )
+    {
+        const int index_a = indexBuffer[i*3];
+        const int index_b = indexBuffer[i*3+1];
+        const int index_c = indexBuffer[i*3+2];
+
+        const Vertex & a = vertexBuffer[index_a];
+        const Vertex & b = vertexBuffer[index_b];
+        const Vertex & c = vertexBuffer[index_c];
+
+        glNormal3f( a.normal.x(), a.normal.y(), a.normal.z() );
+        glVertex3f( a.position.x(), a.position.y(), a.position.z() );
+
+        glNormal3f( b.normal.x(), b.normal.y(), b.normal.z() );
+        glVertex3f( b.position.x(), b.position.y(), b.position.z() );
+
+        glNormal3f( c.normal.x(), c.normal.y(), c.normal.z() );
+        glVertex3f( c.position.x(), c.position.y(), c.position.z() );
+    }
+
+    glEnd();
+}
+
+void RenderBiconvexNaive( const Biconvex & biconvex, int numSegments = 128, int numRings = 32 )
 {
     glBegin( GL_QUADS );
 
@@ -138,104 +236,6 @@ void RenderBiconvex_Naive( const Biconvex & biconvex, int numSegments = 128, int
                 glVertex3f( d.x(), d.y(), d.z() );
             }
         }
-    }
-
-    glEnd();
-}
-
-void GetMousePickRay( int mouse_x, int mouse_y, vec3f & rayStart, vec3f & rayDirection )
-{
-    // IMPORTANT: discussion about various ways to convert mouse coordinates -> pick ray
-    // http://stackoverflow.com/questions/2093096/implementing-ray-picking
-
-    GLint viewport[4];
-    GLdouble modelview[16];
-    GLdouble projection[16];
-    glGetIntegerv( GL_VIEWPORT, viewport );
-    glGetDoublev( GL_MODELVIEW_MATRIX, modelview );
-    glGetDoublev( GL_PROJECTION_MATRIX, projection );
-
-    const float displayHeight = viewport[3];
-
-    float x = mouse_x;
-    float y = displayHeight - mouse_y;
-
-    GLdouble x1,y1,z1;
-    GLdouble x2,y2,z2;
-
-    gluUnProject( x, y, 0, modelview, projection, viewport, &x1, &y1, &z1 );
-    gluUnProject( x, y, 1, modelview, projection, viewport, &x2, &y2, &z2 );
-
-    vec3f ray1( x1,y1,z1 );
-    vec3f ray2( x2,y2,z2 );
-
-    rayStart = ray1;
-    rayDirection = normalize( ray2 - ray1 );
-}
-
-void RenderBoard( const Board & board )
-{
-    glBegin( GL_QUADS );
-
-    const float width = board.GetWidth();
-    const float height = board.GetHeight();
-
-    const float ideal = 1.0f;
-
-    const int steps_x = (int) ceil( width / ideal ); 
-    const int steps_y = (int) ceil( height / ideal );
-
-    const float dx = width / steps_x;
-    const float dy = height / steps_y;
-
-    float x = - width / 2;
-
-    for ( int i = 0; i < steps_x; ++i )
-    {
-        float y = - height / 2;
-
-        for ( int j = 0; j < steps_x; ++j )
-        {
-            glVertex3f( x + dx, 0.0f, y );
-            glVertex3f( x + dx, 0.0f, y + dy );
-            glVertex3f( x, 0.0f, y + dy );
-            glVertex3f( x, 0.0f, y );
-
-            y += dy;
-        }
-
-        x += dx;
-    }
-
-    glEnd();
-}
-
-void RenderMesh( Mesh & mesh )
-{
-    glBegin( GL_TRIANGLES );
-
-    int numTriangles = mesh.GetNumTriangles();
-    int * indexBuffer = mesh.GetIndexBuffer();
-    Vertex * vertexBuffer = mesh.GetVertexBuffer();
-
-    for ( int i = 0; i < numTriangles; ++i )
-    {
-        const int index_a = indexBuffer[i*3];
-        const int index_b = indexBuffer[i*3+1];
-        const int index_c = indexBuffer[i*3+2];
-
-        const Vertex & a = vertexBuffer[index_a];
-        const Vertex & b = vertexBuffer[index_b];
-        const Vertex & c = vertexBuffer[index_c];
-
-        glNormal3f( a.normal.x(), a.normal.y(), a.normal.z() );
-        glVertex3f( a.position.x(), a.position.y(), a.position.z() );
-
-        glNormal3f( b.normal.x(), b.normal.y(), b.normal.z() );
-        glVertex3f( b.position.x(), b.position.y(), b.position.z() );
-
-        glNormal3f( c.normal.x(), c.normal.y(), c.normal.z() );
-        glVertex3f( c.position.x(), c.position.y(), c.position.z() );
     }
 
     glEnd();

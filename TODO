@@ -4,26 +4,31 @@ DONE:
 
 TODO:
 
-    Find a way to adjust the bevel tesselation so that it *roughly*
-    matches the tesselation of the rest of the go stone.
+    Plan out talk slides
 
-    Find a way to interpret 0-5 in the naive biconvex render
-    so the naive tesselation changes with left/right as wall.
+    Work out what demo sections/visualizations are required
 
-    -----------------------------------------------
+    Break up demo visualizations into separate demos that can
+    be run and controlled via keyboard.
 
-    Find an image of various go stones in side-profile
-
-    Render 3 stones of different sizes to match
-
-    Verify that I can get the basic shape via the tesselator
+    Ideally, I want to have lots of nice demo visualizations
+    whenever I feel the need for a diagram, consider if it can
+    be shown better within the demo (within time limits of course!)
 
     ----------------------------------------------
+
+
+
+
+
+
+
+    =============================================================
+
+    Advanced Rendering
 
     Create proper OpenGL vertex buffer / index buffer object 
     using code from cube demo. Should be much faster to render stone
-
-    ----------------------------------------------
 
     Write a vertex shader to generate uvs as a function of xy
 
@@ -38,8 +43,6 @@ TODO:
     Render the lines and the circles at the star points (9x9)
 
     ----------------------------------------------
-
-    Advanced Rendering
 
     Enable anisotropic filtering
 

@@ -17,13 +17,14 @@ using namespace platform;
 
 static Biconvex biconvex( 2.2f, 1.13f );
 
-static Biconvex biconvexWithBevel( 2.2f, 1.13f, 0.22f );
+static Biconvex biconvexWithBevel( 2.2f, 1.13f, 0.1f );
 
 enum Mode
 {
     Naive,
     Subdivision,
-    SubdivisionWithBevel
+    SubdivisionWithBevel,
+    Render
 };
 
 struct TesselationData
@@ -47,7 +48,7 @@ void UpdateTesselation( Mesh & mesh, Mode mode, int subdivisions )
 
     mesh.Clear();
 
-    if ( mode == SubdivisionWithBevel )
+    if ( mode == SubdivisionWithBevel || mode == Render )
         GenerateBiconvexMesh( mesh, biconvexWithBevel, subdivisions );
     else
         GenerateBiconvexMesh( mesh, biconvex, subdivisions );
@@ -115,8 +116,6 @@ int main()
     glEnable( GL_CULL_FACE );
     glCullFace( GL_BACK );
 
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
     mat4f rotation = mat4f::identity();
 
     bool prevLeft = false;
@@ -133,6 +132,8 @@ int main()
 
     while ( true )
     {
+        glPolygonMode( GL_FRONT_AND_BACK, mode != Render ? GL_LINE : GL_FILL );
+
         UpdateEvents();
 
         platform::Input input;
@@ -153,6 +154,10 @@ int main()
         else if ( input.three )
         {
             mode = SubdivisionWithBevel;
+        }
+        else if ( input.four )
+        {
+            mode = Render;
         }
 
         if ( input.space && !prevSpace )
@@ -220,7 +225,16 @@ int main()
             glMultMatrixf( opengl_transform );
 
             if ( mode == Naive )
-                RenderBiconvex_Naive( biconvex );
+            {
+                float i = pow( subdivisions, 1.5f );
+                int numSegments = 10 * i;
+                int numRings = 2 * i;
+                if ( numSegments < 5 )
+                    numSegments = 5;
+                if ( numRings < 1 )
+                    numRings = 1;
+                RenderBiconvexNaive( biconvex, numSegments, numRings );
+            }
             else
                 RenderMesh( mesh );
 
