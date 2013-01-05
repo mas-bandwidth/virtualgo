@@ -15,28 +15,98 @@ DONE:
 
     Convert bevel tesselation to triangles.
 
-TODO:
-
     Add triangles to mesh when generating biconvex
 
     Add a temporary function to render mesh via glBegin/glEnd
 
     Verify that biconvex mesh renders properly
 
-    ----------------------------------------------
-
-    Finish implementing vertex welding
-
     Determine grid cell for vertex (x,y,z)
-
-    Given epsilon, determine if we need to search adjacent cells (rare)
 
     Search in the bucket for a vertex with close enough position *and* normal!
 
     Add code to insert vertex into bucket if doesn't already exist (eg. push back on list)
 
-    ----------------------------------------------
+    Verify that vertices have actually been welded (eg. print out per-weld w. static counter)
 
+    If vertex is being added within epsilon of another grid cell,
+    insert the index to that vertex in the other grid cell as well.
+
+    Without vertex welding:
+
+        18432 triangles
+        55296 vertices
+        55296 indices
+
+    With vertex welding:
+
+        18432 triangles
+        9636 vertices
+        55296 indices    
+
+    With vertex welding + non-diagonal adjacent cells:
+
+        18432 triangles
+        9570 vertices       <--- correct! it is less!
+        55296 indices
+
+    With vertex welding + all adjacent cells (including diagonals):
+
+        18432 triangles
+        9570 vertices       <--- seems we got lucky. no less verts
+        55296 indices
+
+    Implement lots of cool input control inside the tesselation app
+
+    1,2,3 
+
+        switch between naive tesselation, recursive no bevel, recursive with bevel
+
+    tried increasing bucket size. it has no effect on speed. bad hash?
+
+    work out why tesselation of the shape is slow under certain
+    conditions, eg. no bevel
+
+    i would guess that we probably have a bad hash function,
+    leading to one bucket getting very large.
+
+    first, print the largest bucket size
+
+    yes, the bucket size is large
+
+    the problem has something to do with the treatment of normals
+
+    why would normals be slightly different for what should be
+    *exactly* the same normal -- eg. all normals are just a function
+    of position, eg. normalize vector between point and center sphere (?!)
+
+    the problem was that the bevel had collapsed to zero so lots of
+    vertices with different normals were squished together.
+
+TODO:
+
+    -----------------------------------------------
+
+    Fix the subdivision tesselation so +y is up 
+
+    -----------------------------------------------
+
+    left right:
+
+        adjust tesselation depth, 1 to maximum 5
+
+    up down:
+
+        adjust display of tesselaton in wireframe thick red
+        goes from range 0 (no display) to 6 (max+1 no display)
+
+    4
+
+        show a display of various stones in profile, mimicking one of the images
+        of go stones of different shapes in side-profile.
+
+    ----------------------------------------------
+    
     Implement talk overview with title slides and notes
 
     ----------------------------------------------

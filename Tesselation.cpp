@@ -15,13 +15,24 @@
 
 using namespace platform;
 
+enum Mode
+{
+    Naive,
+    Subdivision,
+    SubdivisionWithBevel
+};
+
 int main()
 {
     srand( time( NULL ) );
 
     printf( "[tesselation]\n" );
 
-    Biconvex biconvex( 2.2f, 1.13f, 0.22f );
+    Biconvex biconvex( 2.2f, 1.13f );
+
+    Biconvex biconvexWithBevel( 2.2f, 1.13f, 0.22f );
+
+    Mode mode = Naive;
 
     RigidBody rigidBody;
     rigidBody.mass = 1.0f;
@@ -29,9 +40,8 @@ int main()
     CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
 
     Mesh mesh;
-    // HACK
-//    GenerateBiconvexMesh( mesh, biconvex );
-
+    GenerateBiconvexMesh( mesh, biconvex );
+    
     int displayWidth, displayHeight;
     GetDisplayResolution( displayWidth, displayHeight );
 
@@ -48,14 +58,14 @@ int main()
         return 1;
     }
 
+    HideMouseCursor();
+
     // setup for render
 
     glEnable( GL_LINE_SMOOTH );
     glEnable( GL_POLYGON_SMOOTH );
     glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
     glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
-
-    vec3f lightPosition( +10, +10, +10 );
 
     glEnable( GL_LIGHTING );
     glEnable( GL_LIGHT0 );
@@ -88,7 +98,7 @@ int main()
 
     uint64_t frame = 0;
 
-    while ( !quit )
+    while ( true )
     {
         UpdateEvents();
 
@@ -96,8 +106,35 @@ int main()
         
         input = platform::Input::Sample();
 
-        if ( input.escape )
-            quit = true;
+        if ( input.escape || input.quit )
+            break;
+
+        if ( input.one )
+        {
+            mode = Naive;
+        }
+        else if ( input.two )
+        {
+            mode = Subdivision;
+            mesh.Clear();
+            GenerateBiconvexMesh( mesh, biconvex );
+            printf( "num vertices = %d, num zero buckets = %d, average bucket = %.1f, largest bucket = %d (2)\n", 
+                mesh.GetNumVertices(), 
+                mesh.GetNumZeroBuckets(),
+                mesh.GetAverageBucketSize(), 
+                mesh.GetLargestBucketSize() );
+        }
+        else if ( input.three )
+        {
+            mode = SubdivisionWithBevel;
+            mesh.Clear();
+            GenerateBiconvexMesh( mesh, biconvexWithBevel );
+            printf( "num vertices = %d, num zero buckets = %d, average bucket = %.1f, largest bucket = %d (3)\n", 
+                mesh.GetNumVertices(), 
+                mesh.GetNumZeroBuckets(),
+                mesh.GetAverageBucketSize(), 
+                mesh.GetLargestBucketSize() );
+        }
 
         if ( input.space )
         {
@@ -129,22 +166,18 @@ int main()
             glLoadIdentity();
             gluLookAt( -5, 0, 0, 
                        0, 0, 0, 
-                       0, 0, 1 );
+                       0, 1, 0 );
 
-            // setup lights
+            // set light position
 
-            GLfloat position[4];
-            position[0] = lightPosition.x();
-            position[1] = lightPosition.y();
-            position[2] = lightPosition.z();
-            position[3] = 1.0f;
-            glLightfv( GL_LIGHT0, GL_POSITION, position );
+            GLfloat lightPosition[] = { -10, 3, 10, 1 };
+            glLightfv( GL_LIGHT0, GL_POSITION, lightPosition );
 
             // render stone
 
             const float targetRotation = rotating ? 0.28f : 0.0f;
             smoothedRotation += ( targetRotation - smoothedRotation ) * 0.15f;
-            mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(1,2,3) );
+            mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(1,-2,3) );
             rotation = rotation * deltaRotation;
 
             RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
@@ -155,13 +188,12 @@ int main()
             biconvexTransform.localToWorld.store( opengl_transform );
             glMultMatrixf( opengl_transform );
 
-            // HACK
-            GenerateBiconvexMesh( mesh, biconvex );
-
-            RenderMesh( mesh );
+            if ( mode == Naive )
+                RenderBiconvex_Naive( biconvex );
+            else
+                RenderMesh( mesh );
 
             glPopMatrix();
-
         }
 
         // update the display

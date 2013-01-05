@@ -61,6 +61,7 @@ namespace platform
 
         // todo: this is shitty. do an array indexed by keycodes instead
 
+        bool quit;
 		bool left;
 		bool right;
 		bool up;

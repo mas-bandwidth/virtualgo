@@ -27,6 +27,8 @@
 #endif
 #endif
 
+static bool quit = false;
+
 namespace platform
 {
 #if PLATFORM == PLATFORM_MAC || PLATFORM == PLATFORM_LINUX
@@ -359,8 +361,7 @@ namespace platform
 
 	static pascal OSErr quitEventHandler( const AppleEvent *appleEvt, AppleEvent *reply, void * stuff )
 	{
-        CloseDisplay();
-		exit( 0 );
+        quit = true;
 		return false;
 	}
 
@@ -837,6 +838,8 @@ namespace platform
         CGRestorePermanentDisplayConfiguration();
         CGLSetCurrentContext( NULL );
         CGLDestroyContext( contextObj );
+
+        ShowMouseCursor();
 	}
 
 	// basic keyboard input
@@ -844,6 +847,7 @@ namespace platform
 	Input Input::Sample()
 	{
 		Input input;
+        input.quit = ::quit;
 		input.left = leftKeyDown;
 		input.right = rightKeyDown;
 		input.up = upKeyDown;

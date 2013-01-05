@@ -1,5 +1,9 @@
+#ifndef COMMON_H
+#define COMMON_H
+
 #include <stdio.h>
 #include <assert.h>
+#include <stdint.h>
 #include "vectorial/vec2f.h"
 #include "vectorial/vec3f.h"
 #include "vectorial/vec4f.h"
@@ -16,6 +20,17 @@ inline int random( int maximum )
     randomNumber = rand() % maximum;
     return randomNumber;
 }
+
+uint32_t hash( const uint8_t * data, uint32_t length, uint32_t hash = 0 )
+{
+    for ( uint32_t i = 0; i < length; ++i )
+    {
+        hash += data[i];
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+    return hash;
+} 
 
 inline float random_float( float min, float max )
 {
@@ -273,3 +288,5 @@ inline vec4f TransformPlane( mat4f matrix, vec4f plane )
     return m * plane;
     */
 }
+
+#endif
