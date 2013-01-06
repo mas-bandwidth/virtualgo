@@ -228,7 +228,7 @@ int main()
             {
                 float i = pow( subdivisions, 1.5f );
                 int numSegments = 15 * i;
-                int numRings = 1.75f * i;
+                int numRings = 1.75f * i + 1;
                 if ( numSegments < 5 )
                     numSegments = 5;
                 if ( numRings < 1 )

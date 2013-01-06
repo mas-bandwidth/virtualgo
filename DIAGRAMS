@@ -1,0 +1,84 @@
+
+DIAGRAMS
+--------
+
+biconvex solid is the intersection of two spheres
+
+diagram showing how to calculate sphere radius r, sphere offset for biconvex of given width/height
+
+diagram showing how to calculate the bevel torus major/minor radii
+
+diagram showing cases for calculating biconvex support:
+
+    1. intersection of the support of both spheres 
+    2. but it breaks with this case
+    3. where is the cutoff point? how to calculate it (diagram + math)
+
+various diagrams explaining rigid body kinematics concepts (TODO: BREAK DOWN!)
+
+go stone with bounding sphere in dashed red lines
+
+go board with voronoi regions according to bounding sphere with radius r
+
+go board with primary face voronoi highlighted. we're going to look just at this case.
+
+diagram showing stone penetrating into board. show push up. show contact point + impulse applied
+
+math formula for collision impulse (general two moving bodies)
+
+math formula for collision impulse (one body is fixed, eg. infinite mass)
+
+elastic collision: reflected vector, inelastic: flat line post collision along surface.
+
+coefficient of restitution. how much bounce? formula.
+
+what is an inertia tensor? diagrams showing how hard it is to rotate about axis, eg. crank about axis. arrow taking axis -> entry in matrix correspoding.
+
+show masses at the end of dumbells. harder to rotate the further away the mass is.
+
+diagram showing how to numerically derive inertia tensor.
+
+diagram + math showing triple integral for inertia tensor.
+
+math for collision response with angular effects. try and break it down a bit.
+
+diagram showing normal impulse vs. tangent impulse
+
+coulomb friction cone
+
+
+
+DEMOS:
+------
+
+tesselation
+ + naive tesselation (done)
+ + triangle subdivision (done)
+ + bevel (done)
+ + render (done)
+
+biconvex support
+ + show support in thick red line at bottom of the screen
+ + show dashed red line from each side of the biconvex to the support
+ + highlight extremity points on the biconvex left/right
+
+kinematics
+ + tbd....
+
+linear collision response
+ + render various stones with different elasticities side by side?
+
+angular collision response
+ + existing demo is fine, perhaps with different elasticities side by side as well?
+
+coulomb friction
+ + existing demo is good, but need better rendering on stone, and need board to look realistic + shadows
+
+
+
+REFERENCES:
+-----------
+
+ryg's explanation of spin quaternion derivation
+
+baraff physics simulation course notes
