@@ -20,9 +20,9 @@ project "UnitTest++"
     targetdir "lib"
     location "build"
 
-project "Tesselation"
+project "Tessellation"
     kind "ConsoleApp"
-    files { "*.h", "Tesselation.cpp", "Platform.cpp" }
+    files { "*.h", "Tessellation.cpp", "Platform.cpp" }
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
@@ -46,14 +46,14 @@ if not os.is "windows" then
     newaction
     {
         trigger     = "tess",
-        description = "Build and run tesselation demo",
+        description = "Build and run tessellation demo",
         valid_kinds = premake.action.get("gmake").valid_kinds,
         valid_languages = premake.action.get("gmake").valid_languages,
         valid_tools = premake.action.get("gmake").valid_tools,
      
         execute = function ()
-            if os.execute "make -j32 Tesselation" == 0 then
-                os.execute "./Tesselation"
+            if os.execute "make -j32 Tessellation" == 0 then
+                os.execute "./Tessellation"
             end
         end
     }

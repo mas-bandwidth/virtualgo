@@ -1,5 +1,5 @@
 /*
-    Go stone tesselation demo.
+    Go stone tessellation demo.
     Copyright (c) 2004-2013, Glenn Fiedler. All rights reserved.
 */
 
@@ -27,23 +27,23 @@ enum Mode
     Render
 };
 
-struct TesselationData
+struct TessellationData
 {
     Mode mode;
     int subdivisions;
 
-    TesselationData()
+    TessellationData()
     {
         mode = Naive;
         subdivisions = 5;
     }
 };
 
-TesselationData tesselation;
+TessellationData tessellation;
 
-void UpdateTesselation( Mesh & mesh, Mode mode, int subdivisions )
+void UpdateTessellation( Mesh & mesh, Mode mode, int subdivisions )
 {
-    if ( mode == tesselation.mode && subdivisions == tesselation.subdivisions )
+    if ( mode == tessellation.mode && subdivisions == tessellation.subdivisions )
         return;
 
     mesh.Clear();
@@ -53,15 +53,15 @@ void UpdateTesselation( Mesh & mesh, Mode mode, int subdivisions )
     else
         GenerateBiconvexMesh( mesh, biconvex, subdivisions );
 
-    tesselation.mode = mode;
-    tesselation.subdivisions = subdivisions;
+    tessellation.mode = mode;
+    tessellation.subdivisions = subdivisions;
 }
 
 int main()
 {
     srand( time( NULL ) );
 
-    printf( "[tesselation]\n" );
+    printf( "[tessellation]\n" );
 
     Mode mode = Naive;
 
@@ -84,7 +84,7 @@ int main()
 
     printf( "display resolution is %d x %d\n", displayWidth, displayHeight );
 
-    if ( !OpenDisplay( "Tesselation Demo", displayWidth, displayHeight, 32 ) )
+    if ( !OpenDisplay( "Tessellation Demo", displayWidth, displayHeight, 32 ) )
     {
         printf( "error: failed to open display" );
         return 1;
@@ -180,7 +180,7 @@ int main()
         }
         prevLeft = input.left;
 
-        UpdateTesselation( mesh, mode, subdivisions );
+        UpdateTessellation( mesh, mode, subdivisions );
 
         ClearScreen( displayWidth, displayHeight );
 
@@ -227,8 +227,8 @@ int main()
             if ( mode == Naive )
             {
                 float i = pow( subdivisions, 1.5f );
-                int numSegments = 10 * i;
-                int numRings = 2 * i;
+                int numSegments = 15 * i;
+                int numRings = 1.75f * i;
                 if ( numSegments < 5 )
                     numSegments = 5;
                 if ( numRings < 1 )
