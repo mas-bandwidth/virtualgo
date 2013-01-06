@@ -17,6 +17,15 @@ TODO:
 
     ----------------------------------------------
 
+    I'd really like to be able to render text in my demos,
+    this way I could display the # of triangles, # of vertices
+    etc. in my tesselation demo
+
+    This would be a great way to explain why the subdivision
+    tesselation is superior to the naive longitude/lattitude.
+
+    ----------------------------------------------
+
 
 
 
