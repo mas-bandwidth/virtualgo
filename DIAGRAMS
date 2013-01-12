@@ -1,20 +1,55 @@
 
-DIAGRAMS
---------
+DIAGRAMS COMPLETED:
+-------------------
 
-biconvex solid is the intersection of two spheres
+biconvex solid is the intersection of two spheres (done)
 
-diagram showing how to calculate sphere radius r, sphere offset for biconvex of given width/height
+diagram showing how to calculate sphere radius r, sphere offset for biconvex of given width/height (done)
 
-diagram showing how to calculate the bevel torus major/minor radii
+diagram showing how to calculate the bevel torus major/minor radii (cut)
+
+diagram showing bevel that we want with dashed lines for biconvex shape we'll use for physics
+
+DIAGRAMS TODO
+-------------
+
+
+diagram showing how to calculate torus minimum and maximum radii for biconvex bevel
+
+various diagrams explaining rigid body kinematics concepts (TODO: BREAK DOWN!)
+
+ + first start with coordinate system. cms
+ + left-handed/right-handed coordinate (left hand rule, right hand rule)
+ + next concept of velocity (linear velocity).
+ + integration: 60 frames per-second slideshow
+ + acceleration: f = ma
+ + acceleration due to gravity
+ 
+linear motion demo:
+
+ + show particle motion
+ + particle is center of sphere
+ + show in 2D with the biconvex moving (maybe with ghosting...)
+
+angular motion:
+
+ + world coordinates
+ + local coordinates
+ + rotation matrix: rigid body matrix, rotation axes etc. (hand)
+ + matrix local -> world, world -> local
+ + quaternion
+ + integration of quaternion: spin
+ + quaternion -> matrix for rendering
+
+combining linear and angular motion
+
+ + when an object is moving linear and angular motion are separate
 
 diagram showing cases for calculating biconvex support:
 
     1. intersection of the support of both spheres 
     2. but it breaks with this case
     3. where is the cutoff point? how to calculate it (diagram + math)
-
-various diagrams explaining rigid body kinematics concepts (TODO: BREAK DOWN!)
 
 go stone with bounding sphere in dashed red lines
 

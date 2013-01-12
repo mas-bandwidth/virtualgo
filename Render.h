@@ -121,7 +121,7 @@ void RenderMesh( Mesh & mesh )
 
 void RenderBiconvexNaive( const Biconvex & biconvex, int numSegments = 128, int numRings = 32 )
 {
-    glBegin( GL_QUADS );
+    glBegin( GL_TRIANGLES );
 
     const float sphereRadius = biconvex.GetSphereRadius();
     const float segmentAngle = 2*pi / numSegments;
@@ -173,6 +173,12 @@ void RenderBiconvexNaive( const Biconvex & biconvex, int numSegments = 128, int 
                 glNormal3f( nb.x(), nb.y(), nb.z() );
                 glVertex3f( b.x(), b.y(), b.z() );
 
+                glNormal3f( nc.x(), nc.y(), nc.z() );
+                glVertex3f( c.x(), c.y(), c.z() );
+                
+                glNormal3f( na.x(), na.y(), na.z() );
+                glVertex3f( a.x(), a.y(), a.z() );
+                
                 glNormal3f( nc.x(), nc.y(), nc.z() );
                 glVertex3f( c.x(), c.y(), c.z() );
                 
@@ -229,6 +235,12 @@ void RenderBiconvexNaive( const Biconvex & biconvex, int numSegments = 128, int 
                 glNormal3f( nb.x(), nb.y(), nb.z() );
                 glVertex3f( b.x(), b.y(), b.z() );
 
+                glNormal3f( nc.x(), nc.y(), nc.z() );
+                glVertex3f( c.x(), c.y(), c.z() );
+                
+                glNormal3f( na.x(), na.y(), na.z() );
+                glVertex3f( a.x(), a.y(), a.z() );
+                
                 glNormal3f( nc.x(), nc.y(), nc.z() );
                 glVertex3f( c.x(), c.y(), c.z() );
                 
