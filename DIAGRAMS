@@ -10,13 +10,15 @@ diagram showing how to calculate the bevel torus major/minor radii (cut)
 
 diagram showing bevel that we want with dashed lines for biconvex shape we'll use for physics
 
-DIAGRAMS TODO
--------------
-
+diagram showing how to calculate point P(px,py)
 
 diagram showing how to calculate torus minimum and maximum radii for biconvex bevel
 
-various diagrams explaining rigid body kinematics concepts (TODO: BREAK DOWN!)
+
+DIAGRAMS TODO
+-------------
+
+various diagrams explaining rigid body kinematics concepts
 
  + first start with coordinate system. cms
  + left-handed/right-handed coordinate (left hand rule, right hand rule)
@@ -28,7 +30,7 @@ various diagrams explaining rigid body kinematics concepts (TODO: BREAK DOWN!)
 linear motion demo:
 
  + show particle motion
- + particle is center of sphere
+ + particle is center of sphere (concept of "rigid body")
  + show in 2D with the biconvex moving (maybe with ghosting...)
 
 angular motion:
