@@ -23,15 +23,18 @@ various diagrams explaining rigid body kinematics concepts
  + first start with coordinate system. cms
  + left-handed/right-handed coordinate (left hand rule, right hand rule)
  + next concept of velocity (linear velocity).
- + integration: 60 frames per-second slideshow
  + acceleration: f = ma
  + acceleration due to gravity
+ + concept of integration: low framerate slideshow
  
 linear motion demo:
 
  + show particle motion
+ + show without gravity
+ + add gravity: show parabolic ark
+ + increase rate to 60fps (leave dot trail every 6 frames?)
  + particle is center of sphere (concept of "rigid body")
- + show in 2D with the biconvex moving (maybe with ghosting...)
+ + show in 2D with the biconvex moving (maybe with ghosting leave trail every 6 frames?)
 
 angular motion:
 
@@ -84,8 +87,10 @@ diagram showing normal impulse vs. tangent impulse
 coulomb friction cone
 
 
-IMAGES:
--------
+IMAGES DONE:
+------------
+
+*WHAT IS GO?* -> GO STORY
 
 lots of people playing go in asia (done)
 
@@ -96,18 +101,24 @@ images to show basic sequence of how to play on a 9x9 board
  + show stone in the center (white). show "liberties"
  + show liberties on the side, on the corner.
  + show capturing stones in the center
- + show capturing stones on the side
- + show capturing a stone in the corner
- + show minimal life shape in center, in corner etc.
- + two eyes. end it here
+ + concept of atari -> link to bushnell
+ + link to http://playgo.to
 
-show professional games or go club to talk about story
+** GO STORY **
+
+transition to images of go clubs to talk about story
 
 show top down game with 9 stone handcap (story cont)
 
+** GO BOARD AND STONES **
+
 lots of different types of boards + stones (done)
 
+** HOW TO HOLD A STONE -> FOCUS ON GO STONES **
+
 how to hold the go stone (done)
+
+** GO STONE SHAPE **
 
 various shots of stones side-on to show shape (done)
 
@@ -121,13 +132,16 @@ tesselation
  + bevel (done)
  + render (done)
 
-biconvex support
+linear motion demo:
+ + ...
+
+angular motion demo:
+ + ...
+
+collision detection -> SAT -> support
  + show support in thick red line at bottom of the screen
  + show dashed red line from each side of the biconvex to the support
  + highlight extremity points on the biconvex left/right
-
-kinematics
- + tbd....
 
 linear collision response
  + render various stones with different elasticities side by side?
@@ -143,6 +157,14 @@ coulomb friction
 REFERENCES:
 -----------
 
+playgo.to
+
 ryg's explanation of spin quaternion derivation
 
 baraff physics simulation course notes
+
+link to some good overview of vectors and matrices (todo)
+
+link to some good tutorial for quaternion math (todo)
+
+links to help understand inertia tensor?
