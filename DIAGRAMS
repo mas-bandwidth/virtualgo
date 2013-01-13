@@ -2,9 +2,9 @@
 DIAGRAMS COMPLETED:
 -------------------
 
-biconvex solid is the intersection of two spheres (done)
+biconvex solid is the intersection of two spheres
 
-diagram showing how to calculate sphere radius r, sphere offset for biconvex of given width/height (done)
+diagram showing how to calculate sphere radius r, sphere offset for biconvex of given width/height
 
 diagram showing how to calculate the bevel torus major/minor radii (cut)
 
@@ -46,9 +46,11 @@ angular motion:
  + integration of quaternion: spin
  + quaternion -> matrix for rendering
 
-combining linear and angular motion
+angular motion demo:
 
+ + rotating in place (random angular velocity)
  + when an object is moving linear and angular motion are separate
+ + combined linear and angular motion... parabola while tumbling left to right
 
 diagram showing cases for calculating biconvex support:
 
@@ -87,12 +89,10 @@ diagram showing normal impulse vs. tangent impulse
 coulomb friction cone
 
 
-IMAGES DONE:
-------------
+IMAGES:
+-------
 
-*WHAT IS GO?* -> GO STORY
-
-lots of people playing go in asia (done)
+noah bushnell video extract from youtube
 
 image of different go board sizes: 19x19, 13x13, 9x9
 
@@ -104,21 +104,13 @@ images to show basic sequence of how to play on a 9x9 board
  + concept of atari -> link to bushnell
  + link to http://playgo.to
 
-** GO STORY **
-
 transition to images of go clubs to talk about story
 
 show top down game with 9 stone handcap (story cont)
 
-** GO BOARD AND STONES **
-
-lots of different types of boards + stones (done)
-
-** HOW TO HOLD A STONE -> FOCUS ON GO STONES **
+go boards + stones (done)
 
 how to hold the go stone (done)
-
-** GO STONE SHAPE **
 
 various shots of stones side-on to show shape (done)
 
