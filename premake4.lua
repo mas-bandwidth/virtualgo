@@ -20,6 +20,24 @@ project "UnitTest++"
     targetdir "lib"
     location "build"
 
+project "Collision"
+    kind "ConsoleApp"
+    files { "*.h", "Collision.cpp", "Platform.cpp" }
+    configuration { "macosx" }
+        links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
+
+project "Angular"
+    kind "ConsoleApp"
+    files { "*.h", "Angular.cpp", "Platform.cpp" }
+    configuration { "macosx" }
+        links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
+
+project "Linear"
+    kind "ConsoleApp"
+    files { "*.h", "Linear.cpp", "Platform.cpp" }
+    configuration { "macosx" }
+        links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
+
 project "Picking"
     kind "ConsoleApp"
     files { "*.h", "Picking.cpp", "Platform.cpp" }
@@ -55,6 +73,51 @@ end
 
 if not os.is "windows" then
     
+    newaction
+    {
+        trigger     = "collision",
+        description = "Build and run angular motion demo",
+        valid_kinds = premake.action.get("gmake").valid_kinds,
+        valid_languages = premake.action.get("gmake").valid_languages,
+        valid_tools = premake.action.get("gmake").valid_tools,
+     
+        execute = function ()
+            if os.execute "make -j32 Collision" == 0 then
+                os.execute "./Collision"
+            end
+        end
+    }
+
+    newaction
+    {
+        trigger     = "angular",
+        description = "Build and run angular motion demo",
+        valid_kinds = premake.action.get("gmake").valid_kinds,
+        valid_languages = premake.action.get("gmake").valid_languages,
+        valid_tools = premake.action.get("gmake").valid_tools,
+     
+        execute = function ()
+            if os.execute "make -j32 Angular" == 0 then
+                os.execute "./Angular"
+            end
+        end
+    }
+
+    newaction
+    {
+        trigger     = "linear",
+        description = "Build and run linear motion demo",
+        valid_kinds = premake.action.get("gmake").valid_kinds,
+        valid_languages = premake.action.get("gmake").valid_languages,
+        valid_tools = premake.action.get("gmake").valid_tools,
+     
+        execute = function ()
+            if os.execute "make -j32 Linear" == 0 then
+                os.execute "./Linear"
+            end
+        end
+    }
+
     newaction
     {
         trigger     = "pick",
