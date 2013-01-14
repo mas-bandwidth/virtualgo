@@ -27,15 +27,6 @@ various diagrams explaining rigid body kinematics concepts
  + acceleration due to gravity
  + concept of integration: low framerate slideshow
  
-linear motion demo:
-
- + show particle motion
- + show without gravity
- + add gravity: show parabolic ark
- + increase rate to 60fps (leave dot trail every 6 frames?)
- + particle is center of sphere (concept of "rigid body")
- + show in 2D with the biconvex moving (maybe with ghosting leave trail every 6 frames?)
-
 angular motion:
 
  + world coordinates
@@ -45,12 +36,6 @@ angular motion:
  + quaternion
  + integration of quaternion: spin
  + quaternion -> matrix for rendering
-
-angular motion demo:
-
- + rotating in place (random angular velocity)
- + when an object is moving linear and angular motion are separate
- + combined linear and angular motion... parabola while tumbling left to right
 
 diagram showing cases for calculating biconvex support:
 
@@ -115,8 +100,8 @@ how to hold the go stone (done)
 various shots of stones side-on to show shape (done)
 
 
-DEMOS:
-------
+DEMOS DONE:
+-----------
 
 tesselation
  + naive tesselation (done)
@@ -124,16 +109,27 @@ tesselation
  + bevel (done)
  + render (done)
 
+sat demo
+ + show dashed red line from each side of the biconvex to the support (done)
+ + show support in thick red line at bottom of the screen (done)
+
+
+DEMOS:
+------
+
 linear motion demo:
- + ...
+ + show particle motion
+ + show without gravity
+ + add gravity: show parabolic ark
+ + increase rate to 60fps (leave dot trail every 6 frames?)
+ + particle is center of sphere (concept of "rigid body")
+ + show in 2D with the biconvex moving (maybe with ghosting leave trail every 6 frames?)
 
 angular motion demo:
- + ...
-
-sat demo
- + show support in thick red line at bottom of the screen
- + show dashed red line from each side of the biconvex to the support
-
+ + rotating in place (random angular velocity)
+ + when an object is moving linear and angular motion are separate
+ + combined linear and angular motion... parabola while tumbling left to right
+ 
 linear collision response
  + render various stones with different elasticities side by side?
 

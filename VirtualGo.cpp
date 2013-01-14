@@ -17,9 +17,6 @@ using namespace platform;
 
 enum Mode
 {
-    Stone,
-    BiconvexSupport,
-    StoneAndBoard,
     FallingStone,
     LinearCollisionResponse,
     AngularCollisionResponse,
@@ -28,7 +25,7 @@ enum Mode
 
 void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 {
-    rigidBody.position = vec3f( 0, mode > LinearCollisionResponse ? 15.0f : 10.0f, 0 );
+    rigidBody.position = vec3f( 0, mode > LinearCollisionResponse ? 15.0f : 10.75, 0 );
     rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
     rigidBody.linearVelocity = vec3f(0,0,0);
     rigidBody.angularVelocity = vec3f(0,0,0);
@@ -38,7 +35,7 @@ int main()
 {
     printf( "[virtual go]\n" );
 
-    Mode mode = Stone;//CollisionResponseWithFriction;
+    Mode mode = FallingStone;
 
     Biconvex biconvex( 2.2f, 1.13f, 0.1f );
 
@@ -102,42 +99,19 @@ int main()
         
         input = platform::Input::Sample();
 
-        if ( input.escape )
+        if ( input.escape || input.quit )
             quit = true;
 
-        if ( input.space )
+        if ( input.space && !prevSpace )
         {
-            if ( !prevSpace )
-            {
-                if ( mode == Stone || mode == BiconvexSupport )
-                    rotating = !rotating;
-
-                if ( mode == FallingStone || mode == LinearCollisionResponse || mode == AngularCollisionResponse || mode == CollisionResponseWithFriction )
-                    RandomStone( biconvex, rigidBody, mode );
-            }
-
-            prevSpace = true;
+            if ( mode == FallingStone || mode == LinearCollisionResponse || mode == AngularCollisionResponse || mode == CollisionResponseWithFriction )
+                RandomStone( biconvex, rigidBody, mode );
         }
-        else
-            prevSpace = false;
+        prevSpace = input.space;
 
-        if ( input.enter )
-        {
-            if ( !prevEnter )
-                rigidBody.linearVelocity += vec3f( -2,0,0 );
-            prevEnter = true;
-        }
-        else
-            prevEnter = false;
-
-        if ( input.one )
-            mode = Stone;
-
-        if ( input.two )
-            mode = BiconvexSupport;
-
-        if ( input.three )
-            mode = StoneAndBoard;
+        if ( input.enter && !prevEnter )
+            rigidBody.linearVelocity += vec3f( -2,0,0 );
+        prevEnter = input.enter;
 
         if ( input.four )
         {
@@ -167,254 +141,7 @@ int main()
 
         if ( frame > 20 )
         {
-            if ( mode == Stone || mode == BiconvexSupport )
-            {
-                if ( mode == Stone )
-                {
-                    const float fov = 25.0f;
-                    glMatrixMode( GL_PROJECTION );
-                    glLoadIdentity();
-                    gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
-                }
-                else
-                {
-                    glMatrixMode( GL_PROJECTION );
-                    glLoadIdentity();
-                    glOrtho( -1.5, +1.5f, -1.0f, +1.0f, 0.1f, 100.0f );
-                }
-
-                float flipX[] = { -1,0,0,0,
-                                   0,1,0,0,
-                                   0,0,1,0,
-                                   0,0,0,1 };
-
-                glMultMatrixf( flipX );
-
-                glMatrixMode( GL_MODELVIEW );
-                glLoadIdentity();
-                gluLookAt( -5, 0, 0, 
-                           0, 0, 0, 
-                           0, 0, 1 );
-
-                // render stone
-
-                const float targetRotation = rotating ? 0.28f : 0.0f;
-                smoothedRotation += ( targetRotation - smoothedRotation ) * 0.15f;
-                mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(1,2,3) );
-                rotation = rotation * deltaRotation;
-
-                RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
-
-                // setup lights
-
-                vec3f lightPosition( +10, +10, +10 );
-
-                glEnable( GL_LIGHTING );
-                glEnable( GL_LIGHT0 );
-
-                glShadeModel( GL_SMOOTH );
-
-                GLfloat lightAmbientColor[] = { 0.5, 0.5, 0.5, 1.0 };
-                glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
-
-                glLightf( GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.01f );
-
-                GLfloat position[4];
-                position[0] = lightPosition.x();
-                position[1] = lightPosition.y();
-                position[2] = lightPosition.z();
-                position[3] = 1.0f;
-                glLightfv( GL_LIGHT0, GL_POSITION, position );
-
-                glEnable( GL_BLEND ); 
-                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-                glLineWidth( 1 );
-                glColor4f( 0.5f,0.5f,0.5f,1 );
-                glEnable( GL_CULL_FACE );
-                glCullFace( GL_BACK );
-                
-                glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
-                glPushMatrix();
-
-                float opengl_transform[16];
-                biconvexTransform.localToWorld.store( opengl_transform );
-                glMultMatrixf( opengl_transform );
-
-                RenderMesh( mesh );
-
-                glPopMatrix();
-
-                // render intersection between stone and mouse pick ray
-
-                int mouse_x, mouse_y;
-                GetMousePosition( mouse_x, mouse_y );
-
-                vec3f rayStart, rayDirection;
-                GetMousePickRay( mouse_x, mouse_y, rayStart, rayDirection );
-                
-                vec3f point,normal;
-                float t = IntersectRayStone( biconvex, biconvexTransform, rayStart, rayDirection, point, normal );
-                if ( t >= 0 )
-                {
-                    glLineWidth( 2 );
-                    glColor4f( 0.7f,0,0,1 );
-                    glBegin( GL_LINES );
-                    vec3f p1 = point;
-                    vec3f p2 = point + normal * 0.1f;
-                    glVertex3f( p1.x(), p1.y(), p1.z() );
-                    glVertex3f( p2.x(), p2.y(), p2.z() );
-                    glEnd();
-                }
-
-                if ( mode == BiconvexSupport )
-                {
-                    // render biconvex support along x axis
-
-                    vec3f biconvexCenter = biconvexTransform.GetPosition();
-                    vec3f biconvexUp = biconvexTransform.GetUp();
-                    float s1,s2;
-                    BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(1,0,0), s1, s2 );
-
-                    glLineWidth( 3 );
-                    glColor4f( 0,0,0.8f,1 );
-                    glBegin( GL_LINES );
-                    glVertex3f( s1, -10, 0 );
-                    glVertex3f( s1, +10, 0 );
-                    glVertex3f( s2, -10, 0 );
-                    glVertex3f( s2, +10, 0 );
-                    glEnd();
-                }
-            }
-            else if ( mode == StoneAndBoard )
-            {
-                glMatrixMode( GL_PROJECTION );
-                glLoadIdentity();
-                const float fov = 25.0f;
-                gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
-
-                float flipX[] = { -1,0,0,0,
-                                   0,1,0,0,
-                                   0,0,1,0,
-                                   0,0,0,1 };
-
-                glMultMatrixf( flipX );
-
-                glMatrixMode( GL_MODELVIEW );
-                glLoadIdentity();
-                gluLookAt( 0, 5, -20.0f, 
-                           0, 0, 0, 
-                           0, 1, 0 );
-
-                glEnable( GL_CULL_FACE );
-                glCullFace( GL_BACK );
-                glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
-                // render board
-
-                Board board( 20.0f, 20.0f, 1.0f );
-
-                glLineWidth( 1 );
-                glColor4f( 0.5f,0.5f,0.5f,1 );
-
-                RenderBoard( board );
-
-                // render stone
-
-                static bool firstFrame = 0;
-                const float targetRotation = rotating ? 0.28f : 0.0f;
-                if ( firstFrame )
-                    smoothedRotation = targetRotation;
-                else
-                    smoothedRotation += ( targetRotation - smoothedRotation ) * 0.15f;
-                firstFrame = false;
-                mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(1,2,3) );
-                rotation = rotation * deltaRotation;
-
-                RigidBodyTransform biconvexTransform( vec3f(0,biconvex.GetHeight()/2,0), rotation );
-
-                glPushMatrix();
-
-                float opengl_transform[16];
-                biconvexTransform.localToWorld.store( opengl_transform );
-                glMultMatrixf( opengl_transform );
-
-                glEnable( GL_BLEND ); 
-                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-                glLineWidth( 1 );
-                glColor4f( 0.5f,0.5f,0.5f,1 );
-                RenderMesh( mesh );
-
-                glPopMatrix();
-
-                // render nearest intersection with picking ray: stone or board
-                {
-                    int mouse_x, mouse_y;
-                    GetMousePosition( mouse_x, mouse_y );
-
-                    vec3f rayStart, rayDirection;
-                    GetMousePickRay( mouse_x, mouse_y, rayStart, rayDirection );
-
-                    vec3f board_point, board_normal, stone_point, stone_normal;
-                    const float board_t = IntersectRayBoard( board, rayStart, rayDirection, board_point, board_normal );
-                    const float stone_t = IntersectRayStone( biconvex, biconvexTransform, rayStart, rayDirection, stone_point, stone_normal );
-
-                    // display stone intersection if it is nearest or the board was not hit
-                    if ( ( stone_t >= 0.0f && board_t < 0.0f ) || ( stone_t >= 0.0f && stone_t < board_t ) )
-                    {
-                        glLineWidth( 2 );
-                        glColor4f( 0.7f,0,0,1 );
-                        glBegin( GL_LINES );
-                        vec3f p1 = stone_point;
-                        vec3f p2 = stone_point + stone_normal * 0.5f;
-                        glVertex3f( p1.x(), p1.y(), p1.z() );
-                        glVertex3f( p2.x(), p2.y(), p2.z() );
-                        glEnd();
-                    }
-
-                    // display board intersection if it is nearest, or we did not hit the stone
-                    if ( ( board_t >= 0.0f && stone_t < 0.0f ) || ( board_t >= 0.0f && board_t < stone_t ) )
-                    {
-                        glLineWidth( 2 );
-                        glColor4f( 0.7f,0,0,1 );
-                        glBegin( GL_LINES );
-                        vec3f p1 = board_point;
-                        vec3f p2 = board_point + board_normal * 0.5f;
-                        glVertex3f( p1.x(), p1.y(), p1.z() );
-                        glVertex3f( p2.x(), p2.y(), p2.z() );
-                        glEnd();
-
-                        // if we hit the board, then render yellow line between board intersection
-                        // and the nearest point on the stone. this we can test that nearest point
-                        // on biconvex fn is working properly.
-                        vec3f nearest = NearestPointOnStone( biconvex, biconvexTransform, board_point );
-                        glLineWidth( 2 );
-                        glColor4f( 0.9f,0.9f,0.3f,1 );
-                        glBegin( GL_LINES );
-                        glVertex3f( p1.x(), p1.y(), p1.z() );
-                        glVertex3f( nearest.x(), nearest.y(), nearest.z() );
-                        glEnd();
-                    }
-                }
-
-                // render intersection between stone and board
-                {
-                    float depth;
-                    vec3f point,normal;
-                    if ( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) )
-                    {
-                        glLineWidth( 2 );
-                        glColor4f( 0,0,0.85f,1 );
-                        glBegin( GL_LINES );
-                        vec3f p1 = point;
-                        vec3f p2 = point + normal * 0.5f;
-                        glVertex3f( p1.x(), p1.y(), p1.z() );
-                        glVertex3f( p2.x(), p2.y(), p2.z() );
-                        glEnd();
-                    }
-                }
-            }
-            else if ( mode == FallingStone || mode == LinearCollisionResponse || mode == AngularCollisionResponse || mode == CollisionResponseWithFriction )
+            if ( mode == FallingStone || mode == LinearCollisionResponse || mode == AngularCollisionResponse || mode == CollisionResponseWithFriction )
             {
                 const float fov = 25.0f;
 

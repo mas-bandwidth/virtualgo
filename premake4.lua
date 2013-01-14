@@ -20,15 +20,21 @@ project "UnitTest++"
     targetdir "lib"
     location "build"
 
-project "Tessellation"
+project "Picking"
     kind "ConsoleApp"
-    files { "*.h", "Tessellation.cpp", "Platform.cpp" }
+    files { "*.h", "Picking.cpp", "Platform.cpp" }
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
 project "Support"
     kind "ConsoleApp"
     files { "*.h", "Support.cpp", "Platform.cpp" }
+    configuration { "macosx" }
+        links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
+
+project "Tessellation"
+    kind "ConsoleApp"
+    files { "*.h", "Tessellation.cpp", "Platform.cpp" }
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
@@ -49,6 +55,21 @@ end
 
 if not os.is "windows" then
     
+    newaction
+    {
+        trigger     = "pick",
+        description = "Build and run picking demo",
+        valid_kinds = premake.action.get("gmake").valid_kinds,
+        valid_languages = premake.action.get("gmake").valid_languages,
+        valid_tools = premake.action.get("gmake").valid_tools,
+     
+        execute = function ()
+            if os.execute "make -j32 Picking" == 0 then
+                os.execute "./Picking"
+            end
+        end
+    }
+
     newaction
     {
         trigger     = "supp",

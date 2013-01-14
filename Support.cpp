@@ -141,7 +141,7 @@ int main()
 
             glPopMatrix();
 
-            // render biconvex support along x axis
+            // visualize biconvex support
 
             vec3f biconvexCenter = biconvexTransform.GetPosition();
             vec3f biconvexUp = biconvexTransform.GetUp();
@@ -152,15 +152,26 @@ int main()
             
             glEnable( GL_BLEND ); 
             glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-            glLineWidth( 5 );
+            
             glLineStipple( 10, 0xAAAA );
             glEnable( GL_LINE_STIPPLE );
-            glColor4f( 1,0,0,1 );
+            glColor4f( 0.8,0.8,0.8,1 );
+            glLineWidth( 5 );
+
             glBegin( GL_LINES );
             glVertex3f( s1, -10, 0 );
             glVertex3f( s1, +10, 0 );
             glVertex3f( s2, -10, 0 );
             glVertex3f( s2, +10, 0 );
+            glEnd();
+
+            glDisable( GL_LINE_STIPPLE );
+            glColor4f( 1,0,0,1 );
+            glLineWidth( 20 );
+
+            glBegin( GL_LINES );
+            glVertex3f( s1 - 0.01f, -1.65, 0 );
+            glVertex3f( s2 + 0.01f, -1.65, 0 );
             glEnd();
         }
 
