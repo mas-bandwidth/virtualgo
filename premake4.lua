@@ -26,6 +26,12 @@ project "Tessellation"
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
+project "Support"
+    kind "ConsoleApp"
+    files { "*.h", "Support.cpp", "Platform.cpp" }
+    configuration { "macosx" }
+        links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
+
 project "VirtualGo"
     kind "ConsoleApp"
     files { "*.h", "VirtualGo.cpp", "Platform.cpp" }
@@ -43,6 +49,21 @@ end
 
 if not os.is "windows" then
     
+    newaction
+    {
+        trigger     = "supp",
+        description = "Build and run support demo",
+        valid_kinds = premake.action.get("gmake").valid_kinds,
+        valid_languages = premake.action.get("gmake").valid_languages,
+        valid_tools = premake.action.get("gmake").valid_tools,
+     
+        execute = function ()
+            if os.execute "make -j32 Support" == 0 then
+                os.execute "./Support"
+            end
+        end
+    }
+
     newaction
     {
         trigger     = "tess",

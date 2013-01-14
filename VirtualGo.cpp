@@ -1,7 +1,7 @@
 /*
     Virtual Go
     A networked physics simulation of a go board and stones
-    Copyright (c) 2005-2012, Glenn Fiedler. All rights reserved.
+    Copyright (c) 2005-2013, Glenn Fiedler. All rights reserved.
 */
 
 #include "Common.h"
@@ -208,7 +208,6 @@ int main()
                 // setup lights
 
                 vec3f lightPosition( +10, +10, +10 );
-
 
                 glEnable( GL_LIGHTING );
                 glEnable( GL_LIGHT0 );

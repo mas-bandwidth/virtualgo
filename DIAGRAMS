@@ -130,10 +130,9 @@ linear motion demo:
 angular motion demo:
  + ...
 
-collision detection -> SAT -> support
+sat demo
  + show support in thick red line at bottom of the screen
  + show dashed red line from each side of the biconvex to the support
- + highlight extremity points on the biconvex left/right
 
 linear collision response
  + render various stones with different elasticities side by side?
