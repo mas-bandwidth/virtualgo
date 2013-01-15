@@ -35,7 +35,7 @@ int main()
 
     Mode mode = LinearCollisionResponse;
 
-    Biconvex biconvex( 2.2f, 1.13f, 0.1f );
+    Biconvex biconvex( 2.5f, 1.13f, 0.1f );
 
     RigidBody rigidBody;
     rigidBody.mass = 1.0f;
@@ -63,12 +63,29 @@ int main()
         return 1;
     }
 
-    ShowMouseCursor();
+    HideMouseCursor();
 
     glEnable( GL_LINE_SMOOTH );
     glEnable( GL_POLYGON_SMOOTH );
     glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
     glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
+
+    glEnable( GL_LIGHTING );
+    glEnable( GL_LIGHT0 );
+
+    glShadeModel( GL_SMOOTH );
+
+    GLfloat lightAmbientColor[] = { 0.75, 0.75, 0.75, 1.0 };
+    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
+
+    glLightf( GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.01f );
+
+    glEnable( GL_BLEND );
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+    glLineWidth( 4 );
+    glColor4f( 0.5f,0.5f,0.5f,1 );
+    glEnable( GL_CULL_FACE );
+    glCullFace( GL_BACK );
 
     double t = 0.0f;
 
@@ -160,170 +177,151 @@ int main()
 
             // update stone physics
 
-            // hack: substeps are required for the impulse
-            // to look stable and not jitter at rest. why?!
-            const int steps = 1;
+            bool colliding = false;
 
-            const float step_dt = dt / steps;
+            const float gravity = 9.8f * 10;    // cms/sec^2
+            rigidBody.linearVelocity += vec3f(0,-gravity,0) * dt;
 
-            for ( int i = 0; i < steps; ++i )
+            rigidBody.position += rigidBody.linearVelocity * dt;
+            quat4f spin = AngularVelocityToSpin( rigidBody.orientation, rigidBody.angularVelocity );
+            rigidBody.orientation += spin * dt;
+            rigidBody.orientation = normalize( rigidBody.orientation );
+
+            if ( mode == LinearCollisionResponse )
             {
-                RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
+                // if object is penetrating with the board, push it out
 
-                bool colliding = false;
-
-                const float gravity = 9.8f * 10;    // cms/sec^2
-                rigidBody.linearVelocity += vec3f(0,-gravity,0) * step_dt;
-
-                if ( mode == LinearCollisionResponse )
+                float depth;
+                vec3f point, normal;
+                if ( IntersectStoneBoard( board, biconvex, RigidBodyTransform( rigidBody.position, rigidBody.orientation ), point, normal, depth ) )
                 {
-                    // if object is penetrating with the board, push it out
-
-                    biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
-
-                    float depth;
-                    vec3f point, normal;
-                    if ( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) )
-                    {
-                        rigidBody.position += normal * depth;
-                        colliding = true;
-                    }
-
-                    biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
-
-                    // apply linear collision response
-
-                    if ( colliding )
-                    {
-                        vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
-                        ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
-
-                        const vec3f velocityAtPoint = rigidBody.linearVelocity;
-
-                        const float e = 0.5f;
-
-                        const float k = rigidBody.inverseMass;
-
-                        const float j = max( - ( 1 + e ) * dot( velocityAtPoint, boardNormal ) / k, 0 );
-
-                        rigidBody.linearVelocity += j * rigidBody.inverseMass * boardNormal;
-                    }
-                }
-                else if ( mode == AngularCollisionResponse || mode == CollisionResponseWithFriction )
-                {
-                    // detect collision
-
-                    biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
-
-                    float depth;
-                    vec3f point, normal;
-                    if ( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) )
-                    {
-                        rigidBody.position += normal * depth;
-                        colliding = true;
-                    }
-
-                    if ( colliding )
-                    {
-                        biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
-
-                        vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
-                        ClosestFeaturesStoneBoard( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
-
-                        vec3f p = stonePoint;
-                        vec3f n = boardNormal;
-
-                        vec3f r = p - rigidBody.position;
-
-                        vec3f vp = rigidBody.linearVelocity + cross( rigidBody.angularVelocity, r );
-
-                        const float vn = dot( vp, n );
-
-                        if ( vn < 0 )
-                        {
-                            // calculate kinetic energy before collision response
-
-                            const float ke_before = rigidBody.GetKineticEnergy();
-
-                            // calculate inverse inertia tensor in world space
-
-                            mat4f rotation;
-                            rigidBody.orientation.toMatrix( rotation );
-                            mat4f transposeRotation = transpose( rotation );
-                            mat4f i = rotation * rigidBody.inverseInertiaTensor * transposeRotation;
-
-                            // apply collision impulse
-
-                            const float e = 0.6f;
-
-                            const float linear_k = rigidBody.inverseMass;
-                            const float angular_k = dot( cross( transformVector( i, cross( r, n ) ), r ), n );
-
-                            const float k = linear_k + angular_k;
-
-                            const float j = - ( 1 + e ) * vn / k;
-
-                            rigidBody.linearVelocity += j * rigidBody.inverseMass * n;
-                            rigidBody.angularVelocity += j * transformVector( i, cross( r, n ) );
-
-                            // apply friction impulse
-
-                            if ( mode == CollisionResponseWithFriction )
-                            {
-                                vec3f tangent_velocity = vp - n * dot( vp, n );
-
-                                if ( length_squared( tangent_velocity ) > 0.0001f * 0.0001f )
-                                {
-                                    vec3f t = normalize( tangent_velocity );
-
-                                    float u = 0.15f;
-
-                                    const float vt = dot( vp, t );
-
-                                    const float kt = rigidBody.inverseMass + dot( cross( transformVector( i, cross( r, t ) ), r ), t );
-
-                                    const float jt = clamp( -vt / kt, -u * j, u * j );
-
-                                    rigidBody.linearVelocity += jt * rigidBody.inverseMass * t;
-                                    rigidBody.angularVelocity += jt * transformVector( i, cross( r, t ) );
-                                }
-                            }
-
-                            // calculate kinetic energy after collision response
-                            // IMPORTANT: verify that we never add energy!
-
-                            const float ke_after = rigidBody.GetKineticEnergy();
-
-                            assert( ke_after <= ke_before + 0.001f );
-                        }
-                    }
+                    rigidBody.position += normal * depth;
+                    colliding = true;
                 }
 
-                // integrate with velocities post collision response
+                // apply linear collision response
 
-                rigidBody.position += rigidBody.linearVelocity * step_dt;
-                quat4f spin = AngularVelocityToSpin( rigidBody.orientation, rigidBody.angularVelocity );
-                rigidBody.orientation += spin * step_dt;
-                rigidBody.orientation = normalize( rigidBody.orientation );
+                if ( colliding )
+                {
+                    vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
+                    ClosestFeaturesStoneBoard( board, biconvex, RigidBodyTransform( rigidBody.position, rigidBody.orientation ), stonePoint, stoneNormal, boardPoint, boardNormal );
 
-                // render stone
+                    const vec3f velocityAtPoint = rigidBody.linearVelocity;
 
-                biconvexTransform = RigidBodyTransform( rigidBody.position, rigidBody.orientation );
+                    const float e = 0.6f;
 
-                glPushMatrix();
+                    const float k = rigidBody.inverseMass;
 
-                float opengl_transform[16];
-                biconvexTransform.localToWorld.store( opengl_transform );
-                glMultMatrixf( opengl_transform );
+                    const float j = max( - ( 1 + e ) * dot( velocityAtPoint, boardNormal ) / k, 0 );
 
-                glEnable( GL_BLEND ); 
-                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-                glLineWidth( 1 );
-                glColor4f( 0.5f,0.5f,0.5f,1 );
-                RenderMesh( mesh );
-
-                glPopMatrix();
+                    rigidBody.linearVelocity += j * rigidBody.inverseMass * boardNormal;
+                }
             }
+            else if ( mode == AngularCollisionResponse || mode == CollisionResponseWithFriction )
+            {
+                // detect collision
+
+                float depth;
+                vec3f point, normal;
+                if ( IntersectStoneBoard( board, biconvex, 
+                                          RigidBodyTransform( rigidBody.position, rigidBody.orientation ), 
+                                          point, normal, depth ) )
+                {
+                    rigidBody.position += normal * depth;
+                    colliding = true;
+                }
+
+                if ( colliding )
+                {
+                    vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
+                    ClosestFeaturesStoneBoard( board, biconvex, RigidBodyTransform( rigidBody.position, rigidBody.orientation ), 
+                                               stonePoint, stoneNormal, boardPoint, boardNormal );
+
+                    vec3f p = stonePoint;
+                    vec3f n = boardNormal;
+
+                    vec3f r = p - rigidBody.position;
+
+                    vec3f vp = rigidBody.linearVelocity + cross( rigidBody.angularVelocity, r );
+
+                    const float vn = dot( vp, n );
+
+                    if ( vn < 0 )
+                    {
+                        // calculate kinetic energy before collision response
+
+                        const float ke_before = rigidBody.GetKineticEnergy();
+
+                        // calculate inverse inertia tensor in world space
+
+                        mat4f rotation;
+                        rigidBody.orientation.toMatrix( rotation );
+                        mat4f transposeRotation = transpose( rotation );
+                        mat4f i = rotation * rigidBody.inverseInertiaTensor * transposeRotation;
+
+                        // apply collision impulse
+
+                        const float e = 0.7f;
+
+                        const float linear_k = rigidBody.inverseMass;
+                        const float angular_k = dot( cross( transformVector( i, cross( r, n ) ), r ), n );
+
+                        const float k = linear_k + angular_k;
+
+                        const float j = - ( 1 + e ) * vn / k;
+
+                        rigidBody.linearVelocity += j * rigidBody.inverseMass * n;
+                        rigidBody.angularVelocity += j * transformVector( i, cross( r, n ) );
+
+                        // apply friction impulse
+
+                        if ( mode == CollisionResponseWithFriction )
+                        {
+                            vec3f tangent_velocity = vp - n * dot( vp, n );
+
+                            if ( length_squared( tangent_velocity ) > 0.0001f * 0.0001f )
+                            {
+                                vec3f t = normalize( tangent_velocity );
+
+                                float u = 0.15f;
+
+                                const float vt = dot( vp, t );
+
+                                const float kt = rigidBody.inverseMass + dot( cross( transformVector( i, cross( r, t ) ), r ), t );
+
+                                const float jt = clamp( -vt / kt, -u * j, u * j );
+
+                                rigidBody.linearVelocity += jt * rigidBody.inverseMass * t;
+                                rigidBody.angularVelocity += jt * transformVector( i, cross( r, t ) );
+                            }
+                        }
+
+                        // calculate kinetic energy after collision response
+                        // IMPORTANT: verify that we never add energy!
+
+                        const float ke_after = rigidBody.GetKineticEnergy();
+
+                        //assert( ke_after <= ke_before + 0.01f );
+                    }
+                }
+            }
+
+            // render stone
+
+            glPushMatrix();
+
+            RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
+            float opengl_transform[16];
+            biconvexTransform.localToWorld.store( opengl_transform );
+            glMultMatrixf( opengl_transform );
+
+            glEnable( GL_BLEND ); 
+            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+            glLineWidth( 1 );
+            glColor4f( 1, 1, 1, 1 );
+            RenderMesh( mesh );
+
+            glPopMatrix();
         }
 
         // update the display
