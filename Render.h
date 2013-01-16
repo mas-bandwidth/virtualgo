@@ -58,7 +58,7 @@ void RenderBoard( const Board & board )
     const float width = board.GetWidth();
     const float height = board.GetHeight();
 
-    const float ideal = 1.0f;
+    const float ideal = 2.5f;       // todo: parameterize this
 
     const int steps_x = (int) ceil( width / ideal ); 
     const int steps_y = (int) ceil( height / ideal );

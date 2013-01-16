@@ -1,29 +1,25 @@
 DONE:
 
-    Plan out talk slides
+    ...
 
 TODO:
 
-    Determine the set of diagrams and demos that remain to be done
+    Implement linear kinematics demo
 
-    Create first passes of the diagrams on pen and paper
+    Implement angular kinematics demo
 
-    Work out what demo sections/visualizations are required
+    Side-by-side demo of linear bouncing with difference elasticities from 0 to 1
 
-    Break up demo visualizations into separate demos that can
-    be run and controlled via keyboard.
+    Side-by-side demo of angular collision response with elasticities 0 -> 1
+
+    Same for friction?!
+
+
+
+
+
 
     ----------------------------------------------
-
-
-
-
-
-
-
-    =============================================================
-
-    Advanced Rendering
 
     Create proper OpenGL vertex buffer / index buffer object 
     using code from cube demo. Should be much faster to render stone
@@ -43,8 +39,6 @@ TODO:
     ----------------------------------------------
 
     Enable anisotropic filtering
-
-    Study the OpenGL shader guide to work out how to do basic shaders
 
     Add a toggle mode to rotate between different camera views
 
@@ -66,15 +60,8 @@ TODO:
 
     --------------------------------------------------------------------
 
-    Determine why the stone jitters at one step.
 
-    What is going on? Where does the jitter come from?
 
-    Why is it reduced with multiple substeps?
-
-    Can I reduce the jitter without multiple substeps?
-
-    --------------------------------------------------------------------
 
 
 

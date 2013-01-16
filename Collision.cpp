@@ -25,6 +25,8 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 {
     rigidBody.position = vec3f( 0, mode > LinearCollisionResponse ? 15.0f : 10.75, 0 );
     rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
+    if ( mode == LinearCollisionResponse )
+        rigidBody.orientation = quat4f(1,0,0,0);
     rigidBody.linearVelocity = vec3f(0,0,0);
     rigidBody.angularVelocity = vec3f(0,0,0);
 }
@@ -44,6 +46,8 @@ int main()
 
     RandomStone( biconvex, rigidBody, mode );
 
+    rigidBody.position = vec3f(0,-10,0);        // hack: for the talk demo don't show anything initially
+    
     Mesh mesh;
     GenerateBiconvexMesh( mesh, biconvex );
 
@@ -89,8 +93,6 @@ int main()
 
     double t = 0.0f;
 
-    bool prevSpace = false;
-    bool prevEnter = false;
     bool quit = false;
 
     srand( time( NULL ) );
@@ -110,13 +112,8 @@ int main()
         if ( input.escape || input.quit )
             quit = true;
 
-        if ( input.space && !prevSpace )
+        if ( input.space  )
             RandomStone( biconvex, rigidBody, mode );
-        prevSpace = input.space;
-
-        if ( input.enter && !prevEnter )
-            rigidBody.linearVelocity += vec3f( -2,0,0 );
-        prevEnter = input.enter;
 
         if ( input.one )
         {
@@ -169,10 +166,10 @@ int main()
 
             // render board
 
-            Board board( 20.0f, 20.0f, 1.0f );
+            Board board( 40.0f, 40.0f, 1.0f );
 
-            glLineWidth( 1 );
-            glColor4f( 0.5f,0.5f,0.5f,1 );
+            glLineWidth( 5 );
+            glColor4f( 0.8f,0.8f,0.8f,1 );
             RenderBoard( board );
 
             // update stone physics
@@ -208,7 +205,7 @@ int main()
 
                     const vec3f velocityAtPoint = rigidBody.linearVelocity;
 
-                    const float e = 0.6f;
+                    const float e = 0.7f;
 
                     const float k = rigidBody.inverseMass;
 

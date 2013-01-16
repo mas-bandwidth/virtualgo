@@ -120,7 +120,7 @@ if not os.is "windows" then
 
     newaction
     {
-        trigger     = "pick",
+        trigger     = "picking",
         description = "Build and run picking demo",
         valid_kinds = premake.action.get("gmake").valid_kinds,
         valid_languages = premake.action.get("gmake").valid_languages,
@@ -135,7 +135,7 @@ if not os.is "windows" then
 
     newaction
     {
-        trigger     = "supp",
+        trigger     = "support",
         description = "Build and run support demo",
         valid_kinds = premake.action.get("gmake").valid_kinds,
         valid_languages = premake.action.get("gmake").valid_languages,
