@@ -17,7 +17,13 @@ TODO:
 
 
 
+    ----------------------------------------------
 
+    Energy is still being added in coulomb friction
+
+    Linear/angular collision response *does not add* friction, it is OK!
+
+    Talk to Erwin about what to do here
 
     ----------------------------------------------
 
