@@ -91,15 +91,20 @@ int main()
     glEnable( GL_CULL_FACE );
     glCullFace( GL_BACK );
 
-    double t = 0.0f;
-
     bool quit = false;
 
     srand( time( NULL ) );
 
-    const float dt = 1.0f / 60.0f;
+    const float normal_dt = 1.0f / 60.0f;
+    const float slowmo_dt = normal_dt * 0.1f;
+
+    float dt = normal_dt;
 
     uint64_t frame = 0;
+
+    bool prevSpace = false;
+    bool prevEnter = false;
+    bool slowmo = false;
 
     while ( !quit )
     {
@@ -112,25 +117,40 @@ int main()
         if ( input.escape || input.quit )
             quit = true;
 
-        if ( input.space  )
-            RandomStone( biconvex, rigidBody, mode );
+        if ( input.space && !prevSpace )
+        {
+            slowmo = !slowmo;
+        }
+        prevSpace = input.space;
+
+        if ( input.enter && !prevEnter )
+        {
+            
+        }
+        prevEnter = input.enter;
 
         if ( input.one )
         {
             mode = LinearCollisionResponse;
             RandomStone( biconvex, rigidBody, mode );
+            dt = normal_dt;
+            slowmo = false;
         }
 
         if ( input.two )
         {
             mode = AngularCollisionResponse;
             RandomStone( biconvex, rigidBody, mode );
+            dt = normal_dt;
+            slowmo = false;
         }
 
         if ( input.three )
         {
             mode = CollisionResponseWithFriction;
             RandomStone( biconvex, rigidBody, mode );
+            dt = normal_dt;
+            slowmo = false;
         }
 
         ClearScreen( displayWidth, displayHeight );
@@ -175,6 +195,10 @@ int main()
             // update stone physics
 
             bool colliding = false;
+
+            const float target_dt = slowmo ? slowmo_dt : normal_dt;
+            const float tightness = ( target_dt < dt ) ? 0.2f : 0.1f;
+            dt += ( target_dt - dt ) * tightness;
 
             const float gravity = 9.8f * 10;    // cms/sec^2
             rigidBody.linearVelocity += vec3f(0,-gravity,0) * dt;
@@ -329,8 +353,6 @@ int main()
         UpdateDisplay( 1 );
 
         // update time
-
-        t += dt;
 
         frame++;
     }
