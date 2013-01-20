@@ -105,6 +105,7 @@ int main()
     bool prevSpace = false;
     bool prevEnter = false;
     bool slowmo = false;
+    bool collidedLastFrame = false;
 
     while ( !quit )
     {
@@ -125,7 +126,11 @@ int main()
 
         if ( input.enter && !prevEnter )
         {
-            
+            if ( collidedLastFrame && mode == CollisionResponseWithFriction )
+            {
+                vec3f direction( random_float(-1,+1), 0, random_float(-1,+1) );
+                rigidBody.linearVelocity += -3 * normalize( direction );
+            }
         }
         prevEnter = input.enter;
 
@@ -329,6 +334,8 @@ int main()
                     }
                 }
             }
+
+            collidedLastFrame = colliding;
 
             // render stone
 
