@@ -300,7 +300,7 @@ int main()
                         rigidBody.angularVelocity += j * transformVector( i, cross( r, n ) );
 
                         const float ke_after_collision = rigidBody.GetKineticEnergy();
-                        assert( ke_after_collision <= ke_before );
+                        assert( ke_after_collision <= ke_before + 0.1f );
 
                         // apply friction impulse
 
@@ -324,10 +324,10 @@ int main()
                                 rigidBody.angularVelocity += jt * transformVector( i, cross( r, t ) );
 
                                 // hack: friction is sometimes adding energy to the system
-                                // need to talk erwin and see what he recommends doing about this!
+                                // need to talk erin and see what he recommends doing about this!
                                 /*
                                 const float ke_after_friction = rigidBody.GetKineticEnergy();
-                                assert( ke_after_friction <= ke_before );
+                                assert( ke_after_friction <= ke_before + 0.1f );
                                 */
                             }
                         }

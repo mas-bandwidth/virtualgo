@@ -71,6 +71,22 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "TODO",
+			"settings":
+			{
+				"buffer_size": 4923,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Biconvex.h",
+			"settings":
+			{
+				"buffer_size": 13248,
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "Packages/Makefile/Make.sublime-build",
 	"command_palette":
@@ -128,14 +144,43 @@
 	},
 	"file_history":
 	[
-		"/Users/gaffer/virtualgo/CHANGES",
-		"/Users/gaffer/virtualgo/TALK",
-		"/Users/gaffer/virtualgo/Config.h",
-		"/Users/gaffer/virtualgo/Platform.h",
-		"/Users/gaffer/virtualgo/TODO",
-		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Core/MeshFactory.h",
-		"/Users/gaffer/virtualgo/Platform.cpp",
+		"/Users/gaffer/virtualgo/premake4.lua",
 		"/Users/gaffer/virtualgo/VirtualGo.cpp",
+		"/Users/gaffer/virtualgo/Collision.cpp",
+		"/Users/gaffer/virtualgo/TODO",
+		"/Users/gaffer/virtualgo/Render.h",
+		"/Users/gaffer/virtualgo/Angular.cpp",
+		"/Users/gaffer/virtualgo/Picking.cpp",
+		"/Users/gaffer/virtualgo/Tessellation.cpp",
+		"/Users/gaffer/virtualgo/DIAGRAMS",
+		"/Users/gaffer/virtualgo/CHANGES",
+		"/Users/gaffer/virtualgo/Support.cpp",
+		"/Users/gaffer/virtualgo/Biconvex.h",
+		"/Users/gaffer/virtualgo/ARTICLES",
+		"/Users/gaffer/virtualgo/Tesselation",
+		"/Users/gaffer/virtualgo/Tesselation.cpp",
+		"/Users/gaffer/virtualgo/TALK",
+		"/Users/gaffer/virtualgo/Common.h",
+		"/Users/gaffer/virtualgo/Mesh.h",
+		"/Users/gaffer/virtualgo/vectorial/simd4f_common.h",
+		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
+		"/Users/gaffer/virtualgo/vectorial/simd4f.h",
+		"/Users/gaffer/virtualgo/Platform.h",
+		"/Users/gaffer/virtualgo/Platform.cpp",
+		"/Users/gaffer/virtualgo/vectorial/simd4f_sse.h",
+		"/Users/gaffer/virtualgo/Config.h",
+		"/Users/gaffer/virtualgo/Stone.h",
+		"/Users/gaffer/virtualgo/UnitTest++/CurrentTest.cpp",
+		"/Users/gaffer/virtualgo/Intersection.h",
+		"/Users/gaffer/virtualgo/Board.h",
+		"/Users/gaffer/virtualgo/Collision.h",
+		"/Users/gaffer/virtualgo/UnitTest.cpp",
+		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Core/MeshFactory.h",
+		"/Users/gaffer/virtualgo/obj/Debug/VirtualGo/Platform.d",
+		"/Users/gaffer/virtualgo/RigidBody.h",
+		"/Users/gaffer/Board.h",
+		"/Users/gaffer/virtualgo/vectorial/mat4f.h",
+		"/Users/gaffer/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
 		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/VirtualGo/VirtualGo.cpp",
 		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Mathematics/Biconvex.h",
 		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Physics/Physics.cpp",
@@ -146,14 +191,10 @@
 		"/Users/gaffer/virtualgo/output.txt",
 		"/Users/gaffer/virtualgo/vectorial/simd4f_neon.h",
 		"/Users/gaffer/virtualgo/UnitTest++/Posix/SignalTranslator.cpp",
-		"/Users/gaffer/virtualgo/premake4.lua",
-		"/Users/gaffer/virtualgo/vectorial/mat4f.h",
 		"/Users/gaffer/virtualgo/vectorial/simd4x4f.h",
 		"/Users/gaffer/bio.txt",
-		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
 		"/Users/gaffer/opengl/OpenGL.cpp",
 		"/Users/gaffer/virtualgo/vectorial/vec4f.h",
-		"/Users/gaffer/virtualgo/obj/Debug/VirtualGo/Platform.d",
 		"/Users/gaffer/virtualgo/build/obj/Debug/CurrentTest.d",
 		"/Users/gaffer/virtualgo/build/obj/Debug/TestRunner.d",
 		"/Users/gaffer/virtualgo/VirtualGo.sublime-project",
@@ -230,32 +271,7 @@
 		"/Users/gaffer/git/network/incoming/mpDefinitions.h",
 		"/Users/gaffer/git/network/test/Data.cpp",
 		"/Users/gaffer/git/network/test/PreBuild.cpp",
-		"/Users/gaffer/git/network/test/UnitTest.cpp",
-		"/Users/gaffer/git/network/ruby/fileWriter.rb",
-		"/Users/gaffer/git/network/include/netTransportLAN.h",
-		"/Users/gaffer/git/network/src/netShortcutData.cpp",
-		"/Users/gaffer/git/network/test/SoakTest.cpp",
-		"/Users/gaffer/git/network/include/netProtocol.h",
-		"/Users/gaffer/git/network/test/TestGameFixture.h",
-		"/Users/gaffer/git/network/src/netProtocol.cpp",
-		"/Users/gaffer/git/network/include/netTypes.h",
-		"/Users/gaffer/git/network/test/TestData.h",
-		"/Users/gaffer/git/network/test/TestEvents.h",
-		"/Users/gaffer/git/network/include/netInterface.h",
-		"/Users/gaffer/git/network/test/untitled",
-		"/Users/gaffer/git/network/test/TestShortcuts.cpp",
-		"/Users/gaffer/git/network/ruby/netMake.rb",
-		"/Users/gaffer/git/network/ruby/enums.rb",
-		"/Users/gaffer/git/network/ruby/constants.rb",
-		"/Users/gaffer/git/network/ruby/scoring.rb",
-		"/Users/gaffer/git/network/ruby/types.rb",
-		"/Users/gaffer/git/network/ruby/variables.rb",
-		"/Users/gaffer/git/network/data/wads/network/GameModes.csv",
-		"/Users/gaffer/git/network/data/wads/network/BaseWads.csv",
-		"/Users/gaffer/git/network/data/wads/network/Levels.json",
-		"/Users/gaffer/git/network/test/TestGameModeData.h",
-		"/Users/gaffer/git/network/test/TestLevelData.h",
-		"/Users/gaffer/git/network/test/TestTokenManager.cpp"
+		"/Users/gaffer/git/network/test/UnitTest.cpp"
 	],
 	"find":
 	{
@@ -293,6 +309,64 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"float t",
+			"dt",
+			"space",
+			"hack:",
+			"0.5",
+			"mode",
+			"LinearCollisionResponse",
+			"RigidBodyTransform",
+			"colliding",
+			"dt",
+			"step_dt",
+			"GL_LIGHTING",
+			"FallingStone",
+			"prevCollision",
+			"StoneAndBoard",
+			"glLineWidth",
+			"prevSpace",
+			"tesselation",
+			"Tesselation",
+			"RenderBic",
+			"247",
+			"printf",
+			"list",
+			"listvectorvec",
+			"list",
+			"2 )",
+			"Quit",
+			"GenerateBiconvex",
+			"t = ",
+			"dt",
+			"DisplayWidth",
+			"CloseDisplay",
+			"bevel",
+			"LIGHTING",
+			"Test",
+			"NearestPointOnStone",
+			"IntersectRayStone",
+			"Intersect_RayStone",
+			"BoardEdges",
+			"BOARD_EDGE",
+			"ClosestFeaturesStoneBoard",
+			"Generate",
+			"GenerateBiconvex",
+			"HACK",
+			"Generate",
+			"GenerateBiconvexMesh",
+			"Generate",
+			"SMOOTH",
+			"GenerateBiconvex",
+			"RenderBiconvex",
+			"axisRotation",
+			"Generate",
+			"rotation",
+			"Generate",
+			"buildList",
+			"cleanup",
+			"scaleAndTranslateSurface",
+			"GenerateBiconvexMesh",
 			"RenderBiconvex",
 			"SMOOTH",
 			"RenderBiconvex",
@@ -362,65 +436,7 @@
 			"RenderBiconvex_Lines",
 			"prevSpace",
 			"scaled",
-			"scaleddt",
-			"e =",
-			"0.0",
-			"PrintMatrix",
-			"QuaternionTo",
-			"angularVelocity",
-			".worldTO",
-			"ApplyImpulse",
-			"LinearCollisionResponse",
-			"clamp",
-			"ApplyImpulse",
-			"GetVelocityAtPoint",
-			"dtscal",
-			"dt",
-			"ApplyImpulse",
-			"inertiaTensor",
-			"Bisect",
-			"ApplyImpulse",
-			"printf",
-			"velocityIntoContact",
-			"const float r =",
-			"float r =",
-			"e =",
-			"printf",
-			"ApplyImpulse",
-			"r =",
-			"GetVelocityAtPoint",
-			"VelocityatPoint",
-			"Bisect",
-			"printf",
-			"TransformPlane",
-			"planeDistance",
-			"Bisect",
-			"Bisection",
-			"prevEnter",
-			"enter",
-			"+=",
-			"Bisect",
-			"IntersectStoneBoard",
-			"stoneRigidBody",
-			"Angula",
-			"struct quat4f",
-			"Spin",
-			".space",
-			"struct RigidBody",
-			"IntersectBoard",
-			"IntersectRayBoard",
-			"IntersectBoard",
-			"IntersectStoneRay",
-			"IntersectBoard",
-			"Intersect",
-			"IntersectBoardRay",
-			"IntersetBoardRay",
-			"Board",
-			"IntersectRayBoard",
-			"Support",
-			"ortho",
-			"Support_",
-			"biconvexUp"
+			"scaleddt"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -444,8 +460,61 @@
 	"groups":
 	[
 		{
+			"selected": 1,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "TODO",
+					"settings":
+					{
+						"buffer_size": 4923,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								23,
+								23
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "Biconvex.h",
+					"settings":
+					{
+						"buffer_size": 13248,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								552,
+								552
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 188.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
 			]
 		}
 	],
@@ -480,6 +549,10 @@
 		]
 	},
 	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 124.0
+	},
 	"replace":
 	{
 		"height": 68.0
@@ -491,12 +564,88 @@
 		"selected_items":
 		[
 			[
+				"biconvex.h",
+				"Biconvex.h"
+			],
+			[
+				"todo",
+				"TODO"
+			],
+			[
+				"premake4.lua",
+				"premake4.lua"
+			],
+			[
 				"virtualgo.cpp",
 				"VirtualGo.cpp"
 			],
 			[
-				"config.h",
-				"Config.h"
+				"collision.cpp",
+				"Collision.cpp"
+			],
+			[
+				"render.h",
+				"Render.h"
+			],
+			[
+				"premake",
+				"premake4.lua"
+			],
+			[
+				"diagrams",
+				"DIAGRAMS"
+			],
+			[
+				"changes",
+				"CHANGES"
+			],
+			[
+				"tesselation.cpp",
+				"Tessellation.cpp"
+			],
+			[
+				"picking.cpp",
+				"Picking.cpp"
+			],
+			[
+				"pre",
+				"premake4.lua"
+			],
+			[
+				"tess",
+				"Tessellation.cpp"
+			],
+			[
+				"dia",
+				"DIAGRAMS"
+			],
+			[
+				"di",
+				"DIAGRAMS"
+			],
+			[
+				"art",
+				"ARTICLES"
+			],
+			[
+				"articles",
+				"ARTICLES"
+			],
+			[
+				"talk",
+				"TALK"
+			],
+			[
+				"common.h",
+				"Common.h"
+			],
+			[
+				"comomn.h",
+				"vectorial/simd4f_common.h"
+			],
+			[
+				"mesh.h",
+				"Mesh.h"
 			],
 			[
 				"platform.cpp",
@@ -507,8 +656,56 @@
 				"Platform.h"
 			],
 			[
-				"todo",
-				"TODO"
+				"simd4f_sse.h",
+				"vectorial/simd4f_sse.h"
+			],
+			[
+				"simd4f.h",
+				"vectorial/simd4f.h"
+			],
+			[
+				"vec3f",
+				"vectorial/vec3f.h"
+			],
+			[
+				"stone.h",
+				"Stone.h"
+			],
+			[
+				"config.h",
+				"Config.h"
+			],
+			[
+				"comm",
+				"Common.h"
+			],
+			[
+				"prem",
+				"premake4.lua"
+			],
+			[
+				"intersection.h",
+				"Intersection.h"
+			],
+			[
+				"unittest.cpp",
+				"UnitTest.cpp"
+			],
+			[
+				"collision.h",
+				"Collision.h"
+			],
+			[
+				"intersect.",
+				"Intersection.h"
+			],
+			[
+				"vec3f.h",
+				"vectorial/vec3f.h"
+			],
+			[
+				"mat4f.h",
+				"vectorial/mat4f.h"
 			],
 			[
 				"",
@@ -517,10 +714,6 @@
 			[
 				"vitualgo.cpp",
 				"VirtualGo.cpp"
-			],
-			[
-				"changes",
-				"CHANGES"
 			],
 			[
 				"output.txt",
@@ -535,24 +728,8 @@
 				"output.txt"
 			],
 			[
-				"pre",
-				"premake4.lua"
-			],
-			[
 				"simd",
 				"vectorial/simd4x4f.h"
-			],
-			[
-				"mat4f.h",
-				"vectorial/mat4f.h"
-			],
-			[
-				"vec3f",
-				"vectorial/vec3f.h"
-			],
-			[
-				"premake",
-				"premake4.lua"
 			],
 			[
 				"vec4f.h",
@@ -575,10 +752,6 @@
 				"vectorial/simd4x4f.h"
 			],
 			[
-				"vec3f.h",
-				"vectorial/vec3f.h"
-			],
-			[
 				"mat4f",
 				"vectorial/mat4f.h"
 			],
@@ -593,14 +766,6 @@
 			[
 				"view.h",
 				"View.h"
-			],
-			[
-				"premake4.lua",
-				"premake4.lua"
-			],
-			[
-				"prem",
-				"premake4.lua"
 			],
 			[
 				"pm",
@@ -741,10 +906,6 @@
 			[
 				"constants.net",
 				"ruby/ndl/Constants.net"
-			],
-			[
-				"unittest.cpp",
-				"test/UnitTest.cpp"
 			],
 			[
 				"prebuildcpp",
@@ -913,94 +1074,6 @@
 			[
 				"enums.net",
 				"ruby/ndl/Enums.net"
-			],
-			[
-				"read",
-				"README"
-			],
-			[
-				"netserialize.h",
-				"include/netSerialize.h"
-			],
-			[
-				"nettablemanager.h",
-				"include/netTableManager.h"
-			],
-			[
-				"netrecorder.h",
-				"include/netRecorder.h"
-			],
-			[
-				"testas",
-				"test/TestAsyncSockets.cpp"
-			],
-			[
-				"nettime.h",
-				"include/netTime.h"
-			],
-			[
-				"netlog.cpp",
-				"src/netLog.cpp"
-			],
-			[
-				"netlog.h",
-				"include/netLog.h"
-			],
-			[
-				"netsem",
-				"include/netSemaphore.h"
-			],
-			[
-				"netsemaphore.cpp",
-				"src/netSemaphore.cpp"
-			],
-			[
-				"testasync.cp",
-				"test/TestAsyncSockets.cpp"
-			],
-			[
-				"netsemaphore.h",
-				"include/netSemaphore.h"
-			],
-			[
-				"netsockets.cpp",
-				"src/netSockets.cpp"
-			],
-			[
-				"netconfig.",
-				"include/netConfig.h"
-			],
-			[
-				"netthread.cpp",
-				"src/netThread.cpp"
-			],
-			[
-				"netthread.h",
-				"include/netThread.h"
-			],
-			[
-				"testasync",
-				"test/TestAsyncSockets.cpp"
-			],
-			[
-				"lannode.cpp",
-				"src/lanNode.cpp"
-			],
-			[
-				"netsockets.h",
-				"include/netSockets.h"
-			],
-			[
-				"lannode.h",
-				"include/lanNode.h"
-			],
-			[
-				"lanmesh.h",
-				"include/lanMesh.h"
-			],
-			[
-				"lanmesh.cpp",
-				"src/lanMesh.cpp"
 			]
 		],
 		"width": 0.0
