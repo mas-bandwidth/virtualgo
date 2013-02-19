@@ -27,8 +27,9 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
     if ( mode == LinearCollisionResponse )
         rigidBody.orientation = quat4f(1,0,0,0);
-    rigidBody.linearVelocity = vec3f(0,0,0);
-    rigidBody.angularVelocity = vec3f(0,0,0);
+    rigidBody.linearMomentum = vec3f(0,0,0);
+    rigidBody.angularMomentum = vec3f(0,0,0);
+    rigidBody.Update();
 }
 
 int main()
@@ -42,7 +43,7 @@ int main()
     RigidBody rigidBody;
     rigidBody.mass = 1.0f;
     rigidBody.inverseMass = 1.0f / rigidBody.mass;
-    CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
+    CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertia, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
 
     RandomStone( biconvex, rigidBody, mode );
 
@@ -206,7 +207,7 @@ int main()
             dt += ( target_dt - dt ) * tightness;
 
             const float gravity = 9.8f * 10;    // cms/sec^2
-            rigidBody.linearVelocity += vec3f(0,-gravity,0) * dt;
+            rigidBody.linearMomentum += vec3f(0,-gravity,0) * rigidBody.mass * dt;
 
             rigidBody.position += rigidBody.linearVelocity * dt;
             quat4f spin = AngularVelocityToSpin( rigidBody.orientation, rigidBody.angularVelocity );
@@ -240,7 +241,7 @@ int main()
 
                     const float j = max( - ( 1 + e ) * dot( velocityAtPoint, boardNormal ) / k, 0 );
 
-                    rigidBody.linearVelocity += j * rigidBody.inverseMass * boardNormal;
+                    rigidBody.linearMomentum += j * boardNormal;
                 }
             }
             else if ( mode == AngularCollisionResponse || mode == CollisionResponseWithFriction )
@@ -276,7 +277,7 @@ int main()
                     {
                         // calculate kinetic energy before collision response
 
-                        const float ke_before = rigidBody.GetKineticEnergy();
+                        const float ke_before_collision = rigidBody.GetKineticEnergy();
 
                         // calculate inverse inertia tensor in world space
 
@@ -296,11 +297,11 @@ int main()
 
                         const float j = - ( 1 + e ) * vn / k;
 
-                        rigidBody.linearVelocity += j * rigidBody.inverseMass * n;
-                        rigidBody.angularVelocity += j * transformVector( i, cross( r, n ) );
+                        rigidBody.linearMomentum += j * n;
+                        rigidBody.angularMomentum += j * cross( r, n );
 
                         const float ke_after_collision = rigidBody.GetKineticEnergy();
-                        assert( ke_after_collision <= ke_before + 0.1f );
+                        assert( ke_after_collision <= ke_before_collision );
 
                         // apply friction impulse
 
@@ -320,20 +321,22 @@ int main()
 
                                 const float jt = clamp( -vt / kt, -u * j, u * j );
 
-                                rigidBody.linearVelocity += jt * rigidBody.inverseMass * t;
-                                rigidBody.angularVelocity += jt * transformVector( i, cross( r, t ) );
+                                rigidBody.linearMomentum += jt * t;
+                                rigidBody.angularMomentum += jt * cross( r, t );
 
-                                // hack: friction is sometimes adding energy to the system
-                                // need to talk erin and see what he recommends doing about this!
-                                /*
                                 const float ke_after_friction = rigidBody.GetKineticEnergy();
-                                assert( ke_after_friction <= ke_before + 0.1f );
-                                */
+                                if ( ke_after_friction > ke_after_collision )
+                                {
+                                    printf( "%f -> %f\n", ke_after_collision, ke_after_friction );
+                                }
+                                //assert( ke_after_friction <= ke_after_collision );
                             }
                         }
                     }
                 }
             }
+
+            rigidBody.Update();
 
             collidedLastFrame = colliding;
 

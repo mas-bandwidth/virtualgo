@@ -4,6 +4,22 @@ DONE:
 
 TODO:
 
+    ----------------------------------------------
+
+    Render the go board with width/height/depth. 
+
+    Render the infinite floor with grid as well
+
+    First collide with the board, then collide with the floor plane second (both push-out)
+
+    Implement test case for side collisions
+
+    Implement test case for corner collisions
+
+    Implement corner and side case for collision
+
+    ----------------------------------------------
+
     Implement linear kinematics demo
 
     Implement angular kinematics demo
@@ -14,6 +30,7 @@ TODO:
 
     Same for friction?!
 
+    ----------------------------------------------
 
 
 

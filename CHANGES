@@ -1,4 +1,19 @@
 
+Switched from linear/angular velocity to momentum (18/2/2013):
+--------------------------------------------------------------
+
+    Previous code was using linear/angular velocity as the primary
+    quantity.
+
+    Switch to using momentum as primary and calculating linear
+    and angular velocity from it as secondary quantities.
+
+    Also fixed an error in the rotational kinetic energy calculation.
+
+    Unfortunately, it still seems that coulomb friction impulse
+    is adding energy to the system :(
+
+
 Work on GDC 2013 talk (14/1/2013):
 ----------------------------------
 

@@ -51,7 +51,7 @@ float CalculateBiconvexVolume( const Biconvex & biconvex )
     return h*h + ( pi * r / 4 + pi * h / 24 );
 }
 
-void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, mat4f & inertiaTensor, mat4f & inverseInertiaTensor )
+void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, vec3f & inertia, mat4f & inertiaTensor, mat4f & inverseInertiaTensor )
 {
     const double resolution = 0.01;
     const double width = biconvex.GetWidth();
@@ -112,26 +112,32 @@ void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, mat4
         const float exact_iy = pi * p * ( 1/480.0f * h3 * ( 3*h2 - 30*h*r + 80*r2 ) );
     }
 
-    const float values[] = { ix,  0,  0, 0, 
-                              0, iy,  0, 0, 
-                              0,  0, iz, 0, 
-                              0,  0,  0, 1 };
-    const float inverseValues[] = { 1/ix,    0,    0, 0, 
-                                       0, 1/iy,    0, 0, 
-                                       0,    0, 1/iz, 0, 
-                                       0,    0,    0, 1 };
-    inertiaTensor.load( values );
-    inverseInertiaTensor.load( inverseValues );
+    const float inertiaValues[] = { ix, iy, iz };
+
+    const float inertiaTensorValues[] = { ix, 0,  0, 0, 
+                                          0, iy,  0, 0, 
+                                          0,  0, iz, 0, 
+                                          0,  0,  0, 1 };
+
+    const float inverseInertiaTensorValues[] = { 1/ix,    0,    0, 0, 
+                                                    0, 1/iy,    0, 0, 
+                                                    0,    0, 1/iz, 0, 
+                                                    0,    0,    0, 1 };
+
+    inertia.load( inertiaValues );
+    inertiaTensor.load( inertiaTensorValues );
+    inverseInertiaTensor.load( inverseInertiaTensorValues );
 }
 
 struct RigidBody
 {
     vec3f position;
     quat4f orientation;
-    vec3f linearVelocity;
-    vec3f angularVelocity;
+    vec3f linearMomentum, angularMomentum;
+    vec3f linearVelocity, angularVelocity;          // IMPORTANT: these are secondary quantities calculated from momentum
     float mass;
     float inverseMass;
+    vec3f inertia;
     mat4f inertiaTensor;
     mat4f inverseInertiaTensor;
 
@@ -139,12 +145,21 @@ struct RigidBody
     {
         position = vec3f(0,0,0);
         orientation = quat4f::identity();
+        linearMomentum = vec3f(0,0,0);
+        angularMomentum = vec3f(0,0,0);
         linearVelocity = vec3f(0,0,0);
         angularVelocity = vec3f(0,0,0);
         mass = 1.0f;
         inverseMass = 1.0f / mass;
+        inertia = vec3f(1,1,1);
         inertiaTensor = mat4f::identity();
         inverseInertiaTensor = mat4f::identity();
+    }
+
+    void Update()
+    {
+        linearVelocity = linearMomentum * inverseMass;
+        angularVelocity = transformVector( inverseInertiaTensor, angularMomentum );
     }
 
     vec3f GetVelocityAtPoint( vec3f point ) const
@@ -154,8 +169,25 @@ struct RigidBody
 
     float GetKineticEnergy() const
     {
-        const float linearKE = 0.5f * mass * length_squared( linearVelocity );
-        const float angularKE = 0.5f * dot( transformVector( inertiaTensor, angularVelocity ), angularVelocity );
+        // IMPORTANT: please refer to http://people.rit.edu/vwlsps/IntermediateMechanics2/Ch9v5.pdf
+        // for the derivation of angular kinetic energy from angular velocity + inertia tensor
+
+        const float linearKE = length_squared( linearMomentum ) / ( 2 * mass );
+
+        vec3f angularVelocity = transformVector( inverseInertiaTensor, angularMomentum );
+
+        const float ix = inertia.x();
+        const float iy = inertia.x();
+        const float iz = inertia.x();
+
+        const float wx = angularVelocity.x();
+        const float wy = angularVelocity.y();
+        const float wz = angularVelocity.z();
+
+        const float angularKE = 0.5f * ( ix * wx * wx + 
+                                         iy * wy * wy +
+                                         iz * wz * wz );
+
         return linearKE + angularKE;
     }
 };
