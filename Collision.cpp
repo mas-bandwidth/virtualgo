@@ -209,6 +209,8 @@ int main()
             const float gravity = 9.8f * 10;    // cms/sec^2
             rigidBody.linearMomentum += vec3f(0,-gravity,0) * rigidBody.mass * dt;
 
+            rigidBody.Update();
+
             rigidBody.position += rigidBody.linearVelocity * dt;
             quat4f spin = AngularVelocityToSpin( rigidBody.orientation, rigidBody.angularVelocity );
             rigidBody.orientation += spin * dt;
@@ -290,10 +292,7 @@ int main()
 
                         const float e = 0.7f;
 
-                        const float linear_k = rigidBody.inverseMass;
-                        const float angular_k = dot( cross( transformVector( i, cross( r, n ) ), r ), n );
-
-                        const float k = linear_k + angular_k;
+                        const float k = rigidBody.inverseMass + dot( cross( transformVector( i, cross( r, n ) ), r ), n );
 
                         const float j = - ( 1 + e ) * vn / k;
 
@@ -309,7 +308,7 @@ int main()
                         {
                             vec3f tangent_velocity = vp - n * dot( vp, n );
 
-                            if ( length_squared( tangent_velocity ) > 0.0001f * 0.0001f )
+                            if ( length_squared( tangent_velocity ) > 0.001f * 0.001f )
                             {
                                 vec3f t = normalize( tangent_velocity );
 

@@ -177,8 +177,8 @@ struct RigidBody
         vec3f angularVelocity = transformVector( inverseInertiaTensor, angularMomentum );
 
         const float ix = inertia.x();
-        const float iy = inertia.x();
-        const float iz = inertia.x();
+        const float iy = inertia.y();
+        const float iz = inertia.z();
 
         const float wx = angularVelocity.x();
         const float wy = angularVelocity.y();
