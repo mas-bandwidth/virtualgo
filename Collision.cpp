@@ -47,7 +47,7 @@ int main()
 
     RandomStone( biconvex, rigidBody, mode );
 
-    rigidBody.position = vec3f(0,-10,0);        // hack: for the talk demo don't show anything initially
+    rigidBody.position = vec3f(0,-10,0);
     
     Mesh mesh;
     GenerateBiconvexMesh( mesh, biconvex );
@@ -290,9 +290,9 @@ int main()
 
                         // apply collision impulse
 
-                        const float e = 0.7f;
+                        const float e = 0;//0.7f;
 
-                        const float k = rigidBody.inverseMass + dot( cross( transformVector( i, cross( r, n ) ), r ), n );
+                        const float k = rigidBody.inverseMass + dot( cross( r, n ), transformVector( i, cross( r, n ) ) );
 
                         const float j = - ( 1 + e ) * vn / k;
 
@@ -316,7 +316,7 @@ int main()
 
                                 const float vt = dot( vp, t );
 
-                                const float kt = rigidBody.inverseMass + dot( cross( transformVector( i, cross( r, t ) ), r ), t );
+                                const float kt = rigidBody.inverseMass + dot( cross( r, t ), transformVector( i, cross( r, t ) ) );
 
                                 const float jt = clamp( -vt / kt, -u * j, u * j );
 
@@ -324,11 +324,11 @@ int main()
                                 rigidBody.angularMomentum += jt * cross( r, t );
 
                                 const float ke_after_friction = rigidBody.GetKineticEnergy();
-                                if ( ke_after_friction > ke_after_collision )
+                                if ( ke_after_friction > ke_before_collision )
                                 {
-                                    printf( "%f -> %f\n", ke_after_collision, ke_after_friction );
+                                    printf( "%f -> %f -> %f\n", ke_before_collision, ke_after_collision, ke_after_friction );
                                 }
-                                //assert( ke_after_friction <= ke_after_collision );
+                                assert( ke_after_friction <= ke_before_collision );
                             }
                         }
                     }

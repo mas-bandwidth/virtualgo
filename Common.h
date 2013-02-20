@@ -263,6 +263,28 @@ inline vec3f TransformVector( mat4f matrix, vec3f normal )
     return transformVector( matrix, normal );
 }
 
+inline mat4f RigidBodyInverse( const mat4f & matrix )
+{
+    /*
+        How to invert a rigid body matrix
+        http://graphics.stanford.edu/courses/cs248-98-fall/Final/q4.html
+    */
+
+    mat4f inverse = matrix;
+    
+    vec4f translation = matrix.value.w;
+
+    inverse.value.w = simd4f_create(0,0,0,1);
+    simd4x4f_transpose_inplace( &inverse.value );
+
+    inverse.value.w = simd4f_create( -dot( matrix.value.x, translation ),
+                                     -dot( matrix.value.y, translation ),
+                                     -dot( matrix.value.z, translation ),
+                                     1.0f );
+
+    return inverse;
+}
+
 inline vec4f TransformPlane( mat4f matrix, vec4f plane )
 {
     // hack: slow version -- original code is commented out. it does not seem to be getting correct w coordinate?!
@@ -274,10 +296,10 @@ inline vec4f TransformPlane( mat4f matrix, vec4f plane )
     d = dot( point, normal );
     return vec4f( normal.x(), normal.y(), normal.z(), d );
 
+    /*
     // IMPORTANT: to transform a plane (nx,ny,nz,d) by a matrix multiply it by the inverse of the transpose
     // http://www.opengl.org/discussion_boards/showthread.php/159564-Clever-way-to-transform-plane-by-matrix
-    /*
-    mat4f m = RigidBodyInverse( transpose( matrix ) );
+    mat4f m = RigidBodyInverse( transpose( matrix ) ) );
     return m * plane;
     */
 }

@@ -197,28 +197,6 @@ inline quat4f AngularVelocityToSpin( const quat4f & orientation, vec3f angularVe
     return 0.5f * quat4f( 0, angularVelocity.x(), angularVelocity.y(), angularVelocity.z() ) * orientation;
 }
 
-inline mat4f RigidBodyInverse( const mat4f & matrix )
-{
-    /*
-        How to invert a rigid body matrix
-        http://graphics.stanford.edu/courses/cs248-98-fall/Final/q4.html
-    */
-
-    mat4f inverse = matrix;
-    
-    vec4f translation = matrix.value.w;
-
-    inverse.value.w = simd4f_create(0,0,0,1);
-    simd4x4f_transpose_inplace( &inverse.value );
-
-    inverse.value.w = simd4f_create( -dot( matrix.value.x, translation ),
-                                     -dot( matrix.value.y, translation ),
-                                     -dot( matrix.value.z, translation ),
-                                     1.0f );
-
-    return inverse;
-}
-
 struct RigidBodyTransform
 {
     mat4f localToWorld;
