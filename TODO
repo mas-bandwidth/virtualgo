@@ -4,6 +4,10 @@ DONE:
 
 TODO:
 
+    Need to add air resistance and rolling friction
+
+
+
     ----------------------------------------------
 
     Render the go board with width/height/depth. 
@@ -33,14 +37,6 @@ TODO:
     ----------------------------------------------
 
 
-
-    ----------------------------------------------
-
-    Energy is still being added in coulomb friction
-
-    Linear/angular collision response *does not add* friction, it is OK!
-
-    Talk to Erwin about what to do here
 
     ----------------------------------------------
 

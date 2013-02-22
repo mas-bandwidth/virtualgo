@@ -28,7 +28,8 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     if ( mode == LinearCollisionResponse )
         rigidBody.orientation = quat4f(1,0,0,0);
     rigidBody.linearMomentum = vec3f(0,0,0);
-    rigidBody.angularMomentum = vec3f(0,0,0);
+    if ( mode != CollisionResponseWithFriction )
+        rigidBody.angularMomentum = vec3f(0,0,0);
     rigidBody.Update();
 }
 
@@ -237,7 +238,7 @@ int main()
 
                     const vec3f velocityAtPoint = rigidBody.linearVelocity;
 
-                    const float e = 0.7f;
+                    const float e = 0.85f;
 
                     const float k = rigidBody.inverseMass;
 
@@ -290,7 +291,7 @@ int main()
 
                         // apply collision impulse
 
-                        const float e = 0;//0.7f;
+                        const float e = 0.85f;
 
                         const float k = rigidBody.inverseMass + dot( cross( r, n ), transformVector( i, cross( r, n ) ) );
 
@@ -300,12 +301,16 @@ int main()
                         rigidBody.angularMomentum += j * cross( r, n );
 
                         const float ke_after_collision = rigidBody.GetKineticEnergy();
-                        assert( ke_after_collision <= ke_before_collision );
+                        assert( ke_after_collision <= ke_before_collision + 0.001f );
 
                         // apply friction impulse
 
                         if ( mode == CollisionResponseWithFriction )
                         {
+                            rigidBody.Update();
+                            
+                            vec3f vp = rigidBody.linearVelocity + cross( rigidBody.angularVelocity, r );
+
                             vec3f tangent_velocity = vp - n * dot( vp, n );
 
                             if ( length_squared( tangent_velocity ) > 0.001f * 0.001f )
@@ -324,11 +329,7 @@ int main()
                                 rigidBody.angularMomentum += jt * cross( r, t );
 
                                 const float ke_after_friction = rigidBody.GetKineticEnergy();
-                                if ( ke_after_friction > ke_before_collision )
-                                {
-                                    printf( "%f -> %f -> %f\n", ke_before_collision, ke_after_collision, ke_after_friction );
-                                }
-                                assert( ke_after_friction <= ke_before_collision );
+                                assert( ke_after_friction <= ke_after_collision + 0.001f );
                             }
                         }
                     }

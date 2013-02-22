@@ -1,4 +1,17 @@
 
+Fixed energy being added by friction impulse (19/2/2013):
+---------------------------------------------------------
+
+    Was calculating tangent impulse based on velocity at point
+    *before* applying normal impulse.
+
+    In some cases this was adding energy to the system.
+
+    Recalculating velocity at a point post-normal impulse and
+    using this in the tangent impulse calculation stopped the
+    energy from being added.
+    
+
 Switched from linear/angular velocity to momentum (18/2/2013):
 --------------------------------------------------------------
 
