@@ -9,7 +9,8 @@
 #include "Platform.h"
 #include "Biconvex.h"
 #include "RigidBody.h"
-#include "Collision.h"
+#include "CollisionDetection.h"
+#include "CollisionResponse.h"
 #include "Intersection.h"
 
 using namespace platform;
@@ -217,123 +218,21 @@ int main()
             rigidBody.orientation += spin * dt;
             rigidBody.orientation = normalize( rigidBody.orientation );
 
-            if ( mode == LinearCollisionResponse )
+
+            // detect collision with the board. if it is colliding project the stone out of the board
+
+            StaticContact contact;
+            if ( StoneBoardCollision( biconvex, board, biconvex.GetWidth() * 0.5f, rigidBody, contact ) )
             {
-                // if object is penetrating with the board, push it out
+                const float e = 0.85f;
+                const float u = 0.15f;
 
-                float depth;
-                vec3f point, normal;
-                if ( IntersectStoneBoard( board, biconvex, RigidBodyTransform( rigidBody.position, rigidBody.orientation ), point, normal, depth ) )
-                {
-                    rigidBody.position += normal * depth;
-                    colliding = true;
-                }
-
-                // apply linear collision response
-
-                if ( colliding )
-                {
-                    vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
-                    ClosestFeaturesStoneBoard( board, biconvex, RigidBodyTransform( rigidBody.position, rigidBody.orientation ), stonePoint, stoneNormal, boardPoint, boardNormal );
-
-                    const vec3f velocityAtPoint = rigidBody.linearVelocity;
-
-                    const float e = 0.85f;
-
-                    const float k = rigidBody.inverseMass;
-
-                    const float j = max( - ( 1 + e ) * dot( velocityAtPoint, boardNormal ) / k, 0 );
-
-                    rigidBody.linearMomentum += j * boardNormal;
-                }
-            }
-            else if ( mode == AngularCollisionResponse || mode == CollisionResponseWithFriction )
-            {
-                // detect collision
-
-                float depth;
-                vec3f point, normal;
-                if ( IntersectStoneBoard( board, biconvex, 
-                                          RigidBodyTransform( rigidBody.position, rigidBody.orientation ), 
-                                          point, normal, depth ) )
-                {
-                    rigidBody.position += normal * depth;
-                    colliding = true;
-                }
-
-                if ( colliding )
-                {
-                    vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
-                    ClosestFeaturesStoneBoard( board, biconvex, RigidBodyTransform( rigidBody.position, rigidBody.orientation ), 
-                                               stonePoint, stoneNormal, boardPoint, boardNormal );
-
-                    vec3f p = stonePoint;
-                    vec3f n = boardNormal;
-
-                    vec3f r = p - rigidBody.position;
-
-                    vec3f vp = rigidBody.linearVelocity + cross( rigidBody.angularVelocity, r );
-
-                    const float vn = dot( vp, n );
-
-                    if ( vn < 0 )
-                    {
-                        // calculate kinetic energy before collision response
-
-                        const float ke_before_collision = rigidBody.GetKineticEnergy();
-
-                        // calculate inverse inertia tensor in world space
-
-                        mat4f rotation;
-                        rigidBody.orientation.toMatrix( rotation );
-                        mat4f transposeRotation = transpose( rotation );
-                        mat4f i = rotation * rigidBody.inverseInertiaTensor * transposeRotation;
-
-                        // apply collision impulse
-
-                        const float e = 0.85f;
-
-                        const float k = rigidBody.inverseMass + dot( cross( r, n ), transformVector( i, cross( r, n ) ) );
-
-                        const float j = - ( 1 + e ) * vn / k;
-
-                        rigidBody.linearMomentum += j * n;
-                        rigidBody.angularMomentum += j * cross( r, n );
-
-                        const float ke_after_collision = rigidBody.GetKineticEnergy();
-                        assert( ke_after_collision <= ke_before_collision + 0.001f );
-
-                        // apply friction impulse
-
-                        if ( mode == CollisionResponseWithFriction )
-                        {
-                            rigidBody.Update();
-                            
-                            vec3f vp = rigidBody.linearVelocity + cross( rigidBody.angularVelocity, r );
-
-                            vec3f tangent_velocity = vp - n * dot( vp, n );
-
-                            if ( length_squared( tangent_velocity ) > 0.001f * 0.001f )
-                            {
-                                vec3f t = normalize( tangent_velocity );
-
-                                float u = 0.15f;
-
-                                const float vt = dot( vp, t );
-
-                                const float kt = rigidBody.inverseMass + dot( cross( r, t ), transformVector( i, cross( r, t ) ) );
-
-                                const float jt = clamp( -vt / kt, -u * j, u * j );
-
-                                rigidBody.linearMomentum += jt * t;
-                                rigidBody.angularMomentum += jt * cross( r, t );
-
-                                const float ke_after_friction = rigidBody.GetKineticEnergy();
-                                assert( ke_after_friction <= ke_after_collision + 0.001f );
-                            }
-                        }
-                    }
-                }
+                if ( mode == LinearCollisionResponse )
+                    ApplyLinearCollisionImpulse( contact, e );
+                else if ( mode == AngularCollisionResponse )
+                    ApplyCollisionImpulseWithFriction( contact, e, 0.0f );
+                else if ( mode == CollisionResponseWithFriction )
+                    ApplyCollisionImpulseWithFriction( contact, e, u );
             }
 
             rigidBody.Update();

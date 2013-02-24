@@ -1,8 +1,8 @@
 #include "Common.h"
 #include "Biconvex.h"
 #include "RigidBody.h"
-#include "Collision.h"
 #include "Intersection.h"
+#include "CollisionDetection.h"
 
 #include "UnitTest++/UnitTest++.h"
 #include "UnitTest++/TestRunner.h"

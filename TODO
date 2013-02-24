@@ -1,26 +1,44 @@
 DONE:
 
-    ...
+    Split out collision response into separate functions
+
+    Update collision demo to use collision response functions
+
+    Simplify collision detection with the board into a function
+    that detects collision, does the projection out of the board
+    and returns a static contact point.
 
 TODO:
 
-    Need to add air resistance and rolling friction
+    Implement collision detection with the floor and do it in
+    the same form, eg. detect collision, perform the projection
+    and return a static contact point.
 
+    Implement a function to render the board including its
+    top and side planes in wireframe (via quads).
 
+    Adjust the board to have thickness and change it from the
+    y=0 plane on the top. Floor should be y = 0, board is above
+
+    Render both floor and board and verify everything is working
+
+    Collide first with the board then with the floor
+
+    Verify everything is working, eg. try a really small board
+
+    Implement side plane cases for collision with board
+
+    Think really hard to see if anything needs to be done for
+    edge and corner cases seperately (eg. push out along normal
+    of edge or point, eg. average of plane normals at point...)
 
     ----------------------------------------------
 
-    Render the go board with width/height/depth. 
+    Add rolling friction
 
-    Render the infinite floor with grid as well
+    Add spinning friction
 
-    First collide with the board, then collide with the floor plane second (both push-out)
-
-    Implement test case for side collisions
-
-    Implement test case for corner collisions
-
-    Implement corner and side case for collision
+    Add air resistance (drag)
 
     ----------------------------------------------
 

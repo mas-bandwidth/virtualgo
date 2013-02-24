@@ -162,8 +162,10 @@ struct RigidBody
         angularVelocity = transformVector( inverseInertiaTensor, angularMomentum );
     }
 
-    vec3f GetVelocityAtPoint( vec3f point ) const
+    vec3f GetVelocityAtWorldPoint( vec3f point ) const
     {
+        // IMPORTANT: angular momentum may have been updated without updating angular velocity
+        vec3f angularVelocity = transformVector( inverseInertiaTensor, angularMomentum );
         return linearVelocity + cross( angularVelocity, point - position );
     }
 
