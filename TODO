@@ -1,36 +1,75 @@
 DONE:
 
-    Split out collision response into separate functions
-
-    Update collision demo to use collision response functions
-
-    Simplify collision detection with the board into a function
-    that detects collision, does the projection out of the board
-    and returns a static contact point.
-
-    Collide first with the board then with the floor
-
-    Implement collision detection with the floor and do it in
-    the same form, eg. detect collision, perform the projection
-    and return a static contact point.
-
-    Adjust the board to have thickness and change it from the
-    y=0 plane on the top. Floor should be y = 0, board is above
-
-    Verify everything is working, eg. try a really small board
 
 TODO:
 
-    Implement a function to render the board including its
-    top and side planes in wireframe (via quads).
-
-    Render both floor and board in wireframe
-
     Implement side plane cases for collision with board
 
-    Think really hard to see if anything needs to be done for
-    edge and corner cases seperately (eg. push out along normal
-    of edge or point, eg. average of plane normals at point...)
+    I think the algorithm is very simple.
+
+    Depending on case test SAT against all possible planes, 
+    eg. primary case, top plane, side case top and side plane,
+    corner case, primary and two side planes.
+
+    Only colliding if overlapping on all planes.
+
+    If colliding either:
+
+    a) Push out in primary plane first, then side etc.
+
+    b) Find the plane with the "least" energy to push out
+       and push out along this.
+
+    Does b) have merit? Which cases would be better?
+
+    Once we push the stone out we need to find contact points
+
+    The contact point function needs to be extended to consider
+    all planes for the region. When considering non-primary cases
+    nearest point on plane needs to be clamped within the bounds
+    of the plane surface. This is very very easy.
+
+    Is it possible to have a non-clamped nearest point on one plane
+    but be clamped on the other. Is this useful for picking the best
+    push out axis?
+
+    Need to add a method for rendering the floor.
+
+    Make the first three collision tests render with the floor,
+    or with a larger board. Small board is just for testing edge
+    cases (literally...)
+
+    The common case is a stone falling from on top of the board onto
+    a side. I think this means generally that preferring to push out
+    of the top plane is the best in most cases. You would not want
+    a stone falling onto the edge to tunnel and then be pushed out
+    to the side.
+
+    However, if you could work out which region the stone was in
+    before collision, you could make an informed choice, eg. prefer
+    to push out along the same side it was on before collision.
+
+    However, side collisions on the board are so rare, this may not
+    be worth the hassle. OHSHIT consider a stone coming to rest on the 
+    side of the board. We *MUST* ensure that it isnt pushed above the
+    board in this case.
+
+    This means that yes, it is almost certain that we need to choose
+    the push axis very intelligently.
+
+    I think we definitely need to consider the previous position when
+    choosing the appropriate axis to push out on.
+
+    In the cases where it is not obvious, eg. edge corner regions,
+    then it is totally OK to bias towards the top primary surface push
+    I think.
+
+    But when the stone is obviously approaching from the side and is
+    already below the stone primary surface, you MUST push out along
+    the side plane not up above the primary plane!
+
+    Could this be represented by energy? eg. if colliding push out
+    along the plane with the smallest penetration?
 
     ----------------------------------------------
 

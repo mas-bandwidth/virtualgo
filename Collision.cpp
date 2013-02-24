@@ -94,6 +94,8 @@ int main()
     glEnable( GL_CULL_FACE );
     glCullFace( GL_BACK );
 
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
     bool quit = false;
 
     srand( time( NULL ) );
@@ -172,13 +174,14 @@ int main()
 
             glLoadIdentity();
 
-            gluLookAt( 0, 5, -25.0f, 
+            gluLookAt( +25, 5, 0,
+                       0, 4, 0,
+                       0, 1, 0 );
+            /*
+            gluLookAt( 0, 5, +25.0f, 
                        0, 4, 0, 
                        0, 1, 0 );
-
-            glEnable( GL_CULL_FACE );
-            glCullFace( GL_BACK );
-            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+                       */
 
             // render board
 
@@ -186,6 +189,7 @@ int main()
 
             glLineWidth( 5 );
             glColor4f( 0.8f,0.8f,0.8f,1 );
+
             RenderBoard( board );
 
             // update stone physics

@@ -1,4 +1,29 @@
 
+Work on collision response with board (24/2/2013):
+--------------------------------------------------
+
+    Split out collision response into separate functions
+
+    Update collision demo to use collision response functions
+
+    Simplify collision detection with the board into a function
+    that detects collision, does the projection out of the board
+    and returns a static contact point.
+
+    Collide first with the board then with the floor
+
+    Implement collision detection with the floor and do it in
+    the same form, eg. detect collision, perform the projection
+    and return a static contact point.
+
+    Adjust the board to have thickness and change it from the
+    y=0 plane on the top. Floor should be y = 0, board is above
+
+    Verify everything is working, eg. try a really small board
+
+    Implement a function to render the board
+
+
 Fixed energy being added by friction impulse (19/2/2013):
 ---------------------------------------------------------
 

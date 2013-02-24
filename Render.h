@@ -57,34 +57,158 @@ void RenderBoard( const Board & board )
 
     const float width = board.GetWidth();
     const float height = board.GetHeight();
+    const float thickness = board.GetThickness();
 
     const float ideal = 2.5f;       // todo: parameterize this
 
-    const int steps_x = (int) ceil( width / ideal ); 
-    const int steps_z = (int) ceil( height / ideal );
-
-    const float dx = width / steps_x;
-    const float dz = height / steps_z;
-
-    const float y = board.GetThickness();
-
-    float x = - width / 2;
-
-    for ( int i = 0; i < steps_x; ++i )
+    // top of board
     {
-        float z = - height / 2;
+        const int steps_x = (int) ceil( width / ideal ); 
+        const int steps_z = (int) ceil( height / ideal );
 
-        for ( int j = 0; j < steps_x; ++j )
+        const float dx = width / steps_x;
+        const float dz = height / steps_z;
+
+        const float y = thickness;
+
+        float x = - width / 2;
+
+        for ( int i = 0; i < steps_x; ++i )
         {
-            glVertex3f( x + dx, y, z );
-            glVertex3f( x + dx, y, z + dz );
-            glVertex3f( x, y, z + dz );
-            glVertex3f( x, y, z );
+            float z = - height / 2;
+
+            for ( int j = 0; j < steps_z; ++j )
+            {
+                glVertex3f( x + dx, y, z );
+                glVertex3f( x + dx, y, z + dz );
+                glVertex3f( x, y, z + dz );
+                glVertex3f( x, y, z );
+
+                z += dz;
+            }
+
+            x += dx;
+        }
+    }
+
+    // front side
+    {
+        const int steps_x = (int) ceil( width / ideal ); 
+        const int steps_y = (int) ceil( thickness / ideal );
+
+        const float dx = width / steps_x;
+        const float dy = thickness / steps_y;
+
+        const float z = - height / 2;
+
+        float x = - width / 2;
+
+        for ( int i = 0; i < steps_x; ++i )
+        {
+            float y = 0;
+
+            for ( int j = 0; j < steps_y; ++j )
+            {
+                glVertex3f( x + dx, y, z );
+                glVertex3f( x + dx, y + dy, z );
+                glVertex3f( x, y + dy, z );
+                glVertex3f( x, y, z );
+
+                y += dy;
+            }
+
+            x += dx;
+        }
+    }
+
+    // back side
+    {
+        const int steps_x = (int) ceil( width / ideal ); 
+        const int steps_y = (int) ceil( thickness / ideal );
+
+        const float dx = width / steps_x;
+        const float dy = -thickness / steps_y;
+
+        const float z = height / 2;
+
+        float x = - width / 2;
+
+        for ( int i = 0; i < steps_x; ++i )
+        {
+            float y = thickness;
+
+            for ( int j = 0; j < steps_y; ++j )
+            {
+                glVertex3f( x + dx, y, z );
+                glVertex3f( x + dx, y + dy, z );
+                glVertex3f( x, y + dy, z );
+                glVertex3f( x, y, z );
+
+                y += dy;
+            }
+
+            x += dx;
+        }
+    }
+
+    // left side
+    {
+        const int steps_z = (int) ceil( width / ideal ); 
+        const int steps_y = (int) ceil( thickness / ideal );
+
+        const float dz = -height / steps_z;
+        const float dy = thickness / steps_y;
+
+        const float x = - width / 2;
+
+        float z = height / 2;
+
+        for ( int i = 0; i < steps_z; ++i )
+        {
+            float y = 0;
+
+            for ( int j = 0; j < steps_y; ++j )
+            {
+                glVertex3f( x, y, z + dz );
+                glVertex3f( x, y + dy, z + dz );
+                glVertex3f( x, y + dy, z );
+                glVertex3f( x, y, z );
+
+                y += dy;
+            }
 
             z += dz;
         }
+    }
 
-        x += dx;
+    // right side
+    {
+        const int steps_z = (int) ceil( width / ideal ); 
+        const int steps_y = (int) ceil( thickness / ideal );
+
+        const float dz = -height / steps_z;
+        const float dy = -thickness / steps_y;
+
+        const float x = width / 2;
+
+        float z = height / 2;
+
+        for ( int i = 0; i < steps_z; ++i )
+        {
+            float y = thickness;
+
+            for ( int j = 0; j < steps_y; ++j )
+            {
+                glVertex3f( x, y, z + dz );
+                glVertex3f( x, y + dy, z + dz );
+                glVertex3f( x, y + dy, z );
+                glVertex3f( x, y, z );
+
+                y += dy;
+            }
+
+            z += dz;
+        }
     }
 
     glEnd();
