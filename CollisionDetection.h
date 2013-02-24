@@ -78,6 +78,8 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
     StoneBoardCollisionType collisionType = DetermineStoneBoardCollisionType( board, biconvexPosition, boundingSphereRadius );
 
+    const float thickness = board.GetThickness();
+
     /*
     if ( collisionType == STONE_BOARD_COLLISION_Primary )
     {
@@ -85,14 +87,13 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         // common case: collision with primary surface of board only
         // no collision with edges or corners of board is possible
 
-        vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,1,0,0) );
+        vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,1,0,thickness) );
 
         vec3f local_stonePoint;
         vec3f local_stoneNormal;
         vec3f local_boardPoint;
 
-        ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), 
-                                                 plane.w(), 
+        ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), plane.w(), 
                                                  biconvex, 
                                                  local_stonePoint,
                                                  local_stoneNormal,

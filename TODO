@@ -14,17 +14,17 @@ DONE:
     the same form, eg. detect collision, perform the projection
     and return a static contact point.
 
-TODO:
-
     Adjust the board to have thickness and change it from the
     y=0 plane on the top. Floor should be y = 0, board is above
+
+    Verify everything is working, eg. try a really small board
+
+TODO:
 
     Implement a function to render the board including its
     top and side planes in wireframe (via quads).
 
-    Render both floor and board and verify everything is working
-
-    Verify everything is working, eg. try a really small board
+    Render both floor and board in wireframe
 
     Implement side plane cases for collision with board
 

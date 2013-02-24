@@ -61,25 +61,27 @@ void RenderBoard( const Board & board )
     const float ideal = 2.5f;       // todo: parameterize this
 
     const int steps_x = (int) ceil( width / ideal ); 
-    const int steps_y = (int) ceil( height / ideal );
+    const int steps_z = (int) ceil( height / ideal );
 
     const float dx = width / steps_x;
-    const float dy = height / steps_y;
+    const float dz = height / steps_z;
+
+    const float y = board.GetThickness();
 
     float x = - width / 2;
 
     for ( int i = 0; i < steps_x; ++i )
     {
-        float y = - height / 2;
+        float z = - height / 2;
 
         for ( int j = 0; j < steps_x; ++j )
         {
-            glVertex3f( x + dx, 0.0f, y );
-            glVertex3f( x + dx, 0.0f, y + dy );
-            glVertex3f( x, 0.0f, y + dy );
-            glVertex3f( x, 0.0f, y );
+            glVertex3f( x + dx, y, z );
+            glVertex3f( x + dx, y, z + dz );
+            glVertex3f( x, y, z + dz );
+            glVertex3f( x, y, z );
 
-            y += dy;
+            z += dz;
         }
 
         x += dx;

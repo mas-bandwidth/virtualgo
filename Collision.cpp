@@ -182,7 +182,7 @@ int main()
 
             // render board
 
-            Board board( 40.0f, 40.0f, 1.0f );
+            Board board( 10.0f, 10.0f, 2.0f );
 
             glLineWidth( 5 );
             glColor4f( 0.8f,0.8f,0.8f,1 );
@@ -220,6 +220,7 @@ int main()
                     ApplyCollisionImpulseWithFriction( boardContact, e, 0.0f );
                 else if ( mode == CollisionResponseWithFriction )
                     ApplyCollisionImpulseWithFriction( boardContact, e, u );
+                rigidBody.Update();
             }
 
             // collision between stone and floor
@@ -233,12 +234,9 @@ int main()
                     ApplyCollisionImpulseWithFriction( floorContact, e, 0.0f );
                 else if ( mode == CollisionResponseWithFriction )
                     ApplyCollisionImpulseWithFriction( floorContact, e, u );
+                rigidBody.Update();
             }
-
-            // update secondary quantities in rigid body, eg. linear velocity, angular velocity
-
-            rigidBody.Update();
-
+    
             // render stone
 
             glPushMatrix();

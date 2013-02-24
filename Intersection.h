@@ -194,8 +194,9 @@ inline StoneBoardCollisionType DetermineStoneBoardCollisionType( const Board & b
 {
     // stone is above board surface by more than the radius
     // of the bounding sphere, no collision is possible!
+    const float thickness = board.GetThickness();
     const float y = position.y();
-    if ( y > radius )
+    if ( y > thickness + radius )
         return STONE_BOARD_COLLISION_None;
 
     // some collision is possible, determine whether we are potentially
@@ -252,13 +253,15 @@ inline bool IntersectStoneBoard( const Board & board,
 
     StoneBoardCollisionType collisionType = DetermineStoneBoardCollisionType( board, biconvexPosition, boundingSphereRadius );
 
+    const float thickness = board.GetThickness();
+
     if ( collisionType == STONE_BOARD_COLLISION_Primary )
     {
         float s1,s2;
         vec3f biconvexUp = biconvexTransform.GetUp();
         vec3f biconvexCenter = biconvexTransform.GetPosition();
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(0,1,0), s1, s2 );
-        return s1 <= 0;
+        return s1 <= thickness;
     }
 
     // todo: other cases
@@ -280,12 +283,14 @@ inline bool IntersectStoneBoard( const Board & board,
 
     StoneBoardCollisionType collisionType = DetermineStoneBoardCollisionType( board, biconvexPosition, boundingSphereRadius );
 
+    const float thickness = board.GetThickness();
+
     if ( collisionType == STONE_BOARD_COLLISION_Primary )
     {
         // common case: collision with primary surface of board only
         // no collision with edges or corners of board is possible
 
-        vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,1,0,0) );
+        vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,1,0,thickness) );
 
         vec3f local_point;
         vec3f local_normal;
