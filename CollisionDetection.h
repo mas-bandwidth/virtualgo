@@ -25,13 +25,11 @@ struct DynamicContact
 
 inline bool StoneBoardCollision( const Biconvex & biconvex,
                                  const Board & board, 
-                                 float stoneBoundRadius,
                                  RigidBody & rigidBody,
                                  StaticContact & contact );
 
 inline bool StoneFloorCollision( const Biconvex & biconvex,
                                  const Board & board, 
-                                 float stoneBoundRadius,
                                  RigidBody & rigidBody,
                                  StaticContact & contact );
 
@@ -119,7 +117,6 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
 bool StoneBoardCollision( const Biconvex & biconvex,
                           const Board & board, 
-                          float stoneBoundRadius,
                           RigidBody & rigidBody,
                           StaticContact & contact )
 {
@@ -151,12 +148,45 @@ bool StoneBoardCollision( const Biconvex & biconvex,
 
 bool StoneFloorCollision( const Biconvex & biconvex,
                           const Board & board, 
-                          float stoneBoundRadius,
                           RigidBody & rigidBody,
                           StaticContact & contact )
 {
-    // todo
-    return false;
+    const float boundingSphereRadius = biconvex.GetBoundingSphereRadius();
+
+    vec3f biconvexPosition = rigidBody.position;
+
+    RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
+
+    float s1,s2;
+    vec3f biconvexUp = biconvexTransform.GetUp();
+    vec3f biconvexCenter = biconvexTransform.GetPosition();
+    BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(0,1,0), s1, s2 );
+    
+    if ( s1 > 0 )
+        return false;
+
+    float depth = -s1;
+
+    rigidBody.position += vec3f(0,depth,0);
+
+    vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,1,0,0) );
+
+    vec3f local_stonePoint;
+    vec3f local_stoneNormal;
+    vec3f local_floorPoint;
+
+    ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), 
+                                             plane.w(), 
+                                             biconvex, 
+                                             local_stonePoint,
+                                             local_stoneNormal,
+                                             local_floorPoint );
+
+    contact.rigidBody = &rigidBody;
+    contact.point = TransformPoint( biconvexTransform.localToWorld, local_floorPoint );
+    contact.normal = vec3f(0,1,0);
+
+    return true;
 }
 
 // -----------------------------------------------------------------------

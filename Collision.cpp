@@ -106,9 +106,7 @@ int main()
     uint64_t frame = 0;
 
     bool prevSpace = false;
-    bool prevEnter = false;
     bool slowmo = false;
-    bool collidedLastFrame = false;
 
     while ( !quit )
     {
@@ -126,16 +124,6 @@ int main()
             slowmo = !slowmo;
         }
         prevSpace = input.space;
-
-        if ( input.enter && !prevEnter )
-        {
-            if ( collidedLastFrame && mode == CollisionResponseWithFriction )
-            {
-                vec3f direction( random_float(-1,+1), 0, random_float(-1,+1) );
-                rigidBody.linearVelocity += -3 * normalize( direction );
-            }
-        }
-        prevEnter = input.enter;
 
         if ( input.one )
         {
@@ -218,26 +206,38 @@ int main()
             rigidBody.orientation += spin * dt;
             rigidBody.orientation = normalize( rigidBody.orientation );
 
+            // collision between stone and board
 
-            // detect collision with the board. if it is colliding project the stone out of the board
+            const float e = 0.85f;
+            const float u = 0.15f;
 
-            StaticContact contact;
-            if ( StoneBoardCollision( biconvex, board, biconvex.GetWidth() * 0.5f, rigidBody, contact ) )
+            StaticContact boardContact;
+            if ( StoneBoardCollision( biconvex, board, rigidBody, boardContact ) )
             {
-                const float e = 0.85f;
-                const float u = 0.15f;
-
                 if ( mode == LinearCollisionResponse )
-                    ApplyLinearCollisionImpulse( contact, e );
+                    ApplyLinearCollisionImpulse( boardContact, e );
                 else if ( mode == AngularCollisionResponse )
-                    ApplyCollisionImpulseWithFriction( contact, e, 0.0f );
+                    ApplyCollisionImpulseWithFriction( boardContact, e, 0.0f );
                 else if ( mode == CollisionResponseWithFriction )
-                    ApplyCollisionImpulseWithFriction( contact, e, u );
+                    ApplyCollisionImpulseWithFriction( boardContact, e, u );
             }
 
-            rigidBody.Update();
+            // collision between stone and floor
 
-            collidedLastFrame = colliding;
+            StaticContact floorContact;
+            if ( StoneFloorCollision( biconvex, board, rigidBody, floorContact ) )
+            {
+                if ( mode == LinearCollisionResponse )
+                    ApplyLinearCollisionImpulse( floorContact, e );
+                else if ( mode == AngularCollisionResponse )
+                    ApplyCollisionImpulseWithFriction( floorContact, e, 0.0f );
+                else if ( mode == CollisionResponseWithFriction )
+                    ApplyCollisionImpulseWithFriction( floorContact, e, u );
+            }
+
+            // update secondary quantities in rigid body, eg. linear velocity, angular velocity
+
+            rigidBody.Update();
 
             // render stone
 

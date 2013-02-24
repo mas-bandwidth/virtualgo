@@ -8,21 +8,21 @@ DONE:
     that detects collision, does the projection out of the board
     and returns a static contact point.
 
-TODO:
+    Collide first with the board then with the floor
 
     Implement collision detection with the floor and do it in
     the same form, eg. detect collision, perform the projection
     and return a static contact point.
 
-    Implement a function to render the board including its
-    top and side planes in wireframe (via quads).
+TODO:
 
     Adjust the board to have thickness and change it from the
     y=0 plane on the top. Floor should be y = 0, board is above
 
-    Render both floor and board and verify everything is working
+    Implement a function to render the board including its
+    top and side planes in wireframe (via quads).
 
-    Collide first with the board then with the floor
+    Render both floor and board and verify everything is working
 
     Verify everything is working, eg. try a really small board
 
