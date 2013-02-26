@@ -21,7 +21,7 @@ SUITE( Intersection )
 
         const float radius = 1.0f;
 
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,1.1f,0), radius ) == STONE_BOARD_COLLISION_None );
+        CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,1.6f,0), radius ) == STONE_BOARD_COLLISION_None );
         CHECK( DetermineStoneBoardCollisionType( board, vec3f(w*2,0,0), radius ) == STONE_BOARD_COLLISION_None );
         CHECK( DetermineStoneBoardCollisionType( board, vec3f(-w*2,0,0), radius ) == STONE_BOARD_COLLISION_None );
         CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,0,h*2), radius ) == STONE_BOARD_COLLISION_None );
@@ -85,7 +85,7 @@ SUITE( Intersection )
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
 
-            CHECK_CLOSE( depth, 0.5f, epsilon );
+            CHECK_CLOSE( depth, 1.0f, epsilon );
             CHECK_CLOSE_VEC3( point, vec3f(0,-0.5f,0), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
@@ -96,7 +96,7 @@ SUITE( Intersection )
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
 
-            CHECK_CLOSE( depth, 0.5f, epsilon );
+            CHECK_CLOSE( depth, 1.0f, epsilon );
             CHECK_CLOSE_VEC3( point, vec3f(w/2,-0.5f,h/2), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
@@ -107,7 +107,7 @@ SUITE( Intersection )
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
 
-            CHECK_CLOSE( depth, 0.5f, epsilon );
+            CHECK_CLOSE( depth, 1.0f, epsilon );
             CHECK_CLOSE_VEC3( point, vec3f(0,-0.5f,0), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
@@ -118,7 +118,7 @@ SUITE( Intersection )
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
 
-            CHECK_CLOSE( depth, 0.5f, epsilon );
+            CHECK_CLOSE( depth, 1.0f, epsilon );
             CHECK_CLOSE_VEC3( point, vec3f(w/2,-0.5f,h/2), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
@@ -129,7 +129,7 @@ SUITE( Intersection )
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
 
-            CHECK_CLOSE( depth, 1, epsilon );
+            CHECK_CLOSE( depth, 1.5f, epsilon );
             CHECK_CLOSE_VEC3( point, vec3f(w/2,-1,h/2), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
@@ -140,7 +140,7 @@ SUITE( Intersection )
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
 
-            CHECK_CLOSE( depth, 1, epsilon );
+            CHECK_CLOSE( depth, 1.5f, epsilon );
             CHECK_CLOSE_VEC3( point, vec3f(w/2,-1,h/2), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
@@ -151,7 +151,7 @@ SUITE( Intersection )
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
 
-            CHECK_CLOSE( depth, 1, epsilon );
+            CHECK_CLOSE( depth, 1.5f, epsilon );
             CHECK_CLOSE_VEC3( point, vec3f(w/2,-1,h/2), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
@@ -162,7 +162,7 @@ SUITE( Intersection )
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
 
-            CHECK_CLOSE( depth, 1, epsilon );
+            CHECK_CLOSE( depth, 1.5f, epsilon );
             CHECK_CLOSE_VEC3( point, vec3f(w/2,-1,h/2), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
