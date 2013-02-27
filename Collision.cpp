@@ -19,7 +19,8 @@ enum Mode
 {
     LinearCollisionResponse,
     AngularCollisionResponse,
-    CollisionResponseWithFriction
+    CollisionResponseWithFriction,
+    CollisionWithBoard
 };
 
 void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
@@ -39,6 +40,8 @@ int main()
     printf( "[virtual go]\n" );
 
     Mode mode = LinearCollisionResponse;
+
+    Board board( 10.0f, 10.0f, 2.0f );
 
     Biconvex biconvex( 2.5f, 1.13f, 0.1f );
 
@@ -151,6 +154,14 @@ int main()
             slowmo = false;
         }
 
+        if ( input.four )
+        {
+            mode = CollisionWithBoard;
+            RandomStone( biconvex, rigidBody, mode );
+            dt = normal_dt;
+            slowmo = false;
+        }
+
         ClearScreen( displayWidth, displayHeight );
 
         if ( frame > 20 )
@@ -183,15 +194,6 @@ int main()
                        0, 1, 0 );
                        */
 
-            // render board
-
-            Board board( 10.0f, 10.0f, 2.0f );
-
-            glLineWidth( 5 );
-            glColor4f( 0.8f,0.8f,0.8f,1 );
-
-            RenderBoard( board );
-
             // update stone physics
 
             bool colliding = false;
@@ -215,16 +217,19 @@ int main()
             const float e = 0.85f;
             const float u = 0.15f;
 
-            StaticContact boardContact;
-            if ( StoneBoardCollision( biconvex, board, rigidBody, boardContact ) )
+            if ( mode >= CollisionWithBoard )
             {
-                if ( mode == LinearCollisionResponse )
-                    ApplyLinearCollisionImpulse( boardContact, e );
-                else if ( mode == AngularCollisionResponse )
-                    ApplyCollisionImpulseWithFriction( boardContact, e, 0.0f );
-                else if ( mode == CollisionResponseWithFriction )
-                    ApplyCollisionImpulseWithFriction( boardContact, e, u );
-                rigidBody.Update();
+                StaticContact boardContact;
+                if ( StoneBoardCollision( biconvex, board, rigidBody, boardContact ) )
+                {
+                    if ( mode == LinearCollisionResponse )
+                        ApplyLinearCollisionImpulse( boardContact, e );
+                    else if ( mode == AngularCollisionResponse )
+                        ApplyCollisionImpulseWithFriction( boardContact, e, 0.0f );
+                    else if ( mode >= CollisionResponseWithFriction )
+                        ApplyCollisionImpulseWithFriction( boardContact, e, u );
+                    rigidBody.Update();
+                }
             }
 
             // collision between stone and floor
@@ -236,11 +241,24 @@ int main()
                     ApplyLinearCollisionImpulse( floorContact, e );
                 else if ( mode == AngularCollisionResponse )
                     ApplyCollisionImpulseWithFriction( floorContact, e, 0.0f );
-                else if ( mode == CollisionResponseWithFriction )
+                else if ( mode >= CollisionResponseWithFriction )
                     ApplyCollisionImpulseWithFriction( floorContact, e, u );
                 rigidBody.Update();
             }
+
+            // render floor
+
+            glLineWidth( 5 );
+            glColor4f( 0.8f,0.8f,0.8f,1 );
+
+            if ( mode < CollisionWithBoard )
+                RenderFloor( 40.0f );    
     
+            // render board
+
+            if ( mode >= CollisionWithBoard )
+                RenderBoard( board );
+
             // render stone
 
             glPushMatrix();
