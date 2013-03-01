@@ -30,7 +30,7 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     if ( mode == LinearCollisionResponse )
         rigidBody.orientation = quat4f(1,0,0,0);
     rigidBody.linearMomentum = vec3f(0,0,0);
-    if ( mode != CollisionResponseWithFriction )
+    if ( mode < CollisionResponseWithFriction )
         rigidBody.angularMomentum = vec3f(0,0,0);
     rigidBody.Update();
 }
@@ -185,14 +185,18 @@ int main()
 
             glLoadIdentity();
 
-            gluLookAt( +25, 5, 0,
-                       0, 4, 0,
-                       0, 1, 0 );
-            /*
-            gluLookAt( 0, 5, +25.0f, 
-                       0, 4, 0, 
-                       0, 1, 0 );
-                       */
+            if ( mode <= CollisionResponseWithFriction )
+            {
+                gluLookAt( +25, 5, 0,
+                           0, 4, 0,
+                           0, 1, 0 );
+            }
+            else
+            {
+                gluLookAt( +30, 5, 0,
+                           0, 4, 0,
+                           0, 1, 0 );
+            }
 
             // update stone physics
 

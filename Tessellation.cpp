@@ -10,8 +10,8 @@
 #include "Platform.h"
 #include "Biconvex.h"
 #include "RigidBody.h"
-#include "Collision.h"
 #include "Intersection.h"
+#include "CollisionDetection.h"
 
 using namespace platform;
 
@@ -70,7 +70,7 @@ int main()
     RigidBody rigidBody;
     rigidBody.mass = 1.0f;
     rigidBody.inverseMass = 1.0f / rigidBody.mass;
-    CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
+    CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertia, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
 
     Mesh mesh;
     

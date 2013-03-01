@@ -9,8 +9,8 @@
 #include "Platform.h"
 #include "Biconvex.h"
 #include "RigidBody.h"
-#include "Collision.h"
 #include "Intersection.h"
+#include "CollisionDetection.h"
 
 using namespace platform;
 
