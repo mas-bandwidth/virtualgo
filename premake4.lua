@@ -26,12 +26,6 @@ project "Collision"
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
-project "Picking"
-    kind "ConsoleApp"
-    files { "*.h", "Picking.cpp", "Platform.cpp" }
-    configuration { "macosx" }
-        links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
-
 project "Support"
     kind "ConsoleApp"
     files { "*.h", "Support.cpp", "Platform.cpp" }

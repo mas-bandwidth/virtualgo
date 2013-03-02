@@ -25,7 +25,7 @@ enum Mode
 
 void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 {
-    rigidBody.position = vec3f( 0, mode > LinearCollisionResponse ? 15.0f : 10.75, 0 );
+    rigidBody.position = vec3f( 0, 15.0f, 0 );
     rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
     if ( mode == LinearCollisionResponse )
         rigidBody.orientation = quat4f(1,0,0,0);
@@ -35,27 +35,39 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     rigidBody.Update();
 }
 
+Stone stone;
+StoneSize size = STONE_SIZE_34;
+Stone stoneSizes[STONE_SIZE_NumValues];
+
+void SelectStoneSize( int newStoneSize )
+{
+    size = (StoneSize) clamp( newStoneSize, 0, STONE_SIZE_NumValues - 1 );
+    stone.biconvex = stoneSizes[size].biconvex;
+    stone.rigidBody.mass = stoneSizes[size].rigidBody.mass;
+    stone.rigidBody.inverseMass = stoneSizes[size].rigidBody.inverseMass;
+    stone.rigidBody.inertia = stoneSizes[size].rigidBody.inertia;
+    stone.rigidBody.inertiaTensor = stoneSizes[size].rigidBody.inertiaTensor;
+    stone.rigidBody.inverseInertiaTensor = stoneSizes[size].rigidBody.inverseInertiaTensor;
+}
+
 int main()
 {
     printf( "[virtual go]\n" );
 
     Mode mode = LinearCollisionResponse;
 
-    Board board( 10.0f, 10.0f, 2.0f );
+    Board board( 10.0f, 10.0f, 1.0f );
 
-    Biconvex biconvex( 2.5f, 1.13f, 0.1f );
+    for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
+        stoneSizes[i].Initialize( (StoneSize)i );
 
-    RigidBody rigidBody;
-    rigidBody.mass = 1.0f;
-    rigidBody.inverseMass = 1.0f / rigidBody.mass;
-    CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertia, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
+    SelectStoneSize( STONE_SIZE_34 );
 
-    RandomStone( biconvex, rigidBody, mode );
-
-    rigidBody.position = vec3f(0,-10,0);
+    RandomStone( stone.biconvex, stone.rigidBody, mode );
     
-    Mesh mesh;
-    GenerateBiconvexMesh( mesh, biconvex );
+    Mesh mesh[STONE_SIZE_NumValues];
+    for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
+        GenerateBiconvexMesh( mesh[i], stoneSizes[i].biconvex );
 
     int displayWidth, displayHeight;
     GetDisplayResolution( displayWidth, displayHeight );
@@ -130,43 +142,53 @@ int main()
         }
         prevSpace = input.space;
 
-        if ( input.one )
+        if ( input.alt )
         {
-            mode = LinearCollisionResponse;
-            RandomStone( biconvex, rigidBody, mode );
-            dt = normal_dt;
-            slowmo = false;
+            if ( input.left )
+                SelectStoneSize( size - 1 );
+            else if ( input.right )
+                SelectStoneSize( size + 1 );
         }
-
-        if ( input.two )
+        else
         {
-            mode = AngularCollisionResponse;
-            RandomStone( biconvex, rigidBody, mode );
-            dt = normal_dt;
-            slowmo = false;
-        }
+            if ( input.one )
+            {
+                mode = LinearCollisionResponse;
+                RandomStone( stone.biconvex, stone.rigidBody, mode );
+                dt = normal_dt;
+                slowmo = false;
+            }
 
-        if ( input.three )
-        {
-            mode = CollisionResponseWithFriction;
-            RandomStone( biconvex, rigidBody, mode );
-            dt = normal_dt;
-            slowmo = false;
-        }
+            if ( input.two )
+            {
+                mode = AngularCollisionResponse;
+                RandomStone( stone.biconvex, stone.rigidBody, mode );
+                dt = normal_dt;
+                slowmo = false;
+            }
 
-        if ( input.four )
-        {
-            mode = CollisionWithBoard;
-            RandomStone( biconvex, rigidBody, mode );
-            dt = normal_dt;
-            slowmo = false;
+            if ( input.three )
+            {
+                mode = CollisionResponseWithFriction;
+                RandomStone( stone.biconvex, stone.rigidBody, mode );
+                dt = normal_dt;
+                slowmo = false;
+            }
+
+            if ( input.four )
+            {
+                mode = CollisionWithBoard;
+                RandomStone( stone.biconvex, stone.rigidBody, mode );
+                dt = normal_dt;
+                slowmo = false;
+            }
         }
 
         ClearScreen( displayWidth, displayHeight );
 
         if ( frame > 20 )
         {
-            const float fov = 25.0f;
+            const float fov = 45.0f;
 
             glMatrixMode( GL_PROJECTION );
 
@@ -187,67 +209,74 @@ int main()
 
             if ( mode <= CollisionResponseWithFriction )
             {
-                gluLookAt( +25, 5, 0,
+                gluLookAt( +20, 5, 0,
                            0, 4, 0,
                            0, 1, 0 );
             }
             else
             {
-                gluLookAt( +30, 5, 0,
+                gluLookAt( +20, 5, 0,
                            0, 4, 0,
                            0, 1, 0 );
             }
 
             // update stone physics
 
-            bool colliding = false;
-
             const float target_dt = slowmo ? slowmo_dt : normal_dt;
             const float tightness = ( target_dt < dt ) ? 0.2f : 0.1f;
             dt += ( target_dt - dt ) * tightness;
 
-            const float gravity = 9.8f * 10;    // cms/sec^2
-            rigidBody.linearMomentum += vec3f(0,-gravity,0) * rigidBody.mass * dt;
+            const int iterations = 20;
 
-            rigidBody.Update();
+            const float iteration_dt = dt / iterations;
 
-            rigidBody.position += rigidBody.linearVelocity * dt;
-            quat4f spin = AngularVelocityToSpin( rigidBody.orientation, rigidBody.angularVelocity );
-            rigidBody.orientation += spin * dt;
-            rigidBody.orientation = normalize( rigidBody.orientation );
-
-            // collision between stone and board
-
-            const float e = 0.85f;
-            const float u = 0.15f;
-
-            if ( mode >= CollisionWithBoard )
+            for ( int i = 0; i < iterations; ++i )
             {
-                StaticContact boardContact;
-                if ( StoneBoardCollision( biconvex, board, rigidBody, boardContact ) )
+                bool colliding = false;
+
+                const float gravity = 9.8f * 10;    // cms/sec^2
+                stone.rigidBody.linearMomentum += vec3f(0,-gravity,0) * stone.rigidBody.mass * iteration_dt;
+
+                stone.rigidBody.Update();
+
+                stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
+                quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
+                stone.rigidBody.orientation += spin * iteration_dt;
+                stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
+
+                // collision between stone and board
+
+                const float e = 0.85f;
+                const float u = 0.15f;
+
+                if ( mode >= CollisionWithBoard )
+                {
+                    StaticContact boardContact;
+                    if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )
+                    {
+                        if ( mode == LinearCollisionResponse )
+                            ApplyLinearCollisionImpulse( boardContact, e );
+                        else if ( mode == AngularCollisionResponse )
+                            ApplyCollisionImpulseWithFriction( boardContact, e, 0.0f );
+                        else if ( mode >= CollisionResponseWithFriction )
+                            ApplyCollisionImpulseWithFriction( boardContact, e, u );
+                        stone.rigidBody.Update();
+                    }
+                }
+
+                // collision between stone and floor
+
+                StaticContact floorContact;
+                if ( StoneFloorCollision( stone.biconvex, board, stone.rigidBody, floorContact ) )
                 {
                     if ( mode == LinearCollisionResponse )
-                        ApplyLinearCollisionImpulse( boardContact, e );
+                        ApplyLinearCollisionImpulse( floorContact, e );
                     else if ( mode == AngularCollisionResponse )
-                        ApplyCollisionImpulseWithFriction( boardContact, e, 0.0f );
+                        ApplyCollisionImpulseWithFriction( floorContact, e, 0.0f );
                     else if ( mode >= CollisionResponseWithFriction )
-                        ApplyCollisionImpulseWithFriction( boardContact, e, u );
-                    rigidBody.Update();
+                        ApplyCollisionImpulseWithFriction( floorContact, e, u );
+                    stone.rigidBody.Update();
                 }
-            }
-
-            // collision between stone and floor
-
-            StaticContact floorContact;
-            if ( StoneFloorCollision( biconvex, board, rigidBody, floorContact ) )
-            {
-                if ( mode == LinearCollisionResponse )
-                    ApplyLinearCollisionImpulse( floorContact, e );
-                else if ( mode == AngularCollisionResponse )
-                    ApplyCollisionImpulseWithFriction( floorContact, e, 0.0f );
-                else if ( mode >= CollisionResponseWithFriction )
-                    ApplyCollisionImpulseWithFriction( floorContact, e, u );
-                rigidBody.Update();
             }
 
             // render floor
@@ -267,7 +296,7 @@ int main()
 
             glPushMatrix();
 
-            RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
+            RigidBodyTransform biconvexTransform( stone.rigidBody.position, stone.rigidBody.orientation );
             float opengl_transform[16];
             biconvexTransform.localToWorld.store( opengl_transform );
             glMultMatrixf( opengl_transform );
@@ -276,7 +305,7 @@ int main()
             glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
             glLineWidth( 1 );
             glColor4f( 1, 1, 1, 1 );
-            RenderMesh( mesh );
+            RenderMesh( mesh[size] );
 
             glPopMatrix();
         }

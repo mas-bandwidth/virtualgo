@@ -56,6 +56,15 @@ inline float max( float v1, float v2 )
     return v1 > v2 ? v1 : v2;
 }
 
+inline int clamp( int v, int min, int max )
+{
+    if ( v > max )
+        return max;
+    if ( v < min )
+        return min;
+    return v;
+}
+
 inline float clamp( float v, float min, float max )
 {
     if ( v > max )

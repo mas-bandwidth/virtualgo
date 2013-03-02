@@ -58,7 +58,7 @@ void RenderFloor( float size )
     const float width = size;
     const float height = size;
 
-    const float ideal = 2.5f;       // todo: parameterize this
+    const float ideal = 2.2f;       // todo: parameterize this
 
     const int steps_x = (int) ceil( width / ideal ); 
     const int steps_z = (int) ceil( height / ideal );

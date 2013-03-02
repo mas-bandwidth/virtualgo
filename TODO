@@ -1,9 +1,27 @@
 DONE:
 
+    Remove the "Picking" demo as it is visually uninteresting
+
+    Can now globally adjust go stone size via alt+left/right
 
 TODO:
 
-    Remove the "Picking" demo as it is visually uninteresting
+    -----------------------------------------------------------------------
+
+    Calculating the inertia tensor is too slow.
+
+    Switch entirely to closed form solution ASAP!!!
+
+    -----------------------------------------------------------------------
+
+    Having to press the specific number to drop a stone is annoying now
+    because your fingers forget what demo you are in
+
+    Need a way to drop a stone in the current demo via a constant key
+
+    Normally this would be space but that is being used for slowmotion
+
+    -----------------------------------------------------------------------
 
     Combine all demos into one application VirtualGo
 
@@ -21,23 +39,35 @@ TODO:
         6. Collision with spinning and rolling friction
         7. Collision with board (edge cases etc...)
         8. Textured stone and board with nice lighting
+        etc...
 
-    It would be really cool to be able to *globally* be able
-    to adjust go stone size from 30 to 40.
+    -----------------------------------------------------------------------
 
-    This could be done via ALT-1, ALT-2 etc. Make sure the default
-    go stone size matches the current one as it moves pretty cool.
+    There will be lots of settings so escape needs to return to a default
 
-    In order to do this, I need to get stone measurements
-    for each size of stone.
+    -----------------------------------------------------------------------
+
+    The board should not be infinite in the linear/angular/friction demo
+    It should be the primary surface case only for the board -- so the
+    stone will fall off the board if it goes outside the bounds.
+
+    -----------------------------------------------------------------------
+
+    Need different camera zooms/angles depending on context -- implement
+    forward/back up/down and rotate angle on left/right with smoothing
+    will provide a very snappy looking way to rotate around the board
+
+    -----------------------------------------------------------------------
 
     Rotating stone should have more rotation about Y axis initially
     as this results in a pretty cool motion of the stone.
 
-    Need to implement rolling and sliding friction because the
-    in
+    -----------------------------------------------------------------------
 
-    ----------------------------------------------------------
+    Need to implement rolling and sliding friction because otherwise the 
+    infinite spinning motion of the stone is a little disturbing
+
+    -----------------------------------------------------------------------
 
     Implement side plane cases for collision with board
 

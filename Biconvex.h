@@ -17,6 +17,11 @@ class Biconvex
 {
 public:
 
+    Biconvex()
+    {
+        memset( this, 0, sizeof( Biconvex ) );
+    }
+
     Biconvex( float _width, float _height, float _bevel = 0 )
     {
         width = _width;
@@ -33,7 +38,7 @@ public:
         boundingSphereRadius = width * 0.5f;
         boundingSphereRadiusSquared = boundingSphereRadius * boundingSphereRadius;
 
-        assert( sphereOffset > 0.0f );
+        assert( sphereOffset >= 0.0f );
         assert( sphereRadius > 0.0f );
 
         const float y = ( bevel/2 + sphereOffset );
