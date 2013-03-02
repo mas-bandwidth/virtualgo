@@ -51,45 +51,6 @@ void GetMousePickRay( int mouse_x, int mouse_y, vec3f & rayStart, vec3f & rayDir
     rayDirection = normalize( ray2 - ray1 );
 }
 
-void RenderFloor( float size )
-{
-    glBegin( GL_QUADS );
-
-    const float width = size;
-    const float height = size;
-
-    const float ideal = 2.2f;       // todo: parameterize this
-
-    const int steps_x = (int) ceil( width / ideal ); 
-    const int steps_z = (int) ceil( height / ideal );
-
-    const float dx = width / steps_x;
-    const float dz = height / steps_z;
-
-    const float y = 0.0f;
-
-    float x = - width / 2;
-
-    for ( int i = 0; i < steps_x; ++i )
-    {
-        float z = - height / 2;
-
-        for ( int j = 0; j < steps_z; ++j )
-        {
-            glVertex3f( x + dx, y, z );
-            glVertex3f( x + dx, y, z + dz );
-            glVertex3f( x, y, z + dz );
-            glVertex3f( x, y, z );
-
-            z += dz;
-        }
-
-        x += dx;
-    }
-
-    glEnd();
-}
-
 void RenderBoard( const Board & board )
 {
     glBegin( GL_QUADS );

@@ -20,7 +20,8 @@ enum Mode
     LinearCollisionResponse,
     AngularCollisionResponse,
     CollisionResponseWithFriction,
-    CollisionWithBoard
+    CollisionWithBoard,
+    NumModes
 };
 
 void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
@@ -56,7 +57,8 @@ int main()
 
     Mode mode = LinearCollisionResponse;
 
-    Board board( 10.0f, 10.0f, 1.0f );
+    Board smallBoard( 14, 14, 1.0f );
+    Board largeBoard( 35, 35, 0 );
 
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
         stoneSizes[i].Initialize( (StoneSize)i );
@@ -123,7 +125,12 @@ int main()
     uint64_t frame = 0;
 
     bool prevSpace = false;
+    bool prevUp = false;
+    bool prevDown = false;
     bool slowmo = false;
+
+    int zoomLevel = 0;
+    const int MaxZoomLevel = 4;
 
     while ( !quit )
     {
@@ -141,6 +148,22 @@ int main()
             slowmo = !slowmo;
         }
         prevSpace = input.space;
+
+        if ( input.up && !prevUp )
+        {
+            zoomLevel --;
+            if ( zoomLevel < 0 )
+                zoomLevel = 0;
+        }
+        prevUp = input.up;
+
+        if ( input.down && !prevDown )
+        {
+            zoomLevel ++;
+            if ( zoomLevel > MaxZoomLevel - 1 )
+                zoomLevel = MaxZoomLevel - 1;
+        }
+        prevDown = input.down;
 
         if ( input.alt )
         {
@@ -188,7 +211,7 @@ int main()
 
         if ( frame > 20 )
         {
-            const float fov = 45.0f;
+            const float fov = 40.0f;
 
             glMatrixMode( GL_PROJECTION );
 
@@ -207,17 +230,29 @@ int main()
 
             glLoadIdentity();
 
-            if ( mode <= CollisionResponseWithFriction )
+            if ( zoomLevel == 0 )
             {
-                gluLookAt( +20, 5, 0,
-                           0, 4, 0,
-                           0, 1, 0 );
+                gluLookAt( 10, 1, 0,
+                            0, 1, 0,
+                            0, 1, 0 );
             }
-            else
+            else if ( zoomLevel == 1 )
             {
-                gluLookAt( +20, 5, 0,
-                           0, 4, 0,
-                           0, 1, 0 );
+                gluLookAt( 20, 5, 0,
+                            0, 2, 0,
+                            0, 1, 0 );
+            }
+            else if ( zoomLevel == 2 )
+            {
+                gluLookAt( 30, 20, 0,
+                            0, 3, 0,
+                            0, 1, 0 );
+            }
+            else if ( zoomLevel == 3 )
+            {
+                gluLookAt(  0, 50, 0,
+                            0, 0, 0,
+                            -1, 0, 0 );
             }
 
             // update stone physics
@@ -249,48 +284,46 @@ int main()
                 const float e = 0.85f;
                 const float u = 0.15f;
 
-                if ( mode >= CollisionWithBoard )
+                Board & board = ( mode >= CollisionWithBoard ) ? smallBoard : largeBoard;
+
+                StaticContact boardContact;
+                if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )
                 {
-                    StaticContact boardContact;
-                    if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )
-                    {
-                        if ( mode == LinearCollisionResponse )
-                            ApplyLinearCollisionImpulse( boardContact, e );
-                        else if ( mode == AngularCollisionResponse )
-                            ApplyCollisionImpulseWithFriction( boardContact, e, 0.0f );
-                        else if ( mode >= CollisionResponseWithFriction )
-                            ApplyCollisionImpulseWithFriction( boardContact, e, u );
-                        stone.rigidBody.Update();
-                    }
+                    if ( mode == LinearCollisionResponse )
+                        ApplyLinearCollisionImpulse( boardContact, e );
+                    else if ( mode == AngularCollisionResponse )
+                        ApplyCollisionImpulseWithFriction( boardContact, e, 0.0f );
+                    else if ( mode >= CollisionResponseWithFriction )
+                        ApplyCollisionImpulseWithFriction( boardContact, e, u );
+                    stone.rigidBody.Update();
                 }
 
                 // collision between stone and floor
 
-                StaticContact floorContact;
-                if ( StoneFloorCollision( stone.biconvex, board, stone.rigidBody, floorContact ) )
+                if ( mode >= CollisionWithBoard )
                 {
-                    if ( mode == LinearCollisionResponse )
-                        ApplyLinearCollisionImpulse( floorContact, e );
-                    else if ( mode == AngularCollisionResponse )
-                        ApplyCollisionImpulseWithFriction( floorContact, e, 0.0f );
-                    else if ( mode >= CollisionResponseWithFriction )
-                        ApplyCollisionImpulseWithFriction( floorContact, e, u );
-                    stone.rigidBody.Update();
+                    StaticContact floorContact;
+                    if ( StoneFloorCollision( stone.biconvex, board, stone.rigidBody, floorContact ) )
+                    {
+                        if ( mode == LinearCollisionResponse )
+                            ApplyLinearCollisionImpulse( floorContact, e );
+                        else if ( mode == AngularCollisionResponse )
+                            ApplyCollisionImpulseWithFriction( floorContact, e, 0.0f );
+                        else if ( mode >= CollisionResponseWithFriction )
+                            ApplyCollisionImpulseWithFriction( floorContact, e, u );
+                        stone.rigidBody.Update();
+                    }
                 }
             }
 
-            // render floor
+            // render board
 
             glLineWidth( 5 );
             glColor4f( 0.8f,0.8f,0.8f,1 );
 
-            if ( mode < CollisionWithBoard )
-                RenderFloor( 40.0f );    
-    
-            // render board
+            Board & board = ( mode >= CollisionWithBoard ) ? smallBoard : largeBoard;
 
-            if ( mode >= CollisionWithBoard )
-                RenderBoard( board );
+            RenderBoard( board );
 
             // render stone
 

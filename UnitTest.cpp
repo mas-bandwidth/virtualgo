@@ -2,6 +2,7 @@
 #include "Biconvex.h"
 #include "RigidBody.h"
 #include "Intersection.h"
+#include "InertiaTensor.h"
 #include "CollisionDetection.h"
 
 #include "UnitTest++/UnitTest++.h"

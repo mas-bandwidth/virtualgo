@@ -3,8 +3,23 @@ DONE:
     Remove the "Picking" demo as it is visually uninteresting
 
     Can now globally adjust go stone size via alt+left/right
+    (this feels unsatisfiying for some reason...)
+
+    Added camera zoom levels driven by up/down 
 
 TODO:
+
+    -----------------------------------------------------------------------
+
+    Make the go board have a center which is the grid point, not the 
+    grid center. Asthetically any go player will find it strange otherwise
+    (I do)
+
+    -----------------------------------------------------------------------
+
+    Would be cool to use left/right to select parts of the board, eg. the
+    edges or the corner, or to maybe rotate the board around so you can
+    look at each corner and side in turn
 
     -----------------------------------------------------------------------
 
@@ -23,39 +38,15 @@ TODO:
 
     -----------------------------------------------------------------------
 
-    Combine all demos into one application VirtualGo
-
-    This makes it easier to demo, switch around and show a progression
-    to people when doing a demo.
-
-    The default should be a black screen -- you have to press a button
-    to make anything happen: 1,2,3 etc...
-
-        1. Tesselation demo
-        2. Support
-        3. Linear collision
-        4. Angular collision (no friction)
-        5. Collision with coulomb friction
-        6. Collision with spinning and rolling friction
-        7. Collision with board (edge cases etc...)
-        8. Textured stone and board with nice lighting
-        etc...
-
-    -----------------------------------------------------------------------
-
     There will be lots of settings so escape needs to return to a default
+
+    Will want quit on alt+f4 anyway during demo escape gets pressed
 
     -----------------------------------------------------------------------
 
     The board should not be infinite in the linear/angular/friction demo
     It should be the primary surface case only for the board -- so the
     stone will fall off the board if it goes outside the bounds.
-
-    -----------------------------------------------------------------------
-
-    Need different camera zooms/angles depending on context -- implement
-    forward/back up/down and rotate angle on left/right with smoothing
-    will provide a very snappy looking way to rotate around the board
 
     -----------------------------------------------------------------------
 

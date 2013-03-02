@@ -3,6 +3,7 @@
 
 #include "Biconvex.h"
 #include "RigidBody.h"
+#include "InertiaTensor.h"
 
 // stone sizes from http://www.kurokigoishi.co.jp/english/seihin/goishi/index.html
 
