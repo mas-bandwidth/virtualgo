@@ -3,6 +3,42 @@ DONE:
 
 TODO:
 
+    Remove the "Picking" demo as it is visually uninteresting
+
+    Combine all demos into one application VirtualGo
+
+    This makes it easier to demo, switch around and show a progression
+    to people when doing a demo.
+
+    The default should be a black screen -- you have to press a button
+    to make anything happen: 1,2,3 etc...
+
+        1. Tesselation demo
+        2. Support
+        3. Linear collision
+        4. Angular collision (no friction)
+        5. Collision with coulomb friction
+        6. Collision with spinning and rolling friction
+        7. Collision with board (edge cases etc...)
+        8. Textured stone and board with nice lighting
+
+    It would be really cool to be able to *globally* be able
+    to adjust go stone size from 30 to 40.
+
+    This could be done via ALT-1, ALT-2 etc. Make sure the default
+    go stone size matches the current one as it moves pretty cool.
+
+    In order to do this, I need to get stone measurements
+    for each size of stone.
+
+    Rotating stone should have more rotation about Y axis initially
+    as this results in a pretty cool motion of the stone.
+
+    Need to implement rolling and sliding friction because the
+    in
+
+    ----------------------------------------------------------
+
     Implement side plane cases for collision with board
 
     I think the algorithm is very simple.

@@ -737,7 +737,7 @@ namespace platform
         CGBeginDisplayConfiguration( &displayConfig );
         CGConfigureDisplayWithDisplayMode( displayConfig, displayId, matchingMode, NULL );
         CGConfigureDisplayFadeEffect( displayConfig, 0.15f, 0.1f, 0.0f, 0.0f, 0.0f );
-        CGCompleteDisplayConfiguration( displayConfig, NULL );
+        CGCompleteDisplayConfiguration( displayConfig, (CGConfigureOption)NULL );
 
 		// initialize fullscreen CGL
 	
