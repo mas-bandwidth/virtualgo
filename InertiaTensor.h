@@ -42,7 +42,7 @@ float CalculateBiconvexVolume( const Biconvex & biconvex )
 
 void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, vec3f & inertia, mat4f & inertiaTensor, mat4f & inverseInertiaTensor )
 {
-    const double resolution = 0.01;
+    const double resolution = 0.1;
     const double width = biconvex.GetWidth();
     const double height = biconvex.GetHeight();
     const double xz_steps = ceil( width / resolution );
@@ -99,6 +99,7 @@ void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, vec3
         const float r3 = r2 * r;
         const float r4 = r3 * r;
         const float exact_iy = pi * p * ( 1/480.0f * h3 * ( 3*h2 - 30*h*r + 80*r2 ) );
+        printf( "exact iy = %f, approx iy = %f\n", exact_iy, iy );
     }
 
     const float inertiaValues[] = { ix, iy, iz };

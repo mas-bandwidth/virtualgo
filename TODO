@@ -3,29 +3,26 @@ DONE:
     Remove the "Picking" demo as it is visually uninteresting
 
     Can now globally adjust go stone size via alt+left/right
-    (this feels unsatisfiying for some reason...)
 
     Added camera zoom levels driven by up/down 
-
-TODO:
-
-    -----------------------------------------------------------------------
 
     Make the go board have a center which is the grid point, not the 
     grid center. Asthetically any go player will find it strange otherwise
     (I do)
 
+    Calculating the inertia tensor is too slow. Worked around with less precision
+
+    Escape now restores defaults. For the moment this is just stone size 34
+
+TODO:
+
     -----------------------------------------------------------------------
 
-    Would be cool to use left/right to select parts of the board, eg. the
-    edges or the corner, or to maybe rotate the board around so you can
-    look at each corner and side in turn
+    Would be nice to be able to adjust stone sizes in the tessellation
+    and the support demos.
 
-    -----------------------------------------------------------------------
-
-    Calculating the inertia tensor is too slow.
-
-    Switch entirely to closed form solution ASAP!!!
+    Perhaps the easiest way to do this would be to merge these demos
+    back into the main VirtualGo.cpp?
 
     -----------------------------------------------------------------------
 
@@ -38,9 +35,22 @@ TODO:
 
     -----------------------------------------------------------------------
 
-    There will be lots of settings so escape needs to return to a default
+    Interpolate the camera transitions. This will require generating UP
+    vector as cross product of right and forward vector.
 
-    Will want quit on alt+f4 anyway during demo escape gets pressed
+    -----------------------------------------------------------------------
+
+    Would be cool to use left/right to select parts of the board, eg. the
+    edges or the corner, or to maybe rotate the board around so you can
+    look at each corner and side in turn
+
+    -----------------------------------------------------------------------
+
+    Really want a way to take an input and filter it so that it repeats
+    after a certain time held down, but I can still do individual presses
+    to select discrete values
+
+    This would be useful for camera changes and go stone size changes
 
     -----------------------------------------------------------------------
 
