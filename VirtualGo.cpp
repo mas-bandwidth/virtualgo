@@ -310,9 +310,8 @@ int main()
                 targetPosition = vec3f(0,t+49,z);
             }
 
-            // todo: interpolate
-            cameraLookAt = targetLookAt;
-            cameraPosition = targetPosition;
+            cameraLookAt += ( targetLookAt - cameraLookAt ) * 0.5f;
+            cameraPosition += ( targetPosition - cameraPosition ) * 0.5f;
 
             vec3f cameraUp = cross( normalize( cameraLookAt - cameraPosition ), vec3f(0,0,1) );
 
