@@ -20,9 +20,6 @@ const int MaxZoomLevel = 4;
 int zoomLevel = 1;
 int viewSelection = 0;
 
-vec3f cameraLookAt;
-vec3f cameraPosition;
-
 enum Mode
 {
     LinearCollisionResponse,
@@ -33,6 +30,10 @@ enum Mode
 };
 
 Mode mode = LinearCollisionResponse;
+
+Mode cameraMode = (Mode) -1;
+vec3f cameraLookAt;
+vec3f cameraPosition;
 
 Board smallBoard( 14, 14, 1.0f );
 Board largeBoard( 35, 35, 0 );
@@ -287,7 +288,10 @@ int main()
             vec3f targetLookAt;
             vec3f targetPosition;
 
-            const float t = board.GetThickness();
+            float t = board.GetThickness();
+
+            if ( mode < CollisionWithBoard && t < 1 )
+                t = 1;
 
             if ( zoomLevel == 0 )
             {
@@ -310,8 +314,18 @@ int main()
                 targetPosition = vec3f(0,t+49,z);
             }
 
-            cameraLookAt += ( targetLookAt - cameraLookAt ) * 0.5f;
-            cameraPosition += ( targetPosition - cameraPosition ) * 0.5f;
+            if ( cameraMode == mode )
+            {
+                cameraLookAt += ( targetLookAt - cameraLookAt ) * 0.5f;
+                cameraPosition += ( targetPosition - cameraPosition ) * 0.5f;
+            }
+            else
+            {
+                cameraLookAt = targetLookAt;
+                cameraPosition = targetPosition;
+            }
+
+            cameraMode = mode;
 
             vec3f cameraUp = cross( normalize( cameraLookAt - cameraPosition ), vec3f(0,0,1) );
 
