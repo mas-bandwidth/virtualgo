@@ -93,8 +93,8 @@ void RenderBoard( const Board & board )
 
     // front side
     {
-        const int steps_x = (int) ceil( width / ideal ); 
-        const int steps_y = (int) ceil( thickness / ideal );
+        const int steps_x = 1;
+        const int steps_y = 1;
 
         const float dx = width / steps_x;
         const float dy = thickness / steps_y;
@@ -123,8 +123,8 @@ void RenderBoard( const Board & board )
 
     // back side
     {
-        const int steps_x = (int) ceil( width / ideal ); 
-        const int steps_y = (int) ceil( thickness / ideal );
+        const int steps_x = 1;
+        const int steps_y = 1;
 
         const float dx = width / steps_x;
         const float dy = -thickness / steps_y;
@@ -153,8 +153,8 @@ void RenderBoard( const Board & board )
 
     // left side
     {
-        const int steps_z = (int) ceil( width / ideal ); 
-        const int steps_y = (int) ceil( thickness / ideal );
+        const int steps_z = 1;
+        const int steps_y = 1;
 
         const float dz = -height / steps_z;
         const float dy = thickness / steps_y;
@@ -183,8 +183,8 @@ void RenderBoard( const Board & board )
 
     // right side
     {
-        const int steps_z = (int) ceil( width / ideal ); 
-        const int steps_y = (int) ceil( thickness / ideal );
+        const int steps_z = 1;
+        const int steps_y = 1;
 
         const float dz = -height / steps_z;
         const float dy = -thickness / steps_y;

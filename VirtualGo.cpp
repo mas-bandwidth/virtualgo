@@ -18,7 +18,11 @@ using namespace platform;
 const int MaxZoomLevel = 4;
 
 int zoomLevel = 1;
-int viewSelection = 0;
+
+const float ScrollSpeed = 10.0f;
+
+float scrollX = 0;
+float scrollZ = 0;
 
 enum Mode
 {
@@ -35,7 +39,9 @@ Mode cameraMode = (Mode) -1;
 vec3f cameraLookAt;
 vec3f cameraPosition;
 
-Board smallBoard( 14, 14, 1.0f );
+const float DefaultBoardThickness = 0.5f;
+
+Board smallBoard( 14, 14, DefaultBoardThickness );
 Board largeBoard( 35, 35, 0 );
 
 Stone stone;
@@ -45,8 +51,9 @@ Stone stoneSizes[STONE_SIZE_NumValues];
 void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 {
     Board & board = ( mode >= CollisionWithBoard ) ? smallBoard : largeBoard;
-    const float z = ( mode >= CollisionWithBoard ) ? ( viewSelection * board.GetHeight() / 2 ) : 0;
-    rigidBody.position = vec3f( 0, 15.0f, z );
+    const float x = scrollX;
+    const float z = scrollZ;
+    rigidBody.position = vec3f( x, 15.0f, z );
     rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
     if ( mode == LinearCollisionResponse )
         rigidBody.orientation = quat4f(1,0,0,0);
@@ -70,6 +77,9 @@ void SelectStoneSize( int newStoneSize )
 void RestoreDefaults()
 {
     SelectStoneSize( STONE_SIZE_34 );
+    smallBoard.SetThickness( DefaultBoardThickness );
+    scrollX = 0;
+    scrollZ = 0;
 }
 
 int main()
@@ -115,15 +125,14 @@ int main()
 
     glShadeModel( GL_SMOOTH );
 
-    GLfloat lightAmbientColor[] = { 0.75, 0.75, 0.75, 1.0 };
+    GLfloat lightAmbientColor[] = { 0.85, 0.85, 0.85, 1.0 };
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
 
-    glLightf( GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.01f );
+    GLfloat lightPosition[] = { 0, 10, -10, 1 };
+    glLightfv( GL_LIGHT0, GL_POSITION, lightPosition );
 
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-    glLineWidth( 4 );
-    glColor4f( 0.5f,0.5f,0.5f,1 );
     glEnable( GL_CULL_FACE );
     glCullFace( GL_BACK );
 
@@ -142,10 +151,8 @@ int main()
 
     bool prevSpace = false;
     bool prevEnter = false;
-    bool prevLeft = false;
-    bool prevRight = false;
-    bool prevUp = false;
-    bool prevDown = false;
+    bool prevCtrlUp = false;
+    bool prevCtrlDown = false;
     bool slowmo = false;
 
     while ( !quit )
@@ -176,49 +183,75 @@ int main()
         }
         prevEnter = input.enter;
 
-        if ( input.up && !prevUp )
-        {
-            zoomLevel --;
-            if ( zoomLevel < 0 )
-                zoomLevel = 0;
-        }
-        prevUp = input.up;
-
-        if ( input.down && !prevDown )
-        {
-            zoomLevel ++;
-            if ( zoomLevel > MaxZoomLevel - 1 )
-                zoomLevel = MaxZoomLevel - 1;
-        }
-        prevDown = input.down;
-
         if ( input.alt )
         {
             if ( input.left )
                 SelectStoneSize( size - 1 );
-            else if ( input.right )
+            
+            if ( input.right )
                 SelectStoneSize( size + 1 );
 
-            prevLeft = false;
-            prevRight = false;
+            if ( input.down )
+            {
+                float thickness = smallBoard.GetThickness();
+                thickness *= 0.75f;
+                if ( thickness < 0.1f )
+                    thickness = 0.1f;
+                smallBoard.SetThickness( thickness );
+            }
+
+            if ( input.up )
+            {
+                float thickness = smallBoard.GetThickness();
+                thickness *= 1.25f;
+                if ( thickness > 10.0f )
+                    thickness = 10.0f;
+                smallBoard.SetThickness( thickness );
+            }
+        }
+        else if ( input.control )
+        {
+            if ( input.up && !prevCtrlUp )
+            {
+                zoomLevel --;
+                if ( zoomLevel < 0 )
+                    zoomLevel = 0;
+            }
+            prevCtrlUp = input.up;
+
+            if ( input.down && !prevCtrlDown )
+            {
+                zoomLevel ++;
+                if ( zoomLevel > MaxZoomLevel - 1 )
+                    zoomLevel = MaxZoomLevel - 1;
+            }
+            prevCtrlDown = input.down;
         }
         else
         {
-            if ( input.left && !prevLeft )
-            {
-                viewSelection--;
-                if ( viewSelection < -1 )
-                    viewSelection = -1;
-            }
-            prevLeft = input.left;
+            float sx = 0;
+            float sz = 0;
 
-            if ( input.right && !prevRight )
+            if ( input.left )
+                sx = 1;
+
+            if ( input.right )
+                sx = -1;
+
+            if ( input.up )
+                sz = -1;
+
+            if ( input.down )
+                sz = 1;
+
+            vec3f scroll(sx,0,sz);
+
+            if ( length_squared( scroll ) > 0 )
             {
-                viewSelection++;
-                if ( viewSelection > 1 )
-                    viewSelection = 1;
+                scroll = normalize( scroll ) * ScrollSpeed * normal_dt;
+                scrollX += scroll.x();
+                scrollZ += scroll.z();
             }
-            prevRight = input.right;
 
             if ( input.one )
             {
@@ -251,10 +284,10 @@ int main()
                 dt = normal_dt;
                 slowmo = false;
             }
-        }
 
-        if ( mode < CollisionWithBoard )
-            viewSelection = 0;
+            prevCtrlUp = false;
+            prevCtrlDown = false;
+        }
 
         ClearScreen( displayWidth, displayHeight );
 
@@ -283,7 +316,8 @@ int main()
 
             Board & board = ( mode >= CollisionWithBoard ) ? smallBoard : largeBoard;
 
-            const float z = ( mode >= CollisionWithBoard ) ? ( viewSelection * board.GetHeight() / 2 ) : 0;
+            const float x = scrollX;
+            const float z = scrollZ;
 
             vec3f targetLookAt;
             vec3f targetPosition;
@@ -295,23 +329,23 @@ int main()
 
             if ( zoomLevel == 0 )
             {
-                targetLookAt = vec3f(0,t,z);
-                targetPosition = vec3f(10,t,z);
+                targetLookAt = vec3f(x,t,z);
+                targetPosition = vec3f(x,t,z+10);
             }
             else if ( zoomLevel == 1 )
             {
-                targetLookAt = vec3f(0,t+1,z);
-                targetPosition = vec3f(20,t+4,z);
+                targetLookAt = vec3f(x,t+1,z);
+                targetPosition = vec3f(x,t+4,z+20);
             }
             else if ( zoomLevel == 2 )
             {
-                targetLookAt = vec3f(0,t+2,z);
-                targetPosition = vec3f(30,t+19,z);
+                targetLookAt = vec3f(x,t+2,z);
+                targetPosition = vec3f(x,t+19,z+30);
             }
             else if ( zoomLevel == 3 )
             {
-                targetLookAt = vec3f(0,t,z);
-                targetPosition = vec3f(0,t+49,z);
+                targetLookAt = vec3f(x,t,z);
+                targetPosition = vec3f(x,t+49,z);
             }
 
             if ( cameraMode == mode )
@@ -327,7 +361,7 @@ int main()
 
             cameraMode = mode;
 
-            vec3f cameraUp = cross( normalize( cameraLookAt - cameraPosition ), vec3f(0,0,1) );
+            vec3f cameraUp = cross( normalize( cameraLookAt - cameraPosition ), vec3f(-1,0,0) );
 
             gluLookAt( cameraPosition.x(), cameraPosition.y(), cameraPosition.z(),
                        cameraLookAt.x(), cameraLookAt.y(), cameraLookAt.z(),

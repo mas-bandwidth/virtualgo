@@ -34,6 +34,11 @@ public:
         return height;
     }
 
+    void SetThickness( float thickness )
+    {
+        this->thickness = thickness;
+    }
+
     float GetThickness() const
     {
         return thickness;
