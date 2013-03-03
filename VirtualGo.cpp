@@ -80,6 +80,7 @@ void RestoreDefaults()
     scrollX = 0;
     scrollY = 0;
     scrollZ = 0;
+    zoomLevel = 1;
 }
 
 int main()
@@ -185,6 +186,13 @@ int main()
             slowmo = false;
         }
         prevEnter = input.enter;
+
+        if ( input.tab )
+        {
+            scrollX += ( stone.rigidBody.position.x() - scrollX ) * 0.075f;
+            scrollY += ( stone.rigidBody.position.y() - scrollY ) * 0.075f;
+            scrollZ += ( stone.rigidBody.position.z() - scrollZ ) * 0.075f;
+        }
 
         if ( input.alt )
         {
@@ -333,23 +341,23 @@ int main()
 
         if ( zoomLevel == 0 )
         {
-            targetLookAt = vec3f(x,y+t,z);
-            targetPosition = vec3f(x,y+t,z+10);
+            targetLookAt = vec3f(x,y,z);
+            targetPosition = vec3f(x,y,z+10);
         }
         else if ( zoomLevel == 1 )
         {
-            targetLookAt = vec3f(x,y+t+1,z);
-            targetPosition = vec3f(x,y+t+4,z+20);
+            targetLookAt = vec3f(x,y+1,z);
+            targetPosition = vec3f(x,y+4,z+20);
         }
         else if ( zoomLevel == 2 )
         {
-            targetLookAt = vec3f(x,y+t+2,z);
-            targetPosition = vec3f(x,y+t+19,z+30);
+            targetLookAt = vec3f(x,y+2,z);
+            targetPosition = vec3f(x,y+19,z+30);
         }
         else if ( zoomLevel == 3 )
         {
-            targetLookAt = vec3f(x,y+t,z);
-            targetPosition = vec3f(x,y+t+49,z);
+            targetLookAt = vec3f(x,y,z);
+            targetPosition = vec3f(x,y+49,z);
         }
 
         if ( cameraMode == mode )

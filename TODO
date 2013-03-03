@@ -1,26 +1,11 @@
 DONE:
 
+    Holding down tab scrolls to focus on the current stone
+
+    If you hold down tab while the stone is moving, the camera 
+    roughly tracks the stone
+
 TODO:
-
-    -----------------------------------------------------------------------
-
-    Need to rethink what the view tilting is supposed to do, it weirds
-    out after a while with enough scrolling in Y
-
-    -----------------------------------------------------------------------
-
-    There should be a button to center the view on the stone
-
-    Holding this button should result in the camera tracking the stone as
-    it moves!
-
-    -----------------------------------------------------------------------
-
-    When the camera is zoomed right into the board and is side on
-    detect this and draw a horizontal line representing the board
-    surface.
-
-    Obviously this only works in wireframe!
 
     -----------------------------------------------------------------------
 
@@ -34,6 +19,14 @@ TODO:
     This would be cool and the fact that it doesn't do this right now
     stands out quite a bit when demoing the dynamic board thickness
     adjustment!
+
+    -----------------------------------------------------------------------
+
+    When the camera is zoomed right into the board and is side on
+    detect this and draw a horizontal line representing the board
+    surface.
+
+    Obviously this only works in wireframe!
 
     -----------------------------------------------------------------------
 
@@ -67,19 +60,13 @@ TODO:
     continuous the rate of expansion should be a function of frames
     the key has been held down.
 
+    Alternatively it could be chosen via ALT-1, ALT-2, ALT-3?
+
     -----------------------------------------------------------------------
 
     Board creation and dimensions should be parameterized, eg. from inputs
     such as width/height of cells. Number of grid points, eg. 9x9 etc, amount
     of buffer on the sides for non-grid surfaces and so on.
-
-    -----------------------------------------------------------------------
-
-    If the camera position is inside or touching the board, it should be
-    pushed up some minimum position above the board, eg. 0.1 above the 
-    board surface.
-
-    This is necessary now that the user can freely scroll the board
 
     -----------------------------------------------------------------------
 
