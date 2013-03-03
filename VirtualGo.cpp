@@ -22,27 +22,27 @@ int zoomLevel = 1;
 const float ScrollSpeed = 10.0f;
 
 float scrollX = 0;
+float scrollY = 0;
 float scrollZ = 0;
 
 enum Mode
 {
+    Nothing,
     LinearCollisionResponse,
     AngularCollisionResponse,
     CollisionResponseWithFriction,
-    CollisionWithBoard,
     NumModes
 };
 
-Mode mode = LinearCollisionResponse;
+Mode mode = Nothing;
 
-Mode cameraMode = (Mode) -1;
+Mode cameraMode = mode;
 vec3f cameraLookAt;
 vec3f cameraPosition;
 
 const float DefaultBoardThickness = 0.5f;
 
-Board smallBoard( 14, 14, DefaultBoardThickness );
-Board largeBoard( 35, 35, 0 );
+Board board( 35, 35, DefaultBoardThickness );
 
 Stone stone;
 StoneSize size = STONE_SIZE_34;
@@ -50,7 +50,6 @@ Stone stoneSizes[STONE_SIZE_NumValues];
 
 void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 {
-    Board & board = ( mode >= CollisionWithBoard ) ? smallBoard : largeBoard;
     const float x = scrollX;
     const float z = scrollZ;
     rigidBody.position = vec3f( x, 15.0f, z );
@@ -77,8 +76,9 @@ void SelectStoneSize( int newStoneSize )
 void RestoreDefaults()
 {
     SelectStoneSize( STONE_SIZE_34 );
-    smallBoard.SetThickness( DefaultBoardThickness );
+    board.SetThickness( DefaultBoardThickness );
     scrollX = 0;
+    scrollY = 0;
     scrollZ = 0;
 }
 
@@ -138,6 +138,9 @@ int main()
 
     glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
+    glEnable( GL_DEPTH_TEST );
+    glDepthFunc( GL_LEQUAL );
+
     bool quit = false;
 
     srand( time( NULL ) );
@@ -193,20 +196,20 @@ int main()
 
             if ( input.down )
             {
-                float thickness = smallBoard.GetThickness();
+                float thickness = board.GetThickness();
                 thickness *= 0.75f;
-                if ( thickness < 0.1f )
-                    thickness = 0.1f;
-                smallBoard.SetThickness( thickness );
+                if ( thickness < 0.5f )
+                    thickness = 0.5f;
+                board.SetThickness( thickness );
             }
 
             if ( input.up )
             {
-                float thickness = smallBoard.GetThickness();
+                float thickness = board.GetThickness();
                 thickness *= 1.25f;
                 if ( thickness > 10.0f )
                     thickness = 10.0f;
-                smallBoard.SetThickness( thickness );
+                board.SetThickness( thickness );
             }
         }
         else if ( input.control )
@@ -230,6 +233,7 @@ int main()
         else
         {
             float sx = 0;
+            float sy = 0;
             float sz = 0;
 
             if ( input.left )
@@ -244,12 +248,19 @@ int main()
             if ( input.down )
                 sz = 1;
 
-            vec3f scroll(sx,0,sz);
+            if ( input.a )
+                sy = 1;
+
+            if ( input.z )
+                sy = -1;
+
+            vec3f scroll(sx,sy,sz);
 
             if ( length_squared( scroll ) > 0 )
             {
                 scroll = normalize( scroll ) * ScrollSpeed * normal_dt;
                 scrollX += scroll.x();
+                scrollY += scroll.y();
                 scrollZ += scroll.z();
             }
 
@@ -277,179 +288,182 @@ int main()
                 slowmo = false;
             }
 
-            if ( input.four )
-            {
-                mode = CollisionWithBoard;
-                RandomStone( stone.biconvex, stone.rigidBody, mode );
-                dt = normal_dt;
-                slowmo = false;
-            }
-
             prevCtrlUp = false;
             prevCtrlDown = false;
         }
 
         ClearScreen( displayWidth, displayHeight );
 
-        if ( frame > 20 )
+        if ( mode == Nothing )
         {
-            const float fov = 40.0f;
-
-            glMatrixMode( GL_PROJECTION );
-
-            glLoadIdentity();
-            
-            float flipX[] = { -1,0,0,0,
-                               0,1,0,0,
-                               0,0,1,0,
-                               0,0,0,1 };
-            
-            glMultMatrixf( flipX );
-
-            gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
-
-            glMatrixMode( GL_MODELVIEW );    
-
-            glLoadIdentity();
-
-            // update camera
-
-            Board & board = ( mode >= CollisionWithBoard ) ? smallBoard : largeBoard;
-
-            const float x = scrollX;
-            const float z = scrollZ;
-
-            vec3f targetLookAt;
-            vec3f targetPosition;
-
-            float t = board.GetThickness();
-
-            if ( mode < CollisionWithBoard && t < 1 )
-                t = 1;
-
-            if ( zoomLevel == 0 )
-            {
-                targetLookAt = vec3f(x,t,z);
-                targetPosition = vec3f(x,t,z+10);
-            }
-            else if ( zoomLevel == 1 )
-            {
-                targetLookAt = vec3f(x,t+1,z);
-                targetPosition = vec3f(x,t+4,z+20);
-            }
-            else if ( zoomLevel == 2 )
-            {
-                targetLookAt = vec3f(x,t+2,z);
-                targetPosition = vec3f(x,t+19,z+30);
-            }
-            else if ( zoomLevel == 3 )
-            {
-                targetLookAt = vec3f(x,t,z);
-                targetPosition = vec3f(x,t+49,z);
-            }
-
-            if ( cameraMode == mode )
-            {
-                cameraLookAt += ( targetLookAt - cameraLookAt ) * 0.5f;
-                cameraPosition += ( targetPosition - cameraPosition ) * 0.5f;
-            }
-            else
-            {
-                cameraLookAt = targetLookAt;
-                cameraPosition = targetPosition;
-            }
-
-            cameraMode = mode;
-
-            vec3f cameraUp = cross( normalize( cameraLookAt - cameraPosition ), vec3f(-1,0,0) );
-
-            gluLookAt( cameraPosition.x(), cameraPosition.y(), cameraPosition.z(),
-                       cameraLookAt.x(), cameraLookAt.y(), cameraLookAt.z(),
-                       cameraUp.x(), cameraUp.y(), cameraUp.z() );
-
-            // update stone physics
-
-            const float target_dt = slowmo ? slowmo_dt : normal_dt;
-            const float tightness = ( target_dt < dt ) ? 0.2f : 0.1f;
-            dt += ( target_dt - dt ) * tightness;
-
-            const int iterations = 20;
-
-            const float iteration_dt = dt / iterations;
-
-            for ( int i = 0; i < iterations; ++i )
-            {
-                bool colliding = false;
-
-                const float gravity = 9.8f * 10;    // cms/sec^2
-                stone.rigidBody.linearMomentum += vec3f(0,-gravity,0) * stone.rigidBody.mass * iteration_dt;
-
-                stone.rigidBody.Update();
-
-                stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
-                quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
-                stone.rigidBody.orientation += spin * iteration_dt;
-                stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
-
-                // collision between stone and board
-
-                const float e = 0.85f;
-                const float u = 0.15f;
-
-                StaticContact boardContact;
-                if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )
-                {
-                    if ( mode == LinearCollisionResponse )
-                        ApplyLinearCollisionImpulse( boardContact, e );
-                    else if ( mode == AngularCollisionResponse )
-                        ApplyCollisionImpulseWithFriction( boardContact, e, 0.0f );
-                    else if ( mode >= CollisionResponseWithFriction )
-                        ApplyCollisionImpulseWithFriction( boardContact, e, u );
-                    stone.rigidBody.Update();
-                }
-
-                // collision between stone and floor
-
-                if ( mode >= CollisionWithBoard )
-                {
-                    StaticContact floorContact;
-                    if ( StoneFloorCollision( stone.biconvex, board, stone.rigidBody, floorContact ) )
-                    {
-                        if ( mode == LinearCollisionResponse )
-                            ApplyLinearCollisionImpulse( floorContact, e );
-                        else if ( mode == AngularCollisionResponse )
-                            ApplyCollisionImpulseWithFriction( floorContact, e, 0.0f );
-                        else if ( mode >= CollisionResponseWithFriction )
-                            ApplyCollisionImpulseWithFriction( floorContact, e, u );
-                        stone.rigidBody.Update();
-                    }
-                }
-            }
-
-            // render board
-
-            glLineWidth( 5 );
-            glColor4f( 0.8f,0.8f,0.8f,1 );
-
-            RenderBoard( board );
-
-            // render stone
-
-            glPushMatrix();
-
-            RigidBodyTransform biconvexTransform( stone.rigidBody.position, stone.rigidBody.orientation );
-            float opengl_transform[16];
-            biconvexTransform.localToWorld.store( opengl_transform );
-            glMultMatrixf( opengl_transform );
-
-            glEnable( GL_BLEND ); 
-            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-            glLineWidth( 1 );
-            glColor4f( 1, 1, 1, 1 );
-            RenderMesh( mesh[size] );
-
-            glPopMatrix();
+            UpdateDisplay( 1 );
+            frame++;
+            continue;
         }
+
+        const float fov = 40.0f;
+
+        glMatrixMode( GL_PROJECTION );
+
+        glLoadIdentity();
+        
+        float flipX[] = { -1,0,0,0,
+                           0,1,0,0,
+                           0,0,1,0,
+                           0,0,0,1 };
+        
+        glMultMatrixf( flipX );
+
+        gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
+
+        glMatrixMode( GL_MODELVIEW );    
+
+        glLoadIdentity();
+
+        // update camera
+
+        const float x = scrollX;
+        const float y = scrollY;
+        const float z = scrollZ;
+
+        vec3f targetLookAt;
+        vec3f targetPosition;
+
+        const float t = board.GetThickness();
+
+        if ( zoomLevel == 0 )
+        {
+            targetLookAt = vec3f(x,y+t,z);
+            targetPosition = vec3f(x,y+t,z+10);
+        }
+        else if ( zoomLevel == 1 )
+        {
+            targetLookAt = vec3f(x,y+t+1,z);
+            targetPosition = vec3f(x,y+t+4,z+20);
+        }
+        else if ( zoomLevel == 2 )
+        {
+            targetLookAt = vec3f(x,y+t+2,z);
+            targetPosition = vec3f(x,y+t+19,z+30);
+        }
+        else if ( zoomLevel == 3 )
+        {
+            targetLookAt = vec3f(x,y+t,z);
+            targetPosition = vec3f(x,y+t+49,z);
+        }
+
+        if ( cameraMode == mode )
+        {
+            cameraLookAt += ( targetLookAt - cameraLookAt ) * 0.25f;
+            cameraPosition += ( targetPosition - cameraPosition ) * 0.25f;
+        }
+        else
+        {
+            cameraLookAt = targetLookAt;
+            cameraPosition = targetPosition;
+        }
+
+        float amountBelow = t - fmax( targetPosition.y(), targetLookAt.y() );
+        if ( amountBelow > 0 )
+            scrollY += amountBelow;
+
+        cameraMode = mode;
+
+        vec3f cameraUp = cross( normalize( cameraLookAt - cameraPosition ), vec3f(-1,0,0) );
+
+        gluLookAt( cameraPosition.x(), max( cameraPosition.y(), t ), cameraPosition.z(),
+                   cameraLookAt.x(), max( cameraLookAt.y(), t ), cameraLookAt.z(),
+                   cameraUp.x(), cameraUp.y(), cameraUp.z() );
+
+        // update stone physics
+
+        const float target_dt = slowmo ? slowmo_dt : normal_dt;
+        const float tightness = ( target_dt < dt ) ? 0.2f : 0.1f;
+        dt += ( target_dt - dt ) * tightness;
+
+        const int iterations = 20;
+
+        const float iteration_dt = dt / iterations;
+
+        for ( int i = 0; i < iterations; ++i )
+        {
+            bool colliding = false;
+
+            const float gravity = 9.8f * 10;    // cms/sec^2
+            stone.rigidBody.linearMomentum += vec3f(0,-gravity,0) * stone.rigidBody.mass * iteration_dt;
+
+            stone.rigidBody.Update();
+
+            stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
+            quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
+            stone.rigidBody.orientation += spin * iteration_dt;
+            stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
+
+            // collision between stone and board
+
+            const float e = 0.85f;
+            const float u = 0.15f;
+
+            StaticContact boardContact;
+            if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )
+            {
+                if ( mode == LinearCollisionResponse )
+                    ApplyLinearCollisionImpulse( boardContact, e );
+                else if ( mode == AngularCollisionResponse )
+                    ApplyCollisionImpulseWithFriction( boardContact, e, 0.0f );
+                else if ( mode >= CollisionResponseWithFriction )
+                    ApplyCollisionImpulseWithFriction( boardContact, e, u );
+                stone.rigidBody.Update();
+            }
+
+            // collision between stone and floor
+
+            StaticContact floorContact;
+            if ( StoneFloorCollision( stone.biconvex, board, stone.rigidBody, floorContact ) )
+            {
+                if ( mode == LinearCollisionResponse )
+                    ApplyLinearCollisionImpulse( floorContact, e );
+                else if ( mode == AngularCollisionResponse )
+                    ApplyCollisionImpulseWithFriction( floorContact, e, 0.0f );
+                else if ( mode >= CollisionResponseWithFriction )
+                    ApplyCollisionImpulseWithFriction( floorContact, e, u );
+                stone.rigidBody.Update();
+            }
+        }
+
+        // render board
+
+        glColor4f( 0,0,0,1 );
+        glDisable( GL_LIGHTING );
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+        RenderBoard( board );
+
+        glLineWidth( 5 );
+        glEnable( GL_LIGHTING );
+        glColor4f( 0.8f,0.8f,0.8f,1 );
+        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        RenderBoard( board );
+
+        // render stone
+
+        glPushMatrix();
+
+        glDepthMask( GL_FALSE );
+
+        RigidBodyTransform biconvexTransform( stone.rigidBody.position, stone.rigidBody.orientation );
+        float opengl_transform[16];
+        biconvexTransform.localToWorld.store( opengl_transform );
+        glMultMatrixf( opengl_transform );
+
+        glEnable( GL_BLEND ); 
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+        glLineWidth( 1 );
+        glColor4f( 1, 1, 1, 1 );
+        RenderMesh( mesh[size] );
+
+        glDepthMask( GL_TRUE );
+
+        glPopMatrix();
 
         // update the display
         

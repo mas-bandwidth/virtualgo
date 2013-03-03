@@ -1,4 +1,58 @@
 
+Lots of work on the GDC 2013 talk demo (2/3/2013):
+--------------------------------------------------
+
+    Remove the "Picking" demo as it is visually uninteresting
+
+    Can now globally adjust go stone size via alt+left/right
+
+    Added camera zoom levels driven by up/down 
+
+    Make the go board have a center which is the grid point, not the 
+    grid center. Asthetically any go player will find it strange otherwise
+    (I do)
+
+    Calculating the inertia tensor is too slow. Worked around with less precision
+
+    Escape now restores defaults. For the moment this is just stone size 34
+
+    Enter now drops a stone in the current mode
+
+    Can now select side views in the board demo. 
+
+    When dropping a stone in side view it drops exactly on the edge
+
+    When switching to non-board views the view selection is reset to center
+
+    Camera movement is now relative to the top of the board so it doesn't
+    need to be adjusted for different height boards
+
+    Can now adjust board height via ALT-UP/DOWN
+
+    Switched zoom should be control-UP/DOWN because I need UP/DOWN for
+    Z selection on the board, eg. ability to select center, sides and corners.
+
+    Adjusted camera and lighting so +Z is forward into the screen when looking
+    down the board side-on. Previously it was hacked up with +X into the screen
+
+    The user can now scroll smoothly along the board with left/right/up/down
+
+    Scrolling feels good now and is no longer limited to the small board
+
+    Added more smoothing for the camera tween and now the view adjustments
+    feel less jarring and acceptable. Still would be nicer for them to be
+    ore analog than discrete, but it is "good enough" for the moment.
+
+    Switch to the large board by default. Small/large board split removed.
+
+    Demo initially does nothing (black screen) until user selects a demo
+
+    Stone is now properly hidden when behind the board
+
+    Can now scroll up/down in Y axis with A/Z. Height is clamped to
+    not go below the top surface of the board.
+
+
 Work on collision response with board (24/2/2013):
 --------------------------------------------------
 

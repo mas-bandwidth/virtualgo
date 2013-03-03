@@ -1,56 +1,77 @@
 DONE:
 
-    Remove the "Picking" demo as it is visually uninteresting
-
-    Can now globally adjust go stone size via alt+left/right
-
-    Added camera zoom levels driven by up/down 
-
-    Make the go board have a center which is the grid point, not the 
-    grid center. Asthetically any go player will find it strange otherwise
-    (I do)
-
-    Calculating the inertia tensor is too slow. Worked around with less precision
-
-    Escape now restores defaults. For the moment this is just stone size 34
-
-    Enter now drops a stone in the current mode
-
-    Can now select side views in the board demo. 
-
-    When dropping a stone in side view it drops exactly on the edge
-
-    When switching to non-board views the view selection is reset to center
-
-    Camera movement is now relative to the top of the board so it doesn't
-    need to be adjusted for different height boards
-
-    Can now adjust board height via ALT-UP/DOWN
-
-    Switched zoom should be control-UP/DOWN because I need UP/DOWN for
-    Z selection on the board, eg. ability to select center, sides and corners.
-
-    Adjusted camera and lighting so +Z is forward into the screen when looking
-    down the board side-on. Previously it was hacked up with +X into the screen
-
-    The user can now scroll smoothly along the board with left/right/up/down
-
-    Scrolling feels good now and is no longer limited to the small board
-
 TODO:
 
     -----------------------------------------------------------------------
 
-    The adjustment of the camera zoom is too abrupt and not appropriate
-    to the aesthetics of go. It should be smooth, with probably means I
-    have to define a continuous function that can be moved along t in [0,1]
+    Need to rethink what the view tilting is supposed to do, it weirds
+    out after a while with enough scrolling in Y
 
     -----------------------------------------------------------------------
 
-    I want to be able to adjust the camera up/down (y) in a scroll like fashion
-    This will allow me to zoom the camera from top-down for example -- and I 
-    could even drive this such that the height that the go stone is dropped
-    from is a function of my camera height.
+    There should be a button to center the view on the stone
+
+    Holding this button should result in the camera tracking the stone as
+    it moves!
+
+    -----------------------------------------------------------------------
+
+    When the camera is zoomed right into the board and is side on
+    detect this and draw a horizontal line representing the board
+    surface.
+
+    Obviously this only works in wireframe!
+
+    -----------------------------------------------------------------------
+
+    If a go stone is inside the board at the beginning of the frame
+    it should be pushed out via a spring impulse proportional to the
+    amount of penetration (hookes' law)
+
+    This would make it so that when I expand the size of the go board
+    the stone would be launched upwards in a cool trampoline effect
+
+    This would be cool and the fact that it doesn't do this right now
+    stands out quite a bit when demoing the dynamic board thickness
+    adjustment!
+
+    -----------------------------------------------------------------------
+
+    Re-incorporate the tesselation and support demos into the VirtualGo.cpp
+
+    This would allow me to use global controls like adjusting the size of
+    the go stone during tesselation and support demos (If I wish...)
+
+    -----------------------------------------------------------------------
+
+    Why is there a brief flicker of brighter lighting for the first few
+    frames? Is the camera or lighting not being set properly?
+
+    -----------------------------------------------------------------------
+
+    Adjusting the go stone size changes the lighting on the board
+
+    Something is wrong!
+
+    -----------------------------------------------------------------------
+
+    Board should be adjusted such that it matches the actual dimensions
+    both in x and z, eg. that it is lightly longer than it is wide
+    due to perspective.
+
+    -----------------------------------------------------------------------
+
+    Board should be adjustable from a 9x9 to 13x13 and 19x19 on the fly
+
+    The adjustment of board size should feel nice but since it is not
+    continuous the rate of expansion should be a function of frames
+    the key has been held down.
+
+    -----------------------------------------------------------------------
+
+    Board creation and dimensions should be parameterized, eg. from inputs
+    such as width/height of cells. Number of grid points, eg. 9x9 etc, amount
+    of buffer on the sides for non-grid surfaces and so on.
 
     -----------------------------------------------------------------------
 
@@ -62,33 +83,21 @@ TODO:
 
     -----------------------------------------------------------------------
 
-    Why is there a brief flicker of brighter lighting for the first few
-    frames? Is the camera not being set properly?
-
-    -----------------------------------------------------------------------
-
-    Demo should initially show nothing because I don't want to have anything
-    happen when I relaunch the demo mid-presentation, eg. don't want to see
-    a linear stone drop or whatever is first demo each time launching.
-
-    -----------------------------------------------------------------------
-
     It would be nice if random stone would not randomize after the first
     time it was called, eg. I could hold down the button and have the 
     randomized stone hold in the air until I release the button.
 
     -----------------------------------------------------------------------
 
-    Would be nice to be able to adjust stone sizes in the tessellation
-    and the support demos.
-
-    Perhaps the easiest way to do this would be to merge these demos
-    back into the main VirtualGo.cpp?
+    Would be cool to be able to have a button to press that removes the 
+    linear and angular momentum of a stone, or at least, clamps it to
+    some small amount, this will help in cases where I want to make a
+    stone come to rest on the board
 
     -----------------------------------------------------------------------
 
-    Rotating stone should have more rotation about Y axis initially
-    as this results in a pretty cool motion of the stone.
+    Would be nice to have a button to launch a stone in a spinning
+    configuration just a small height above the board
 
     -----------------------------------------------------------------------
 
