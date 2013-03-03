@@ -138,9 +138,6 @@ int main()
     GLfloat lightAmbientColor[] = { 0.85, 0.85, 0.85, 1.0 };
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
 
-    GLfloat lightPosition[] = { 0, 10, -10, 1 };
-    glLightfv( GL_LIGHT0, GL_POSITION, lightPosition );
-
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     glEnable( GL_CULL_FACE );
@@ -317,6 +314,13 @@ int main()
             frame++;
             continue;
         }
+
+        // setup lights
+
+        GLfloat lightPosition[] = { -100, 1000, -100, 1 };
+        glLightfv( GL_LIGHT0, GL_POSITION, lightPosition );
+
+        // setup projection + modelsview
 
         const float fov = 40.0f;
 

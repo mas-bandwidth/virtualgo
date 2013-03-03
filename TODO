@@ -5,18 +5,9 @@ DONE:
     If you hold down tab while the stone is moving, the camera 
     roughly tracks the stone
 
+    Fixed the lighting
+
 TODO:
-
-    -----------------------------------------------------------------------
-
-    Why is there a brief flicker of brighter lighting for the first few
-    frames? Is the camera or lighting not being set properly?
-
-    -----------------------------------------------------------------------
-
-    Adjusting the go stone size changes the lighting on the board
-
-    Something is wrong!
 
     -----------------------------------------------------------------------
 
