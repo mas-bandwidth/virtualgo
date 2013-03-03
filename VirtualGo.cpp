@@ -15,6 +15,14 @@
 
 using namespace platform;
 
+const int MaxZoomLevel = 4;
+
+int zoomLevel = 1;
+int viewSelection = 0;
+
+vec3f cameraLookAt;
+vec3f cameraPosition;
+
 enum Mode
 {
     LinearCollisionResponse,
@@ -24,9 +32,20 @@ enum Mode
     NumModes
 };
 
+Mode mode = LinearCollisionResponse;
+
+Board smallBoard( 14, 14, 1.0f );
+Board largeBoard( 35, 35, 0 );
+
+Stone stone;
+StoneSize size = STONE_SIZE_34;
+Stone stoneSizes[STONE_SIZE_NumValues];
+
 void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 {
-    rigidBody.position = vec3f( 0, 15.0f, 0 );
+    Board & board = ( mode >= CollisionWithBoard ) ? smallBoard : largeBoard;
+    const float z = ( mode >= CollisionWithBoard ) ? ( viewSelection * board.GetHeight() / 2 ) : 0;
+    rigidBody.position = vec3f( 0, 15.0f, z );
     rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
     if ( mode == LinearCollisionResponse )
         rigidBody.orientation = quat4f(1,0,0,0);
@@ -35,10 +54,6 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
         rigidBody.angularMomentum = vec3f(0,0,0);
     rigidBody.Update();
 }
-
-Stone stone;
-StoneSize size = STONE_SIZE_34;
-Stone stoneSizes[STONE_SIZE_NumValues];
 
 void SelectStoneSize( int newStoneSize )
 {
@@ -59,11 +74,6 @@ void RestoreDefaults()
 int main()
 {
     printf( "[virtual go]\n" );
-
-    Mode mode = LinearCollisionResponse;
-
-    Board smallBoard( 14, 14, 1.0f );
-    Board largeBoard( 35, 35, 0 );
 
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
         stoneSizes[i].Initialize( (StoneSize)i );
@@ -131,12 +141,11 @@ int main()
 
     bool prevSpace = false;
     bool prevEnter = false;
+    bool prevLeft = false;
+    bool prevRight = false;
     bool prevUp = false;
     bool prevDown = false;
     bool slowmo = false;
-
-    int zoomLevel = 1;
-    const int MaxZoomLevel = 4;
 
     while ( !quit )
     {
@@ -160,7 +169,9 @@ int main()
 
         if ( input.enter && !prevEnter )
         {
-
+            RandomStone( stone.biconvex, stone.rigidBody, mode );
+            dt = normal_dt;
+            slowmo = false;
         }
         prevEnter = input.enter;
 
@@ -186,9 +197,28 @@ int main()
                 SelectStoneSize( size - 1 );
             else if ( input.right )
                 SelectStoneSize( size + 1 );
+
+            prevLeft = false;
+            prevRight = false;
         }
         else
         {
+            if ( input.left && !prevLeft )
+            {
+                viewSelection--;
+                if ( viewSelection < -1 )
+                    viewSelection = -1;
+            }
+            prevLeft = input.left;
+
+            if ( input.right && !prevRight )
+            {
+                viewSelection++;
+                if ( viewSelection > 1 )
+                    viewSelection = 1;
+            }
+            prevRight = input.right;
+
             if ( input.one )
             {
                 mode = LinearCollisionResponse;
@@ -222,6 +252,9 @@ int main()
             }
         }
 
+        if ( mode < CollisionWithBoard )
+            viewSelection = 0;
+
         ClearScreen( displayWidth, displayHeight );
 
         if ( frame > 20 )
@@ -245,30 +278,47 @@ int main()
 
             glLoadIdentity();
 
+            // update camera
+
+            Board & board = ( mode >= CollisionWithBoard ) ? smallBoard : largeBoard;
+
+            const float z = ( mode >= CollisionWithBoard ) ? ( viewSelection * board.GetHeight() / 2 ) : 0;
+
+            vec3f targetLookAt;
+            vec3f targetPosition;
+
+            const float t = board.GetThickness();
+
             if ( zoomLevel == 0 )
             {
-                gluLookAt( 10, 1, 0,
-                            0, 1, 0,
-                            0, 1, 0 );
+                targetLookAt = vec3f(0,t,z);
+                targetPosition = vec3f(10,t,z);
             }
             else if ( zoomLevel == 1 )
             {
-                gluLookAt( 20, 5, 0,
-                            0, 2, 0,
-                            0, 1, 0 );
+                targetLookAt = vec3f(0,t+1,z);
+                targetPosition = vec3f(20,t+4,z);
             }
             else if ( zoomLevel == 2 )
             {
-                gluLookAt( 30, 20, 0,
-                            0, 3, 0,
-                            0, 1, 0 );
+                targetLookAt = vec3f(0,t+2,z);
+                targetPosition = vec3f(30,t+19,z);
             }
             else if ( zoomLevel == 3 )
             {
-                gluLookAt(  0, 50, 0,
-                            0, 0, 0,
-                            -1, 0, 0 );
+                targetLookAt = vec3f(0,t,z);
+                targetPosition = vec3f(0,t+49,z);
             }
+
+            // todo: interpolate
+            cameraLookAt = targetLookAt;
+            cameraPosition = targetPosition;
+
+            vec3f cameraUp = cross( normalize( cameraLookAt - cameraPosition ), vec3f(0,0,1) );
+
+            gluLookAt( cameraPosition.x(), cameraPosition.y(), cameraPosition.z(),
+                       cameraLookAt.x(), cameraLookAt.y(), cameraLookAt.z(),
+                       cameraUp.x(), cameraUp.y(), cameraUp.z() );
 
             // update stone physics
 
@@ -298,8 +348,6 @@ int main()
 
                 const float e = 0.85f;
                 const float u = 0.15f;
-
-                Board & board = ( mode >= CollisionWithBoard ) ? smallBoard : largeBoard;
 
                 StaticContact boardContact;
                 if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )
@@ -335,8 +383,6 @@ int main()
 
             glLineWidth( 5 );
             glColor4f( 0.8f,0.8f,0.8f,1 );
-
-            Board & board = ( mode >= CollisionWithBoard ) ? smallBoard : largeBoard;
 
             RenderBoard( board );
 

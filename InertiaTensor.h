@@ -85,22 +85,21 @@ void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, vec3
         }
     }
 
-    {
-        // http://wolframalpha.com
-        // integrate ( r^2 - ( y + r - h/2 ) ^ 2 ) ^ 2 dy from y = 0 to h/2
-        //  => 1/480 h^3 (3 h^2-30 h r+80 r^2)
-        const float h = height;
-        const float r = biconvex.GetSphereRadius();
-        const float h2 = h * h;
-        const float h3 = h2 * h;
-        const float h4 = h3 * h;
-        const float h5 = h4 * h;
-        const float r2 = r * r;
-        const float r3 = r2 * r;
-        const float r4 = r3 * r;
-        const float exact_iy = pi * p * ( 1/480.0f * h3 * ( 3*h2 - 30*h*r + 80*r2 ) );
-        printf( "exact iy = %f, approx iy = %f\n", exact_iy, iy );
-    }
+    // http://wolframalpha.com
+    // integrate ( r^2 - ( y + r - h/2 ) ^ 2 ) ^ 2 dy from y = 0 to h/2
+    //  => 1/480 h^3 (3 h^2-30 h r+80 r^2)
+    const float h = height;
+    const float r = biconvex.GetSphereRadius();
+    const float h2 = h * h;
+    const float h3 = h2 * h;
+    const float h4 = h3 * h;
+    const float h5 = h4 * h;
+    const float r2 = r * r;
+    const float r3 = r2 * r;
+    const float r4 = r3 * r;
+    const float exact_iy = pi * p * ( 1/480.0f * h3 * ( 3*h2 - 30*h*r + 80*r2 ) );
+
+    iy = exact_iy;
 
     const float inertiaValues[] = { ix, iy, iz };
 

@@ -14,7 +14,57 @@ DONE:
 
     Escape now restores defaults. For the moment this is just stone size 34
 
+    Enter now drops a stone in the current mode
+
+    Can now select side views in the board demo. 
+
+    When dropping a stone in side view it drops exactly on the edge
+
+    When switching to non-board views the view selection is reset to center
+
 TODO:
+
+    -----------------------------------------------------------------------
+
+    Camera movement should be relative to the top of the board so it doesn't
+    need to be adjusted for different height boards
+
+    -----------------------------------------------------------------------
+
+    Should be able to adjust board height via ALT-UP/DOWN
+
+    -----------------------------------------------------------------------
+
+    Calculate the density of slate and shell go stones
+
+    Use this to calculate the exact mass of the stones
+
+    I think that the transition from different stone sizes and the
+    rotation rates (due to inertia tensor) are a bit overdone.
+
+    If the inertia is adjusted for mass then it would change less
+    when we switch go stone sizes. Is this worth doing?
+
+    -----------------------------------------------------------------------
+
+    It would be nice if random stone would not randomize after the first
+    time it was called, eg. I could hold down the button and have the 
+    randomized stone hold in the air until I release the button.
+
+    -----------------------------------------------------------------------
+
+    Adjust camera and lighting so that X is left/right and Z is up/down
+    on the screen (looking top down...)
+
+    Otherwise its going to get really confusing continually converting
+    in my head to looking down the +X axis, especially when the go board
+    is adjusted to be taller than it is wide.
+
+    -----------------------------------------------------------------------
+
+    Perhaps zoom should be control-UP/DOWN because I'll need to be able
+    to select sides and corners of the go board for dropping the stone
+    on corner edge cases and this needs UP/DOWN/LEFT/RIGHT
 
     -----------------------------------------------------------------------
 
@@ -23,15 +73,6 @@ TODO:
 
     Perhaps the easiest way to do this would be to merge these demos
     back into the main VirtualGo.cpp?
-
-    -----------------------------------------------------------------------
-
-    Having to press the specific number to drop a stone is annoying now
-    because your fingers forget what demo you are in
-
-    Need a way to drop a stone in the current demo via a constant key
-
-    Normally this would be space but that is being used for slowmotion
 
     -----------------------------------------------------------------------
 
