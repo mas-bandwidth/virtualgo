@@ -439,10 +439,12 @@ int main()
         RenderBoard( board );
 
         glLineWidth( 5 );
+        glDisable( GL_DEPTH_TEST );
         glEnable( GL_LIGHTING );
         glColor4f( 0.8f,0.8f,0.8f,1 );
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
         RenderBoard( board );
+        glEnable( GL_DEPTH_TEST );
 
         // render stone
 
