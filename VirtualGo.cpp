@@ -17,7 +17,7 @@ using namespace platform;
 
 const int MaxZoomLevel = 5;
 
-int zoomLevel = 1;
+int zoomLevel = 2;
 
 const float ScrollSpeed = 10.0f;
 
@@ -199,6 +199,20 @@ int main()
             scrollY += ( stone.rigidBody.position.y() - scrollY ) * 0.075f;
             scrollZ += ( stone.rigidBody.position.z() - scrollZ ) * 0.075f;
         }
+
+        const float Spin = 0.1f;
+
+        if ( input.q )
+            stone.rigidBody.angularMomentum += Spin * vec3f(1,0,0);
+
+        if ( input.w )
+            stone.rigidBody.angularMomentum += Spin * vec3f(0,1,0);
+
+        if ( input.e )
+            stone.rigidBody.angularMomentum += Spin * vec3f(0,0,1);
+
+        if ( input.r )
+            stone.rigidBody.angularMomentum *= 0.75f;
 
         if ( input.alt )
         {
@@ -400,6 +414,16 @@ int main()
         gluLookAt( cameraPosition.x(), max( cameraPosition.y(), t ), cameraPosition.z(),
                    cameraLookAt.x(), max( cameraLookAt.y(), t ), cameraLookAt.z(),
                    cameraUp.x(), cameraUp.y(), cameraUp.z() );
+
+        // if the stone is inside the board at the beginning of the frame
+        // push it out with a spring impulse -- this gives a cool effect
+        // when the board thickness is adjusted dynamically (trapoline)
+
+        {
+            StaticContact boardContact;
+            if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )
+                stone.rigidBody.linearMomentum += boardContact.normal * boardContact.depth * 10;
+        }
 
         // update stone physics
 

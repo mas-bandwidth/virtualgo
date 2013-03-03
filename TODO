@@ -7,40 +7,13 @@ DONE:
 
     Fixed the lighting
 
+    Added a small impulse if the go stone is inside the go board
+    at the beginning of the frame. This gives a cool trampoline effect
+    when you adjust teh size of the go board on the fly.
+
+    You now can add angular velocity with QWE and remove it with R
+
 TODO:
-
-    -----------------------------------------------------------------------
-
-    If a go stone is inside the board at the beginning of the frame
-    it should be pushed out via a spring impulse proportional to the
-    amount of penetration (hookes' law)
-
-    This would make it so that when I expand the size of the go board
-    the stone would be launched upwards in a cool trampoline effect
-
-    This would be cool and the fact that it doesn't do this right now
-    stands out quite a bit when demoing the dynamic board thickness
-    adjustment!
-
-    -----------------------------------------------------------------------
-
-    When the camera is zoomed right into the board and is side on
-    detect this and draw a horizontal line representing the board
-    surface.
-
-    Obviously this only works in wireframe!
-
-    -----------------------------------------------------------------------
-
-    Re-incorporate the tesselation and support demos into the VirtualGo.cpp
-
-    This would allow me to use global controls like adjusting the size of
-    the go stone during tesselation and support demos (If I wish...)
-
-    -----------------------------------------------------------------------
-
-    If I hold shift I'd like the camera lookat point to be fixed
-    while I scroll up/down, within limits. Is this possible?
 
     -----------------------------------------------------------------------
 
@@ -66,6 +39,14 @@ TODO:
 
     -----------------------------------------------------------------------
 
+    When the camera is zoomed right into the board and is side on
+    detect this and draw a horizontal line representing the board
+    surface.
+
+    Obviously this only works in wireframe!
+
+    -----------------------------------------------------------------------
+
     It would be nice if random stone would not randomize after the first
     time it was called, eg. I could hold down the button and have the 
     randomized stone hold in the air until I release the button.
@@ -76,11 +57,6 @@ TODO:
     linear and angular momentum of a stone, or at least, clamps it to
     some small amount, this will help in cases where I want to make a
     stone come to rest on the board
-
-    -----------------------------------------------------------------------
-
-    Would be nice to have a button to launch a stone in a spinning
-    configuration just a small height above the board
 
     -----------------------------------------------------------------------
 

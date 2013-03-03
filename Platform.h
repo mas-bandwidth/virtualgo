@@ -77,6 +77,7 @@ namespace platform
 		bool q;
 		bool w;
 		bool e;
+		bool r;
 		bool a;
 		bool s;
 		bool d;

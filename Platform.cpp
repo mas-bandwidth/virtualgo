@@ -398,6 +398,7 @@ namespace platform
 	#define QZ_Q			0x0C
 	#define QZ_W			0x0D
 	#define QZ_E			0x0E
+	#define QZ_R            0x0F
 	#define QZ_A		    0x00
 	#define QZ_S			0x01
 	#define QZ_D			0x02
@@ -437,6 +438,7 @@ namespace platform
 	static bool qKeyDown = false;
 	static bool wKeyDown = false;
 	static bool eKeyDown = false;
+	static bool rKeyDown = false;
 	static bool aKeyDown = false;
 	static bool sKeyDown = false;
 	static bool dKeyDown = false;
@@ -500,6 +502,7 @@ namespace platform
 					case QZ_Q: qKeyDown = true; break;
 					case QZ_W: wKeyDown = true; break;
 					case QZ_E: eKeyDown = true; break;
+					case QZ_R: rKeyDown = true; break;
 					case QZ_A: aKeyDown = true; break;
 					case QZ_S: sKeyDown = true; break;
 					case QZ_D: dKeyDown = true; break;
@@ -560,6 +563,7 @@ namespace platform
 					case QZ_Q: qKeyDown = false; break;
 					case QZ_W: wKeyDown = false; break;
 					case QZ_E: eKeyDown = false; break;
+					case QZ_R: rKeyDown = false; break;
 					case QZ_A: aKeyDown = false; break;
 					case QZ_S: sKeyDown = false; break;
 					case QZ_D: dKeyDown = false; break;
@@ -863,6 +867,7 @@ namespace platform
 		input.q = qKeyDown;
 		input.w = wKeyDown;
 		input.e = eKeyDown;
+		input.r = rKeyDown;
 		input.a = aKeyDown;
 		input.s = sKeyDown;
 		input.d = dKeyDown;

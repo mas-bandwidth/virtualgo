@@ -13,6 +13,7 @@ struct StaticContact
     RigidBody * rigidBody;
     vec3f point;
     vec3f normal;
+    float depth;
 };
 
 struct DynamicContact
@@ -143,6 +144,7 @@ bool StoneBoardCollision( const Biconvex & biconvex,
     contact.rigidBody = &rigidBody;
     contact.point = boardPoint;
     contact.normal = boardNormal;
+    contact.depth = depth;
 
     return true;
 }
@@ -186,6 +188,7 @@ bool StoneFloorCollision( const Biconvex & biconvex,
     contact.rigidBody = &rigidBody;
     contact.point = TransformPoint( biconvexTransform.localToWorld, local_floorPoint );
     contact.normal = vec3f(0,1,0);
+    contact.depth = depth;
 
     return true;
 }
