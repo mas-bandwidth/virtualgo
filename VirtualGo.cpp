@@ -15,7 +15,7 @@
 
 using namespace platform;
 
-const int MaxZoomLevel = 4;
+const int MaxZoomLevel = 5;
 
 int zoomLevel = 1;
 
@@ -52,7 +52,7 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 {
     const float x = scrollX;
     const float z = scrollZ;
-    rigidBody.position = vec3f( x, 15.0f, z );
+    rigidBody.position = vec3f( x, board.GetThickness() + 15.0f, z );
     rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
     if ( mode == LinearCollisionResponse )
         rigidBody.orientation = quat4f(1,0,0,0);
@@ -76,12 +76,20 @@ void SelectStoneSize( int newStoneSize )
 void RestoreDefaults()
 {
     SelectStoneSize( STONE_SIZE_34 );
+
     board.SetThickness( DefaultBoardThickness );
+
     scrollX = 0;
     scrollY = 0;
     scrollZ = 0;
+
     zoomLevel = 1;
-    RandomStone( stone.biconvex, stone.rigidBody, mode );
+
+    stone.rigidBody.position = vec3f( 0, board.GetThickness() + stone.biconvex.GetHeight() / 2, 0 );
+    stone.rigidBody.orientation = quat4f(1,0,0,0);
+    stone.rigidBody.linearMomentum = vec3f(0,0,0);
+    stone.rigidBody.angularMomentum = vec3f(0,0,0);
+    stone.rigidBody.Update();
 }
 
 int main()
@@ -216,8 +224,8 @@ int main()
             {
                 float thickness = board.GetThickness();
                 thickness *= 1.25f;
-                if ( thickness > 10.0f )
-                    thickness = 10.0f;
+                if ( thickness > 9 )
+                    thickness = 9;
                 board.SetThickness( thickness );
             }
         }
@@ -343,19 +351,24 @@ int main()
         if ( zoomLevel == 0 )
         {
             targetLookAt = vec3f(x,y,z);
-            targetPosition = vec3f(x,y,z+10);
+            targetPosition = vec3f(x,y,z+5);
         }
         else if ( zoomLevel == 1 )
         {
             targetLookAt = vec3f(x,y+1,z);
-            targetPosition = vec3f(x,y+4,z+20);
+            targetPosition = vec3f(x,y+1,z+10);
         }
         else if ( zoomLevel == 2 )
+        {
+            targetLookAt = vec3f(x,y+4,z);
+            targetPosition = vec3f(x,y+8,z+25);
+        }
+        else if ( zoomLevel == 3 )
         {
             targetLookAt = vec3f(x,y+2,z);
             targetPosition = vec3f(x,y+19,z+30);
         }
-        else if ( zoomLevel == 3 )
+        else if ( zoomLevel == 4 )
         {
             targetLookAt = vec3f(x,y,z);
             targetPosition = vec3f(x,y+49,z);

@@ -9,15 +9,14 @@ TODO:
 
     -----------------------------------------------------------------------
 
-    Re-incorporate the tesselation and support demos into the VirtualGo.cpp
-
-    This would allow me to use global controls like adjusting the size of
-    the go stone during tesselation and support demos (If I wish...)
+    Why is there a brief flicker of brighter lighting for the first few
+    frames? Is the camera or lighting not being set properly?
 
     -----------------------------------------------------------------------
 
-    If I hold shift I'd like the camera lookat point to be fixed
-    while I scroll up/down, within limits. Is this possible?
+    Adjusting the go stone size changes the lighting on the board
+
+    Something is wrong!
 
     -----------------------------------------------------------------------
 
@@ -42,14 +41,15 @@ TODO:
 
     -----------------------------------------------------------------------
 
-    Why is there a brief flicker of brighter lighting for the first few
-    frames? Is the camera or lighting not being set properly?
+    Re-incorporate the tesselation and support demos into the VirtualGo.cpp
+
+    This would allow me to use global controls like adjusting the size of
+    the go stone during tesselation and support demos (If I wish...)
 
     -----------------------------------------------------------------------
 
-    Adjusting the go stone size changes the lighting on the board
-
-    Something is wrong!
+    If I hold shift I'd like the camera lookat point to be fixed
+    while I scroll up/down, within limits. Is this possible?
 
     -----------------------------------------------------------------------
 
