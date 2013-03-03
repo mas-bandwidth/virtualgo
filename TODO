@@ -17,6 +17,14 @@ TODO:
 
     -----------------------------------------------------------------------
 
+    When the camera is zoomed right into the board and is side on
+    detect this and draw a horizontal line representing the board
+    surface.
+
+    Obviously this only works in wireframe!
+
+    -----------------------------------------------------------------------
+
     Board should be adjusted such that it matches the actual dimensions
     both in x and z, eg. that it is lightly longer than it is wide
     due to perspective.
@@ -39,24 +47,9 @@ TODO:
 
     -----------------------------------------------------------------------
 
-    When the camera is zoomed right into the board and is side on
-    detect this and draw a horizontal line representing the board
-    surface.
-
-    Obviously this only works in wireframe!
-
-    -----------------------------------------------------------------------
-
     I would like to be able to hold shift and focus on the stone from the 
     current camera position, eg. don't move the camera position but track
     the stone
-
-    -----------------------------------------------------------------------
-
-    Would be cool to be able to have a button to press that removes the 
-    linear and angular momentum of a stone, or at least, clamps it to
-    some small amount, this will help in cases where I want to make a
-    stone come to rest on the board
 
     -----------------------------------------------------------------------
 

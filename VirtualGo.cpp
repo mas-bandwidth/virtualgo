@@ -495,15 +495,36 @@ int main()
         glColor4f( 0,0,0,1 );
         glDisable( GL_LIGHTING );
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+        glDisable( GL_CULL_FACE );
         RenderBoard( board );
+        glEnable( GL_CULL_FACE );
 
         glLineWidth( 5 );
+        glDepthMask( GL_FALSE );
         glDisable( GL_DEPTH_TEST );
         glEnable( GL_LIGHTING );
         glColor4f( 0.8f,0.8f,0.8f,1 );
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
         RenderBoard( board );
         glEnable( GL_DEPTH_TEST );
+        glDepthMask( GL_TRUE );
+
+        // if the camera position is inside the go board draw a line
+        // representing the height of the go board
+
+        if ( cameraPosition.x() >= -board.GetWidth() / 2 &&
+             cameraPosition.x() <= board.GetWidth() / 2 &&
+             cameraPosition.z() >= -board.GetHeight() / 2 &&
+             cameraPosition.z() <= board.GetHeight() / 2 &&
+             cameraPosition.y() <= board.GetThickness() + 0.01f )
+        {
+            glDisable( GL_DEPTH_TEST );
+            glBegin( GL_LINES );
+            glVertex3f( -1000, board.GetThickness(), cameraPosition.z() - 10.0f );
+            glVertex3f( +1000, board.GetThickness(), cameraPosition.z() - 10.0f );
+            glEnd();
+            glEnable( GL_DEPTH_TEST );
+        }
 
         // render stone
 
