@@ -81,6 +81,7 @@ void RestoreDefaults()
     scrollY = 0;
     scrollZ = 0;
     zoomLevel = 1;
+    RandomStone( stone.biconvex, stone.rigidBody, mode );
 }
 
 int main()

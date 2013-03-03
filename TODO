@@ -9,6 +9,18 @@ TODO:
 
     -----------------------------------------------------------------------
 
+    Re-incorporate the tesselation and support demos into the VirtualGo.cpp
+
+    This would allow me to use global controls like adjusting the size of
+    the go stone during tesselation and support demos (If I wish...)
+
+    -----------------------------------------------------------------------
+
+    If I hold shift I'd like the camera lookat point to be fixed
+    while I scroll up/down, within limits. Is this possible?
+
+    -----------------------------------------------------------------------
+
     If a go stone is inside the board at the beginning of the frame
     it should be pushed out via a spring impulse proportional to the
     amount of penetration (hookes' law)
@@ -27,13 +39,6 @@ TODO:
     surface.
 
     Obviously this only works in wireframe!
-
-    -----------------------------------------------------------------------
-
-    Re-incorporate the tesselation and support demos into the VirtualGo.cpp
-
-    This would allow me to use global controls like adjusting the size of
-    the go stone during tesselation and support demos (If I wish...)
 
     -----------------------------------------------------------------------
 
