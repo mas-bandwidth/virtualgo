@@ -159,6 +159,9 @@ int main()
 
     uint64_t frame = 0;
 
+    bool prevOne = false;
+    bool prevTwo = false;
+    bool prevThree = false;
     bool prevSpace = false;
     bool prevEnter = false;
     bool prevCtrlUp = false;
@@ -290,31 +293,37 @@ int main()
                 scrollX += scroll.x();
                 scrollY += scroll.y();
                 scrollZ += scroll.z();
+
+                if ( scrollY > 50 )
+                    scrollY = 50;
             }
 
-            if ( input.one )
+            if ( input.one && !prevOne )
             {
                 mode = LinearCollisionResponse;
                 RandomStone( stone.biconvex, stone.rigidBody, mode );
                 dt = normal_dt;
                 slowmo = false;
             }
+            prevOne = input.one;
 
-            if ( input.two )
+            if ( input.two && !prevTwo )
             {
                 mode = AngularCollisionResponse;
                 RandomStone( stone.biconvex, stone.rigidBody, mode );
                 dt = normal_dt;
                 slowmo = false;
             }
+            prevTwo = input.two;
 
-            if ( input.three )
+            if ( input.three && !prevThree )
             {
                 mode = CollisionResponseWithFriction;
                 RandomStone( stone.biconvex, stone.rigidBody, mode );
                 dt = normal_dt;
                 slowmo = false;
             }
+            prevThree = input.three;
 
             prevCtrlUp = false;
             prevCtrlDown = false;
@@ -384,12 +393,12 @@ int main()
         else if ( zoomLevel == 3 )
         {
             targetLookAt = vec3f(x,y+2,z);
-            targetPosition = vec3f(x,y+19,z+30);
+            targetPosition = vec3f(x,y+20,z+30);
         }
         else if ( zoomLevel == 4 )
         {
             targetLookAt = vec3f(x,y,z);
-            targetPosition = vec3f(x,y+49,z);
+            targetPosition = vec3f(x,y+55,z);
         }
 
         if ( cameraMode == mode )

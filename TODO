@@ -47,9 +47,9 @@ TODO:
 
     -----------------------------------------------------------------------
 
-    It would be nice if random stone would not randomize after the first
-    time it was called, eg. I could hold down the button and have the 
-    randomized stone hold in the air until I release the button.
+    I would like to be able to hold shift and focus on the stone from the 
+    current camera position, eg. don't move the camera position but track
+    the stone
 
     -----------------------------------------------------------------------
 
