@@ -51,200 +51,6 @@ void GetMousePickRay( int mouse_x, int mouse_y, vec3f & rayStart, vec3f & rayDir
     rayDirection = normalize( ray2 - ray1 );
 }
 
-void RenderBoard( const Board & board )
-{
-    glBegin( GL_QUADS );
-
-    const float width = board.GetWidth();
-    const float height = board.GetHeight();
-    const float thickness = board.GetThickness();
-
-    const float ideal = 2.5f;       // todo: parameterize this
-
-    // top of board
-    {
-        const int steps_x = (int) ceil( width / ideal ); 
-        const int steps_z = (int) ceil( height / ideal );
-
-        const float dx = width / steps_x;
-        const float dz = height / steps_z;
-
-        const float y = thickness;
-
-        float x = - width / 2;
-
-        for ( int i = 0; i < steps_x; ++i )
-        {
-            float z = - height / 2;
-
-            for ( int j = 0; j < steps_z; ++j )
-            {
-                glVertex3f( x + dx, y, z );
-                glVertex3f( x + dx, y, z + dz );
-                glVertex3f( x, y, z + dz );
-                glVertex3f( x, y, z );
-
-                z += dz;
-            }
-
-            x += dx;
-        }
-    }
-
-    // front side
-    {
-        const int steps_x = 1;
-        const int steps_y = 1;
-
-        const float dx = width / steps_x;
-        const float dy = thickness / steps_y;
-
-        const float z = - height / 2;
-
-        float x = - width / 2;
-
-        for ( int i = 0; i < steps_x; ++i )
-        {
-            float y = 0;
-
-            for ( int j = 0; j < steps_y; ++j )
-            {
-                glVertex3f( x + dx, y, z );
-                glVertex3f( x + dx, y + dy, z );
-                glVertex3f( x, y + dy, z );
-                glVertex3f( x, y, z );
-
-                y += dy;
-            }
-
-            x += dx;
-        }
-    }
-
-    // back side
-    {
-        const int steps_x = 1;
-        const int steps_y = 1;
-
-        const float dx = width / steps_x;
-        const float dy = -thickness / steps_y;
-
-        const float z = height / 2;
-
-        float x = - width / 2;
-
-        for ( int i = 0; i < steps_x; ++i )
-        {
-            float y = thickness;
-
-            for ( int j = 0; j < steps_y; ++j )
-            {
-                glVertex3f( x + dx, y, z );
-                glVertex3f( x + dx, y + dy, z );
-                glVertex3f( x, y + dy, z );
-                glVertex3f( x, y, z );
-
-                y += dy;
-            }
-
-            x += dx;
-        }
-    }
-
-    // left side
-    {
-        const int steps_z = 1;
-        const int steps_y = 1;
-
-        const float dz = -height / steps_z;
-        const float dy = thickness / steps_y;
-
-        const float x = - width / 2;
-
-        float z = height / 2;
-
-        for ( int i = 0; i < steps_z; ++i )
-        {
-            float y = 0;
-
-            for ( int j = 0; j < steps_y; ++j )
-            {
-                glVertex3f( x, y, z + dz );
-                glVertex3f( x, y + dy, z + dz );
-                glVertex3f( x, y + dy, z );
-                glVertex3f( x, y, z );
-
-                y += dy;
-            }
-
-            z += dz;
-        }
-    }
-
-    // right side
-    {
-        const int steps_z = 1;
-        const int steps_y = 1;
-
-        const float dz = -height / steps_z;
-        const float dy = -thickness / steps_y;
-
-        const float x = width / 2;
-
-        float z = height / 2;
-
-        for ( int i = 0; i < steps_z; ++i )
-        {
-            float y = thickness;
-
-            for ( int j = 0; j < steps_y; ++j )
-            {
-                glVertex3f( x, y, z + dz );
-                glVertex3f( x, y + dy, z + dz );
-                glVertex3f( x, y + dy, z );
-                glVertex3f( x, y, z );
-
-                y += dy;
-            }
-
-            z += dz;
-        }
-    }
-
-    glEnd();
-}
-
-void RenderMesh( Mesh & mesh )
-{
-    glBegin( GL_TRIANGLES );
-
-    int numTriangles = mesh.GetNumTriangles();
-    int * indexBuffer = mesh.GetIndexBuffer();
-    Vertex * vertexBuffer = mesh.GetVertexBuffer();
-
-    for ( int i = 0; i < numTriangles; ++i )
-    {
-        const int index_a = indexBuffer[i*3];
-        const int index_b = indexBuffer[i*3+1];
-        const int index_c = indexBuffer[i*3+2];
-
-        const Vertex & a = vertexBuffer[index_a];
-        const Vertex & b = vertexBuffer[index_b];
-        const Vertex & c = vertexBuffer[index_c];
-
-        glNormal3f( a.normal.x(), a.normal.y(), a.normal.z() );
-        glVertex3f( a.position.x(), a.position.y(), a.position.z() );
-
-        glNormal3f( b.normal.x(), b.normal.y(), b.normal.z() );
-        glVertex3f( b.position.x(), b.position.y(), b.position.z() );
-
-        glNormal3f( c.normal.x(), c.normal.y(), c.normal.z() );
-        glVertex3f( c.position.x(), c.position.y(), c.position.z() );
-    }
-
-    glEnd();
-}
-
 void RenderBiconvexNaive( const Biconvex & biconvex, int numSegments = 128, int numRings = 32 )
 {
     glBegin( GL_TRIANGLES );
@@ -374,6 +180,112 @@ void RenderBiconvexNaive( const Biconvex & biconvex, int numSegments = 128, int 
                 glVertex3f( d.x(), d.y(), d.z() );
             }
         }
+    }
+
+    glEnd();
+}
+
+void RenderGrid( float y, float size, float gridWidth, float gridHeight )
+{
+    glBegin( GL_QUADS );
+
+    const float dx = gridWidth;
+    const float dz = gridHeight;
+
+    float x = - size * 0.5f * gridWidth;
+
+    for ( int i = 0; i < size; ++i )
+    {
+        float z = - size * 0.5f * gridHeight;
+
+        for ( int j = 0; j < size; ++j )
+        {
+            glVertex3f( x + dx, y, z );
+            glVertex3f( x + dx, y, z + dz );
+            glVertex3f( x, y, z + dz );
+            glVertex3f( x, y, z );
+
+            z += dz;
+        }
+
+        x += dx;
+    }
+
+    glEnd();
+}
+
+void RenderBoard( const Board & board )
+{
+    glBegin( GL_QUADS );
+
+    const float width = board.GetWidth();
+    const float height = board.GetHeight();
+    const float thickness = board.GetThickness();
+
+    // top of board
+
+    glVertex3f( width/2, thickness, -height/2 );
+    glVertex3f( width/2, thickness, height/2 );
+    glVertex3f( -width/2, thickness, height/2 );
+    glVertex3f( -width/2, thickness, -height/2 );
+
+    // front side
+
+    glVertex3f( width/2, 0, -height/2 );
+    glVertex3f( width/2, thickness, -height/2 );
+    glVertex3f( -width/2, thickness, -height/2 );
+    glVertex3f( -width/2, 0, -height/2 );
+
+    // back side
+
+    glVertex3f( width/2, thickness, height/2 );
+    glVertex3f( width/2, 0, height/2 );
+    glVertex3f( -width/2, 0, height/2 );
+    glVertex3f( -width/2, thickness, height/2 );
+
+    // left side
+
+    glVertex3f( -width/2, 0, -height/2 );
+    glVertex3f( -width/2, thickness, -height/2 );
+    glVertex3f( -width/2, thickness, +height/2 );
+    glVertex3f( -width/2, 0, +height/2 );
+
+    // right side
+
+    glVertex3f( width/2, thickness, -height/2 );
+    glVertex3f( width/2, 0, -height/2 );
+    glVertex3f( width/2, 0, +height/2 );
+    glVertex3f( width/2, thickness, +height/2 );
+
+    glEnd();
+}
+
+void RenderMesh( Mesh & mesh )
+{
+    glBegin( GL_TRIANGLES );
+
+    int numTriangles = mesh.GetNumTriangles();
+    int * indexBuffer = mesh.GetIndexBuffer();
+    Vertex * vertexBuffer = mesh.GetVertexBuffer();
+
+    for ( int i = 0; i < numTriangles; ++i )
+    {
+        const int index_a = indexBuffer[i*3];
+        const int index_b = indexBuffer[i*3+1];
+        const int index_c = indexBuffer[i*3+2];
+
+        const Vertex & a = vertexBuffer[index_a];
+        const Vertex & b = vertexBuffer[index_b];
+        const Vertex & c = vertexBuffer[index_c];
+
+        glNormal3f( a.normal.x(), a.normal.y(), a.normal.z() );
+        glVertex3f( a.position.x(), a.position.y(), a.position.z() );
+
+        glNormal3f( b.normal.x(), b.normal.y(), b.normal.z() );
+        glVertex3f( b.position.x(), b.position.y(), b.position.z() );
+
+        glNormal3f( c.normal.x(), c.normal.y(), c.normal.z() );
+        glVertex3f( c.position.x(), c.position.y(), c.position.z() );
     }
 
     glEnd();

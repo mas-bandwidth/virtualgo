@@ -5,19 +5,15 @@ DONE:
     Parameterized board by the size (eg: 9, 13, 19), with the height
     of grid cells being slightly larger than the width (japanese style)
 
+    Determine how much border there is for a standard japanese board (15mm)
 
+    Separate the grid rendering from the rendering of the board
 
 TODO:
 
     -----------------------------------------------------------------------
 
-    Separate the grid rendering from the rendering of the board
-    
-    eg. the board should render just quads for each side
-
-    but the grid should render the top grid in wireframe
-
-    grid should be rendered as lines, not as quads
+    Mid-zoom level looks awful with the boarder. It squishes it
 
     -----------------------------------------------------------------------
 

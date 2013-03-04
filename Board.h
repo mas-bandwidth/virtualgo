@@ -18,6 +18,7 @@
         Line spacing length-wise    23.7mm
         Line thickness              1mm
         Star point marker diameter  4mm
+        Border                      15mm
 
     https://en.wikipedia.org/wiki/Go_equipment#Board
 */
@@ -26,13 +27,15 @@ struct BoardParams
 {
     BoardParams()
     {
-        gridWidth = 2.2f;
-        gridHeight = 2.37f;
+        cellWidth = 2.2f;
+        cellHeight = 2.37f;
+        border = 1.5f;
         thickness = 0.5f;
     }
 
-    float gridWidth;
-    float gridHeight;
+    float cellWidth;
+    float cellHeight;
+    float border;
     float thickness;
 };
 
@@ -45,11 +48,16 @@ public:
         this->size = size;
         this->params = params;
 
-        this->width = size * params.gridWidth;
-        this->height = size * params.gridHeight;
+        this->width = size * params.cellWidth + params.border * 2;
+        this->height = size * params.cellHeight + params.border * 2;
         
         halfWidth = width / 2;
         halfHeight = height / 2;
+    }
+
+    int GetSize() const
+    {
+        return size;
     }
 
     float GetWidth() const
@@ -80,6 +88,16 @@ public:
     float GetHalfHeight() const
     {
         return halfHeight;
+    }
+
+    float GetCellHeight() const
+    {
+        return params.cellHeight;
+    }
+
+    float GetCellWidth() const
+    {
+        return params.cellWidth;
     }
 
 private:

@@ -522,6 +522,7 @@ int main()
         {
             glDepthMask( GL_TRUE );
             RenderBoard( board );
+            RenderGrid( board.GetThickness(), board.GetSize(), board.GetCellWidth(), board.GetCellHeight() );
         }
 
         // render stone
