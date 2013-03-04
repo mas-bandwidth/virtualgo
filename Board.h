@@ -48,8 +48,8 @@ public:
         this->size = size;
         this->params = params;
 
-        this->width = size * params.cellWidth + params.border * 2;
-        this->height = size * params.cellHeight + params.border * 2;
+        this->width = ( size - 1 ) * params.cellWidth + params.border * 2;
+        this->height = ( size - 1 ) * params.cellHeight + params.border * 2;
         
         halfWidth = width / 2;
         halfHeight = height / 2;
