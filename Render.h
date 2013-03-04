@@ -224,6 +224,7 @@ void RenderBoard( const Board & board )
 
     // top of board
 
+    glNormal3f( 0,1,0 );
     glVertex3f( width/2, thickness, -height/2 );
     glVertex3f( width/2, thickness, height/2 );
     glVertex3f( -width/2, thickness, height/2 );
@@ -231,6 +232,7 @@ void RenderBoard( const Board & board )
 
     // front side
 
+    glNormal3f( 0,0,-1 );
     glVertex3f( width/2, 0, -height/2 );
     glVertex3f( width/2, thickness, -height/2 );
     glVertex3f( -width/2, thickness, -height/2 );
@@ -238,6 +240,7 @@ void RenderBoard( const Board & board )
 
     // back side
 
+    glNormal3f( 0,0,+1 );
     glVertex3f( width/2, thickness, height/2 );
     glVertex3f( width/2, 0, height/2 );
     glVertex3f( -width/2, 0, height/2 );
@@ -245,6 +248,7 @@ void RenderBoard( const Board & board )
 
     // left side
 
+    glNormal3f( -1,0,0 );
     glVertex3f( -width/2, 0, -height/2 );
     glVertex3f( -width/2, thickness, -height/2 );
     glVertex3f( -width/2, thickness, +height/2 );
@@ -252,6 +256,7 @@ void RenderBoard( const Board & board )
 
     // right side
 
+    glNormal3f( +1,0,0 );
     glVertex3f( width/2, thickness, -height/2 );
     glVertex3f( width/2, 0, -height/2 );
     glVertex3f( width/2, 0, +height/2 );

@@ -1,32 +1,44 @@
 DONE:
 
-    Find exact measurements of standard go board dimensions
+    Implemented a mode where the scene is rendered in solid colors.
 
-    Parameterized board by the size (eg: 9, 13, 19), with the height
-    of grid cells being slightly larger than the width (japanese style)
+    It looks awful! :)
 
-    Determine how much border there is for a standard japanese board (15mm)
+    For some reason starting to get a lot of errors where 
+    energy has been added by the collision response on spinning stones
 
-    Separate the grid rendering from the rendering of the board
+    This did not used to happen. So now I'm wondering what made it start?!
 
-    Can now select board size on the fly:
+    It was caused by adjustments to the nearest point on board vs biconvex
 
-        ALT-1: 9x9
-        ALT-2: 13x13
-        ALT-3: 19x19
+    To make this numerically stable, you MUST ensure that the nearest point
+    will function even if the go stone is not on the surface of the board,
 
-    You can crash the demo if you increase the rotation too much with W
-    so I added a clamp to maximum rotational inertia for any rigid body
+    eg. it must NOT reject nearest point queries if the stone is bounding
+    sphere radius away from the board.
+
+    Tidied up rendering and fixed board not obscuring the stone behind it
 
 TODO:
 
     -----------------------------------------------------------------------
 
-    Implement rolling and sliding friction
+    Separate the broad phase rejection of collision detection from the
+    categorization of the type of collision that should be checked.
+
+    This is really important because otherwise the categorization
+    cannot be used for nearest point checks, as these must function
+    even when the stone is not colliding with the board.
+
+    -----------------------------------------------------------------------
 
     Implement side plane cases for collision with board
 
     Implement corner cases for collision with board
+
+    -----------------------------------------------------------------------
+
+    Implement rolling and sliding friction
 
     -----------------------------------------------------------------------
 
@@ -42,170 +54,6 @@ TODO:
 
     -----------------------------------------------------------------------
 
+    Implement stone vs. stone collision
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    I think the algorithm is very simple.
-
-    Depending on case test SAT against all possible planes, 
-    eg. primary case, top plane, side case top and side plane,
-    corner case, primary and two side planes.
-
-    Only colliding if overlapping on all planes.
-
-    If colliding either:
-
-    a) Push out in primary plane first, then side etc.
-
-    b) Find the plane with the "least" energy to push out
-       and push out along this.
-
-    Does b) have merit? Which cases would be better?
-
-    Once we push the stone out we need to find contact points
-
-    The contact point function needs to be extended to consider
-    all planes for the region. When considering non-primary cases
-    nearest point on plane needs to be clamped within the bounds
-    of the plane surface. This is very very easy.
-
-    Is it possible to have a non-clamped nearest point on one plane
-    but be clamped on the other. Is this useful for picking the best
-    push out axis?
-
-    Need to add a method for rendering the floor.
-
-    Make the first three collision tests render with the floor,
-    or with a larger board. Small board is just for testing edge
-    cases (literally...)
-
-    The common case is a stone falling from on top of the board onto
-    a side. I think this means generally that preferring to push out
-    of the top plane is the best in most cases. You would not want
-    a stone falling onto the edge to tunnel and then be pushed out
-    to the side.
-
-    However, if you could work out which region the stone was in
-    before collision, you could make an informed choice, eg. prefer
-    to push out along the same side it was on before collision.
-
-    However, side collisions on the board are so rare, this may not
-    be worth the hassle. OHSHIT consider a stone coming to rest on the 
-    side of the board. We *MUST* ensure that it isnt pushed above the
-    board in this case.
-
-    This means that yes, it is almost certain that we need to choose
-    the push axis very intelligently.
-
-    I think we definitely need to consider the previous position when
-    choosing the appropriate axis to push out on.
-
-    In the cases where it is not obvious, eg. edge corner regions,
-    then it is totally OK to bias towards the top primary surface push
-    I think.
-
-    But when the stone is obviously approaching from the side and is
-    already below the stone primary surface, you MUST push out along
-    the side plane not up above the primary plane!
-
-    Could this be represented by energy? eg. if colliding push out
-    along the plane with the smallest penetration?
-
-    ----------------------------------------------
-
-    Add rolling friction
-
-    Add spinning friction
-
-    Add air resistance (drag)
-
-    ----------------------------------------------
-
-
-
-    ----------------------------------------------
-
-    Create proper OpenGL vertex buffer / index buffer object 
-    using code from cube demo. Should be much faster to render stone
-
-    Write a vertex shader to generate uvs as a function of xy
-
-    Render a stone with a white texture
-
-    Render the stone with specular highlight
-
-    ----------------------------------------------
-
-    Render the board with a wood texture
-
-    Render the lines and the circles at the star points (9x9)
-
-    ----------------------------------------------
-
-    Enable anisotropic filtering
-
-    Add a toggle mode to rotate between different camera views
-
-    Render a blurred out reflection of the stones on the board
-
-    ============================================================
-
-    Visualize stone vs. stone SAT
-
-    Two stones rotating next to each other.
-
-    Visualize their x/y axis supports for each stone.
-
-    Add some vis when they are colliding.
-
-    Consider whether or not we need additional separating
-    axes than the current, it should be clear from the vis.
-
-    ============================================================
-
-    Implement nearest point on biconvex vs. biconvex
-
-    This is required to determine the collision point and normal
-    between two stones after bisecting to find intersection t.
-
-    Visualize nearest points between biconvex if not intersecting
-    in yellow.
-
-    Add some key to move the biconvex further away from each other
-    or closer together (left/right)
-
-    ============================================================
-
-    Generalize stones to an array of rigid bodies, array of
-    biconvex shapes (don't assume all the same size...)
-
-    Determine algorithm for detecting collisions globally
-
-    Study speculative contacts approach and think through
-
-    What about "ghost" contacts?!
-
-    End result, should have a bunch of stones falling while you
-    are holding space bar down. These stones should tumble and
-    collide and come to rest on the board.
+    -----------------------------------------------------------------------

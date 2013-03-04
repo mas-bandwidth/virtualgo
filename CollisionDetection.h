@@ -81,10 +81,8 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
     const float thickness = board.GetThickness();
 
-    /*
-    if ( collisionType == STONE_BOARD_COLLISION_Primary )
+    //if ( collisionType == STONE_BOARD_COLLISION_Primary )
     {
-    */
         // common case: collision with primary surface of board only
         // no collision with edges or corners of board is possible
 
@@ -104,13 +102,15 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         stoneNormal = TransformVector( biconvexTransform.localToWorld, local_stoneNormal );
         boardPoint = TransformPoint( biconvexTransform.localToWorld, local_boardPoint );
         boardNormal = vec3f(0,1,0);
-
+    }
     /*
+    else if ( collisionType == STONE_BOARD_COLLISION_LeftSide )
+    {
+        // todo
     }
     else
     {
         // not implemented yet!
-        assert( false );
     }
     */
 }

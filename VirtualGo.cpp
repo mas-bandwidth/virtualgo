@@ -31,6 +31,8 @@ enum Mode
     LinearCollisionResponse,
     AngularCollisionResponse,
     CollisionResponseWithFriction,
+    SolidColor,
+    Textures,
     NumModes
 };
 
@@ -138,7 +140,9 @@ int main()
 
     glShadeModel( GL_SMOOTH );
 
-    GLfloat lightAmbientColor[] = { 0.85, 0.85, 0.85, 1.0 };
+    glEnable( GL_COLOR_MATERIAL );
+
+    GLfloat lightAmbientColor[] = { 0.3, 0.3, 0.3, 1.0 };
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
 
     glEnable( GL_BLEND );
@@ -165,6 +169,8 @@ int main()
     bool prevOne = false;
     bool prevTwo = false;
     bool prevThree = false;
+    bool prevFour = false;
+    bool prevFive = false;
     bool prevSpace = false;
     bool prevEnter = false;
     bool prevCtrlUp = false;
@@ -313,7 +319,6 @@ int main()
             if ( input.one && !prevOne )
             {
                 mode = LinearCollisionResponse;
-                RandomStone( stone.biconvex, stone.rigidBody, mode );
                 dt = normal_dt;
                 slowmo = false;
             }
@@ -322,7 +327,6 @@ int main()
             if ( input.two && !prevTwo )
             {
                 mode = AngularCollisionResponse;
-                RandomStone( stone.biconvex, stone.rigidBody, mode );
                 dt = normal_dt;
                 slowmo = false;
             }
@@ -331,11 +335,26 @@ int main()
             if ( input.three && !prevThree )
             {
                 mode = CollisionResponseWithFriction;
-                RandomStone( stone.biconvex, stone.rigidBody, mode );
                 dt = normal_dt;
                 slowmo = false;
             }
             prevThree = input.three;
+
+            if ( input.four && !prevFour )
+            {
+                mode = SolidColor;
+                dt = normal_dt;
+                slowmo = false;
+            }
+            prevFour = input.four;
+
+            if ( input.five && !prevFive )
+            {
+                mode = SolidColor;
+                dt = normal_dt;
+                slowmo = false;
+            }
+            prevFive = input.five;
 
             prevCtrlUp = false;
             prevCtrlDown = false;
@@ -504,20 +523,29 @@ int main()
 
         // render board
 
-        glColor4f( 0,0,0,1 );
-        glDisable( GL_LIGHTING );
-        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-        glDisable( GL_CULL_FACE );
-        RenderBoard( board );
-        glEnable( GL_CULL_FACE );
+        glDepthMask( GL_TRUE );
 
-        glLineWidth( 5 );
-        glDepthMask( GL_FALSE );
-        glDisable( GL_DEPTH_TEST );
-        glEnable( GL_LIGHTING );
-        glColor4f( 0.8f,0.8f,0.8f,1 );
+        {
+            glColor4f( 0,0,0,1 );
+            glDisable( GL_LIGHTING );
+            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+    
+            glDisable( GL_CULL_FACE );
+    
+            RenderBoard( board );
+    
+            glEnable( GL_CULL_FACE );
+        }
 
-        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        if ( mode >= SolidColor )
+        {
+            glEnable( GL_LIGHTING );
+            glColor4f( 1.0f,0.6f,0,1 );            
+        }
+        else
+        {
+            glColor4f( 0.4f,0.4f,0.4f,1 );
+        }
 
         if ( cameraPosition.x() >= -board.GetWidth() / 2 &&
              cameraPosition.x() <= board.GetWidth() / 2 &&
@@ -525,6 +553,7 @@ int main()
              cameraPosition.z() <= board.GetHeight() / 2 &&
              cameraPosition.y() <= board.GetThickness() + 0.01f )
         {
+            glLineWidth( 5 );
             glBegin( GL_LINES );
             glVertex3f( -1000, board.GetThickness(), cameraPosition.z() + 1.0f );
             glVertex3f( +1000, board.GetThickness(), cameraPosition.z() + 1.0f );
@@ -532,31 +561,64 @@ int main()
         }
         else
         {
-            glDepthMask( GL_TRUE );
+            if ( mode >= SolidColor )
+            {
+                glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+            }
+            else
+            {
+                glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+                glDepthMask( GL_FALSE );
+                glLineWidth( 5 );
+            }
+
             RenderBoard( board );
+
+            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
+            glLineWidth( 3 );
+
+            if ( mode >= SolidColor )
+                glColor4f( 0,0,0,1 );
+
+            glDisable( GL_DEPTH_TEST );
+
             RenderGrid( board.GetThickness(), board.GetSize(), board.GetCellWidth(), board.GetCellHeight() );
+
+            glEnable( GL_DEPTH_TEST );
         }
 
         // render stone
 
-        glEnable( GL_DEPTH_TEST );
+        glEnable( GL_LIGHTING );
 
         glPushMatrix();
-
-        glDepthMask( GL_FALSE );
 
         RigidBodyTransform biconvexTransform( stone.rigidBody.position, stone.rigidBody.orientation );
         float opengl_transform[16];
         biconvexTransform.localToWorld.store( opengl_transform );
         glMultMatrixf( opengl_transform );
 
-        glEnable( GL_BLEND ); 
-        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-        glLineWidth( 1 );
-        glColor4f( 1, 1, 1, 1 );
-        RenderMesh( mesh[size] );
+        if ( mode < SolidColor )
+        {
+            glEnable( GL_BLEND ); 
+            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+            glLineWidth( 1 );
+            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+            glEnable( GL_DEPTH_TEST );
+            glDepthMask( GL_FALSE );
+        }
+        else
+        {
+            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+            glDepthMask( GL_FALSE );
+            glEnable( GL_DEPTH_TEST );
+            glDepthMask( GL_TRUE );
+        }
 
-        glDepthMask( GL_TRUE );
+        glColor4f( 1, 1, 1, 1 );
+
+        RenderMesh( mesh[size] );
 
         glPopMatrix();
 

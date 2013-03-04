@@ -1,4 +1,26 @@
 
+Go board now has correct dimensions (4/3/2013):
+-----------------------------------------------
+
+    Find exact measurements of standard go board dimensions
+
+    Parameterized board by the size (eg: 9, 13, 19), with the height
+    of grid cells being slightly larger than the width (japanese style)
+
+    Determine how much border there is for a standard japanese board (15mm)
+
+    Separate the grid rendering from the rendering of the board
+
+    Can now select board size on the fly:
+
+        ALT-1: 9x9
+        ALT-2: 13x13
+        ALT-3: 19x19
+
+    You can crash the demo if you increase the rotation too much with W
+    so I added a clamp to maximum rotational inertia for any rigid body
+
+
 Polish and new demo features (3/3/2013):
 ----------------------------------------
 
