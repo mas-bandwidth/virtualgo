@@ -176,31 +176,24 @@ enum BoardEdges
     BOARD_EDGE_Bottom = 8
 };
 
-enum StoneBoardCollisionType
+enum StoneBoardRegion
 {
-    STONE_BOARD_COLLISION_None = 0xFFFFFFFF,             // not colliding with the board
-    STONE_BOARD_COLLISION_Primary = BOARD_EDGE_None,     // common case: collision with the primary surface (the plane at y = 0)
-    STONE_BOARD_COLLISION_LeftSide = BOARD_EDGE_Left,
-    STONE_BOARD_COLLISION_TopSide = BOARD_EDGE_Top,
-    STONE_BOARD_COLLISION_RightSide = BOARD_EDGE_Right,
-    STONE_BOARD_COLLISION_BottomSide = BOARD_EDGE_Bottom,
-    STONE_BOARD_COLLISION_TopLeftCorner = BOARD_EDGE_Top | BOARD_EDGE_Left,
-    STONE_BOARD_COLLISION_TopRightCorner = BOARD_EDGE_Top | BOARD_EDGE_Right,
-    STONE_BOARD_COLLISION_BottomRightCorner = BOARD_EDGE_Bottom | BOARD_EDGE_Right,
-    STONE_BOARD_COLLISION_BottomLeftCorner = BOARD_EDGE_Bottom | BOARD_EDGE_Left
+    STONE_BOARD_REGION_Primary = BOARD_EDGE_None,     // common case: collision with the primary surface (the plane at y = 0)
+    STONE_BOARD_REGION_LeftSide = BOARD_EDGE_Left,
+    STONE_BOARD_REGION_TopSide = BOARD_EDGE_Top,
+    STONE_BOARD_REGION_RightSide = BOARD_EDGE_Right,
+    STONE_BOARD_REGION_BottomSide = BOARD_EDGE_Bottom,
+    STONE_BOARD_REGION_TopLeftCorner = BOARD_EDGE_Top | BOARD_EDGE_Left,
+    STONE_BOARD_REGION_TopRightCorner = BOARD_EDGE_Top | BOARD_EDGE_Right,
+    STONE_BOARD_REGION_BottomRightCorner = BOARD_EDGE_Bottom | BOARD_EDGE_Right,
+    STONE_BOARD_REGION_BottomLeftCorner = BOARD_EDGE_Bottom | BOARD_EDGE_Left
 };
 
-inline StoneBoardCollisionType DetermineStoneBoardCollisionType( const Board & board, vec3f position, float radius )
+inline StoneBoardRegion DetermineStoneBoardRegion( const Board & board, vec3f position, float radius, bool & broadPhaseReject )
 {
-    // stone is above board surface by more than the radius
-    // of the bounding sphere, no collision is possible!
     const float thickness = board.GetThickness();
+    
     const float y = position.y();
-    if ( y > thickness + radius )
-        return STONE_BOARD_COLLISION_None;
-
-    // some collision is possible, determine whether we are potentially
-    // colliding width the edges of the board. the common case is that we are not!
 
     const float x = position.x();
     const float z = position.z();
@@ -210,11 +203,6 @@ inline StoneBoardCollisionType DetermineStoneBoardCollisionType( const Board & b
     const float r = radius;
 
     uint32_t edges = BOARD_EDGE_None;
-
-    // todo: we can optimize this and cache the various
-    // min/max bounds per-axis because multiple stones
-    // with the same bounding radius are colliding with
-    // the same board every frame
 
     if ( x <= -w + r )                            // IMPORTANT: assumption that the board width/height is large 
         edges |= BOARD_EDGE_Left;                 // relative to the bounding sphere, eg. that only one corner
@@ -226,20 +214,9 @@ inline StoneBoardCollisionType DetermineStoneBoardCollisionType( const Board & b
     else if ( z >= h - r )
         edges |= BOARD_EDGE_Bottom;
 
-    // common case: stone bounding sphere is entirely within the primary
-    // surface and cannot intersect with corners or edges of the board
-    if ( edges == 0 )
-        return STONE_BOARD_COLLISION_Primary;
+    broadPhaseReject = ( y > thickness + radius ) || x < -w - r || x > w + r || z < -h - r || z > h + r;
 
-    // rare case: no collision if the stone is further than the bounding
-    // sphere radius from the sides of the board along the x or z axes.
-    if ( x < -w - r || x > w + r || z < -h - r || z > h + r )
-        return STONE_BOARD_COLLISION_None;
-
-    // otherwise: the edge bitfield maps to the set of collision cases
-    // these collision cases indicate which sides and corners need to be
-    // tested in addition to the primary surface.
-    return (StoneBoardCollisionType) edges;
+    return (StoneBoardRegion) edges;
 }
 
 inline bool IntersectStoneBoard( const Board & board, 
@@ -251,17 +228,18 @@ inline bool IntersectStoneBoard( const Board & board,
 
     vec3f biconvexPosition = biconvexTransform.GetPosition();
 
-    StoneBoardCollisionType collisionType = DetermineStoneBoardCollisionType( board, biconvexPosition, boundingSphereRadius );
+    bool broadPhaseReject;
+    StoneBoardRegion region = DetermineStoneBoardRegion( board, biconvexPosition, boundingSphereRadius, broadPhaseReject );
+    if ( broadPhaseReject )
+        return false;
 
-    const float thickness = board.GetThickness();
-
-    if ( collisionType == STONE_BOARD_COLLISION_Primary )
+    if ( region == STONE_BOARD_REGION_Primary )
     {
         float s1,s2;
         vec3f biconvexUp = biconvexTransform.GetUp();
         vec3f biconvexCenter = biconvexTransform.GetPosition();
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(0,1,0), s1, s2 );
-        return s1 <= thickness;
+        return s1 <= board.GetThickness();
     }
 
     // todo: other cases
@@ -281,11 +259,14 @@ inline bool IntersectStoneBoard( const Board & board,
 
     vec3f biconvexPosition = biconvexTransform.GetPosition();
 
-    StoneBoardCollisionType collisionType = DetermineStoneBoardCollisionType( board, biconvexPosition, boundingSphereRadius );
+    bool broadPhaseReject;
+    StoneBoardRegion region = DetermineStoneBoardRegion( board, biconvexPosition, boundingSphereRadius, broadPhaseReject );
+    if ( broadPhaseReject )
+        return false;
 
     const float thickness = board.GetThickness();
 
-    if ( collisionType == STONE_BOARD_COLLISION_Primary )
+    if ( region == STONE_BOARD_REGION_Primary )
     {
         // common case: collision with primary surface of board only
         // no collision with edges or corners of board is possible
@@ -304,35 +285,35 @@ inline bool IntersectStoneBoard( const Board & board,
         }
     }
     /*
-    else if ( collisionType == STONE_BOARD_COLLISION_LeftSide )
+    else if ( region == STONE_BOARD_REGION_LeftSide )
     {
         assert( false );
     }
-    else if ( collisionType == STONE_BOARD_COLLISION_RightSide )
+    else if ( collisionType == STONE_BOARD_REGION_RightSide )
     {
         assert( false );
     }
-    else if ( collisionType == STONE_BOARD_COLLISION_TopSide )
+    else if ( collisionType == STONE_BOARD_REGION_TopSide )
     {
         assert( false );
     }
-    else if ( collisionType == STONE_BOARD_COLLISION_BottomSide )
+    else if ( collisionType == STONE_BOARD_REGION_BottomSide )
     {
         assert( false );
     }
-    else if ( collisionType == STONE_BOARD_COLLISION_TopLeftCorner )
+    else if ( collisionType == STONE_BOARD_REGION_TopLeftCorner )
     {
         assert( false );
     }
-    else if ( collisionType == STONE_BOARD_COLLISION_TopRightCorner )
+    else if ( collisionType == STONE_BOARD_REGION_TopRightCorner )
     {
         assert( false );
     }
-    else if ( collisionType == STONE_BOARD_COLLISION_BottomRightCorner )
+    else if ( collisionType == STONE_BOARD_REGION_BottomRightCorner )
     {
         assert( false );
     }
-    else if ( collisionType == STONE_BOARD_COLLISION_BottomLeftCorner )
+    else if ( collisionType == STONE_BOARD_REGION_BottomLeftCorner )
     {
         assert( false );
     }

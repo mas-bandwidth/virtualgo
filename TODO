@@ -19,16 +19,16 @@ DONE:
 
     Tidied up rendering and fixed board not obscuring the stone behind it
 
-TODO:
-
-    -----------------------------------------------------------------------
-
     Separate the broad phase rejection of collision detection from the
     categorization of the type of collision that should be checked.
 
     This is really important because otherwise the categorization
     cannot be used for nearest point checks, as these must function
     even when the stone is not colliding with the board.
+
+TODO:
+
+    Argh... the wireframe is fucked up with z testing again... !
 
     -----------------------------------------------------------------------
 

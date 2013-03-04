@@ -15,39 +15,57 @@ SUITE( Intersection )
 {
     TEST( stone_board_collision_type )
     {
-        const float w = 10.0f;
-        const float h = 10.0f;
+        Board board( 9 );
 
-        Board board( w*2, h*2, 0.5 );
+        const float w = board.GetWidth() * 0.5f;
+        const float h = board.GetHeight() * 0.5f;
+        const float t = board.GetThickness();
 
         const float radius = 1.0f;
 
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,1.6f,0), radius ) == STONE_BOARD_COLLISION_None );
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(w*2,0,0), radius ) == STONE_BOARD_COLLISION_None );
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(-w*2,0,0), radius ) == STONE_BOARD_COLLISION_None );
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,0,h*2), radius ) == STONE_BOARD_COLLISION_None );
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,0,-h*2), radius ) == STONE_BOARD_COLLISION_None );
+        bool broadPhaseReject = false;
 
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,0,0), radius ) == STONE_BOARD_COLLISION_Primary );
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,-100,0), radius ) == STONE_BOARD_COLLISION_Primary );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(0,0,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_Primary );
+        CHECK( broadPhaseReject == false );
 
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(-w,0,0), radius ) == STONE_BOARD_COLLISION_LeftSide );
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(+w,0,0), radius ) == STONE_BOARD_COLLISION_RightSide );
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,0,-h), radius ) == STONE_BOARD_COLLISION_TopSide );
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(0,0,+h), radius ) == STONE_BOARD_COLLISION_BottomSide );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(0,-100,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_Primary );
+        CHECK( broadPhaseReject == false );
 
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(-w,0,-h), radius ) == STONE_BOARD_COLLISION_TopLeftCorner );
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(+w,0,-h), radius ) == STONE_BOARD_COLLISION_TopRightCorner );
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(+w,0,+h), radius ) == STONE_BOARD_COLLISION_BottomRightCorner );
-        CHECK( DetermineStoneBoardCollisionType( board, vec3f(-w,0,+h), radius ) == STONE_BOARD_COLLISION_BottomLeftCorner );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(-w,0,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_LeftSide );
+        CHECK( broadPhaseReject == false );
+        
+        CHECK( DetermineStoneBoardRegion( board, vec3f(+w,0,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_RightSide );
+        CHECK( broadPhaseReject == false );
+        
+        CHECK( DetermineStoneBoardRegion( board, vec3f(0,0,-h), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopSide );
+        CHECK( broadPhaseReject == false );
+        
+        CHECK( DetermineStoneBoardRegion( board, vec3f(0,0,+h), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomSide );
+        CHECK( broadPhaseReject == false );
+
+        CHECK( DetermineStoneBoardRegion( board, vec3f(-w,0,-h), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopLeftCorner );
+        CHECK( broadPhaseReject == false );
+
+        CHECK( DetermineStoneBoardRegion( board, vec3f(+w,0,-h), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopRightCorner );
+        CHECK( broadPhaseReject == false );
+
+        CHECK( DetermineStoneBoardRegion( board, vec3f(+w,0,+h), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomRightCorner );
+        CHECK( broadPhaseReject == false );
+
+        CHECK( DetermineStoneBoardRegion( board, vec3f(-w,0,+h), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomLeftCorner );
+        CHECK( broadPhaseReject == false );
+
+        CHECK( DetermineStoneBoardRegion( board, vec3f(0,t+radius + 0.01f,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_Primary );
+        CHECK( broadPhaseReject == true );
     }
 
     TEST( stone_board_collision_none )
     {
-        const float w = 10.0f;
-        const float h = 10.0f;
+        Board board( 9 );
 
-        Board board( w*2, h*2, 0.5 );
+        const float w = board.GetWidth() * 0.5f;
+        const float h = board.GetHeight() * 0.5f;
+        const float t = board.GetThickness();
 
         Biconvex biconvex( 2.0f, 1.0f );
 
@@ -59,7 +77,7 @@ SUITE( Intersection )
         float depth;
         vec3f point, normal;
 
-        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,r*2,0) ), point, normal, depth ) );
+        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,t+r*2,0) ), point, normal, depth ) );
         CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(-w-r*2,0,0) ), point, normal, depth ) );
         CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(+w+r*2,0,0) ), point, normal, depth ) );
         CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,0,-h-r*2) ), point, normal, depth ) );
@@ -70,10 +88,11 @@ SUITE( Intersection )
     {
         const float epsilon = 0.001f;
 
-        const float w = 10.0f;
-        const float h = 10.0f;
+        Board board( 9 );
 
-        Board board( w*2, h*2, 0.5 );
+        const float w = board.GetWidth() * 0.5f;
+        const float h = board.GetHeight() * 0.5f;
+        const float t = board.GetThickness();
 
         Biconvex biconvex( 2.0f, 1.0f );
 
