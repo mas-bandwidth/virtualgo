@@ -42,7 +42,7 @@ vec3f cameraPosition;
 
 const float DefaultBoardThickness = 0.5f;
 
-Board board( 35, 35, DefaultBoardThickness );
+Board board( 9 );
 
 Stone stone;
 StoneSize size = STONE_SIZE_34;

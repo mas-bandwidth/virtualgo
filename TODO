@@ -2,25 +2,22 @@ DONE:
 
     Find exact measurements of standard go board dimensions
 
+    Parameterized board by the size (eg: 9, 13, 19), with the height
+    of grid cells being slightly larger than the width (japanese style)
+
+
+
 TODO:
 
     -----------------------------------------------------------------------
 
-    You can crash the demo if you increase the rotation too much, 
-    therefore there should be a maximum rotational inertia for
-    the go stone
+    Separate the grid rendering from the rendering of the board
+    
+    eg. the board should render just quads for each side
 
-    -----------------------------------------------------------------------
+    but the grid should render the top grid in wireframe
 
-    Board should be adjusted such that it matches the actual dimensions
-    both in x and z, eg. that it is lightly longer than it is wide
-    due to perspective.
-
-    -----------------------------------------------------------------------
-
-    Board creation and dimensions should be parameterized, eg. from inputs
-    such as width/height of cells. Number of grid points, eg. 9x9 etc, amount
-    of buffer on the sides for non-grid surfaces and so on.
+    grid should be rendered as lines, not as quads
 
     -----------------------------------------------------------------------
 
@@ -32,6 +29,11 @@ TODO:
 
     It would also be cool to be able to pick specific standard sizes
     on the fly, eg: ALT-1, ALT-2, ALT-3 --> 9x9, 13x13, 19x19
+
+    -----------------------------------------------------------------------
+
+    You can crash the demo if you increase the rotation too much with W
+    therefore there should be a maximum rotational inertia for the go stone
 
     -----------------------------------------------------------------------
 

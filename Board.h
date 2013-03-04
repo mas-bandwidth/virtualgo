@@ -22,15 +22,32 @@
     https://en.wikipedia.org/wiki/Go_equipment#Board
 */
 
+struct BoardParams
+{
+    BoardParams()
+    {
+        gridWidth = 2.2f;
+        gridHeight = 2.37f;
+        thickness = 0.5f;
+    }
+
+    float gridWidth;
+    float gridHeight;
+    float thickness;
+};
+
 class Board
 {
 public:
 
-    Board( float width, float height, float thickness )
+    Board( int size, const BoardParams & params = BoardParams() )
     {
-        this->width = width;
-        this->height = height;
-        this->thickness = thickness;
+        this->size = size;
+        this->params = params;
+
+        this->width = size * params.gridWidth;
+        this->height = size * params.gridHeight;
+        
         halfWidth = width / 2;
         halfHeight = height / 2;
     }
@@ -47,12 +64,12 @@ public:
 
     void SetThickness( float thickness )
     {
-        this->thickness = thickness;
+        this->params.thickness = thickness;
     }
 
     float GetThickness() const
     {
-        return thickness;
+        return params.thickness;
     }
    
     float GetHalfWidth() const
@@ -67,9 +84,12 @@ public:
 
 private:
 
+    int size;
+
+    BoardParams params;
+
     float width;                            // width of board (along x-axis)
     float height;                           // depth of board (along z-axis)
-    float thickness;                        // thickness of board (along y-axis)
 
     float halfWidth;
     float halfHeight;
