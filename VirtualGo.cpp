@@ -40,9 +40,10 @@ Mode cameraMode = mode;
 vec3f cameraLookAt;
 vec3f cameraPosition;
 
+const int DefaultBoardSize = 9;
 const float DefaultBoardThickness = 0.5f;
 
-Board board( 9 );
+Board board( DefaultBoardSize );
 
 Stone stone;
 StoneSize size = STONE_SIZE_34;
@@ -90,6 +91,8 @@ void RestoreDefaults()
     stone.rigidBody.linearMomentum = vec3f(0,0,0);
     stone.rigidBody.angularMomentum = vec3f(0,0,0);
     stone.rigidBody.Update();
+
+    board = Board( DefaultBoardSize );
 }
 
 int main()
@@ -242,6 +245,15 @@ int main()
                     thickness = 9;
                 board.SetThickness( thickness );
             }
+
+            if ( input.one )
+                board = Board( 9 );
+
+            if ( input.two )
+                board = Board( 13 );
+
+            if ( input.three )
+                board = Board( 19 );
         }
         else if ( input.control )
         {

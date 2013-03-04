@@ -41,6 +41,12 @@ struct RigidBody
 
     void Update()
     {
+        // IMPORTANT: clamp angular momentum to maximum
+        const float MaxAngularMomentum = 10;
+        const float MaxAngularMomentumSquared = MaxAngularMomentum * MaxAngularMomentum;
+        if ( length_squared( angularMomentum ) > MaxAngularMomentumSquared )
+            angularMomentum = normalize( angularMomentum ) * MaxAngularMomentum;
+
         linearVelocity = linearMomentum * inverseMass;
         angularVelocity = transformVector( inverseInertiaTensor, angularMomentum );
     }

@@ -9,46 +9,62 @@ DONE:
 
     Separate the grid rendering from the rendering of the board
 
+    Can now select board size on the fly:
+
+        ALT-1: 9x9
+        ALT-2: 13x13
+        ALT-3: 19x19
+
+    You can crash the demo if you increase the rotation too much with W
+    so I added a clamp to maximum rotational inertia for any rigid body
+
 TODO:
 
     -----------------------------------------------------------------------
 
-    Mid-zoom level looks awful with the boarder. It squishes it
-
-    -----------------------------------------------------------------------
-
-    Board should be adjustable from a 9x9 to 13x13 and 19x19 on the fly
-
-    The adjustment of board size should feel nice but since it is not
-    continuous the rate of expansion should be a function of frames
-    the key has been held down.
-
-    It would also be cool to be able to pick specific standard sizes
-    on the fly, eg: ALT-1, ALT-2, ALT-3 --> 9x9, 13x13, 19x19
-
-    -----------------------------------------------------------------------
-
-    You can crash the demo if you increase the rotation too much with W
-    therefore there should be a maximum rotational inertia for the go stone
-
-    -----------------------------------------------------------------------
-
-    Camera movement and zoom amounts should be proportional to the 
-    size of the go board.
-
-    -----------------------------------------------------------------------
-
-    Need to implement rolling and sliding friction
-
-    -----------------------------------------------------------------------
-
-    I would like to be able to hold shift and focus on the stone from the 
-    current camera position, eg. don't move the camera position but track
-    the stone
-
-    -----------------------------------------------------------------------
+    Implement rolling and sliding friction
 
     Implement side plane cases for collision with board
+
+    Implement corner cases for collision with board
+
+    -----------------------------------------------------------------------
+
+    Implement mode with stone and board rendered in solid color
+
+    Load texture for stone
+
+    Render stone with murasaki texture
+
+    Render board with wood texture
+
+    Develop textures for grid lines and star points
+
+    -----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     I think the algorithm is very simple.
 
