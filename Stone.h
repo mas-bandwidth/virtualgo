@@ -46,7 +46,7 @@ const float StoneHeight[] =
 
 inline float GetStoneWidth( StoneSize stoneSize, bool black = false )
 {
-	return 2.21f + ( black ? 0.3f : 0 );
+	return 2.2f + ( black ? 0.3f : 0 );
 }
 
 inline float GetStoneHeight( StoneSize stoneSize, bool black = false )

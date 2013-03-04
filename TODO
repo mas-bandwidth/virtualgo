@@ -1,27 +1,14 @@
 DONE:
 
-    Holding down tab scrolls to focus on the current stone
-
-    If you hold down tab while the stone is moving, the camera 
-    roughly tracks the stone
-
-    Fixed the lighting
-
-    Added a small impulse if the go stone is inside the go board
-    at the beginning of the frame. This gives a cool trampoline effect
-    when you adjust teh size of the go board on the fly.
-
-    You now can add angular velocity with QWE and remove it with R
+    Find exact measurements of standard go board dimensions
 
 TODO:
 
     -----------------------------------------------------------------------
 
-    When the camera is zoomed right into the board and is side on
-    detect this and draw a horizontal line representing the board
-    surface.
-
-    Obviously this only works in wireframe!
+    You can crash the demo if you increase the rotation too much, 
+    therefore there should be a maximum rotational inertia for
+    the go stone
 
     -----------------------------------------------------------------------
 
@@ -31,29 +18,35 @@ TODO:
 
     -----------------------------------------------------------------------
 
-    Board should be adjustable from a 9x9 to 13x13 and 19x19 on the fly
-
-    The adjustment of board size should feel nice but since it is not
-    continuous the rate of expansion should be a function of frames
-    the key has been held down.
-
-    Alternatively it could be chosen via ALT-1, ALT-2, ALT-3?
-
-    -----------------------------------------------------------------------
-
     Board creation and dimensions should be parameterized, eg. from inputs
     such as width/height of cells. Number of grid points, eg. 9x9 etc, amount
     of buffer on the sides for non-grid surfaces and so on.
 
     -----------------------------------------------------------------------
 
-    I would like to be able to hold shift and focus on the stone from the 
-    current camera position, eg. don't move the camera position but track
-    the stone
+    Board should be adjustable from a 9x9 to 13x13 and 19x19 on the fly
+
+    The adjustment of board size should feel nice but since it is not
+    continuous the rate of expansion should be a function of frames
+    the key has been held down.
+
+    It would also be cool to be able to pick specific standard sizes
+    on the fly, eg: ALT-1, ALT-2, ALT-3 --> 9x9, 13x13, 19x19
+
+    -----------------------------------------------------------------------
+
+    Camera movement and zoom amounts should be proportional to the 
+    size of the go board.
 
     -----------------------------------------------------------------------
 
     Need to implement rolling and sliding friction
+
+    -----------------------------------------------------------------------
+
+    I would like to be able to hold shift and focus on the stone from the 
+    current camera position, eg. don't move the camera position but track
+    the stone
 
     -----------------------------------------------------------------------
 

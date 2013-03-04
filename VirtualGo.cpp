@@ -268,16 +268,16 @@ int main()
             float sz = 0;
 
             if ( input.left )
-                sx = 1;
-
-            if ( input.right )
                 sx = -1;
 
+            if ( input.right )
+                sx = 1;
+
             if ( input.up )
-                sz = -1;
+                sz = 1;
 
             if ( input.down )
-                sz = 1;
+                sz = -1;
 
             if ( input.a )
                 sy = 1;
@@ -340,7 +340,7 @@ int main()
 
         // setup lights
 
-        GLfloat lightPosition[] = { -100, 1000, -100, 1 };
+        GLfloat lightPosition[] = { -10, 1000, -200, 1 };
         glLightfv( GL_LIGHT0, GL_POSITION, lightPosition );
 
         // setup projection + modelsview
@@ -378,22 +378,22 @@ int main()
         if ( zoomLevel == 0 )
         {
             targetLookAt = vec3f(x,y,z);
-            targetPosition = vec3f(x,y,z+5);
+            targetPosition = vec3f(x,y,z-5);
         }
         else if ( zoomLevel == 1 )
         {
             targetLookAt = vec3f(x,y+1,z);
-            targetPosition = vec3f(x,y+1,z+10);
+            targetPosition = vec3f(x,y+1,z-10);
         }
         else if ( zoomLevel == 2 )
         {
             targetLookAt = vec3f(x,y+4,z);
-            targetPosition = vec3f(x,y+8,z+25);
+            targetPosition = vec3f(x,y+8,z-25);
         }
         else if ( zoomLevel == 3 )
         {
             targetLookAt = vec3f(x,y+2,z);
-            targetPosition = vec3f(x,y+20,z+30);
+            targetPosition = vec3f(x,y+20,z-30);
         }
         else if ( zoomLevel == 4 )
         {
@@ -418,7 +418,7 @@ int main()
 
         cameraMode = mode;
 
-        vec3f cameraUp = cross( normalize( cameraLookAt - cameraPosition ), vec3f(-1,0,0) );
+        vec3f cameraUp = cross( normalize( cameraLookAt - cameraPosition ), vec3f(1,0,0) );
 
         gluLookAt( cameraPosition.x(), max( cameraPosition.y(), t ), cameraPosition.z(),
                    cameraLookAt.x(), max( cameraLookAt.y(), t ), cameraLookAt.z(),
@@ -504,13 +504,8 @@ int main()
         glDisable( GL_DEPTH_TEST );
         glEnable( GL_LIGHTING );
         glColor4f( 0.8f,0.8f,0.8f,1 );
-        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-        RenderBoard( board );
-        glEnable( GL_DEPTH_TEST );
-        glDepthMask( GL_TRUE );
 
-        // if the camera position is inside the go board draw a line
-        // representing the height of the go board
+        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
         if ( cameraPosition.x() >= -board.GetWidth() / 2 &&
              cameraPosition.x() <= board.GetWidth() / 2 &&
@@ -518,15 +513,20 @@ int main()
              cameraPosition.z() <= board.GetHeight() / 2 &&
              cameraPosition.y() <= board.GetThickness() + 0.01f )
         {
-            glDisable( GL_DEPTH_TEST );
             glBegin( GL_LINES );
-            glVertex3f( -1000, board.GetThickness(), cameraPosition.z() - 10.0f );
-            glVertex3f( +1000, board.GetThickness(), cameraPosition.z() - 10.0f );
+            glVertex3f( -1000, board.GetThickness(), cameraPosition.z() + 1.0f );
+            glVertex3f( +1000, board.GetThickness(), cameraPosition.z() + 1.0f );
             glEnd();
-            glEnable( GL_DEPTH_TEST );
+        }
+        else
+        {
+            glDepthMask( GL_TRUE );
+            RenderBoard( board );
         }
 
         // render stone
+
+        glEnable( GL_DEPTH_TEST );
 
         glPushMatrix();
 

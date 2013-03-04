@@ -1,4 +1,21 @@
 
+Polish and new demo features (3/3/2013):
+----------------------------------------
+
+    Holding down tab scrolls to focus on the current stone
+
+    If you hold down tab while the stone is moving, the camera 
+    roughly tracks the stone
+
+    Fixed the lighting
+
+    Added a small impulse if the go stone is inside the go board
+    at the beginning of the frame. This gives a cool trampoline effect
+    when you adjust teh size of the go board on the fly.
+
+    You now can add angular velocity with QWE and remove it with R
+
+
 Lots of work on the GDC 2013 talk demo (2/3/2013):
 --------------------------------------------------
 

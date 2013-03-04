@@ -5,10 +5,21 @@
     Go board.
 
     We model the go board as an axis aligned rectangular prism.
-    The top surface of the go board is along the y = 0 plane for simplicity.
-    Collision with the top surface is the common case, however we also need
-    to consider collisions with the side planes, the top edges and the top
-    corners.
+
+    Since the floor is the plane y = 0, the top surface of the board
+    is the plane y = thickness.
+
+    Go board dimensions:
+
+        Board width                 424.2mm
+        Board length                454.5mm
+        Board thickness             151.5mm
+        Line spacing width-wise     22mm
+        Line spacing length-wise    23.7mm
+        Line thickness              1mm
+        Star point marker diameter  4mm
+
+    https://en.wikipedia.org/wiki/Go_equipment#Board
 */
 
 class Board
