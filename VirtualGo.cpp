@@ -540,7 +540,7 @@ int main()
         if ( mode >= SolidColor )
         {
             glEnable( GL_LIGHTING );
-            glColor4f( 1.0f,0.6f,0,1 );            
+            glColor4f( 0.8f,0.45f,0,1 );            
         }
         else
         {
