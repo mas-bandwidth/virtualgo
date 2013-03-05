@@ -124,11 +124,11 @@ bool StoneBoardCollision( const Biconvex & biconvex,
     // detect collision with the board
 
     float depth;
-    vec3f point, normal;
-    if ( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( rigidBody.position, rigidBody.orientation ), point, normal, depth ) )
+    vec3f normal;
+    if ( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( rigidBody.position, rigidBody.orientation ), normal, depth ) )
         return false;
 
-    // project the stone out of collision with the board
+    // project the stone out of the board
 
     rigidBody.position += normal * depth;
 

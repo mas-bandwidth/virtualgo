@@ -2,6 +2,7 @@
 #define INTERSECTION_H
 
 #include "Board.h"
+#include <float.h>
 
 inline bool IntersectRayPlane( vec3f rayStart,
                                vec3f rayDirection,
@@ -219,38 +220,16 @@ inline StoneBoardRegion DetermineStoneBoardRegion( const Board & board, vec3f po
     return (StoneBoardRegion) edges;
 }
 
-inline bool IntersectStoneBoard( const Board & board, 
-                                 const Biconvex & biconvex, 
-                                 const RigidBodyTransform & biconvexTransform,
-                                 float epsilon = 0.0001f )
+struct Axis
 {
-    const float boundingSphereRadius = biconvex.GetBoundingSphereRadius();
-
-    vec3f biconvexPosition = biconvexTransform.GetPosition();
-
-    bool broadPhaseReject;
-    StoneBoardRegion region = DetermineStoneBoardRegion( board, biconvexPosition, boundingSphereRadius, broadPhaseReject );
-    if ( broadPhaseReject )
-        return false;
-
-    if ( region == STONE_BOARD_REGION_Primary )
-    {
-        float s1,s2;
-        vec3f biconvexUp = biconvexTransform.GetUp();
-        vec3f biconvexCenter = biconvexTransform.GetPosition();
-        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(0,1,0), s1, s2 );
-        return s1 <= board.GetThickness();
-    }
-
-    // todo: other cases
-
-    return false;
-}
+    vec3f normal;
+    float d;
+    float s1,s2;
+};
 
 inline bool IntersectStoneBoard( const Board & board, 
                                  const Biconvex & biconvex, 
                                  const RigidBodyTransform & biconvexTransform,
-                                 vec3f & point,
                                  vec3f & normal,
                                  float & depth,
                                  float epsilon = 0.0001f )
@@ -264,62 +243,129 @@ inline bool IntersectStoneBoard( const Board & board,
     if ( broadPhaseReject )
         return false;
 
-    const float thickness = board.GetThickness();
+    const int MaxAxes = 4;
+
+    int numAxes = 0;
+    Axis axis[MaxAxes];
+
+    vec3f biconvexUp = biconvexTransform.GetUp();
+    vec3f biconvexCenter = biconvexTransform.GetPosition();
 
     if ( region == STONE_BOARD_REGION_Primary )
     {
-        // common case: collision with primary surface of board only
-        // no collision with edges or corners of board is possible
-
-        vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,1,0,thickness) );
-
-        vec3f local_point;
-        vec3f local_normal;
-        depth = IntersectPlaneBiconvex_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), 
-                                                   plane.w(), biconvex, local_point, local_normal );
-        if ( depth >= 0.0f )
-        {
-            point = TransformPoint( biconvexTransform.localToWorld, local_point );
-            normal = TransformVector( biconvexTransform.localToWorld, local_normal );
-            return true;
-        }
+        numAxes = 1;
+        axis[0].d = board.GetThickness();
+        axis[0].normal = vec3f(0,1,0);
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
     }
     /*
     else if ( region == STONE_BOARD_REGION_LeftSide )
     {
-        assert( false );
+        numAxes = 3;
+
+        // top
+        axis[0].d = board.GetThickness();
+        axis[0].normal = vec3f(0,1,0);
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
+
+        // side
+        axis[1].d = board.GetWidth() / 2;
+        axis[1].normal = vec3f(-1,0,0);
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[1].normal, axis[1].s1, axis[1].s2 );
+
+        // edge
+        axis[2].normal = vec3f( -0.70710,+0.70710,0 );
+        axis[2].d = dot( vec3f( -board.GetWidth()/2, board.GetThickness(), 0 ), axis[2].normal );
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
-    else if ( collisionType == STONE_BOARD_REGION_RightSide )
+    else if ( region == STONE_BOARD_REGION_RightSide )
     {
-        assert( false );
+        numAxes = 3;
+
+        // top
+        axis[0].d = board.GetThickness();
+        axis[0].normal = vec3f(0,1,0);
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
+
+        // side
+        axis[1].d = board.GetWidth() / 2;
+        axis[1].normal = vec3f(1,0,0);
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[1].normal, axis[1].s1, axis[1].s2 );
+
+        // edge
+        axis[2].normal = vec3f( +0.70710,+0.70710,0 );
+        axis[2].d = dot( vec3f( board.GetWidth()/2, board.GetThickness(), 0 ), axis[2].normal );
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
-    else if ( collisionType == STONE_BOARD_REGION_TopSide )
+    else if ( region == STONE_BOARD_REGION_TopSide )
     {
-        assert( false );
+        numAxes = 3;
+
+        // top
+        axis[0].d = board.GetThickness();
+        axis[0].normal = vec3f(0,1,0);
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
+
+        // side
+        axis[1].d = board.GetHeight() / 2;
+        axis[1].normal = vec3f(0,0,-1);
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[1].normal, axis[1].s1, axis[1].s2 );
+
+        // edge
+        axis[2].normal = vec3f( 0,+0.70710,-0.70710 );
+        axis[2].d = dot( vec3f( 0, board.GetThickness(), -board.GetHeight()/2 ), axis[2].normal );
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
-    else if ( collisionType == STONE_BOARD_REGION_BottomSide )
+    else if ( region == STONE_BOARD_REGION_BottomSide )
     {
-        assert( false );
-    }
-    else if ( collisionType == STONE_BOARD_REGION_TopLeftCorner )
-    {
-        assert( false );
-    }
-    else if ( collisionType == STONE_BOARD_REGION_TopRightCorner )
-    {
-        assert( false );
-    }
-    else if ( collisionType == STONE_BOARD_REGION_BottomRightCorner )
-    {
-        assert( false );
-    }
-    else if ( collisionType == STONE_BOARD_REGION_BottomLeftCorner )
-    {
-        assert( false );
+        numAxes = 3;
+
+        // top
+        axis[0].d = board.GetThickness();
+        axis[0].normal = vec3f(0,1,0);
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
+
+        // side
+        axis[1].d = board.GetHeight() / 2;
+        axis[1].normal = vec3f(0,0,1);
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[1].normal, axis[1].s1, axis[1].s2 );
+
+        // edge
+        axis[2].normal = vec3f( 0,+0.70710,0.70710 );
+        axis[2].d = dot( vec3f( 0, board.GetThickness(), board.GetHeight()/2 ), axis[2].normal );
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
     */
 
-    return false;
+    // not colliding if no axis defined
+    if ( numAxes == 0 )
+        return false;
+
+    // not colliding if any axis separates the stone and the board
+    for ( int i = 0; i < numAxes; ++i )
+    {
+        if ( axis[i].s1 > axis[i].d )
+            return false;
+    }
+
+    // colliding: find axis with the least amount of penetration
+    float leastPenetrationDepth = FLT_MAX;
+    Axis * leastPenetrationAxis = NULL;
+    for ( int i = 0; i < numAxes; ++i )
+    {
+        const float depth = axis[i].d - axis[i].s1;
+        if ( depth < leastPenetrationDepth )
+        {
+            leastPenetrationDepth = depth;
+            leastPenetrationAxis = &axis[i];
+        }
+    }
+
+    assert( leastPenetrationAxis );
+    normal = leastPenetrationAxis->normal;
+    depth = leastPenetrationDepth;
+
+    return true;
 }
 
 #endif

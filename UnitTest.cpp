@@ -77,11 +77,11 @@ SUITE( Intersection )
         float depth;
         vec3f point, normal;
 
-        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,t+r*2,0) ), point, normal, depth ) );
-        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(-w-r*2,0,0) ), point, normal, depth ) );
-        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(+w+r*2,0,0) ), point, normal, depth ) );
-        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,0,-h-r*2) ), point, normal, depth ) );
-        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,0,+h+r*2) ), point, normal, depth ) );
+        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,t+r*2,0) ), normal, depth ) );
+        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(-w-r*2,0,0) ), normal, depth ) );
+        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(+w+r*2,0,0) ), normal, depth ) );
+        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,0,-h-r*2) ), normal, depth ) );
+        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,0,+h+r*2) ), normal, depth ) );
     }
 
     TEST( stone_board_collision_primary )
@@ -97,16 +97,15 @@ SUITE( Intersection )
         Biconvex biconvex( 2.0f, 1.0f );
 
         float depth;
-        vec3f point, normal;
+        vec3f normal;
 
         // test at origin with identity rotation
         {
             RigidBodyTransform biconvexTransform( vec3f(0,0,0), mat4f::identity() );
 
-            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
             CHECK_CLOSE( depth, 1.0f, epsilon );
-            CHECK_CLOSE_VEC3( point, vec3f(0,-0.5f,0), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
         
@@ -114,10 +113,9 @@ SUITE( Intersection )
         {
             RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::identity() );
 
-            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
             CHECK_CLOSE( depth, 1.0f, epsilon );
-            CHECK_CLOSE_VEC3( point, vec3f(w/2,-0.5f,h/2), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
 
@@ -125,10 +123,9 @@ SUITE( Intersection )
         {
             RigidBodyTransform biconvexTransform( vec3f(0,0,0), mat4f::axisRotation( 180, vec3f(0,0,1) ) );
 
-            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
             CHECK_CLOSE( depth, 1.0f, epsilon );
-            CHECK_CLOSE_VEC3( point, vec3f(0,-0.5f,0), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
 
@@ -136,10 +133,9 @@ SUITE( Intersection )
         {
             RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( 180, vec3f(0,0,1) ) );
 
-            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
             CHECK_CLOSE( depth, 1.0f, epsilon );
-            CHECK_CLOSE_VEC3( point, vec3f(w/2,-0.5f,h/2), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
 
@@ -147,10 +143,9 @@ SUITE( Intersection )
         {
             RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( 90, vec3f(0,0,1) ) );
 
-            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
             CHECK_CLOSE( depth, 1.5f, epsilon );
-            CHECK_CLOSE_VEC3( point, vec3f(w/2,-1,h/2), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
 
@@ -158,10 +153,9 @@ SUITE( Intersection )
         {
             RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( -90, vec3f(0,0,1) ) );
 
-            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
             CHECK_CLOSE( depth, 1.5f, epsilon );
-            CHECK_CLOSE_VEC3( point, vec3f(w/2,-1,h/2), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
 
@@ -169,10 +163,9 @@ SUITE( Intersection )
         {
             RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( 90, vec3f(1,0,0) ) );
 
-            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
             CHECK_CLOSE( depth, 1.5f, epsilon );
-            CHECK_CLOSE_VEC3( point, vec3f(w/2,-1,h/2), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
 
@@ -180,10 +173,9 @@ SUITE( Intersection )
         {
             RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( -90, vec3f(1,0,0) ) );
 
-            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, point, normal, depth ) );
+            CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
             CHECK_CLOSE( depth, 1.5f, epsilon );
-            CHECK_CLOSE_VEC3( point, vec3f(w/2,-1,h/2), epsilon );
             CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
         }
     }
