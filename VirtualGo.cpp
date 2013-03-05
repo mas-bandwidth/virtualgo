@@ -57,21 +57,19 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     const float z = scrollZ;
     
     rigidBody.position = vec3f( x, board.GetThickness() + 15.0f, z );
+    
+    //rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
+    
+    rigidBody.orientation = quat4f::axisRotation( pi*2/3, vec3f(0,0,-1) );
 
-    /*
-    rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
-    if ( mode == LinearCollisionResponse )
-    */
-        rigidBody.orientation = quat4f(1,0,0,0);
-
-    rigidBody.orientation = quat4f::axisRotation( pi/2, vec3f(1,0,0) );
-
-
+    //if ( mode == LinearCollisionResponse )
+    //    rigidBody.orientation = quat4f(1,0,0,0);
+    
     rigidBody.linearMomentum = vec3f(0,0,0);
-    /*
-    if ( mode < CollisionResponseWithFriction )
-    */
+    
+    //if ( mode < CollisionResponseWithFriction )
         rigidBody.angularMomentum = vec3f(0,0,0);
+
     rigidBody.Update();
 }
 

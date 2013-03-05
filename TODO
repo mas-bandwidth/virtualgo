@@ -38,8 +38,11 @@ DONE:
     circle edge cases properly, and takes the closest point to the 
     line.
 
+    There appears to be one final broken case now. Perhaps it is a fuckup
+    with the top sphere vs. the bottom sphere? YES! It was!
+
 TODO:
-    
+
     -----------------------------------------------------------------------
 
     Argh... the wireframe is fucked up with z testing again... !

@@ -133,10 +133,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
             const float z = boardPoint.z();
 
             if ( x >= -w && x <= w && z >= -h && z <= h )
-            {
-                printf( "nearest: left side primary surface\n" );
                 return;
-            }
         }
 
         // left side plane
@@ -166,16 +163,11 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
             const float z = boardPoint.z();
 
             if ( y <= t && z >= -h && z <= t )
-            {
-                printf( "nearest: left side plane\n" );
                 return;
-            }
         }
 
         // left side edge
         {
-            printf( "nearest: left side edge\n" );
-
             const float w = board.GetWidth() / 2;
             const float h = board.GetHeight() / 2;
             const float t = board.GetThickness();
