@@ -55,12 +55,22 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 {
     const float x = scrollX;
     const float z = scrollZ;
+    
     rigidBody.position = vec3f( x, board.GetThickness() + 15.0f, z );
+
+    /*
     rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
     if ( mode == LinearCollisionResponse )
+    */
         rigidBody.orientation = quat4f(1,0,0,0);
+
+    //rigidBody.orientation = quat4f::axisRotation( pi, vec3f(0,0,1) );
+
+
     rigidBody.linearMomentum = vec3f(0,0,0);
+    /*
     if ( mode < CollisionResponseWithFriction )
+    */
         rigidBody.angularMomentum = vec3f(0,0,0);
     rigidBody.Update();
 }
@@ -86,7 +96,7 @@ void RestoreDefaults()
     scrollY = 0;
     scrollZ = 0;
 
-    zoomLevel = 1;
+    zoomLevel = 3;
 
     stone.rigidBody.position = vec3f( 0, board.GetThickness() + stone.biconvex.GetHeight() / 2, 0 );
     stone.rigidBody.orientation = quat4f(1,0,0,0);
@@ -104,9 +114,7 @@ int main()
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
         stoneSizes[i].Initialize( (StoneSize)i );
 
-    SelectStoneSize( STONE_SIZE_34 );
-
-    RandomStone( stone.biconvex, stone.rigidBody, mode );
+    RestoreDefaults();
     
     Mesh mesh[STONE_SIZE_NumValues];
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
@@ -621,6 +629,37 @@ int main()
         RenderMesh( mesh[size] );
 
         glPopMatrix();
+
+        /*
+        // debug: test closest feature on stone vs. board
+        {
+            vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
+            ClosestFeaturesStoneBoard( board, stone.biconvex, biconvexTransform, 
+                                       stonePoint, stoneNormal, boardPoint, boardNormal );
+
+            vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
+            vec3f local_normal;
+
+            GetBiconvexSurfaceNormalAtPoint_LocalSpace( local_point, stone.biconvex, local_normal );
+
+            stoneNormal = transformVector( biconvexTransform.localToWorld, local_normal );
+            boardNormal = -stoneNormal;
+
+            glBegin( GL_LINES );
+
+            glColor3f(1,0,0);
+            glVertex3f( boardPoint.x(), boardPoint.y(), boardPoint.z() );
+            glVertex3f( stonePoint.x(), stonePoint.y(), stonePoint.z() );
+
+            glColor3f(0,0,1);
+            glVertex3f( boardPoint.x(), boardPoint.y(), boardPoint.z() );
+            glVertex3f( boardPoint.x() + boardNormal.x() * 2, 
+                        boardPoint.y() + boardNormal.y() * 2, 
+                        boardPoint.z() + boardNormal.z() * 2 );
+
+            glEnd();            
+        }
+        */
 
         // update the display
         

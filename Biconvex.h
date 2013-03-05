@@ -2,6 +2,7 @@
 #define BICONVEX_H
 
 #include <algorithm>
+#include <float.h>
 
 /*
     Biconvex solid.
@@ -255,6 +256,12 @@ inline void BiconvexSupport_WorldSpace( const Biconvex & biconvex,
     }
 }
 
+struct NearestPoint
+{
+    vec3f biconvexPoint;
+    vec3f linePoint;
+};
+
 inline void GetNearestPoint_Biconvex_Line( const Biconvex & biconvex, 
                                            vec3f biconvexCenter,
                                            vec3f biconvexUp,
@@ -263,6 +270,105 @@ inline void GetNearestPoint_Biconvex_Line( const Biconvex & biconvex,
                                            vec3f & biconvexPoint,
                                            vec3f & linePoint )
 {
+    /*
+        We have maximum three potential candidate points for nearest point.
+
+            1. nearest point on the top sphere (bottom biconvex sphere surface)
+            2. nearest point on the bottom sphere (top biconvex sphere surface)
+            3. nearest point on the biconvex circle edge
+
+        For cases 1&2 it is possible that the nearest point on the sphere 
+        is not on the biconvex surface, in this cases these points are ignored.
+
+        The circle edge case vs. sphere points are considered and the NEAREST
+        point is taken
+
+        This could be coded much more efficiently but it's good enough for now!
+    */
+
+    const int MaxPoints = 3;
+
+    int numPoints = 0;
+    NearestPoint point[MaxPoints];
+
+    // top sphere  -->  bottom sphere surface
+    {
+        const float sphereOffset = biconvex.GetSphereOffset();
+        const float sphereRadius = biconvex.GetSphereRadius();
+
+        const vec3f sphereCenter = biconvexCenter + biconvexUp * sphereOffset;
+    
+        const vec3f projectedCenter = lineOrigin + dot( sphereCenter - lineOrigin, lineDirection ) * lineDirection;
+
+        if ( length_squared( sphereCenter - projectedCenter ) > 0.001f )
+        {
+            vec3f axis = normalize( projectedCenter - sphereCenter );
+
+            vec3f spherePoint = sphereCenter + axis * sphereRadius;
+
+            if ( dot( spherePoint, biconvexUp ) < dot( biconvexCenter, biconvexUp ) )
+            {
+                point[numPoints].linePoint = projectedCenter;
+                point[numPoints].biconvexPoint = spherePoint;
+                numPoints++;
+            }
+        }
+    }
+
+    // bottom sphere
+    {
+        const float sphereOffset = biconvex.GetSphereOffset();
+        const float sphereRadius = biconvex.GetSphereRadius();
+
+        const vec3f sphereCenter = biconvexCenter + biconvexUp * sphereOffset;
+    
+        const vec3f projectedCenter = lineOrigin + dot( sphereCenter - lineOrigin, lineDirection ) * lineDirection;
+
+        if ( length_squared( sphereCenter - projectedCenter ) > 0.001f )
+        {
+            vec3f axis = normalize( projectedCenter - sphereCenter );
+
+            vec3f spherePoint = sphereCenter + axis * sphereRadius;
+
+            if ( dot( spherePoint, biconvexUp ) < dot( biconvexCenter, biconvexUp ) )
+            {
+                point[numPoints].linePoint = projectedCenter;
+                point[numPoints].biconvexPoint = spherePoint;
+                numPoints++;
+            }
+        }
+    }
+
+    // circle edge
+    {
+        // todo
+    }
+
+    // hack until circle edge is ready
+    if ( numPoints == 0 )
+        return;
+    assert( numPoints > 0 );
+
+    float nearestDistanceSquared = FLT_MAX;
+    NearestPoint * nearestPoint = NULL;
+
+    for ( int i = 0; i < numPoints; ++i )
+    {
+        const float distanceSquared = length_squared( point[i].biconvexPoint - point[i].linePoint );
+        if ( distanceSquared < nearestDistanceSquared )
+        {
+            nearestDistanceSquared = distanceSquared;
+            nearestPoint = &point[i];
+        }
+    }
+
+    assert( nearestPoint );
+
+    biconvexPoint = nearestPoint->biconvexPoint;
+    linePoint = nearestPoint->linePoint; 
+
+#if 0
+
     // first project biconvex center onto the line
     // we do this so we can extract an axis so we can use the same technique
     // as we do for finding biconvex support to find the nearest point to the line
@@ -277,6 +383,7 @@ inline void GetNearestPoint_Biconvex_Line( const Biconvex & biconvex,
     {
         biconvexPoint = projectedCenter;
         linePoint = projectedCenter;
+        printf( "degenerate case\n" );
         return;
     }
 
@@ -295,6 +402,8 @@ inline void GetNearestPoint_Biconvex_Line( const Biconvex & biconvex,
     {
         // in this orientation the closest point to the line
         // lies on the circle edge at y = 0 in biconvex space
+
+        printf( "circle edge\n" );
 
         const float circleRadius = biconvex.GetCircleRadius();
 
@@ -330,16 +439,20 @@ inline void GetNearestPoint_Biconvex_Line( const Biconvex & biconvex,
         if ( t2 > t1 )
         {
             // top sphere
+            printf( "top sphere\n" );
             biconvexPoint = c2 - axis * sphereRadius;
         }
         else
         {
             // bottom sphere
+            printf( "bottom sphere\n" );
             biconvexPoint = c1 - axis * sphereRadius;
         }
     }
 
     linePoint = lineOrigin + dot( biconvexPoint - lineOrigin, lineDirection ) * lineDirection;
+
+#endif
 }
 
 #define TEST_BICONVEX_AXIS( name, axis )                                            \

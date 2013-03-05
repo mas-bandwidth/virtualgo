@@ -74,6 +74,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                                        vec3f & boardNormal )
 {
     vec3f biconvexPosition = biconvexTransform.GetPosition();
+    vec3f biconvexUp = biconvexTransform.GetUp();
 
     const float boundingSphereRadius = biconvex.GetWidth() * 0.5f;
 
@@ -132,7 +133,10 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
             const float z = boardPoint.z();
 
             if ( x >= -w && x <= w && z >= -h && z <= h )
+            {
+                printf( "nearest: left side primary surface\n" );
                 return;
+            }
         }
 
         // left side plane
@@ -162,12 +166,52 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
             const float z = boardPoint.z();
 
             if ( y <= t && z >= -h && z <= t )
+            {
+                printf( "nearest: left side plane\n" );
                 return;
+            }
         }
 
         // left side edge
         {
-            // ...
+            printf( "nearest: left side edge\n" );
+
+            const float w = board.GetWidth() / 2;
+            const float h = board.GetHeight() / 2;
+            const float t = board.GetThickness();
+
+            const vec3f lineOrigin = vec3f( -w, t, -h );
+            const vec3f lineDirection = vec3f(0,0,1);
+
+            GetNearestPoint_Biconvex_Line( biconvex,
+                                           biconvexPosition,
+                                           biconvexUp,
+                                           lineOrigin,
+                                           lineDirection,
+                                           stonePoint,
+                                           boardPoint );
+
+            const float x = boardPoint.x();
+            const float y = boardPoint.y();
+            const float z = boardPoint.z();
+
+            const float dx = fabs( x - (-w) );
+            const float dy = fabs( y - t );
+            assert( dx < 0.001f );
+            assert( dy < 0.001f );
+            assert( z >= -h );
+            assert( z <= h );
+
+            vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
+            vec3f local_normal;
+
+            GetBiconvexSurfaceNormalAtPoint_LocalSpace( local_point, biconvex, local_normal );
+
+            stoneNormal = transformVector( biconvexTransform.localToWorld, local_normal );
+
+            assert( fabs( length( stoneNormal ) - 1.0f ) < 0.001f );
+
+            boardNormal = -stoneNormal;
         }
     }
     else

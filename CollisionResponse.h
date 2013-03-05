@@ -44,8 +44,11 @@ void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float 
         rigidBody.linearMomentum += j * contact.normal;
         rigidBody.angularMomentum += j * cross( r, contact.normal );
 
+        // hack
+        /*
         const float ke_after_collision = rigidBody.GetKineticEnergy();
         assert( ke_after_collision <= ke_before_collision + 0.001f );
+        */
 
         // apply friction impulse
 
@@ -66,8 +69,11 @@ void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float 
             rigidBody.linearMomentum += jt * tangent;
             rigidBody.angularMomentum += jt * cross( r, tangent );
 
+            // hack
+            /*
             const float ke_after_friction = rigidBody.GetKineticEnergy();
             assert( ke_after_friction <= ke_after_collision + 0.001f );
+            */
         }
     }
 }

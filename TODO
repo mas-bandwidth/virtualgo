@@ -1,29 +1,38 @@
 DONE:
 
+    Implemented function to get nearest point on line and biconvex
+
+    This will be used for the left edge
+
+    Implemented the top and left side cases for the biconvex nearest
+    point to the board, seem to be working OK.
+
+    The plan for left side is as follows:
+
+        1. Test the primary plane, but ignore if point is outside bounds
+        2. Test the side plane, but ignore if point is outside bounds
+        3. Test the edge, by definition cannot be outside bounds
+
+    So far the first two cases are implemented and seem to be working
+
+    Next I am hooking up the left side edge case
+
+    Once this is done it should be relatively easy to generalize
+    to all edges, eg. break up into a function so there is not
+    a lot of cut & paste.
+
+    Integrate nearest point on left edge case
+
+    Visualized nearest point between stone and board. Seems to be working
 
 TODO:
+    
+    Why is the collision response suspect when hitting the side edge?
 
-    -----------------------------------------------------------------------
+    Could it be that the normal is slightly incorrect?
 
-    When finding the nearest point in the left edge case do the following:
-
-    1. Test the primary plane, but ignore if point is outside bounds
-    2. Test the side plane, but ignore if point is outside bounds
-    3. Test the edge, by definition cannot be outside bounds
-
-    -----------------------------------------------------------------------
-
-    This means that I just need a function to find the nearest point
-    on an infinite line to the biconvex
-
-    Test both spheres vs. the line -- if the nearest point is on the 
-    wrong side of the sphere, ignore it.
-
-    Next, test the circle vs. the line. This is necessary because 
-    a simple clamping of the nearest point on the sphere to the 
-    circle Z and circle radius R is not going to always get the same point
-
-    (Is this true? Come up with a case showing how this breaks...)
+    Should the normal be on the biconvex surface instead of the edge
+    normal, is this what is wrong?!
 
     -----------------------------------------------------------------------
 
