@@ -258,7 +258,6 @@ inline bool IntersectStoneBoard( const Board & board,
         axis[0].normal = vec3f(0,1,0);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
     }
-    /*
     else if ( region == STONE_BOARD_REGION_LeftSide )
     {
         numAxes = 3;
@@ -278,6 +277,7 @@ inline bool IntersectStoneBoard( const Board & board,
         axis[2].d = dot( vec3f( -board.GetWidth()/2, board.GetThickness(), 0 ), axis[2].normal );
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
+    /*
     else if ( region == STONE_BOARD_REGION_RightSide )
     {
         numAxes = 3;
