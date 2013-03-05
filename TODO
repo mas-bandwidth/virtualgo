@@ -25,8 +25,6 @@ DONE:
 
     Visualized nearest point between stone and board. Seems to be working
 
-TODO:
-    
     Why is the collision response suspect when hitting the side edge?
 
     Could it be that the normal is slightly incorrect?
@@ -34,6 +32,14 @@ TODO:
     Should the normal be on the biconvex surface instead of the edge
     normal, is this what is wrong?!
 
+    Found it: the nearest point on biconvex vs. line function was wrong
+
+    Reworking the function so that it considers the sphere and the
+    circle edge cases properly, and takes the closest point to the 
+    line.
+
+TODO:
+    
     -----------------------------------------------------------------------
 
     Argh... the wireframe is fucked up with z testing again... !

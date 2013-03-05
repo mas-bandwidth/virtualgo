@@ -64,7 +64,7 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     */
         rigidBody.orientation = quat4f(1,0,0,0);
 
-    //rigidBody.orientation = quat4f::axisRotation( pi, vec3f(0,0,1) );
+    rigidBody.orientation = quat4f::axisRotation( pi/2, vec3f(1,0,0) );
 
 
     rigidBody.linearMomentum = vec3f(0,0,0);
@@ -629,37 +629,6 @@ int main()
         RenderMesh( mesh[size] );
 
         glPopMatrix();
-
-        /*
-        // debug: test closest feature on stone vs. board
-        {
-            vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
-            ClosestFeaturesStoneBoard( board, stone.biconvex, biconvexTransform, 
-                                       stonePoint, stoneNormal, boardPoint, boardNormal );
-
-            vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
-            vec3f local_normal;
-
-            GetBiconvexSurfaceNormalAtPoint_LocalSpace( local_point, stone.biconvex, local_normal );
-
-            stoneNormal = transformVector( biconvexTransform.localToWorld, local_normal );
-            boardNormal = -stoneNormal;
-
-            glBegin( GL_LINES );
-
-            glColor3f(1,0,0);
-            glVertex3f( boardPoint.x(), boardPoint.y(), boardPoint.z() );
-            glVertex3f( stonePoint.x(), stonePoint.y(), stonePoint.z() );
-
-            glColor3f(0,0,1);
-            glVertex3f( boardPoint.x(), boardPoint.y(), boardPoint.z() );
-            glVertex3f( boardPoint.x() + boardNormal.x() * 2, 
-                        boardPoint.y() + boardNormal.y() * 2, 
-                        boardPoint.z() + boardNormal.z() * 2 );
-
-            glEnd();            
-        }
-        */
 
         // update the display
         
