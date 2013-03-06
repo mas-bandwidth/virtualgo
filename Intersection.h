@@ -243,7 +243,7 @@ inline bool IntersectStoneBoard( const Board & board,
     if ( broadPhaseReject )
         return false;
 
-    const int MaxAxes = 4;
+    const int MaxAxes = 7;
 
     int numAxes = 0;
     Axis axis[MaxAxes];
@@ -251,10 +251,14 @@ inline bool IntersectStoneBoard( const Board & board,
     vec3f biconvexUp = biconvexTransform.GetUp();
     vec3f biconvexCenter = biconvexTransform.GetPosition();
 
+    const float w = board.GetWidth() / 2;
+    const float h = board.GetHeight() / 2;
+    const float t = board.GetThickness();
+
     if ( region == STONE_BOARD_REGION_Primary )
     {
         numAxes = 1;
-        axis[0].d = board.GetThickness();
+        axis[0].d = t;
         axis[0].normal = vec3f(0,1,0);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
     }
@@ -263,18 +267,18 @@ inline bool IntersectStoneBoard( const Board & board,
         numAxes = 3;
 
         // top
-        axis[0].d = board.GetThickness();
+        axis[0].d = t;
         axis[0].normal = vec3f(0,1,0);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
 
         // side
-        axis[1].d = board.GetWidth() / 2;
+        axis[1].d = w;
         axis[1].normal = vec3f(-1,0,0);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[1].normal, axis[1].s1, axis[1].s2 );
 
         // edge
         axis[2].normal = vec3f( -0.70710,+0.70710,0 );
-        axis[2].d = dot( vec3f( -board.GetWidth()/2, board.GetThickness(), 0 ), axis[2].normal );
+        axis[2].d = dot( vec3f( -w, t, 0 ), axis[2].normal );
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
     else if ( region == STONE_BOARD_REGION_RightSide )
@@ -282,18 +286,18 @@ inline bool IntersectStoneBoard( const Board & board,
         numAxes = 3;
 
         // top
-        axis[0].d = board.GetThickness();
+        axis[0].d = t;
         axis[0].normal = vec3f(0,1,0);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
 
         // side
-        axis[1].d = board.GetWidth() / 2;
+        axis[1].d = w;
         axis[1].normal = vec3f(1,0,0);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[1].normal, axis[1].s1, axis[1].s2 );
 
         // edge
         axis[2].normal = vec3f( +0.70710,+0.70710,0 );
-        axis[2].d = dot( vec3f( board.GetWidth()/2, board.GetThickness(), 0 ), axis[2].normal );
+        axis[2].d = dot( vec3f( w, t, 0 ), axis[2].normal );
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
     else if ( region == STONE_BOARD_REGION_TopSide )
@@ -301,18 +305,18 @@ inline bool IntersectStoneBoard( const Board & board,
         numAxes = 3;
 
         // top
-        axis[0].d = board.GetThickness();
+        axis[0].d = t;
         axis[0].normal = vec3f(0,1,0);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
 
         // side
-        axis[1].d = board.GetHeight() / 2;
+        axis[1].d = h;
         axis[1].normal = vec3f(0,0,+1);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[1].normal, axis[1].s1, axis[1].s2 );
 
         // edge
         axis[2].normal = vec3f( 0,+0.70710,+0.70710 );
-        axis[2].d = dot( vec3f( 0, board.GetThickness(), board.GetHeight()/2 ), axis[2].normal );
+        axis[2].d = dot( vec3f( 0, t, h ), axis[2].normal );
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
     else if ( region == STONE_BOARD_REGION_BottomSide )
@@ -320,24 +324,61 @@ inline bool IntersectStoneBoard( const Board & board,
         numAxes = 3;
 
         // top
-        axis[0].d = board.GetThickness();
+        axis[0].d = t;
         axis[0].normal = vec3f(0,1,0);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
 
         // side
-        axis[1].d = board.GetHeight() / 2;
+        axis[1].d = h;
         axis[1].normal = vec3f(0,0,-1);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[1].normal, axis[1].s1, axis[1].s2 );
 
         // edge
         axis[2].normal = vec3f( 0,+0.70710,-0.70710 );
-        axis[2].d = dot( vec3f( 0, board.GetThickness(), -board.GetHeight()/2 ), axis[2].normal );
+        axis[2].d = dot( vec3f( 0, t, -h ), axis[2].normal );
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
+    else if ( region == STONE_BOARD_REGION_BottomLeftCorner )
+    {
+        numAxes = 7;
 
-    // todo: corner cases!!!!
+        // top
+        axis[0].d = t;
+        axis[0].normal = vec3f(0,1,0);
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
 
-    // not colliding if no axis defined
+        // left side
+        axis[1].d = w;
+        axis[1].normal = vec3f(-1,0,0);
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[1].normal, axis[1].s1, axis[1].s2 );
+
+        // left edge
+        axis[2].normal = vec3f( -0.70710,+0.70710,0 );
+        axis[2].d = dot( vec3f( -w, t, 0 ), axis[2].normal );
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
+
+        // bottom side
+        axis[3].d = h;
+        axis[3].normal = vec3f(0,0,-1);
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[3].normal, axis[3].s1, axis[3].s2 );
+
+        // bottom edge
+        axis[4].normal = vec3f( 0,+0.70710,-0.70710 );
+        axis[4].d = dot( vec3f( 0, t, -h ), axis[4].normal );
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[4].normal, axis[4].s1, axis[4].s2 );
+
+        // bottom-left corner edge (vertical)
+        axis[5].normal = vec3f( -0.70710,-0.70710,0 );
+        axis[5].d = dot( vec3f( -w, t, -h ), axis[5].normal );
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[5].normal, axis[5].s1, axis[5].s2 );
+
+        // bottom-left corner
+        axis[6].normal = vec3f( -0.577271, 0.577271, -0.577271 );
+        axis[6].d = dot( vec3f( -w, t, -h ), axis[6].normal );
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[6].normal, axis[6].s1, axis[6].s2 );
+    }
+
+    // not colliding if no axes defined
     if ( numAxes == 0 )
         return false;
 
