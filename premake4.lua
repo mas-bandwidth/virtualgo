@@ -34,7 +34,7 @@ project "Tessellation"
 
 project "VirtualGo"
     kind "ConsoleApp"
-    files { "*.h", "VirtualGo.cpp", "Platform.cpp" }
+    files { "*.h", "VirtualGo.cpp", "Platform.cpp", "stb_image.c" }
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 

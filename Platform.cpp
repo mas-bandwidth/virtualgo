@@ -760,7 +760,7 @@ namespace platform
 		    kCGLPFAFullScreen,
 			#ifdef MULTISAMPLING
 			kCGLPFAMultisample,
-			kCGLPFASampleBuffers, ( CGLPixelFormatAttribute ) 1,
+			kCGLPFASampleBuffers, ( CGLPixelFormatAttribute ) 8,
 			#endif
 			kCGLPFAStencilSize, ( CGLPixelFormatAttribute ) 8,
 		    kCGLPFADisplayMask, ( CGLPixelFormatAttribute ) displayMask,
@@ -798,8 +798,6 @@ namespace platform
 			printf( "error: CGLSetFullScreenOnDisplay failed\n" );
 			return false;
 		}
-
-        glEnable( GL_EXT_framebuffer_sRGB );
 
         return true;
     }	

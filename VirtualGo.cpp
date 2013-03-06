@@ -145,14 +145,38 @@ void RestoreDefaults()
     stoneDropType = STONE_DROP_RandomWithSpin;    
 }
 
+void CheckOpenGLError( const char * message )
+{
+    int error = glGetError();
+    if ( error != GL_NO_ERROR )
+    {
+        printf( "opengl error: %s (%s)\n", gluErrorString( error ), message );
+        exit( 1 );
+    }    
+}
+
 int main()
 {
     printf( "[virtual go]\n" );
 
+    // load textures
+
+    int texture_width, texture_height, texture_n;
+    const char filename[] = "textures/murasaki.jpg";
+    printf( "loading %s\n", filename );
+    unsigned char * texture_data = stbi_load( filename, &texture_width, &texture_height, &texture_n, 3 );
+    if ( !texture_data )
+    {
+        printf( "failed to load: %s\n", filename );
+        exit(1);
+    }
+
+    // initialize stones
+
+    printf( "tesselating go stones...\n" );
+
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
         stoneSizes[i].Initialize( (StoneSize)i );
-
-    RestoreDefaults();
     
     Mesh mesh[STONE_SIZE_NumValues];
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
@@ -166,7 +190,7 @@ int main()
     displayHeight = 800;
     #endif
 
-    printf( "display resolution is %d x %d\n", displayWidth, displayHeight );
+    printf( "opening display: %d x %d\n", displayWidth, displayHeight );
 
     if ( !OpenDisplay( "Virtual Go", displayWidth, displayHeight, 32 ) )
     {
@@ -174,18 +198,35 @@ int main()
         return 1;
     }
 
+    CheckOpenGLError( "after display open" );
+
     HideMouseCursor();
+
+    // create opengl textures
+
+    GLuint textureId;
+
+    glGenTextures( 1, &textureId );
+
+    glBindTexture( GL_TEXTURE_2D, textureId );
+
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data );
+
+    CheckOpenGLError( "after texture create" );
+
+    // setup opengl
 
     glEnable( GL_LINE_SMOOTH );
     glEnable( GL_POLYGON_SMOOTH );
     glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
     glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
-    glEnable( GL_LIGHTING );
-
     GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
-    GLfloat light_diffuse[] = { 0.25, 0.25, 0.25, 1.0 };
-    GLfloat light_specular[] = { 0.2, 0.2, 0.2, 1.0 };
+    GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+
+    glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+    glLightModeli( GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR );
 
     glLightfv( GL_LIGHT0, GL_AMBIENT, light_ambient );
     glLightfv( GL_LIGHT0, GL_DIFFUSE, light_diffuse );
@@ -213,8 +254,6 @@ int main()
 
     glShadeModel( GL_SMOOTH );
 
-    glEnable( GL_COLOR_MATERIAL );
-
     GLfloat lightAmbientColor[] = { 0.2, 0.2, 0.2, 1.0 };
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
 
@@ -227,6 +266,8 @@ int main()
 
     glEnable( GL_DEPTH_TEST );
     glDepthFunc( GL_LEQUAL );
+
+    CheckOpenGLError( "after opengl setup" );
 
     bool quit = false;
 
@@ -250,8 +291,12 @@ int main()
     bool prevAltCtrlDown = false;
     bool slowmo = false;
 
+    RestoreDefaults();
+
     while ( !quit )
     {
+        CheckOpenGLError( "frame start" );
+
         UpdateEvents();
 
         platform::Input input;
@@ -484,7 +529,10 @@ int main()
 
         glDepthMask( GL_TRUE );
 
-        ClearScreen( displayWidth, displayHeight );
+        if ( mode >= SolidColor )
+            ClearScreen( displayWidth, displayHeight, 0.15f, 0.15f, 0.15f );
+        else
+            ClearScreen( displayWidth, displayHeight );
 
         if ( mode == Nothing )
         {
@@ -492,7 +540,6 @@ int main()
             frame++;
             continue;
         }
-
         // setup lights
 
         GLfloat lightPosition0[] = { 250, 1000, -500, 1 };
@@ -506,16 +553,6 @@ int main()
         glLightfv( GL_LIGHT2, GL_POSITION, lightPosition2 );
         glLightfv( GL_LIGHT3, GL_POSITION, lightPosition3 );
         glLightfv( GL_LIGHT4, GL_POSITION, lightPosition4 );
-
-        glEnable( GL_LIGHT0 );
-        glEnable( GL_LIGHT1 );
-        glEnable( GL_LIGHT2 );
-        glEnable( GL_LIGHT3 );
-
-        if ( mode >= SolidColor )
-            glEnable( GL_LIGHT4 );
-        else
-            glDisable( GL_LIGHT4 );
 
         // setup projection + modelview
 
@@ -700,6 +737,14 @@ int main()
             stone.rigidBody.angularMomentum *= 0.99999f;
         }
 
+        // setup lights for board
+
+        glEnable( GL_LIGHT0 );
+        glDisable( GL_LIGHT1 );
+        glDisable( GL_LIGHT2 );
+        glDisable( GL_LIGHT3 );
+        glDisable( GL_LIGHT4 );
+        
         // render board
 
         glDepthMask( GL_TRUE );
@@ -714,17 +759,6 @@ int main()
             RenderBoard( board );
     
             glEnable( GL_CULL_FACE );
-        }
-
-        if ( mode >= SolidColor )
-        {
-            glEnable( GL_LIGHTING );
-            glColor4f( 1.0f,0.6f,0.1f,1 );            
-        }
-        else
-        {
-            glDisable( GL_LIGHTING );
-            glColor4f( 0.4f,0.4f,0.4f,1 );
         }
 
         const float w = board.GetWidth() / 2;
@@ -753,32 +787,39 @@ int main()
             if ( mode >= SolidColor )
             {
                 glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+                glEnable( GL_LIGHTING );
+
+                GLfloat mat_ambient[] = { 1.0, 0.6, 0.1, 1.0 };
+                GLfloat mat_diffuse[] = { 1.0, 0.6, 0.1, 1.0 };
+                GLfloat mat_specular[] = { 0, 0, 0, 1.0 };
+                GLfloat mat_shininess[] = { 50.0 };
+
+                glMaterialfv( GL_FRONT, GL_AMBIENT, mat_ambient );
+                glMaterialfv( GL_FRONT, GL_DIFFUSE, mat_diffuse );
+                glMaterialfv( GL_FRONT, GL_SPECULAR, mat_specular );
+                glMaterialfv( GL_FRONT, GL_SHININESS, mat_shininess );
             }
             else
             {
                 glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
                 glDepthMask( GL_FALSE );
                 glLineWidth( 5 );
+                glDisable( GL_LIGHTING );
+                glColor4f( 0.4f,0.4f,0.4f,1 );
             }
 
             glDisable( GL_DEPTH_TEST );
 
-            GLfloat mat_specular[] = { 0,0,0,0 };
-            GLfloat mat_shininess[] = { 50.0 };
-
-            glMaterialfv( GL_FRONT, GL_SPECULAR, mat_specular );
-            glMaterialfv( GL_FRONT, GL_SHININESS, mat_shininess );
-
             RenderBoard( board );
+
+            // render grid
 
             glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-            glLineWidth( 3 );
-
-            if ( mode >= SolidColor )
-                glColor4f( 0,0,0,1 );
-
             glDisable( GL_LIGHTING );
+
+            glLineWidth( 3 );
 
             RenderGrid( board.GetThickness(), board.GetSize(), board.GetCellWidth(), board.GetCellHeight() );
 
@@ -786,6 +827,18 @@ int main()
 
             glEnable( GL_DEPTH_TEST );
         }
+
+        // setup lights for stone render
+
+        glEnable( GL_LIGHT0 );
+        glEnable( GL_LIGHT1 );
+        glEnable( GL_LIGHT2 );
+        glEnable( GL_LIGHT3 );
+
+        if ( mode >= SolidColor )
+            glEnable( GL_LIGHT4 );
+        else
+            glDisable( GL_LIGHT4 );
 
         // render stone
 
@@ -815,19 +868,27 @@ int main()
             glDepthMask( GL_TRUE );
         }
 
-        glColor4f( 1.0, 1.0, 1.0, 1 );
+        if ( mode >= Textured )
+        {
+            glBindTexture( GL_TEXTURE_2D, textureId );
+            glEnable( GL_TEXTURE_2D );
+        }
+        else
+            glColor4f( 1.0, 1.0, 1.0, 1 );
 
-        glDisable( GL_COLOR_MATERIAL );
-
-        GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+        GLfloat mat_ambient[] = { 0.2, 0.2, 0.2, 1.0 };
+        GLfloat mat_diffuse[] = { 0.4, 0.4, 0.4, 1.0 };
+        GLfloat mat_specular[] = { 0.2, 0.2, 0.2, 1.0 };
         GLfloat mat_shininess[] = { 50.0 };
 
+        glMaterialfv( GL_FRONT, GL_AMBIENT, mat_ambient );
+        glMaterialfv( GL_FRONT, GL_DIFFUSE, mat_diffuse );
         glMaterialfv( GL_FRONT, GL_SPECULAR, mat_specular );
         glMaterialfv( GL_FRONT, GL_SHININESS, mat_shininess );
 
         RenderMesh( mesh[size] );
 
-        glEnable( GL_COLOR_MATERIAL );
+        glDisable( GL_TEXTURE_2D );
 
         glPopMatrix();
 
@@ -838,9 +899,13 @@ int main()
         // update time
 
         frame++;
+
+        CheckOpenGLError( "frame end" );
     }
 
     CloseDisplay();
+
+    stbi_image_free( texture_data );
 
     return 0;
 }
