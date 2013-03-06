@@ -53,6 +53,18 @@ const float MaximumBoardThickness = 9.0f;
 
 Board board( DefaultBoardSize );
 
+enum StoneDropType
+{
+    STONE_DROP_Horizontal,
+    STONE_DROP_CCW45Degrees,
+    STONE_DROP_Vertical,
+    STONE_DROP_CW45Degrees,
+    STONE_DROP_RandomNoSpin,
+    STONE_DROP_RandomWithSpin
+};
+
+StoneDropType stoneDropType = STONE_DROP_RandomNoSpin;
+
 Stone stone;
 StoneSize size = STONE_SIZE_34;
 Stone stoneSizes[STONE_SIZE_NumValues];
@@ -61,20 +73,39 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 {
     const float x = scrollX;
     const float z = scrollZ;
-    
-    rigidBody.position = vec3f( x, board.GetThickness() + 15.0f, z );
-    
-    //rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
-    
-    rigidBody.orientation = quat4f::axisRotation( pi*2/3, vec3f(0,0,-1) );
 
-    //if ( mode == LinearCollisionResponse )
-        rigidBody.orientation = quat4f(1,0,0,0);
-    
+    rigidBody.position = vec3f( x, board.GetThickness() + 15.0f, z );
     rigidBody.linearMomentum = vec3f(0,0,0);
-    
-    //if ( mode < CollisionResponseWithFriction )
+
+    if ( stoneDropType == STONE_DROP_Horizontal || mode == LinearCollisionResponse )
+    {
+        rigidBody.orientation = quat4f(1,0,0,0);
         rigidBody.angularMomentum = vec3f(0,0,0);
+    }
+    else if ( stoneDropType == STONE_DROP_CCW45Degrees )
+    {
+        rigidBody.orientation = quat4f::axisRotation( -0.25f * pi, vec3f(0,0,-1) );
+        rigidBody.angularMomentum = vec3f(0,0,0);
+    }
+    else if ( stoneDropType == STONE_DROP_Vertical )
+    {
+        rigidBody.orientation = quat4f::axisRotation( 0.5f * pi, vec3f(0,0,-1) );
+        rigidBody.angularMomentum = vec3f(0,0,0);
+    }
+    else if ( stoneDropType == STONE_DROP_CW45Degrees )
+    {
+        rigidBody.orientation = quat4f::axisRotation( 0.25f * pi, vec3f(0,0,-1) );
+        rigidBody.angularMomentum = vec3f(0,0,0);
+    }
+    else if ( stoneDropType == STONE_DROP_RandomNoSpin )
+    {
+        rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
+        rigidBody.angularMomentum = vec3f(0,0,0);
+    }
+    else if ( stoneDropType == STONE_DROP_RandomWithSpin )
+    {
+        rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
+    }
 
     rigidBody.Update();
 }
@@ -109,6 +140,8 @@ void RestoreDefaults()
     stone.rigidBody.Update();
 
     board = Board( DefaultBoardSize );
+
+    stoneDropType = STONE_DROP_RandomWithSpin;    
 }
 
 int main()
@@ -223,6 +256,19 @@ int main()
             scrollY += ( stone.rigidBody.position.y() - scrollY ) * 0.075f;
             scrollZ += ( stone.rigidBody.position.z() - scrollZ ) * 0.075f;
         }
+
+        if ( input.f1 )
+            stoneDropType = STONE_DROP_Horizontal;
+        else if ( input.f2 )
+            stoneDropType = STONE_DROP_CCW45Degrees;
+        else if ( input.f3 )
+            stoneDropType = STONE_DROP_Vertical;
+        else if ( input.f4 )
+            stoneDropType = STONE_DROP_CW45Degrees;
+        else if ( input.f5 )
+            stoneDropType = STONE_DROP_RandomNoSpin;
+        else if ( input.f6 )
+            stoneDropType = STONE_DROP_RandomWithSpin;
 
         const float Spin = 0.1f;
 
@@ -527,32 +573,35 @@ int main()
 
             // collision between stone and board
 
-            const float e = 0.85f;
-            const float u = 0.25f;
+            const float board_e = 0.85f;
+            const float board_u = 0.15f;
 
             StaticContact boardContact;
             if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )
             {
                 if ( mode == LinearCollisionResponse )
-                    ApplyLinearCollisionImpulse( boardContact, e );
+                    ApplyLinearCollisionImpulse( boardContact, board_e );
                 else if ( mode == AngularCollisionResponse )
-                    ApplyCollisionImpulseWithFriction( boardContact, e, 0.0f );
+                    ApplyCollisionImpulseWithFriction( boardContact, board_e, 0.0f );
                 else if ( mode >= CollisionResponseWithFriction )
-                    ApplyCollisionImpulseWithFriction( boardContact, e, u );
+                    ApplyCollisionImpulseWithFriction( boardContact, board_e, board_u );
                 stone.rigidBody.Update();
             }
 
             // collision between stone and floor
 
+            const float floor_e = 0.5f;
+            const float floor_u = 0.25f;
+
             StaticContact floorContact;
             if ( StoneFloorCollision( stone.biconvex, board, stone.rigidBody, floorContact ) )
             {
                 if ( mode == LinearCollisionResponse )
-                    ApplyLinearCollisionImpulse( floorContact, e );
+                    ApplyLinearCollisionImpulse( floorContact, floor_e );
                 else if ( mode == AngularCollisionResponse )
-                    ApplyCollisionImpulseWithFriction( floorContact, e, 0.0f );
+                    ApplyCollisionImpulseWithFriction( floorContact, floor_e, 0.0f );
                 else if ( mode >= CollisionResponseWithFriction )
-                    ApplyCollisionImpulseWithFriction( floorContact, e, u );
+                    ApplyCollisionImpulseWithFriction( floorContact, floor_e, floor_u );
                 stone.rigidBody.Update();
             }
         }

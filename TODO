@@ -1,20 +1,6 @@
 DONE:
 
-    Fix the wireframe view, it's all broken with z-testing again
-
 TODO:
-
-    -----------------------------------------------------------------------
-
-    Provide some way to select between initial stone drop conditions,
-    
-    eg:
-
-        F1 = flat, 
-        F2 = 45 degrees
-        F3 = vertical
-        F4 = random orientation
-        F5 = random angular velocity
 
     -----------------------------------------------------------------------
 
@@ -38,6 +24,7 @@ TODO:
     ******************************
     Polish only beyond this point!
     ******************************
+
 
 
 

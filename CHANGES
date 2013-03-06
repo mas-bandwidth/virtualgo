@@ -1,4 +1,21 @@
 
+Fixed wireframe view, provide stone drop type selection (5/3/2013):
+-------------------------------------------------------------------
+
+    Fix the wireframe view, it's all broken with z-testing again
+
+    Provide some way to select between initial stone drop conditions,
+    
+    eg:
+
+        F1 = flat, 
+        F2 = 45 degrees
+        F3 = vertical
+        F4 = 45 degrees more
+        F5 = random orientation
+        F6 = random orientation with spin
+
+
 Finished edge and corner cases (5/3/2013):
 ------------------------------------------
 
