@@ -37,22 +37,22 @@ SUITE( Intersection )
         CHECK( DetermineStoneBoardRegion( board, vec3f(+w,0,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_RightSide );
         CHECK( broadPhaseReject == false );
         
-        CHECK( DetermineStoneBoardRegion( board, vec3f(0,0,-h), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopSide );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(0,0,+h), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopSide );
         CHECK( broadPhaseReject == false );
         
-        CHECK( DetermineStoneBoardRegion( board, vec3f(0,0,+h), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomSide );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(0,0,-h), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomSide );
         CHECK( broadPhaseReject == false );
 
-        CHECK( DetermineStoneBoardRegion( board, vec3f(-w,0,-h), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopLeftCorner );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(-w,0,+h), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopLeftCorner );
         CHECK( broadPhaseReject == false );
 
-        CHECK( DetermineStoneBoardRegion( board, vec3f(+w,0,-h), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopRightCorner );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(+w,0,+h), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopRightCorner );
         CHECK( broadPhaseReject == false );
 
-        CHECK( DetermineStoneBoardRegion( board, vec3f(+w,0,+h), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomRightCorner );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(+w,0,-h), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomRightCorner );
         CHECK( broadPhaseReject == false );
 
-        CHECK( DetermineStoneBoardRegion( board, vec3f(-w,0,+h), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomLeftCorner );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(-w,0,-h), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomLeftCorner );
         CHECK( broadPhaseReject == false );
 
         CHECK( DetermineStoneBoardRegion( board, vec3f(0,t+radius + 0.01f,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_Primary );
