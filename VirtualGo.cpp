@@ -12,6 +12,7 @@
 #include "CollisionDetection.h"
 #include "CollisionResponse.h"
 #include "Intersection.h"
+#include "stb_image.h"
 
 using namespace platform;
 
