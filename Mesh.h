@@ -256,48 +256,27 @@ void SubdivideBiconvexMesh( Mesh & mesh,
     }
     else
     {
+        Vertex v1,v2,v3;
+
+        v1.u = a.x() * texture_a + texture_b;
+        v1.v = a.z() * texture_a + texture_b;
+        v1.position = a;
+        v1.normal = an;
+
+        v2.u = b.x() * texture_a + texture_b;
+        v2.v = b.z() * texture_a + texture_b;
+        v2.position = b;
+        v2.normal = bn;
+
+        v3.u = c.x() * texture_a + texture_b;
+        v3.v = c.z() * texture_a + texture_b;
+        v3.position = c;
+        v3.normal = cn;
+
         if ( !clockwise )
-        {
-            Vertex v1,v2,v3;
-
-            v1.u = a.x() * texture_a + texture_b;
-            v1.v = a.z() * texture_a + texture_b;
-            v1.position = a;
-            v1.normal = an;
-
-            v2.u = b.x() * texture_a + texture_b;
-            v2.v = b.z() * texture_a + texture_b;
-            v2.position = b;
-            v2.normal = bn;
-
-            v3.u = c.x() * texture_a + texture_b;
-            v3.v = c.z() * texture_a + texture_b;
-            v3.position = c;
-            v3.normal = cn;
-
             mesh.AddTriangle( v1, v2, v3 );
-        }
         else
-        {
-            Vertex v1,v2,v3;
-
-            v1.u = a.x() * texture_a + texture_b;
-            v1.v = a.z() * texture_a + texture_b;
-            v1.position = a;
-            v1.normal = an;
-
-            v2.u = c.x() * texture_a + texture_b;
-            v2.v = c.z() * texture_a + texture_b;
-            v2.position = c;
-            v2.normal = cn;
-
-            v2.u = b.x() * texture_a + texture_b;
-            v2.v = b.z() * texture_a + texture_b;
-            v3.position = b;
-            v3.normal = bn;
-
-            mesh.AddTriangle( v1, v2, v3 );
-        }
+            mesh.AddTriangle( v1, v3, v2 );
     }
 }
 
@@ -308,6 +287,9 @@ void GenerateBiconvexMesh( Mesh & mesh, const Biconvex & biconvex, int subdivisi
     const float deltaAngle = 360.0f / numTriangles;
 
     const float h = biconvex.GetBevel() / 2;
+
+    const float texture_a = 1 / biconvex.GetWidth();
+    const float texture_b = 0.5f;
 
     // top
 
@@ -325,9 +307,6 @@ void GenerateBiconvexMesh( Mesh & mesh, const Biconvex & biconvex, int subdivisi
         vec3f an = normalize( a - sphereCenter );
         vec3f bn = normalize( b - sphereCenter );
         vec3f cn = normalize( c - sphereCenter );
-
-        const float texture_a = 1 / biconvex.GetWidth();
-        const float texture_b = 0.5f;
 
         SubdivideBiconvexMesh( mesh, biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, true, h, 0, subdivisions, texture_a, texture_b);
     }
@@ -360,9 +339,6 @@ void GenerateBiconvexMesh( Mesh & mesh, const Biconvex & biconvex, int subdivisi
         const float torusMinorRadius = biconvex.GetBevelTorusMinorRadius();
 
         const float delta_y = biconvex.GetBevel() / numBevelRings;
-
-        const float texture_a = 1 / biconvex.GetWidth();
-        const float texture_b = 0.5f;
 
         for ( int i = 0; i < numBevelRings; ++i )
         {
@@ -451,10 +427,7 @@ void GenerateBiconvexMesh( Mesh & mesh, const Biconvex & biconvex, int subdivisi
         vec3f bn = normalize( b - sphereCenter );
         vec3f cn = normalize( c - sphereCenter );
 
-        const float texture_a = 1 / biconvex.GetWidth();
-        const float texture_b = 0.5f;
-
-        SubdivideBiconvexMesh( mesh, biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, false, -h, 0, subdivisions, texture_a, texture_b );
+        SubdivideBiconvexMesh( mesh, biconvex, false, false, true, a, b, c, an, bn, cn, sphereCenter, false, -h, 0, subdivisions, 0, 0 );
     }
 }
 

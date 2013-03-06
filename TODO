@@ -1,31 +1,18 @@
 DONE:
 
-    Fixed the lights on the stone to look a lot better
-
-    Create a new mode "Textured" (5)
-
-    Integrate stb_image and load murasaki.jpg
-
-    Create opengl texture objects
-
-    Extend the tesselator so that it generates UV coordinates
-
-    Extend the mesh render so it emits texture UVs
-
-    Improve the lighting on the board
-
-    Render the background as dark grey so black stones
-    have some chance of being visible :)
-
 TODO:
 
-    Work out why the fuck the texture is not showing up
+    Rent a better camera
+
+    Capture a better murasaki go stone texture
+
+    Capture a wood texture for the board
 
     --------------------------------------------------------
 
-    Apply murasaki texture to the go stone
+    Looking top-down there appear to be cracks in the go stone
 
-    Apply wood texture to the go board
+    How is this possible? It should be perfectly welded!
 
     --------------------------------------------------------
 

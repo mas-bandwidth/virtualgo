@@ -204,29 +204,42 @@ int main()
 
     // create opengl textures
 
+    glEnable( GL_TEXTURE_2D );
+
     GLuint textureId;
 
     glGenTextures( 1, &textureId );
 
     glBindTexture( GL_TEXTURE_2D, textureId );
 
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data );
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data );
+
+    GLfloat maxAnisotropy;
+    glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy );
+
+    glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
+
+    glGenerateMipmap( GL_TEXTURE_2D );
+ 
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 
     CheckOpenGLError( "after texture create" );
+
+    glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+    glLightModeli( GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR );
 
     // setup opengl
 
     glEnable( GL_LINE_SMOOTH );
-    glEnable( GL_POLYGON_SMOOTH );
     glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+
+    glEnable( GL_POLYGON_SMOOTH );
     glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
     GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
     GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
     GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-
-    glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-    glLightModeli( GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR );
 
     glLightfv( GL_LIGHT0, GL_AMBIENT, light_ambient );
     glLightfv( GL_LIGHT0, GL_DIFFUSE, light_diffuse );
@@ -259,6 +272,7 @@ int main()
 
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
     glEnable( GL_CULL_FACE );
     glCullFace( GL_BACK );
 
@@ -744,7 +758,7 @@ int main()
         glDisable( GL_LIGHT2 );
         glDisable( GL_LIGHT3 );
         glDisable( GL_LIGHT4 );
-        
+
         // render board
 
         glDepthMask( GL_TRUE );
@@ -815,6 +829,8 @@ int main()
 
             // render grid
 
+            glEnable( GL_BLEND ); 
+
             glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
             glDisable( GL_LIGHTING );
@@ -851,7 +867,15 @@ int main()
         biconvexTransform.localToWorld.store( opengl_transform );
         glMultMatrixf( opengl_transform );
 
-        if ( mode < SolidColor )
+        if ( mode >= SolidColor )
+        {
+            glDisable( GL_BLEND );
+            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+            glDepthMask( GL_FALSE );
+            glEnable( GL_DEPTH_TEST );
+            glDepthMask( GL_TRUE );
+        }
+        else
         {
             glEnable( GL_BLEND ); 
             glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -860,26 +884,17 @@ int main()
             glEnable( GL_DEPTH_TEST );
             glDepthMask( GL_FALSE );
         }
-        else
-        {
-            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-            glDepthMask( GL_FALSE );
-            glEnable( GL_DEPTH_TEST );
-            glDepthMask( GL_TRUE );
-        }
 
         if ( mode >= Textured )
         {
-            glBindTexture( GL_TEXTURE_2D, textureId );
             glEnable( GL_TEXTURE_2D );
+            glBindTexture( GL_TEXTURE_2D, textureId );
         }
-        else
-            glColor4f( 1.0, 1.0, 1.0, 1 );
 
-        GLfloat mat_ambient[] = { 0.2, 0.2, 0.2, 1.0 };
-        GLfloat mat_diffuse[] = { 0.4, 0.4, 0.4, 1.0 };
-        GLfloat mat_specular[] = { 0.2, 0.2, 0.2, 1.0 };
-        GLfloat mat_shininess[] = { 50.0 };
+        GLfloat mat_ambient[] = { 0.25, 0.25, 0.25, 1.0 };
+        GLfloat mat_diffuse[] = { 0.45, 0.45, 0.45, 1.0 };
+        GLfloat mat_specular[] = { 0.1, 0.1, 0.1, 1.0 };
+        GLfloat mat_shininess[] = { 100.0 };
 
         glMaterialfv( GL_FRONT, GL_AMBIENT, mat_ambient );
         glMaterialfv( GL_FRONT, GL_DIFFUSE, mat_diffuse );

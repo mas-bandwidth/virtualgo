@@ -1,4 +1,35 @@
 
+Applied murasaki texture to go stone (6/3/2013):
+------------------------------------------------
+
+    Fixed the lights on the stone to look a lot better
+
+    Create a new mode "Textured" (5)
+
+    Integrate stb_image and load murasaki.jpg
+
+    Create opengl texture objects
+
+    Extend the tesselator so that it generates UV coordinates
+
+    Extend the mesh render so it emits texture UVs
+
+    Improve the lighting on the board
+
+    Render the background as dark grey so black stones
+    have some chance of being visible :)
+
+    Work out why the fuck the texture is not showing up
+
+    glGenerateMipmap :)
+
+    Enabled anisotropic filtering
+
+    Enabled trilinear filtering
+
+    Apply murasaki texture to the go stone
+
+
 Applied hacked damping and rolling/spinning friction (5/3/2013):
 ----------------------------------------------------------------
 
