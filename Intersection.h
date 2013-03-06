@@ -210,9 +210,9 @@ inline StoneBoardRegion DetermineStoneBoardRegion( const Board & board, vec3f po
     else if ( x >= w - r )                        // would potentially be intersecting with a stone at any time
         edges |= BOARD_EDGE_Right;
 
-    if ( z <= -h + r )
+    if ( z >= h - r )
         edges |= BOARD_EDGE_Top;
-    else if ( z >= h - r )
+    else if ( z <= -h + r )
         edges |= BOARD_EDGE_Bottom;
 
     broadPhaseReject = ( y > thickness + radius ) || x < -w - r || x > w + r || z < -h - r || z > h + r;
@@ -277,7 +277,6 @@ inline bool IntersectStoneBoard( const Board & board,
         axis[2].d = dot( vec3f( -board.GetWidth()/2, board.GetThickness(), 0 ), axis[2].normal );
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
-    /*
     else if ( region == STONE_BOARD_REGION_RightSide )
     {
         numAxes = 3;
@@ -308,12 +307,12 @@ inline bool IntersectStoneBoard( const Board & board,
 
         // side
         axis[1].d = board.GetHeight() / 2;
-        axis[1].normal = vec3f(0,0,-1);
+        axis[1].normal = vec3f(0,0,+1);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[1].normal, axis[1].s1, axis[1].s2 );
 
         // edge
-        axis[2].normal = vec3f( 0,+0.70710,-0.70710 );
-        axis[2].d = dot( vec3f( 0, board.GetThickness(), -board.GetHeight()/2 ), axis[2].normal );
+        axis[2].normal = vec3f( 0,+0.70710,+0.70710 );
+        axis[2].d = dot( vec3f( 0, board.GetThickness(), board.GetHeight()/2 ), axis[2].normal );
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
     else if ( region == STONE_BOARD_REGION_BottomSide )
@@ -327,15 +326,16 @@ inline bool IntersectStoneBoard( const Board & board,
 
         // side
         axis[1].d = board.GetHeight() / 2;
-        axis[1].normal = vec3f(0,0,1);
+        axis[1].normal = vec3f(0,0,-1);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[1].normal, axis[1].s1, axis[1].s2 );
 
         // edge
-        axis[2].normal = vec3f( 0,+0.70710,0.70710 );
-        axis[2].d = dot( vec3f( 0, board.GetThickness(), board.GetHeight()/2 ), axis[2].normal );
+        axis[2].normal = vec3f( 0,+0.70710,-0.70710 );
+        axis[2].d = dot( vec3f( 0, board.GetThickness(), -board.GetHeight()/2 ), axis[2].normal );
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
-    */
+
+    // todo: corner cases!!!!
 
     // not colliding if no axis defined
     if ( numAxes == 0 )

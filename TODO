@@ -1,47 +1,44 @@
 DONE:
 
-    Implemented function to get nearest point on line and biconvex
+    It is difficult to tell 100% but it seems that the stone is not
+    colliding perfectly with the edge, but has some separation out
+    from the edge -- sliding the stone off the edge then zooming in
+    should help determine if this is actually happening
 
-    This will be used for the left edge
+    No, it is working fine as shone by sliding the stone up onto the 
+    side edge from off the board, it lines up perfectly.
 
-    Implemented the top and left side cases for the biconvex nearest
-    point to the board, seem to be working OK.
+    Need another key mapping for zoom level now that I'm using CTRL
+    left/right/up/down to apply a linear impulse to the stone.
 
-    The plan for left side is as follows:
+    Hacked it in, now zoom level is ALT-CTRL+UP/DOWN (shoot me)
 
-        1. Test the primary plane, but ignore if point is outside bounds
-        2. Test the side plane, but ignore if point is outside bounds
-        3. Test the edge, by definition cannot be outside bounds
-
-    So far the first two cases are implemented and seem to be working
-
-    Next I am hooking up the left side edge case
-
-    Once this is done it should be relatively easy to generalize
-    to all edges, eg. break up into a function so there is not
-    a lot of cut & paste.
-
-    Integrate nearest point on left edge case
-
-    Visualized nearest point between stone and board. Seems to be working
-
-    Why is the collision response suspect when hitting the side edge?
-
-    Could it be that the normal is slightly incorrect?
-
-    Should the normal be on the biconvex surface instead of the edge
-    normal, is this what is wrong?!
-
-    Found it: the nearest point on biconvex vs. line function was wrong
-
-    Reworking the function so that it considers the sphere and the
-    circle edge cases properly, and takes the closest point to the 
-    line.
-
-    There appears to be one final broken case now. Perhaps it is a fuckup
-    with the top sphere vs. the bottom sphere? YES! It was!
+    Implement the remaining side cases
 
 TODO:
+
+    -----------------------------------------------------------------------
+
+    Implement bottom left corner case
+
+    -----------------------------------------------------------------------
+
+    Copy across to all corners
+
+    -----------------------------------------------------------------------
+
+    Its really nice to be able to specify initial orientation of the stone
+    to demonstrate edge cases, eg. side on, vertical, slight 45 degree
+    angle so it bounces into the board
+
+    Provide a way to select the initial drop criteria for the stone
+    so I can show off specific edge cases without fucking about
+
+    -----------------------------------------------------------------------
+
+    If you spin the stone really fast and then direct it into the side
+    of the board it is possible to crash out with the collision response
+    adding energy -- why is this happening?
 
     -----------------------------------------------------------------------
 
@@ -49,15 +46,25 @@ TODO:
 
     -----------------------------------------------------------------------
 
-    Implement corner cases for collision with board
-
-    -----------------------------------------------------------------------
-
     Implement rolling and sliding friction
 
     -----------------------------------------------------------------------
 
-    Implement mode with stone and board rendered in solid color
+
+
+
+    Polish only beyond this point!
+
+
+
+
+
+
+
+
+
+
+    -----------------------------------------------------------------------
 
     Load texture for stone
 
@@ -66,9 +73,5 @@ TODO:
     Render board with wood texture
 
     Develop textures for grid lines and star points
-
-    -----------------------------------------------------------------------
-
-    Implement stone vs. stone collision
 
     -----------------------------------------------------------------------

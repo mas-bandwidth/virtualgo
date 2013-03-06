@@ -43,7 +43,9 @@ vec3f cameraLookAt;
 vec3f cameraPosition;
 
 const int DefaultBoardSize = 9;
+const float MinimumBoardThickness = 0.2f;
 const float DefaultBoardThickness = 0.5f;
+const float MaximumBoardThickness = 9.0f;
 
 Board board( DefaultBoardSize );
 
@@ -56,14 +58,14 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     const float x = scrollX;
     const float z = scrollZ;
     
-    rigidBody.position = vec3f( x, board.GetThickness() + 15.0f, z );
+    rigidBody.position = vec3f( x, board.GetThickness() + 25.0f, z );
     
     //rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
     
     rigidBody.orientation = quat4f::axisRotation( pi*2/3, vec3f(0,0,-1) );
 
     //if ( mode == LinearCollisionResponse )
-    //    rigidBody.orientation = quat4f(1,0,0,0);
+        rigidBody.orientation = quat4f(1,0,0,0);
     
     rigidBody.linearMomentum = vec3f(0,0,0);
     
@@ -179,8 +181,8 @@ int main()
     bool prevFive = false;
     bool prevSpace = false;
     bool prevEnter = false;
-    bool prevCtrlUp = false;
-    bool prevCtrlDown = false;
+    bool prevAltCtrlUp = false;
+    bool prevAltCtrlDown = false;
     bool slowmo = false;
 
     while ( !quit )
@@ -232,7 +234,25 @@ int main()
         if ( input.r )
             stone.rigidBody.angularMomentum *= 0.75f;
 
-        if ( input.alt )
+        if ( input.alt && input.control )
+        {
+            if ( input.up && !prevAltCtrlUp )
+            {
+                zoomLevel --;
+                if ( zoomLevel < 0 )
+                    zoomLevel = 0;
+            }
+            prevAltCtrlUp = input.up;
+
+            if ( input.down && !prevAltCtrlDown )
+            {
+                zoomLevel ++;
+                if ( zoomLevel > MaxZoomLevel - 1 )
+                    zoomLevel = MaxZoomLevel - 1;
+            }
+            prevAltCtrlDown = input.down;
+        }
+        else if ( input.alt )
         {
             if ( input.left )
                 SelectStoneSize( size - 1 );
@@ -244,8 +264,8 @@ int main()
             {
                 float thickness = board.GetThickness();
                 thickness *= 0.75f;
-                if ( thickness < 0.5f )
-                    thickness = 0.5f;
+                if ( thickness < MinimumBoardThickness )
+                    thickness = MinimumBoardThickness;
                 board.SetThickness( thickness );
             }
 
@@ -253,8 +273,8 @@ int main()
             {
                 float thickness = board.GetThickness();
                 thickness *= 1.25f;
-                if ( thickness > 9 )
-                    thickness = 9;
+                if ( thickness > MaximumBoardThickness )
+                    thickness = MaximumBoardThickness;
                 board.SetThickness( thickness );
             }
 
@@ -266,24 +286,28 @@ int main()
 
             if ( input.three )
                 board = Board( 19 );
+
+            prevAltCtrlUp = false;
+            prevAltCtrlDown = false;
         }
         else if ( input.control )
         {
-            if ( input.up && !prevCtrlUp )
-            {
-                zoomLevel --;
-                if ( zoomLevel < 0 )
-                    zoomLevel = 0;
-            }
-            prevCtrlUp = input.up;
+            const float Slide = 50;
 
-            if ( input.down && !prevCtrlDown )
-            {
-                zoomLevel ++;
-                if ( zoomLevel > MaxZoomLevel - 1 )
-                    zoomLevel = MaxZoomLevel - 1;
-            }
-            prevCtrlDown = input.down;
+            if ( input.left )
+                stone.rigidBody.linearMomentum += Slide * vec3f(-1,0,0) * dt;
+
+            if ( input.right )
+                stone.rigidBody.linearMomentum += Slide * vec3f(+1,0,0) * dt;
+
+            if ( input.up )
+                stone.rigidBody.linearMomentum += Slide * vec3f(0,0,1) * dt;
+
+            if ( input.down )
+                stone.rigidBody.linearMomentum += Slide * vec3f(0,0,-1) * dt;
+
+            prevAltCtrlUp = false;
+            prevAltCtrlDown = false;
         }
         else
         {
@@ -362,8 +386,8 @@ int main()
             }
             prevFive = input.five;
 
-            prevCtrlUp = false;
-            prevCtrlDown = false;
+            prevAltCtrlUp = false;
+            prevAltCtrlDown = false;
         }
 
         ClearScreen( displayWidth, displayHeight );
@@ -498,7 +522,7 @@ int main()
             // collision between stone and board
 
             const float e = 0.85f;
-            const float u = 0.15f;
+            const float u = 0.25f;
 
             StaticContact boardContact;
             if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )

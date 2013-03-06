@@ -65,6 +65,377 @@ inline void ClosestFeaturesBiconvexPlane_LocalSpace( vec3f planeNormal,
     planePoint = biconvexPoint - planeNormal * ( dot( biconvexPoint, planeNormal ) - planeDistance );
 }
 
+inline bool ClosestFeaturePrimarySurface( const Board & board, 
+                                          const Biconvex & biconvex, 
+                                          const RigidBodyTransform & biconvexTransform,
+                                          vec3f & stonePoint,
+                                          vec3f & stoneNormal,
+                                          vec3f & boardPoint,
+                                          vec3f & boardNormal )
+{
+    const float w = board.GetWidth() / 2;
+    const float h = board.GetHeight() / 2;
+    const float t = board.GetThickness();
+
+    vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,1,0,t) );
+
+    vec3f local_stonePoint;
+    vec3f local_stoneNormal;
+    vec3f local_boardPoint;
+
+    ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), plane.w(), 
+                                             biconvex, 
+                                             local_stonePoint,
+                                             local_stoneNormal,
+                                             local_boardPoint );
+
+    stonePoint = TransformPoint( biconvexTransform.localToWorld, local_stonePoint );
+    stoneNormal = TransformVector( biconvexTransform.localToWorld, local_stoneNormal );
+    boardPoint = TransformPoint( biconvexTransform.localToWorld, local_boardPoint );
+    boardNormal = vec3f(0,1,0);
+
+    const float x = boardPoint.x();
+    const float z = boardPoint.z();
+
+    return x >= -w && x <= w && z >= -h && z <= h;
+}
+
+inline bool ClosestFeatureLeftSide( const Board & board, 
+                                    const Biconvex & biconvex, 
+                                    const RigidBodyTransform & biconvexTransform,
+                                    vec3f & stonePoint,
+                                    vec3f & stoneNormal,
+                                    vec3f & boardPoint,
+                                    vec3f & boardNormal )
+{
+    const float w = board.GetWidth() / 2;
+    const float h = board.GetHeight() / 2;
+    const float t = board.GetThickness();
+
+    vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(-1,0,0,w) );
+
+    vec3f local_stonePoint;
+    vec3f local_stoneNormal;
+    vec3f local_boardPoint;
+
+    ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), plane.w(), 
+                                             biconvex, 
+                                             local_stonePoint,
+                                             local_stoneNormal,
+                                             local_boardPoint );
+
+    stonePoint = TransformPoint( biconvexTransform.localToWorld, local_stonePoint );
+    stoneNormal = TransformVector( biconvexTransform.localToWorld, local_stoneNormal );
+    boardPoint = TransformPoint( biconvexTransform.localToWorld, local_boardPoint );
+    boardNormal = vec3f(-1,0,0);
+
+    const float y = boardPoint.y();
+    const float z = boardPoint.z();
+
+    return y <= t && z >= -h && z <= h;
+}
+
+inline bool ClosestFeatureLeftEdge( const Board & board, 
+                                    const Biconvex & biconvex, 
+                                    const RigidBodyTransform & biconvexTransform,
+                                    vec3f & stonePoint,
+                                    vec3f & stoneNormal,
+                                    vec3f & boardPoint,
+                                    vec3f & boardNormal )
+{
+    vec3f biconvexPosition = biconvexTransform.GetPosition();
+    vec3f biconvexUp = biconvexTransform.GetUp();
+
+    const float w = board.GetWidth() / 2;
+    const float h = board.GetHeight() / 2;
+    const float t = board.GetThickness();
+
+    const vec3f lineOrigin = vec3f( -w, t, -h );
+    const vec3f lineDirection = vec3f(0,0,1);
+
+    GetNearestPoint_Biconvex_Line( biconvex,
+                                   biconvexPosition,
+                                   biconvexUp,
+                                   lineOrigin,
+                                   lineDirection,
+                                   stonePoint,
+                                   boardPoint );
+
+    const float x = boardPoint.x();
+    const float y = boardPoint.y();
+    const float z = boardPoint.z();
+
+    const float dx = fabs( x - (-w) );
+    const float dy = fabs( y - t );
+    assert( dx < 0.001f );
+    assert( dy < 0.001f );
+
+    vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
+    vec3f local_normal;
+
+    GetBiconvexSurfaceNormalAtPoint_LocalSpace( local_point, biconvex, local_normal );
+
+    stoneNormal = transformVector( biconvexTransform.localToWorld, local_normal );
+
+    assert( fabs( length( stoneNormal ) - 1.0f ) < 0.001f );
+
+    boardNormal = -stoneNormal;
+
+    return z >= -h && z <= h;
+}
+
+inline bool ClosestFeatureRightSide( const Board & board, 
+                                     const Biconvex & biconvex, 
+                                     const RigidBodyTransform & biconvexTransform,
+                                     vec3f & stonePoint,
+                                     vec3f & stoneNormal,
+                                     vec3f & boardPoint,
+                                     vec3f & boardNormal )
+{
+    const float w = board.GetWidth() / 2;
+    const float h = board.GetHeight() / 2;
+    const float t = board.GetThickness();
+
+    vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(1,0,0,w) );
+
+    vec3f local_stonePoint;
+    vec3f local_stoneNormal;
+    vec3f local_boardPoint;
+
+    ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), plane.w(), 
+                                             biconvex, 
+                                             local_stonePoint,
+                                             local_stoneNormal,
+                                             local_boardPoint );
+
+    stonePoint = TransformPoint( biconvexTransform.localToWorld, local_stonePoint );
+    stoneNormal = TransformVector( biconvexTransform.localToWorld, local_stoneNormal );
+    boardPoint = TransformPoint( biconvexTransform.localToWorld, local_boardPoint );
+    boardNormal = vec3f(1,0,0);
+
+    const float y = boardPoint.y();
+    const float z = boardPoint.z();
+
+    return y <= t && z >= -h && z <= h;
+}
+
+inline bool ClosestFeatureRightEdge( const Board & board, 
+                                     const Biconvex & biconvex, 
+                                     const RigidBodyTransform & biconvexTransform,
+                                     vec3f & stonePoint,
+                                     vec3f & stoneNormal,
+                                     vec3f & boardPoint,
+                                     vec3f & boardNormal )
+{
+    vec3f biconvexPosition = biconvexTransform.GetPosition();
+    vec3f biconvexUp = biconvexTransform.GetUp();
+
+    const float w = board.GetWidth() / 2;
+    const float h = board.GetHeight() / 2;
+    const float t = board.GetThickness();
+
+    const vec3f lineOrigin = vec3f( w, t, -h );
+    const vec3f lineDirection = vec3f(0,0,1);
+
+    GetNearestPoint_Biconvex_Line( biconvex,
+                                   biconvexPosition,
+                                   biconvexUp,
+                                   lineOrigin,
+                                   lineDirection,
+                                   stonePoint,
+                                   boardPoint );
+
+    const float x = boardPoint.x();
+    const float y = boardPoint.y();
+    const float z = boardPoint.z();
+
+    const float dx = fabs( x - w );
+    const float dy = fabs( y - t );
+    assert( dx < 0.001f );
+    assert( dy < 0.001f );
+
+    vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
+    vec3f local_normal;
+
+    GetBiconvexSurfaceNormalAtPoint_LocalSpace( local_point, biconvex, local_normal );
+
+    stoneNormal = transformVector( biconvexTransform.localToWorld, local_normal );
+
+    assert( fabs( length( stoneNormal ) - 1.0f ) < 0.001f );
+
+    boardNormal = -stoneNormal;
+
+    return z >= -h && z <= h;
+}
+
+inline bool ClosestFeatureTopSide( const Board & board, 
+                                   const Biconvex & biconvex, 
+                                   const RigidBodyTransform & biconvexTransform,
+                                   vec3f & stonePoint,
+                                   vec3f & stoneNormal,
+                                   vec3f & boardPoint,
+                                   vec3f & boardNormal )
+{
+    const float w = board.GetWidth() / 2;
+    const float h = board.GetHeight() / 2;
+    const float t = board.GetThickness();
+
+    vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,0,1,h) );
+
+    vec3f local_stonePoint;
+    vec3f local_stoneNormal;
+    vec3f local_boardPoint;
+
+    ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), plane.w(), 
+                                             biconvex, 
+                                             local_stonePoint,
+                                             local_stoneNormal,
+                                             local_boardPoint );
+
+    stonePoint = TransformPoint( biconvexTransform.localToWorld, local_stonePoint );
+    stoneNormal = TransformVector( biconvexTransform.localToWorld, local_stoneNormal );
+    boardPoint = TransformPoint( biconvexTransform.localToWorld, local_boardPoint );
+    boardNormal = vec3f(0,0,1);
+
+    const float y = boardPoint.y();
+    const float x = boardPoint.x();
+
+    return y <= t && x >= -w && x <= w;
+}
+
+inline bool ClosestFeatureTopEdge( const Board & board, 
+                                   const Biconvex & biconvex, 
+                                   const RigidBodyTransform & biconvexTransform,
+                                   vec3f & stonePoint,
+                                   vec3f & stoneNormal,
+                                   vec3f & boardPoint,
+                                   vec3f & boardNormal )
+{
+    vec3f biconvexPosition = biconvexTransform.GetPosition();
+    vec3f biconvexUp = biconvexTransform.GetUp();
+
+    const float w = board.GetWidth() / 2;
+    const float h = board.GetHeight() / 2;
+    const float t = board.GetThickness();
+
+    const vec3f lineOrigin = vec3f( w, t, +h );
+    const vec3f lineDirection = vec3f(-1,0,0);
+
+    GetNearestPoint_Biconvex_Line( biconvex,
+                                   biconvexPosition,
+                                   biconvexUp,
+                                   lineOrigin,
+                                   lineDirection,
+                                   stonePoint,
+                                   boardPoint );
+
+    const float x = boardPoint.x();
+    const float y = boardPoint.y();
+    const float z = boardPoint.z();
+
+    const float dz = fabs( z - h );
+    const float dy = fabs( y - t );
+    assert( dz < 0.001f );
+    assert( dy < 0.001f );
+
+    vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
+    vec3f local_normal;
+
+    GetBiconvexSurfaceNormalAtPoint_LocalSpace( local_point, biconvex, local_normal );
+
+    stoneNormal = transformVector( biconvexTransform.localToWorld, local_normal );
+
+    assert( fabs( length( stoneNormal ) - 1.0f ) < 0.001f );
+
+    boardNormal = -stoneNormal;
+
+    return x >= -w && x <= w;
+}
+
+inline bool ClosestFeatureBottomSide( const Board & board, 
+                                      const Biconvex & biconvex, 
+                                      const RigidBodyTransform & biconvexTransform,
+                                      vec3f & stonePoint,
+                                      vec3f & stoneNormal,
+                                      vec3f & boardPoint,
+                                      vec3f & boardNormal )
+{
+    const float w = board.GetWidth() / 2;
+    const float h = board.GetHeight() / 2;
+    const float t = board.GetThickness();
+
+    vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,0,-1,h) );
+
+    vec3f local_stonePoint;
+    vec3f local_stoneNormal;
+    vec3f local_boardPoint;
+
+    ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), plane.w(), 
+                                             biconvex, 
+                                             local_stonePoint,
+                                             local_stoneNormal,
+                                             local_boardPoint );
+
+    stonePoint = TransformPoint( biconvexTransform.localToWorld, local_stonePoint );
+    stoneNormal = TransformVector( biconvexTransform.localToWorld, local_stoneNormal );
+    boardPoint = TransformPoint( biconvexTransform.localToWorld, local_boardPoint );
+    boardNormal = vec3f(0,0,-1);
+
+    const float y = boardPoint.y();
+    const float x = boardPoint.x();
+
+    return y <= t && x >= -w && x <= w;
+}
+
+inline bool ClosestFeatureBottomEdge( const Board & board, 
+                                      const Biconvex & biconvex, 
+                                      const RigidBodyTransform & biconvexTransform,
+                                      vec3f & stonePoint,
+                                      vec3f & stoneNormal,
+                                      vec3f & boardPoint,
+                                      vec3f & boardNormal )
+{
+    vec3f biconvexPosition = biconvexTransform.GetPosition();
+    vec3f biconvexUp = biconvexTransform.GetUp();
+
+    const float w = board.GetWidth() / 2;
+    const float h = board.GetHeight() / 2;
+    const float t = board.GetThickness();
+
+    const vec3f lineOrigin = vec3f( w, t, -h );
+    const vec3f lineDirection = vec3f(-1,0,0);
+
+    GetNearestPoint_Biconvex_Line( biconvex,
+                                   biconvexPosition,
+                                   biconvexUp,
+                                   lineOrigin,
+                                   lineDirection,
+                                   stonePoint,
+                                   boardPoint );
+
+    const float x = boardPoint.x();
+    const float y = boardPoint.y();
+    const float z = boardPoint.z();
+
+    const float dz = fabs( z - (-h) );
+    const float dy = fabs( y - t );
+    assert( dz < 0.001f );
+    assert( dy < 0.001f );
+
+    vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
+    vec3f local_normal;
+
+    GetBiconvexSurfaceNormalAtPoint_LocalSpace( local_point, biconvex, local_normal );
+
+    stoneNormal = transformVector( biconvexTransform.localToWorld, local_normal );
+
+    assert( fabs( length( stoneNormal ) - 1.0f ) < 0.001f );
+
+    boardNormal = -stoneNormal;
+
+    return x >= -w && x <= w;
+}
+
 inline void ClosestFeaturesStoneBoard( const Board & board, 
                                        const Biconvex & biconvex, 
                                        const RigidBodyTransform & biconvexTransform,
@@ -74,7 +445,6 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
                                        vec3f & boardNormal )
 {
     vec3f biconvexPosition = biconvexTransform.GetPosition();
-    vec3f biconvexUp = biconvexTransform.GetUp();
 
     const float boundingSphereRadius = biconvex.GetWidth() * 0.5f;
 
@@ -85,130 +455,51 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
     if ( region == STONE_BOARD_REGION_Primary )
     {
-        // common case: collision with primary surface of board only
-        // no collision with edges or corners of board is possible
-
-        vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,1,0,thickness) );
-
-        vec3f local_stonePoint;
-        vec3f local_stoneNormal;
-        vec3f local_boardPoint;
-
-        ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), plane.w(), 
-                                                 biconvex, 
-                                                 local_stonePoint,
-                                                 local_stoneNormal,
-                                                 local_boardPoint );
-
-        stonePoint = TransformPoint( biconvexTransform.localToWorld, local_stonePoint );
-        stoneNormal = TransformVector( biconvexTransform.localToWorld, local_stoneNormal );
-        boardPoint = TransformPoint( biconvexTransform.localToWorld, local_boardPoint );
-        boardNormal = vec3f(0,1,0);
+        ClosestFeaturePrimarySurface( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
     }
     else if ( region == STONE_BOARD_REGION_LeftSide )
     {
-        // primary surface
-        {
-            vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,1,0,thickness) );
+        if ( ClosestFeaturePrimarySurface( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+            return;
 
-            vec3f local_stonePoint;
-            vec3f local_stoneNormal;
-            vec3f local_boardPoint;
+        if ( ClosestFeatureLeftSide( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+            return;
 
-            ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), plane.w(), 
-                                                     biconvex, 
-                                                     local_stonePoint,
-                                                     local_stoneNormal,
-                                                     local_boardPoint );
-
-            stonePoint = TransformPoint( biconvexTransform.localToWorld, local_stonePoint );
-            stoneNormal = TransformVector( biconvexTransform.localToWorld, local_stoneNormal );
-            boardPoint = TransformPoint( biconvexTransform.localToWorld, local_boardPoint );
-            boardNormal = vec3f(0,1,0);
-
-            const float w = board.GetWidth() / 2;
-            const float h = board.GetHeight() / 2;
-
-            const float x = boardPoint.x();
-            const float z = boardPoint.z();
-
-            if ( x >= -w && x <= w && z >= -h && z <= h )
-                return;
-        }
-
-        // left side plane
-        {
-            const float w = board.GetWidth() / 2;
-            const float h = board.GetHeight() / 2;
-            const float t = board.GetThickness();
-
-            vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(-1,0,0,w) );
-
-            vec3f local_stonePoint;
-            vec3f local_stoneNormal;
-            vec3f local_boardPoint;
-
-            ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), plane.w(), 
-                                                     biconvex, 
-                                                     local_stonePoint,
-                                                     local_stoneNormal,
-                                                     local_boardPoint );
-
-            stonePoint = TransformPoint( biconvexTransform.localToWorld, local_stonePoint );
-            stoneNormal = TransformVector( biconvexTransform.localToWorld, local_stoneNormal );
-            boardPoint = TransformPoint( biconvexTransform.localToWorld, local_boardPoint );
-            boardNormal = vec3f(-1,0,0);
-
-            const float y = boardPoint.y();
-            const float z = boardPoint.z();
-
-            if ( y <= t && z >= -h && z <= t )
-                return;
-        }
-
-        // left side edge
-        {
-            const float w = board.GetWidth() / 2;
-            const float h = board.GetHeight() / 2;
-            const float t = board.GetThickness();
-
-            const vec3f lineOrigin = vec3f( -w, t, -h );
-            const vec3f lineDirection = vec3f(0,0,1);
-
-            GetNearestPoint_Biconvex_Line( biconvex,
-                                           biconvexPosition,
-                                           biconvexUp,
-                                           lineOrigin,
-                                           lineDirection,
-                                           stonePoint,
-                                           boardPoint );
-
-            const float x = boardPoint.x();
-            const float y = boardPoint.y();
-            const float z = boardPoint.z();
-
-            const float dx = fabs( x - (-w) );
-            const float dy = fabs( y - t );
-            assert( dx < 0.001f );
-            assert( dy < 0.001f );
-            assert( z >= -h );
-            assert( z <= h );
-
-            vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
-            vec3f local_normal;
-
-            GetBiconvexSurfaceNormalAtPoint_LocalSpace( local_point, biconvex, local_normal );
-
-            stoneNormal = transformVector( biconvexTransform.localToWorld, local_normal );
-
-            assert( fabs( length( stoneNormal ) - 1.0f ) < 0.001f );
-
-            boardNormal = -stoneNormal;
-        }
+        ClosestFeatureLeftEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
     }
-    else
+    else if ( region == STONE_BOARD_REGION_RightSide )
     {
-        // not implemented yet!
+        if ( ClosestFeaturePrimarySurface( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+            return;
+
+        if ( ClosestFeatureRightSide( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+            return;
+
+        ClosestFeatureRightEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
+    }
+    else if ( region == STONE_BOARD_REGION_TopSide )
+    {
+        if ( ClosestFeaturePrimarySurface( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+            return;
+
+        if ( ClosestFeatureTopSide( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+            return;
+
+        ClosestFeatureTopEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
+    }
+    else if ( region == STONE_BOARD_REGION_BottomSide )
+    {
+        if ( ClosestFeaturePrimarySurface( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+            return;
+
+        if ( ClosestFeatureBottomSide( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+            return;
+
+        ClosestFeatureBottomEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
+    }
+     else
+    {
+        // todo: implement corner cases
     }
 }
 
