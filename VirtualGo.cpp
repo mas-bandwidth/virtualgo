@@ -757,7 +757,7 @@ int main()
             glDepthMask( GL_TRUE );
         }
 
-        glColor4f( 1, 1, 1, 1 );
+        glColor4f( 0.75, 0.75, 0.75, 1 );
 
         RenderMesh( mesh[size] );
 
