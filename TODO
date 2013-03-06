@@ -1,6 +1,14 @@
 DONE:
 
+    Fixed the lights on the stone to look a lot better
+
 TODO:
+
+    Fix the lighting on the board. It needs no specular, just
+    a good basic diffuse, but with some variation across the 
+    board for effect.
+
+    -----------------------------------------
 
     Finish the article series
 

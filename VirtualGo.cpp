@@ -181,13 +181,46 @@ int main()
     glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
     glEnable( GL_LIGHTING );
+
     glEnable( GL_LIGHT0 );
+    glEnable( GL_LIGHT1 );
+    glEnable( GL_LIGHT2 );
+    glEnable( GL_LIGHT3 );
+    glEnable( GL_LIGHT4 );
+
+    GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
+    GLfloat light_diffuse[] = { 0.25, 0.25, 0.25, 1.0 };
+    GLfloat light_specular[] = { 0.2, 0.2, 0.2, 1.0 };
+
+    glLightfv( GL_LIGHT0, GL_AMBIENT, light_ambient );
+    glLightfv( GL_LIGHT0, GL_DIFFUSE, light_diffuse );
+    glLightfv( GL_LIGHT0, GL_SPECULAR, light_specular );
+
+    glLightfv( GL_LIGHT1, GL_AMBIENT, light_ambient );
+    glLightfv( GL_LIGHT1, GL_DIFFUSE, light_diffuse );
+    glLightfv( GL_LIGHT1, GL_SPECULAR, light_specular );
+
+    glLightfv( GL_LIGHT2, GL_AMBIENT, light_ambient );
+    glLightfv( GL_LIGHT2, GL_DIFFUSE, light_diffuse );
+    glLightfv( GL_LIGHT2, GL_SPECULAR, light_specular );
+
+    glLightfv( GL_LIGHT3, GL_AMBIENT, light_ambient );
+    glLightfv( GL_LIGHT3, GL_DIFFUSE, light_diffuse );
+    glLightfv( GL_LIGHT3, GL_SPECULAR, light_specular );
+
+    GLfloat radiosity_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
+    GLfloat radiosity_diffuse[] = { 0.25, 0.125, 0.0, 1.0 };
+    GLfloat radiosity_specular[] = { 0,0,0,0 };
+
+    glLightfv( GL_LIGHT4, GL_AMBIENT, radiosity_ambient );
+    glLightfv( GL_LIGHT4, GL_DIFFUSE, radiosity_diffuse );
+    glLightfv( GL_LIGHT4, GL_SPECULAR, radiosity_specular );
 
     glShadeModel( GL_SMOOTH );
 
     glEnable( GL_COLOR_MATERIAL );
 
-    GLfloat lightAmbientColor[] = { 0.3, 0.3, 0.3, 1.0 };
+    GLfloat lightAmbientColor[] = { 0.2, 0.2, 0.2, 1.0 };
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
 
     glEnable( GL_BLEND );
@@ -467,8 +500,17 @@ int main()
 
         // setup lights
 
-        GLfloat lightPosition[] = { -10, 1000, -200, 1 };
-        glLightfv( GL_LIGHT0, GL_POSITION, lightPosition );
+        GLfloat lightPosition0[] = { 250, 1000, -500, 1 };
+        GLfloat lightPosition1[] = { -250, 0, -250, 1 };
+        GLfloat lightPosition2[] = { 100, 0, -100, 1 };
+        GLfloat lightPosition3[] = { 0, +1000, +1000, 1 };
+        GLfloat lightPosition4[] = { 0, -1000, 0, 1 };
+        
+        glLightfv( GL_LIGHT0, GL_POSITION, lightPosition0 );
+        glLightfv( GL_LIGHT1, GL_POSITION, lightPosition1 );
+        glLightfv( GL_LIGHT2, GL_POSITION, lightPosition2 );
+        glLightfv( GL_LIGHT3, GL_POSITION, lightPosition3 );
+        glLightfv( GL_LIGHT4, GL_POSITION, lightPosition4 );
 
         // setup projection + modelview
 
@@ -672,7 +714,7 @@ int main()
         if ( mode >= SolidColor )
         {
             glEnable( GL_LIGHTING );
-            glColor4f( 0.8f,0.45f,0,1 );            
+            glColor4f( 1.0f,0.5f,0.0f,1 );            
         }
         else
         {
@@ -715,6 +757,12 @@ int main()
 
             glDisable( GL_DEPTH_TEST );
 
+            GLfloat mat_specular[] = { 0,0,0,0 };
+            GLfloat mat_shininess[] = { 50.0 };
+
+            glMaterialfv( GL_FRONT, GL_SPECULAR, mat_specular );
+            glMaterialfv( GL_FRONT, GL_SHININESS, mat_shininess );
+
             RenderBoard( board );
 
             glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -724,7 +772,11 @@ int main()
             if ( mode >= SolidColor )
                 glColor4f( 0,0,0,1 );
 
+            glDisable( GL_LIGHTING );
+
             RenderGrid( board.GetThickness(), board.GetSize(), board.GetCellWidth(), board.GetCellHeight() );
+
+            glEnable( GL_LIGHTING );
 
             glEnable( GL_DEPTH_TEST );
         }
@@ -757,9 +809,19 @@ int main()
             glDepthMask( GL_TRUE );
         }
 
-        glColor4f( 0.75, 0.75, 0.75, 1 );
+        glColor4f( 1.0, 1.0, 1.0, 1 );
+
+        glDisable( GL_COLOR_MATERIAL );
+
+        GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+        GLfloat mat_shininess[] = { 50.0 };
+
+        glMaterialfv( GL_FRONT, GL_SPECULAR, mat_specular );
+        glMaterialfv( GL_FRONT, GL_SHININESS, mat_shininess );
 
         RenderMesh( mesh[size] );
+
+        glEnable( GL_COLOR_MATERIAL );
 
         glPopMatrix();
 
