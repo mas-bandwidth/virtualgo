@@ -1,4 +1,33 @@
 
+Applied hacked damping and rolling/spinning friction (5/3/2013):
+----------------------------------------------------------------
+
+    The actual spinning/rolling friction specified in this paper
+    is quite complicated and most likely overkill.
+
+    http://physbam.stanford.edu/~fedkiw/papers/stanford2003-01.pdf
+
+    Although it would be very nice to explore in the future,
+    for now I've just created a hack with a variable amount 
+    of damping propertional to the angualar velocity length.
+
+    The trick was to have two values of damping while in contact
+    a low damping value while angular rotation is large, and a
+    smaller value for when angular rotation is small.
+
+    To make the transition between these two values less obvious
+    I added some interpolation between a transition angvel length
+    range.
+
+    This hack gives a reasonable approximation of what I want
+
+     1. good coin spinning type movement
+     2. rapid settling once the coin spin motion collapses
+     3. good natural looking wobbles when coming to rest for all stones sizes
+
+    So simple and works so good it should be a crime! :)
+
+
 Fixed wireframe view, provide stone drop type selection (5/3/2013):
 -------------------------------------------------------------------
 

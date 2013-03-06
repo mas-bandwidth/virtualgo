@@ -272,17 +272,31 @@ int main()
 
         const float Spin = 0.1f;
 
+        bool appliedSpin = false;
+
         if ( input.q )
+        {
             stone.rigidBody.angularMomentum += Spin * vec3f(1,0,0);
+            appliedSpin = true;
+        }
 
         if ( input.w )
+        {
             stone.rigidBody.angularMomentum += Spin * vec3f(0,1,0);
+            appliedSpin = true;
+        }
 
         if ( input.e )
+        {
             stone.rigidBody.angularMomentum += Spin * vec3f(0,0,1);
+            appliedSpin = true;
+        }
 
         if ( input.r )
+        {
             stone.rigidBody.angularMomentum *= 0.75f;
+            appliedSpin = true;
+        }
 
         if ( input.alt && input.control )
         {
@@ -559,8 +573,6 @@ int main()
 
         for ( int i = 0; i < iterations; ++i )
         {
-            bool colliding = false;
-
             const float gravity = 9.8f * 10;    // cms/sec^2
             stone.rigidBody.linearMomentum += vec3f(0,-gravity,0) * stone.rigidBody.mass * iteration_dt;
 
@@ -572,6 +584,8 @@ int main()
             stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
 
             // collision between stone and board
+
+            bool collided = false;
 
             const float board_e = 0.85f;
             const float board_u = 0.15f;
@@ -586,6 +600,7 @@ int main()
                 else if ( mode >= CollisionResponseWithFriction )
                     ApplyCollisionImpulseWithFriction( boardContact, board_e, board_u );
                 stone.rigidBody.Update();
+                collided = true;
             }
 
             // collision between stone and floor
@@ -603,7 +618,39 @@ int main()
                 else if ( mode >= CollisionResponseWithFriction )
                     ApplyCollisionImpulseWithFriction( floorContact, floor_e, floor_u );
                 stone.rigidBody.Update();
+                collided = true;
             }
+
+            // this is a *massive* hack to approximate rolling/spinning
+            // friction and it is completely made up and not accurate at all!
+
+            if ( collided )
+            {
+                float momentum = length( stone.rigidBody.angularMomentum );
+                const float factor_a = 0.9925f;
+                const float factor_b = 0.9995f;
+                const float a = 0.0f;
+                const float b = 1.0f;
+                if ( momentum >= b || appliedSpin )
+                {
+                    stone.rigidBody.angularMomentum *= factor_b;
+                }
+                else if ( momentum <= a )
+                {
+                    stone.rigidBody.angularMomentum *= factor_a;
+                }
+                else
+                {
+                    const float alpha = ( momentum - a ) / ( b - a );
+                    const float factor = factor_a * ( 1 - alpha ) + factor_b * alpha;
+                    stone.rigidBody.angularMomentum *= factor;
+                }
+            }
+
+            // apply damping
+
+            stone.rigidBody.linearMomentum *= 0.99999f;
+            stone.rigidBody.angularMomentum *= 0.99999f;
         }
 
         // render board
