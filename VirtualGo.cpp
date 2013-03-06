@@ -203,7 +203,7 @@ int main()
     glLightfv( GL_LIGHT3, GL_SPECULAR, light_specular );
 
     GLfloat radiosity_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
-    GLfloat radiosity_diffuse[] = { 0.25, 0.125, 0.0, 1.0 };
+    GLfloat radiosity_diffuse[] = { 0.3, 0.17, 0.02, 1.0 };
     GLfloat radiosity_specular[] = { 0,0,0,0 };
 
     glLightfv( GL_LIGHT4, GL_AMBIENT, radiosity_ambient );
@@ -718,10 +718,11 @@ int main()
         if ( mode >= SolidColor )
         {
             glEnable( GL_LIGHTING );
-            glColor4f( 1.0f,0.5f,0.0f,1 );            
+            glColor4f( 1.0f,0.6f,0.1f,1 );            
         }
         else
         {
+            glDisable( GL_LIGHTING );
             glColor4f( 0.4f,0.4f,0.4f,1 );
         }
 
