@@ -22,9 +22,9 @@ void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float 
 
     if ( vn < 0 )
     {
-        // calculate kinetic energy before collision response
-
+        /*
         const float ke_before_collision = rigidBody.GetKineticEnergy();
+        */
 
         // calculate inverse inertia tensor in world space
 

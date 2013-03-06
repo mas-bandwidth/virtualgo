@@ -2,17 +2,9 @@ DONE:
 
 TODO:
 
-    -----------------------------------------------------------------------
-
     Finish the article series
 
-    -----------------------------------------------------------------------
-
     Back port to talk slides
-
-    -----------------------------------------------------------------------
-
-
 
 
 
@@ -20,13 +12,6 @@ TODO:
     ******************************
     Polish only beyond this point!
     ******************************
-
-
-
-
-
-
-    -----------------------------------------------------------------------
 
     Load texture for stone
 
@@ -36,4 +21,6 @@ TODO:
 
     Develop textures for grid lines and star points
 
-    -----------------------------------------------------------------------
+    Improve the lighting with a pixel shader
+
+    Implement shadows (stencil? soft shadows?)
