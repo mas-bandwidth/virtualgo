@@ -182,12 +182,6 @@ int main()
 
     glEnable( GL_LIGHTING );
 
-    glEnable( GL_LIGHT0 );
-    glEnable( GL_LIGHT1 );
-    glEnable( GL_LIGHT2 );
-    glEnable( GL_LIGHT3 );
-    glEnable( GL_LIGHT4 );
-
     GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
     GLfloat light_diffuse[] = { 0.25, 0.25, 0.25, 1.0 };
     GLfloat light_specular[] = { 0.2, 0.2, 0.2, 1.0 };
@@ -511,6 +505,16 @@ int main()
         glLightfv( GL_LIGHT2, GL_POSITION, lightPosition2 );
         glLightfv( GL_LIGHT3, GL_POSITION, lightPosition3 );
         glLightfv( GL_LIGHT4, GL_POSITION, lightPosition4 );
+
+        glEnable( GL_LIGHT0 );
+        glEnable( GL_LIGHT1 );
+        glEnable( GL_LIGHT2 );
+        glEnable( GL_LIGHT3 );
+
+        if ( mode >= SolidColor )
+            glEnable( GL_LIGHT4 );
+        else
+            glDisable( GL_LIGHT4 );
 
         // setup projection + modelview
 
