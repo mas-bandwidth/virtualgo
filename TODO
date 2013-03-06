@@ -4,16 +4,34 @@ DONE:
 
 TODO:
 
-    Fix the lighting on the board. It needs no specular, just
-    a good basic diffuse, but with some variation across the 
-    board for effect.
+    ---------------------------------------------
 
-    -----------------------------------------
+    Create a new mode "Textured" (5)
+
+    How to load a texture and use it in OpenGL?
+
+    Emit texture coordinates in mesh. This is temporary. Eventually,
+    they will become a function of x and z.
+
+    Apply murasaki texture to the go stone
+
+    Apply wood texture to the go board
+
+    Work out how to improve the lighting on the board
+
+    --------------------------------------------------------
+
+    Damping needs to be made approximately framerate independent
+
+    Why? Because in slow motion mode it really goes to town ... =p
+
+    --------------------------------------------------------
 
     Finish the article series
 
     Back port to talk slides
 
+    --------------------------------------------------------
 
 
 

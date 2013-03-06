@@ -36,7 +36,7 @@ enum Mode
     AngularCollisionResponse,
     CollisionResponseWithFriction,
     SolidColor,
-    Textures,
+    Textured,
     NumModes
 };
 
@@ -471,7 +471,7 @@ int main()
 
             if ( input.five && !prevFive )
             {
-                mode = SolidColor;
+                mode = Textured;
                 dt = normal_dt;
                 slowmo = false;
             }
