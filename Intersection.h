@@ -368,7 +368,7 @@ inline bool IntersectStoneBoard( const Board & board,
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[4].normal, axis[4].s1, axis[4].s2 );
 
         // bottom-left corner edge (vertical)
-        axis[5].normal = vec3f( -0.70710,-0.70710,0 );
+        axis[5].normal = vec3f( -0.70710,0,-0.70710 );
         axis[5].d = dot( vec3f( -w, t, -h ), axis[5].normal );
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[5].normal, axis[5].s1, axis[5].s2 );
 

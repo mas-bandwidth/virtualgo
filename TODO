@@ -15,15 +15,17 @@ DONE:
 
     Implement the remaining side cases
 
+    Implement bottom left corner case
+
 TODO:
 
     -----------------------------------------------------------------------
 
-    Implement bottom left corner case
+    Bottom right corner
 
-    -----------------------------------------------------------------------
+    Top left corner
 
-    Copy across to all corners
+    Top right corner
 
     -----------------------------------------------------------------------
 
