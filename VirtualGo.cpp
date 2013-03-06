@@ -15,6 +15,10 @@
 
 using namespace platform;
 
+const float FOV = 40.0f;
+const float Near = 0.1f;
+const float Far = 100.0f;
+
 const int MaxZoomLevel = 5;
 
 int zoomLevel = 2;
@@ -390,6 +394,8 @@ int main()
             prevAltCtrlDown = false;
         }
 
+        glDepthMask( GL_TRUE );
+
         ClearScreen( displayWidth, displayHeight );
 
         if ( mode == Nothing )
@@ -404,9 +410,7 @@ int main()
         GLfloat lightPosition[] = { -10, 1000, -200, 1 };
         glLightfv( GL_LIGHT0, GL_POSITION, lightPosition );
 
-        // setup projection + modelsview
-
-        const float fov = 40.0f;
+        // setup projection + modelview
 
         glMatrixMode( GL_PROJECTION );
 
@@ -419,7 +423,7 @@ int main()
         
         glMultMatrixf( flipX );
 
-        gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
+        gluPerspective( FOV, (float) displayWidth / (float) displayHeight, Near, Far );
 
         glMatrixMode( GL_MODELVIEW );    
 
@@ -427,63 +431,65 @@ int main()
 
         // update camera
 
-        const float x = scrollX;
-        const float y = scrollY;
-        const float z = scrollZ;
-
-        vec3f targetLookAt;
-        vec3f targetPosition;
-
-        const float t = board.GetThickness();
-
-        if ( zoomLevel == 0 )
         {
-            targetLookAt = vec3f(x,y,z);
-            targetPosition = vec3f(x,y,z-5);
-        }
-        else if ( zoomLevel == 1 )
-        {
-            targetLookAt = vec3f(x,y+1,z);
-            targetPosition = vec3f(x,y+1,z-10);
-        }
-        else if ( zoomLevel == 2 )
-        {
-            targetLookAt = vec3f(x,y+4,z);
-            targetPosition = vec3f(x,y+8,z-25);
-        }
-        else if ( zoomLevel == 3 )
-        {
-            targetLookAt = vec3f(x,y+2,z);
-            targetPosition = vec3f(x,y+20,z-30);
-        }
-        else if ( zoomLevel == 4 )
-        {
-            targetLookAt = vec3f(x,y,z);
-            targetPosition = vec3f(x,y+55,z);
-        }
+            const float x = scrollX;
+            const float y = scrollY;
+            const float z = scrollZ;
 
-        if ( cameraMode == mode )
-        {
-            cameraLookAt += ( targetLookAt - cameraLookAt ) * 0.25f;
-            cameraPosition += ( targetPosition - cameraPosition ) * 0.25f;
+            vec3f targetLookAt;
+            vec3f targetPosition;
+
+            const float t = board.GetThickness();
+
+            if ( zoomLevel == 0 )
+            {
+                targetLookAt = vec3f(x,y,z);
+                targetPosition = vec3f(x,y,z-5);
+            }
+            else if ( zoomLevel == 1 )
+            {
+                targetLookAt = vec3f(x,y+1,z);
+                targetPosition = vec3f(x,y+1,z-10);
+            }
+            else if ( zoomLevel == 2 )
+            {
+                targetLookAt = vec3f(x,y+4,z);
+                targetPosition = vec3f(x,y+8,z-25);
+            }
+            else if ( zoomLevel == 3 )
+            {
+                targetLookAt = vec3f(x,y+2,z);
+                targetPosition = vec3f(x,y+20,z-30);
+            }
+            else if ( zoomLevel == 4 )
+            {
+                targetLookAt = vec3f(x,y,z);
+                targetPosition = vec3f(x,y+55,z);
+            }
+
+            if ( cameraMode == mode )
+            {
+                cameraLookAt += ( targetLookAt - cameraLookAt ) * 0.25f;
+                cameraPosition += ( targetPosition - cameraPosition ) * 0.25f;
+            }
+            else
+            {
+                cameraLookAt = targetLookAt;
+                cameraPosition = targetPosition;
+            }
+
+            float amountBelow = t - fmax( targetPosition.y(), targetLookAt.y() );
+            if ( amountBelow > 0 )
+                scrollY += amountBelow;
+
+            cameraMode = mode;
+
+            vec3f cameraUp = cross( normalize( cameraLookAt - cameraPosition ), vec3f(1,0,0) );
+
+            gluLookAt( cameraPosition.x(), max( cameraPosition.y(), t ), cameraPosition.z(),
+                       cameraLookAt.x(), max( cameraLookAt.y(), t ), cameraLookAt.z(),
+                       cameraUp.x(), cameraUp.y(), cameraUp.z() );
         }
-        else
-        {
-            cameraLookAt = targetLookAt;
-            cameraPosition = targetPosition;
-        }
-
-        float amountBelow = t - fmax( targetPosition.y(), targetLookAt.y() );
-        if ( amountBelow > 0 )
-            scrollY += amountBelow;
-
-        cameraMode = mode;
-
-        vec3f cameraUp = cross( normalize( cameraLookAt - cameraPosition ), vec3f(1,0,0) );
-
-        gluLookAt( cameraPosition.x(), max( cameraPosition.y(), t ), cameraPosition.z(),
-                   cameraLookAt.x(), max( cameraLookAt.y(), t ), cameraLookAt.z(),
-                   cameraUp.x(), cameraUp.y(), cameraUp.z() );
 
         // if the stone is inside the board at the beginning of the frame
         // push it out with a spring impulse -- this gives a cool effect
@@ -577,17 +583,26 @@ int main()
             glColor4f( 0.4f,0.4f,0.4f,1 );
         }
 
-        if ( cameraPosition.x() >= -board.GetWidth() / 2 &&
-             cameraPosition.x() <= board.GetWidth() / 2 &&
-             cameraPosition.z() >= -board.GetHeight() / 2 &&
-             cameraPosition.z() <= board.GetHeight() / 2 &&
-             cameraPosition.y() <= board.GetThickness() + 0.01f )
+        const float w = board.GetWidth() / 2;
+        const float h = board.GetHeight() / 2;
+        const float t = board.GetThickness();
+        const float e = 0.001f;
+
+        if ( cameraPosition.x() >= -w - e &&
+             cameraPosition.x() <= +w + e &&
+             cameraPosition.z() >= -h - e - Near &&
+             cameraPosition.z() <= +h + e + Near &&
+             cameraPosition.y() <= t + e )
         {
+            glDisable( GL_DEPTH_TEST );
+
             glLineWidth( 5 );
             glBegin( GL_LINES );
-            glVertex3f( -1000, board.GetThickness(), cameraPosition.z() + 1.0f );
-            glVertex3f( +1000, board.GetThickness(), cameraPosition.z() + 1.0f );
+            glVertex3f( -1000, board.GetThickness(), cameraPosition.z() + 0.11f );
+            glVertex3f( +1000, board.GetThickness(), cameraPosition.z() + 0.11f );
             glEnd();
+
+            glEnable( GL_DEPTH_TEST );
         }
         else
         {
@@ -602,6 +617,8 @@ int main()
                 glLineWidth( 5 );
             }
 
+            glDisable( GL_DEPTH_TEST );
+
             RenderBoard( board );
 
             glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -610,8 +627,6 @@ int main()
 
             if ( mode >= SolidColor )
                 glColor4f( 0,0,0,1 );
-
-            glDisable( GL_DEPTH_TEST );
 
             RenderGrid( board.GetThickness(), board.GetSize(), board.GetCellWidth(), board.GetCellHeight() );
 
