@@ -1,50 +1,20 @@
 DONE:
 
-    It is difficult to tell 100% but it seems that the stone is not
-    colliding perfectly with the edge, but has some separation out
-    from the edge -- sliding the stone off the edge then zooming in
-    should help determine if this is actually happening
-
-    No, it is working fine as shone by sliding the stone up onto the 
-    side edge from off the board, it lines up perfectly.
-
-    Need another key mapping for zoom level now that I'm using CTRL
-    left/right/up/down to apply a linear impulse to the stone.
-
-    Hacked it in, now zoom level is ALT-CTRL+UP/DOWN (shoot me)
-
-    Implement the remaining side cases
-
-    Implement bottom left corner case
-
 TODO:
 
-    -----------------------------------------------------------------------
-
-    Bottom right corner
-
-    Top left corner
-
-    Top right corner
+    Fix the wireframe view, it's all broken with z-testing again
 
     -----------------------------------------------------------------------
 
-    Its really nice to be able to specify initial orientation of the stone
-    to demonstrate edge cases, eg. side on, vertical, slight 45 degree
-    angle so it bounces into the board
+    Provide some way to select between initial stone drop conditions,
+    
+    eg:
 
-    Provide a way to select the initial drop criteria for the stone
-    so I can show off specific edge cases without fucking about
-
-    -----------------------------------------------------------------------
-
-    If you spin the stone really fast and then direct it into the side
-    of the board it is possible to crash out with the collision response
-    adding energy -- why is this happening?
-
-    -----------------------------------------------------------------------
-
-    Argh... the wireframe is fucked up with z testing again... !
+        F1 = flat, 
+        F2 = 45 degrees
+        F3 = vertical
+        F4 = random orientation
+        F5 = random angular velocity
 
     -----------------------------------------------------------------------
 
@@ -52,15 +22,22 @@ TODO:
 
     -----------------------------------------------------------------------
 
+    Finish the article series
+
+    -----------------------------------------------------------------------
+
+    Back port to talk slides
+
+    -----------------------------------------------------------------------
 
 
 
+
+
+
+    ******************************
     Polish only beyond this point!
-
-
-
-
-
+    ******************************
 
 
 

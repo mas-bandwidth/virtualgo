@@ -1,4 +1,31 @@
 
+Finished edge and corner cases (5/3/2013):
+------------------------------------------
+
+    It is difficult to tell 100% but it seems that the stone is not
+    colliding perfectly with the edge, but has some separation out
+    from the edge -- sliding the stone off the edge then zooming in
+    should help determine if this is actually happening
+
+    No, it is working fine as shone by sliding the stone up onto the 
+    side edge from off the board, it lines up perfectly.
+
+    Need another key mapping for zoom level now that I'm using CTRL
+    left/right/up/down to apply a linear impulse to the stone.
+
+    Hacked it in, now zoom level is ALT-CTRL+UP/DOWN (shoot me)
+
+    Implement the remaining side cases
+
+    Implement bottom left corner case
+
+    Bottom right corner
+
+    Top left corner
+
+    Top right corner
+
+
 Work on left edge side for board (5/3/2013):
 --------------------------------------------
 
