@@ -161,13 +161,23 @@ int main()
 
     // load textures
 
-    int texture_width, texture_height, texture_n;
-    const char filename[] = "textures/murasaki.jpg";
-    printf( "loading %s\n", filename );
-    unsigned char * texture_data = stbi_load( filename, &texture_width, &texture_height, &texture_n, 3 );
-    if ( !texture_data )
+    int stone_texture_width, stone_texture_height, stone_texture_n;
+    const char stone_texture_filename[] = "textures/murasaki.jpg";
+    printf( "loading %s\n", stone_texture_filename );
+    unsigned char * stone_texture_data = stbi_load( stone_texture_filename, &stone_texture_width, &stone_texture_height, &stone_texture_n, 3 );
+    if ( !stone_texture_data )
     {
-        printf( "failed to load: %s\n", filename );
+        printf( "failed to load: %s\n", stone_texture_filename );
+        exit(1);
+    }
+
+    int wood_texture_width, wood_texture_height, wood_texture_n;
+    const char wood_texture_filename[] = "textures/wood.jpg";
+    printf( "loading %s\n", wood_texture_filename );
+    unsigned char * wood_texture_data = stbi_load( wood_texture_filename, &wood_texture_width, &wood_texture_height, &wood_texture_n, 3 );
+    if ( !wood_texture_data )
+    {
+        printf( "failed to load: %s\n", wood_texture_filename );
         exit(1);
     }
 
@@ -206,29 +216,32 @@ int main()
 
     glEnable( GL_TEXTURE_2D );
 
-    GLuint textureId;
+    GLuint woodTextureId;
+    GLuint stoneTextureId;
 
-    glGenTextures( 1, &textureId );
+    glGenTextures( 1, &stoneTextureId );
+    glBindTexture( GL_TEXTURE_2D, stoneTextureId );
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, stone_texture_width, stone_texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, stone_texture_data );
+    glGenerateMipmap( GL_TEXTURE_2D );
 
-    glBindTexture( GL_TEXTURE_2D, textureId );
-
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data );
+    glGenTextures( 1, &woodTextureId );
+    glBindTexture( GL_TEXTURE_2D, woodTextureId );
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, wood_texture_width, wood_texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, wood_texture_data );
+    glGenerateMipmap( GL_TEXTURE_2D );
 
     GLfloat maxAnisotropy;
     glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy );
 
     glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
-
-    glGenerateMipmap( GL_TEXTURE_2D );
  
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-
-    CheckOpenGLError( "after texture create" );
 
     glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
     glLightModeli( GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR );
 
+    CheckOpenGLError( "after texture create" );
+ 
     // setup opengl
 
     glEnable( GL_LINE_SMOOTH );
@@ -920,7 +933,8 @@ int main()
 
     CloseDisplay();
 
-    stbi_image_free( texture_data );
+    stbi_image_free( wood_texture_data );
+    stbi_image_free( stone_texture_data );
 
     return 0;
 }
