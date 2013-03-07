@@ -313,4 +313,9 @@ inline vec4f TransformPlane( mat4f matrix, vec4f plane )
     */
 }
 
+float DecayFactor( float factor, float deltaTime, float ideal_fps = 60 )
+{
+    return pow( factor, ideal_fps * deltaTime );
+}
+
 #endif

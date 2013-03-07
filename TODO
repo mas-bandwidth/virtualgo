@@ -2,23 +2,31 @@ DONE:
 
 TODO:
 
-    Rent a better camera
-
-    Capture a better murasaki go stone texture
-
-    Capture a wood texture for the board
-
     --------------------------------------------------------
 
     Looking top-down there appear to be cracks in the go stone
 
     How is this possible? It should be perfectly welded!
 
+    The first step is to understand whether the incorrect
+    welding is on *BOTH* top and bottom, or only one side
+    of the stone.
+
+    If it's one one side then it could indicate slightly 
+    different on the top and bottom rings, for some reason
+    (not really sure why this would be...?)
+
+    Alternatively, I'm fresh out of ideas
+
     --------------------------------------------------------
 
-    Damping needs to be made approximately framerate independent
+    If you through the go stone at the corner (and edge?)
+    in some cases it's possible to get the stone to "bounce back"
+    as if it hit some invisible wall.
 
-    Why? Because in slow motion mode it really goes to town ... =p
+    Is there some error in the push out logic?
+
+    Or some error in the nearest point?
 
     --------------------------------------------------------
 
@@ -28,16 +36,14 @@ TODO:
 
     --------------------------------------------------------
 
+    Get polarized lense filters to remove stone highlight
 
+    Rent a better camera
 
-    ******************************
-    Polish only beyond this point!
-    ******************************
+    Capture all murasaki stone textures (top and bottom)
 
-    Render board with wood texture
+    Capture board texture kaya including sides
 
-    Develop textures for grid lines and star points
+    Create Texture.h to manage sets of textures easily
 
-    Improve the lighting as much as possible
-
-    Implement shadows (stencil? soft shadows? projected?)
+    --------------------------------------------------------

@@ -1,4 +1,24 @@
 
+Fixed the damping decay factor so it is framerate independent (7/3/2012):
+-------------------------------------------------------------------------
+
+    With a simple adjustment using exponent it is verified to have the
+    same amount of damping in super slow-motion as it does when the
+    game is running full speed.
+
+    This should also work for adjustments to the number of substep
+    iterations in the physics engine as well (this adjusts the dt)
+
+
+Applied black wood texture to go board (6/3/2012):
+--------------------------------------------------
+
+    The black texture looks particularly good with the 
+    murasaki go stones!
+
+    I think I'll take this to GDC as my demo.
+
+
 Applied murasaki texture to go stone (6/3/2013):
 ------------------------------------------------
 

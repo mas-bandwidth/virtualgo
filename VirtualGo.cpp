@@ -576,7 +576,7 @@ int main()
         glDepthMask( GL_TRUE );
 
         if ( mode >= SolidColor )
-            ClearScreen( displayWidth, displayHeight, 0.15f, 0.15f, 0.15f );
+            ClearScreen( displayWidth, displayHeight, 0.055f, 0.03f, 0.01f );
         else
             ClearScreen( displayWidth, displayHeight );
 
@@ -757,8 +757,8 @@ int main()
             if ( collided )
             {
                 float momentum = length( stone.rigidBody.angularMomentum );
-                const float factor_a = 0.9925f;
-                const float factor_b = 0.9995f;
+                const float factor_a = DecayFactor( 0.9925f, dt );
+                const float factor_b = DecayFactor( 0.9995f, dt );
                 const float a = 0.0f;
                 const float b = 1.0f;
                 if ( momentum >= b || appliedSpin )
@@ -779,8 +779,10 @@ int main()
 
             // apply damping
 
-            stone.rigidBody.linearMomentum *= 0.99999f;
-            stone.rigidBody.angularMomentum *= 0.99999f;
+            const float factor = DecayFactor( 0.99999f, dt );
+
+            stone.rigidBody.linearMomentum *= factor;
+            stone.rigidBody.angularMomentum *= factor;
         }
 
         // setup lights for board
@@ -820,10 +822,12 @@ int main()
         {
             glDisable( GL_DEPTH_TEST );
 
+            glColor4f( 0.5f, 0.5f, 0.5f, 1 );
+
             glLineWidth( 5 );
             glBegin( GL_LINES );
-            glVertex3f( -1000, board.GetThickness(), cameraPosition.z() + 0.11f );
-            glVertex3f( +1000, board.GetThickness(), cameraPosition.z() + 0.11f );
+            glVertex3f( -1000, board.GetThickness(), cameraPosition.z() + Near + 0.1f );
+            glVertex3f( +1000, board.GetThickness(), cameraPosition.z() + Near + 0.1f );
             glEnd();
 
             glEnable( GL_DEPTH_TEST );
