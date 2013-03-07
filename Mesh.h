@@ -91,7 +91,7 @@ protected:
         return hash( (const uint8_t*) &data[0], 12 ) % numBuckets;
     }
 
-    int AddVertex( const Vertex & vertex, float grid = 0.1f, float epsilon = 0.001f )
+    int AddVertex( const Vertex & vertex, float grid = 0.1f, float epsilon = 0.01f )
     {
         const float epsilonSquared = epsilon * epsilon;
         

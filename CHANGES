@@ -1,4 +1,19 @@
 
+Fixed cracks in tesselation (7/3/2012):
+---------------------------------------
+
+    Epsilon was set too low when merging vertices, leading to 
+    the normals of circle edge not matching with the normals
+    of the biconvex, presumably leaving T-joins in the mesh
+    between the sphere surface and the bevel torus.
+
+    Increasing the epsilon value from 0.001 to 0.01 cms fixed
+    the issue. Easy!
+
+    This value should still be small enough to avoid any overly 
+    aggressive vertex welds.
+
+
 Fixed the damping decay factor so it is framerate independent (7/3/2012):
 -------------------------------------------------------------------------
 
