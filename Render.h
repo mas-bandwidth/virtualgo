@@ -225,14 +225,16 @@ void RenderBoard( const Board & board )
     // top of board
 
     glNormal3f( 0,1,0 );
-    glVertex3f( width/2, thickness, -height/2 );
-    glVertex3f( width/2, thickness, height/2 );
-    glVertex3f( -width/2, thickness, height/2 );
-    glVertex3f( -width/2, thickness, -height/2 );
+
+    glTexCoord2f( 1, 0 );   glVertex3f( width/2, thickness, -height/2 );
+    glTexCoord2f( 1, 1 );   glVertex3f( width/2, thickness, height/2 );
+    glTexCoord2f( 0, 1 );   glVertex3f( -width/2, thickness, height/2 );
+    glTexCoord2f( 0, 0 );   glVertex3f( -width/2, thickness, -height/2 );
 
     // front side
 
     glNormal3f( 0,0,-1 );
+    
     glVertex3f( width/2, 0, -height/2 );
     glVertex3f( width/2, thickness, -height/2 );
     glVertex3f( -width/2, thickness, -height/2 );

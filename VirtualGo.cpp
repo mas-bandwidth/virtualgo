@@ -172,7 +172,7 @@ int main()
     }
 
     int wood_texture_width, wood_texture_height, wood_texture_n;
-    const char wood_texture_filename[] = "textures/wood.jpg";
+    const char wood_texture_filename[] = "textures/black-wood.jpg";
     printf( "loading %s\n", wood_texture_filename );
     unsigned char * wood_texture_data = stbi_load( wood_texture_filename, &wood_texture_width, &wood_texture_height, &wood_texture_n, 3 );
     if ( !wood_texture_data )
@@ -212,36 +212,51 @@ int main()
 
     HideMouseCursor();
 
-    // create opengl textures
+    // create opengl stone texture
 
     glEnable( GL_TEXTURE_2D );
 
-    GLuint woodTextureId;
     GLuint stoneTextureId;
 
     glGenTextures( 1, &stoneTextureId );
     glBindTexture( GL_TEXTURE_2D, stoneTextureId );
     glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, stone_texture_width, stone_texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, stone_texture_data );
+
+    glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
     glGenerateMipmap( GL_TEXTURE_2D );
 
-    glGenTextures( 1, &woodTextureId );
-    glBindTexture( GL_TEXTURE_2D, woodTextureId );
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, wood_texture_width, wood_texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, wood_texture_data );
-    glGenerateMipmap( GL_TEXTURE_2D );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
     GLfloat maxAnisotropy;
     glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy );
 
+    CheckOpenGLError( "after stone texture create" );
+ 
+    // create opengl wood texture
+
+    GLuint woodTextureId;
+
+    glGenTextures( 1, &woodTextureId );
+    glBindTexture( GL_TEXTURE_2D, woodTextureId );
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, wood_texture_width, wood_texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, wood_texture_data );
+
     glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
+    glGenerateMipmap( GL_TEXTURE_2D );
  
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-    glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-    glLightModeli( GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy );
 
-    CheckOpenGLError( "after texture create" );
- 
+    /*
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    */
+
+    CheckOpenGLError( "after wood texture create" );
+
     // setup opengl
 
     glEnable( GL_LINE_SMOOTH );
@@ -277,6 +292,10 @@ int main()
     glLightfv( GL_LIGHT4, GL_AMBIENT, radiosity_ambient );
     glLightfv( GL_LIGHT4, GL_DIFFUSE, radiosity_diffuse );
     glLightfv( GL_LIGHT4, GL_SPECULAR, radiosity_specular );
+
+    glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+
+    glLightModeli( GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR );
 
     glShadeModel( GL_SMOOTH );
 
@@ -811,7 +830,26 @@ int main()
         }
         else
         {
-            if ( mode >= SolidColor )
+            if ( mode >= Textured )
+            {
+                glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+                glEnable( GL_LIGHTING );
+
+                GLfloat mat_ambient[] = { 0.5, 0.5, 0.5, 1.0 };
+                GLfloat mat_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
+                GLfloat mat_specular[] = { 0, 0, 0, 1.0 };
+                GLfloat mat_shininess[] = { 50.0 };
+
+                glMaterialfv( GL_FRONT, GL_AMBIENT, mat_ambient );
+                glMaterialfv( GL_FRONT, GL_DIFFUSE, mat_diffuse );
+                glMaterialfv( GL_FRONT, GL_SPECULAR, mat_specular );
+                glMaterialfv( GL_FRONT, GL_SHININESS, mat_shininess );
+
+                glEnable( GL_TEXTURE_2D );
+                glBindTexture( GL_TEXTURE_2D, woodTextureId );
+            }
+            else if ( mode == SolidColor )
             {
                 glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
@@ -901,7 +939,7 @@ int main()
         if ( mode >= Textured )
         {
             glEnable( GL_TEXTURE_2D );
-            glBindTexture( GL_TEXTURE_2D, textureId );
+            glBindTexture( GL_TEXTURE_2D, stoneTextureId );
         }
 
         GLfloat mat_ambient[] = { 0.25, 0.25, 0.25, 1.0 };
