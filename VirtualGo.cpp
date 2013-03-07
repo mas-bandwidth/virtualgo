@@ -840,9 +840,9 @@ int main()
 
                 glEnable( GL_LIGHTING );
 
-                GLfloat mat_ambient[] = { 0.5, 0.5, 0.5, 1.0 };
+                GLfloat mat_ambient[] = { 0.5, 0.5, 0.5, 1 };
                 GLfloat mat_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
-                GLfloat mat_specular[] = { 0, 0, 0, 1.0 };
+                GLfloat mat_specular[] = { 0.25f, 0.25f, 0.25f, 1.0 };
                 GLfloat mat_shininess[] = { 50.0 };
 
                 glMaterialfv( GL_FRONT, GL_AMBIENT, mat_ambient );

@@ -24,10 +24,12 @@ TODO:
 
     Rent a better camera
 
-    Capture all murasaki stone textures (top and bottom)
+    Capture all go stone textures top and bottom
 
     Capture board texture kaya including sides
 
     Create Texture.h to manage sets of textures easily
+
+    Switch to DDS files with offline mipmap generation
 
     --------------------------------------------------------
