@@ -32,6 +32,12 @@ project "Tessellation"
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
+project "Dynamics"
+    kind "ConsoleApp"
+    files { "*.h", "Dynamics.cpp", "Platform.cpp" }
+    configuration { "macosx" }
+        links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
+
 project "VirtualGo"
     kind "ConsoleApp"
     files { "*.h", "VirtualGo.cpp", "Platform.cpp", "stb_image.c" }
@@ -66,7 +72,7 @@ if not os.is "windows" then
 
     newaction
     {
-        trigger     = "tess",
+        trigger     = "tessellation",
         description = "Build and run tessellation demo",
         valid_kinds = premake.action.get("gmake").valid_kinds,
         valid_languages = premake.action.get("gmake").valid_languages,
@@ -75,6 +81,21 @@ if not os.is "windows" then
         execute = function ()
             if os.execute "make -j32 Tessellation" == 0 then
                 os.execute "./Tessellation"
+            end
+        end
+    }
+
+    newaction
+    {
+        trigger     = "dynamics",
+        description = "Build and run dynamics demo",
+        valid_kinds = premake.action.get("gmake").valid_kinds,
+        valid_languages = premake.action.get("gmake").valid_languages,
+        valid_tools = premake.action.get("gmake").valid_tools,
+     
+        execute = function ()
+            if os.execute "make -j32 Dynamics" == 0 then
+                os.execute "./Dynamics"
             end
         end
     }

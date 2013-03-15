@@ -4,6 +4,33 @@ TODO:
 
     --------------------------------------------------------
 
+    Need some way to adjust brightness because they grey
+    board is likely to be difficult to see without turning
+    the lights off on a projector
+
+    --------------------------------------------------------
+
+    For the proper demo of the board provide best camera
+    angles (as minimal as possible) that support common
+    views for playing.
+
+    Basically, a top down view, a side-on view, and a zoom
+    view which supports scrolling at an ideal distance back.
+
+    This should be separate from the collision demo.
+
+    --------------------------------------------------------
+
+    When sliding the stone diagonal should not be faster
+    than left/right/up/down
+    
+    --------------------------------------------------------
+
+    Really need to add a blurry shadow to the go stone on
+    the board. This will complete the visual look!
+
+    --------------------------------------------------------
+
     If you through the go stone at the corner (and edge?)
     in some cases it's possible to get the stone to "bounce back"
     as if it hit some invisible wall.
@@ -33,3 +60,4 @@ TODO:
     Switch to DDS files with offline mipmap generation
 
     --------------------------------------------------------
+    

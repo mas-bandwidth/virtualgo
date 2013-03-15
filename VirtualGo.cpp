@@ -313,6 +313,8 @@ int main()
     glEnable( GL_DEPTH_TEST );
     glDepthFunc( GL_LEQUAL );
 
+    glDisable( GL_COLOR_MATERIAL );
+
     CheckOpenGLError( "after opengl setup" );
 
     bool quit = false;
@@ -392,6 +394,7 @@ int main()
         const float Spin = 0.1f;
 
         bool appliedSpin = false;
+        bool sliding = false;
 
         if ( input.q )
         {
@@ -478,16 +481,28 @@ int main()
             const float Slide = 50;
 
             if ( input.left )
+            {
                 stone.rigidBody.linearMomentum += Slide * vec3f(-1,0,0) * dt;
+                sliding = true;
+            }
 
             if ( input.right )
+            {
                 stone.rigidBody.linearMomentum += Slide * vec3f(+1,0,0) * dt;
+                sliding = true;
+            }
 
             if ( input.up )
+            {
                 stone.rigidBody.linearMomentum += Slide * vec3f(0,0,1) * dt;
+                sliding = true;
+            }
 
             if ( input.down )
+            {
                 stone.rigidBody.linearMomentum += Slide * vec3f(0,0,-1) * dt;
+                sliding = true;
+            }
 
             prevAltCtrlUp = false;
             prevAltCtrlDown = false;
@@ -718,7 +733,7 @@ int main()
             bool collided = false;
 
             const float board_e = 0.85f;
-            const float board_u = 0.15f;
+            const float board_u = sliding ? 0.35f : 0.15f;
 
             StaticContact boardContact;
             if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )
@@ -736,7 +751,7 @@ int main()
             // collision between stone and floor
 
             const float floor_e = 0.5f;
-            const float floor_u = 0.25f;
+            const float floor_u = sliding ? 0.35f : 0.25f;
 
             StaticContact floorContact;
             if ( StoneFloorCollision( stone.biconvex, board, stone.rigidBody, floorContact ) )
@@ -842,7 +857,7 @@ int main()
 
                 GLfloat mat_ambient[] = { 0.5, 0.5, 0.5, 1 };
                 GLfloat mat_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
-                GLfloat mat_specular[] = { 0.25f, 0.25f, 0.25f, 1.0 };
+                GLfloat mat_specular[] = { 0.0f, 0.0f, 0.0f, 1.0 };
                 GLfloat mat_shininess[] = { 50.0 };
 
                 glMaterialfv( GL_FRONT, GL_AMBIENT, mat_ambient );
@@ -861,7 +876,7 @@ int main()
 
                 GLfloat mat_ambient[] = { 1.0, 0.6, 0.1, 1.0 };
                 GLfloat mat_diffuse[] = { 1.0, 0.6, 0.1, 1.0 };
-                GLfloat mat_specular[] = { 0, 0, 0, 1.0 };
+                GLfloat mat_specular[] = { 0.0, 0.0, 0.0, 1.0 };
                 GLfloat mat_shininess[] = { 50.0 };
 
                 glMaterialfv( GL_FRONT, GL_AMBIENT, mat_ambient );
