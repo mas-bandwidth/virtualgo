@@ -1,6 +1,61 @@
 DONE:
 
+    Add dynamics demo with:
+
+        1. linear strobe once per-second
+        2. linear smooth movement
+        3. gravity
+        4. angular motion
+        5. combination linear and angular motion with gravity
+
 TODO:
+
+    Add some way to get the strobe remember rigid body snapshots
+    and render those. Snapshots should be taken every n seconds,
+    where the accumulator is per-mode.
+
+    Snapshots and accumulator should be cleared on mode change
+
+    --------------------------------------------------------
+
+    I've noticed that the angular momentum -> velocity
+    appears to be operating in a strange way. eg. a wobble
+    like a gyroscope is happening on the stone when it is
+    rotating off axis.
+
+    Is this supposed to happen?
+
+    Perhaps I should switch to linear velocity for this demo?
+
+    I probably should because the article makes no mention
+    of inertia tensor or angular or linear momentum being
+    usaged instead of velocity. It would be confusing
+
+    --------------------------------------------------------
+
+
+
+
+
+
+
+
+
+    --------------------------------------------------------
+
+    Separate collision demo
+
+    Same demo will cover collision detection,
+    collision detection with push out (tunelling)
+    and various collision response.
+
+    The demo will NOT render a full board, and will run
+    only in wireframe.
+
+    The demo will NOT cover board edge and corner cases
+
+    The demo will not have a floor, it is a go board
+    with drop off when outside primary surface case.
 
     --------------------------------------------------------
 
