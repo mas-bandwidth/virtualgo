@@ -12,6 +12,7 @@
 #include "CollisionDetection.h"
 #include "CollisionResponse.h"
 #include "Intersection.h"
+#include <vector>
 
 using namespace platform;
 
@@ -34,6 +35,9 @@ Mode mode = Nothing;
 
 Stone stone;
 
+std::vector<RigidBody> snapshots;
+float snapshotAccumulator = FLT_MAX;
+
 void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 {
     rigidBody.orientation = quat4f(1,0,0,0);
@@ -47,8 +51,8 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     }
     else if ( mode == Gravity || mode == Combination )
     {
-        rigidBody.position = vec3f(-5,-6,0);
-        rigidBody.linearMomentum = vec3f(12,42,0);
+        rigidBody.position = vec3f(-5,-4,0);
+        rigidBody.linearMomentum = vec3f(13.5f,38,0);
     }
     else
     {
@@ -56,9 +60,12 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     }
 
     if ( mode == AngularMotion || mode == Combination )
-        rigidBody.angularMomentum = vec3f(2,2,5);
+        rigidBody.angularMomentum = vec3f(10,-20,-15);
 
     rigidBody.Update();
+
+    snapshots.clear();
+    snapshotAccumulator = FLT_MAX;
 }
 
 void CheckOpenGLError( const char * message )
@@ -85,7 +92,10 @@ int main()
     stone.rigidBody.inverseInertiaTensor = mat4f::identity();
 
     Mesh mesh;
-    GenerateBiconvexMesh( mesh, stone.biconvex, stoneSize );
+    GenerateBiconvexMesh( mesh, stone.biconvex );
+
+    Mesh cheapMesh;
+    GenerateBiconvexMesh( cheapMesh, stone.biconvex, 3 );
 
     int displayWidth, displayHeight;
     GetDisplayResolution( displayWidth, displayHeight );
@@ -329,6 +339,40 @@ int main()
         quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
         stone.rigidBody.orientation += spin * dt;
         stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
+
+        // update snapshots
+
+        snapshotAccumulator += dt;
+        if ( snapshotAccumulator > 0.1f && snapshots.size() < 30 )
+        {
+            snapshots.push_back( stone.rigidBody );
+            snapshotAccumulator = 0;
+        }
+
+        // render snapshots
+
+        glDisable( GL_LIGHTING );
+
+        glColor4f( 0.25f, 0.25f, 0.25f, 1 );
+
+        glEnable( GL_DEPTH_TEST );
+        glDepthMask( GL_FALSE );
+
+        for ( int i = 0; i < snapshots.size(); ++i )
+        {
+            glPushMatrix();
+
+            RigidBody & rigidBody = snapshots[i];
+
+            RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
+            float opengl_transform[16];
+            biconvexTransform.localToWorld.store( opengl_transform );
+            glMultMatrixf( opengl_transform );
+
+            RenderMesh( cheapMesh );
+
+            glPopMatrix();
+        }
 
         // setup lights for stone render
 
