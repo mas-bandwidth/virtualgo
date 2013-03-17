@@ -1,20 +1,6 @@
 DONE:
 
-    Add dynamics demo with:
-
-        1. linear strobe once per-second
-        2. linear smooth movement
-        3. gravity
-        4. angular motion
-        5. combination linear and angular motion with gravity
-
 TODO:
-
-    Add some way to get the strobe remember rigid body snapshots
-    and render those. Snapshots should be taken every n seconds,
-    where the accumulator is per-mode.
-
-    Snapshots and accumulator should be cleared on mode change
 
     --------------------------------------------------------
 

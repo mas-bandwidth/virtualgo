@@ -51,6 +51,7 @@ project "UnitTest"
 
 if _ACTION == "clean" then
     os.rmdir "obj"
+    os.rmdir "output"
 end
 
 if not os.is "windows" then
@@ -94,6 +95,7 @@ if not os.is "windows" then
         valid_tools = premake.action.get("gmake").valid_tools,
      
         execute = function ()
+            os.mkdir "output"
             if os.execute "make -j32 Dynamics" == 0 then
                 os.execute "./Dynamics"
             end

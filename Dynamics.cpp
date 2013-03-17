@@ -46,13 +46,13 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 
     if ( mode == LinearMotionSmooth || mode == LinearMotionStrobe )
     {
-        rigidBody.position = vec3f(-5,0,0);
+        rigidBody.position = vec3f(-2.5f,0,0);
         rigidBody.linearMomentum = vec3f(0,0,0);
     }
     else if ( mode == Gravity || mode == Combination )
     {
-        rigidBody.position = vec3f(-5,-4,0);
-        rigidBody.linearMomentum = vec3f(13.5f,38,0);
+        rigidBody.position = vec3f(-5.75f,-6.1f,0);
+        rigidBody.linearMomentum = vec3f(13.5f,41.5f,0);
     }
     else
     {
@@ -60,7 +60,7 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     }
 
     if ( mode == AngularMotion || mode == Combination )
-        rigidBody.angularMomentum = vec3f(10,-20,-15);
+        rigidBody.angularMomentum = vec3f(1,2,10);
 
     rigidBody.Update();
 
@@ -78,8 +78,108 @@ void CheckOpenGLError( const char * message )
     }    
 }
 
-int main()
+bool WriteTGA( const char filename[], int width, int height, uint8_t * ptr )
 {
+    FILE * file = fopen( filename, "wb" );
+    if ( !file )
+        return false;
+
+    putc( 0, file );
+    putc( 0, file );
+    putc( 10, file );                        /* compressed RGB */
+    putc( 0, file ); putc( 0, file );
+    putc( 0, file ); putc( 0, file );
+    putc( 0, file );
+    putc( 0, file ); putc( 0, file );           /* X origin */
+    putc( 0, file ); putc( 0, file );           /* y origin */
+    putc( ( width & 0x00FF ),file );
+    putc( ( width & 0xFF00 ) >> 8,file );
+    putc( ( height & 0x00FF ), file );
+    putc( ( height & 0xFF00 ) >> 8, file );
+    putc( 24, file );                         /* 24 bit bitmap */
+    putc( 0, file );
+
+    for ( int y = 0; y < height; ++y )
+    {
+        uint8_t * line = ptr + width * 3 * y;
+        uint8_t * end_of_line = line + width * 3;
+        uint8_t * pixel = line;
+        while ( true )
+        {
+            if ( pixel >= end_of_line )
+                break;
+
+            uint8_t * start = pixel;
+            uint8_t * finish = pixel + 128 * 3;
+            if ( finish > end_of_line )
+                finish = end_of_line;
+            uint32_t previous = ( pixel[0] << 16 ) | ( pixel[1] << 8 ) | pixel[2];
+            pixel += 3;
+            int counter = 1;
+
+            // RLE packet
+            while ( pixel < finish )
+            {
+                assert( pixel < end_of_line );
+                uint32_t current = ( pixel[0] << 16 ) | ( pixel[1] << 8 ) | pixel[2];
+                if ( current != previous )
+                    break;
+                previous = current;
+                pixel += 3;
+                counter++;
+            }
+            if ( counter > 1 )
+            {
+                assert( counter <= 128 );
+                putc( uint8_t( counter - 1 ) | 128, file );
+                putc( start[0], file );
+                putc( start[1], file );
+                putc( start[2], file );
+                continue;
+            }
+
+            // RAW packet
+            while ( pixel < finish )
+            {
+                assert( pixel < end_of_line );
+                uint32_t current = ( pixel[0] << 16 ) | ( pixel[1] << 8 ) | pixel[2];
+                if ( current == previous )
+                    break;
+                previous = current;
+                pixel += 3;
+                counter++;
+            }
+            assert( counter >= 1 );
+            assert( counter <= 128 );
+            putc( uint8_t( counter - 1 ), file );
+            fwrite( start, counter * 3, 1, file );
+        }
+    }
+
+    fclose( file );
+
+    return true;
+}
+
+int main( int argc, char * argv[] )
+{   
+    bool playback = false;
+    bool video = false;
+
+    for ( int i = 1; i < argc; ++i )
+    {
+        if ( strcmp( argv[i], "playback" ) == 0 )
+        {
+            printf( "playback\n" );
+            playback = true;
+        }
+        else if ( strcmp( argv[i], "video" ) == 0 )
+        {
+            printf( "video\n" );
+            video = true;
+        }
+    }
+
     // initialize stones
 
     printf( "tesselating go stones...\n" );
@@ -174,7 +274,7 @@ int main()
 
     float dt = normal_dt;
 
-    uint64_t frame = 0;
+    unsigned int frame = 0;
 
     bool prevOne = false;
     bool prevTwo = false;
@@ -187,6 +287,32 @@ int main()
 
     float moveAccumulator = 0;
 
+    // create 2 pixel buffer objects, you need to delete them when program exits.
+    // glBufferDataARB with NULL pointer reserves only memory space.
+    const int NumPBOs = 2;
+    GLuint pboIds[NumPBOs];
+    int index = 0;
+    const int dataSize = displayWidth * displayHeight * 3;
+    if ( video )
+    {
+        glGenBuffersARB( NumPBOs, pboIds );
+        for ( int i = 0; i < NumPBOs; ++i )
+        {
+            glBindBufferARB( GL_PIXEL_UNPACK_BUFFER_ARB, pboIds[i] );
+            glBufferDataARB( GL_PIXEL_UNPACK_BUFFER_ARB, dataSize, 0, GL_STREAM_DRAW_ARB );
+        }
+        glBindBufferARB( GL_PIXEL_UNPACK_BUFFER_ARB, 0 );
+    }
+
+    // record input to a file
+    // read it back in playback mode for recording video
+    FILE * inputFile = fopen( "output/recordedInputs", playback ? "rb" : "wb" );
+    if ( !inputFile )
+    {
+        printf( "failed to open input file\n" );
+        return 1;
+    }
+
     while ( !quit )
     {
         CheckOpenGLError( "frame start" );
@@ -195,7 +321,18 @@ int main()
 
         platform::Input input;
         
-        input = platform::Input::Sample();
+        if ( !playback )
+        {
+            input = platform::Input::Sample();
+            fwrite( &input, sizeof( platform::Input ), 1, inputFile );
+            fflush( inputFile );
+        }
+        else
+        {
+            const int size = sizeof( platform::Input );
+            if ( !fread( &input, size, 1, inputFile ) )
+                quit = true;
+        }
 
         if ( input.quit )
             quit = true;
@@ -203,14 +340,14 @@ int main()
         if ( input.space && !prevSpace )
         {
             slowmo = !slowmo;
+            if ( mode == Nothing )
+                dt = slowmo_dt;
         }
         prevSpace = input.space;
 
         if ( input.enter && !prevEnter )
         {
             RandomStone( stone.biconvex, stone.rigidBody, mode );
-            dt = normal_dt;
-            slowmo = false;
         }
         prevEnter = input.enter;
 
@@ -218,8 +355,6 @@ int main()
         {
             mode = LinearMotionStrobe;
             moveAccumulator = 0;
-            dt = normal_dt;
-            slowmo = false;
             RandomStone( stone.biconvex, stone.rigidBody, mode );
         }
         prevOne = input.one;
@@ -227,8 +362,6 @@ int main()
         if ( input.two && !prevTwo )
         {
             mode = LinearMotionSmooth;
-            dt = normal_dt;
-            slowmo = false;
             RandomStone( stone.biconvex, stone.rigidBody, mode );
         }
         prevTwo = input.two;
@@ -236,8 +369,6 @@ int main()
         if ( input.three && !prevThree )
         {
             mode = Gravity;
-            dt = normal_dt;
-            slowmo = false;
             RandomStone( stone.biconvex, stone.rigidBody, mode );
         }
         prevThree = input.three;
@@ -245,8 +376,6 @@ int main()
         if ( input.four && !prevFour )
         {
             mode = AngularMotion;
-            dt = normal_dt;
-            slowmo = false;
             RandomStone( stone.biconvex, stone.rigidBody, mode );
         }
         prevFour = input.four;
@@ -254,8 +383,6 @@ int main()
         if ( input.five && !prevFive )
         {
             mode = Combination;
-            dt = normal_dt;
-            slowmo = false;
             RandomStone( stone.biconvex, stone.rigidBody, mode );
         }
         prevFive = input.five;
@@ -267,7 +394,6 @@ int main()
         if ( mode == Nothing )
         {
             UpdateDisplay( 1 );
-            frame++;
             continue;
         }
 
@@ -302,7 +428,14 @@ int main()
 
         glLoadIdentity();
 
-        gluLookAt( 0, 0, -12, 
+        float cameraDist = 10;
+
+        if ( mode == LinearMotionStrobe || mode == LinearMotionSmooth )
+            cameraDist = 6.5f;
+        else if ( mode == AngularMotion )
+            cameraDist = 4.0f;
+
+        gluLookAt( 0, 0, -cameraDist, 
                    0, 0, 0, 
                    0, 1, 0 );
 
@@ -316,15 +449,15 @@ int main()
         {
             stone.rigidBody.linearMomentum = vec3f(0,0,0);
             moveAccumulator += dt;
-            if ( moveAccumulator > 1 )
+            if ( moveAccumulator >= 1 )
             {
                 moveAccumulator -= 1;
-                stone.rigidBody.position += vec3f(5,0,0);
+                stone.rigidBody.position += vec3f(2.5f,0,0);
             }
         }
         else if ( mode == LinearMotionSmooth )
         {
-            stone.rigidBody.linearMomentum = vec3f(5,0,0);
+            stone.rigidBody.linearMomentum = vec3f(2.5f,0,0);
         }
 
         if ( mode == Gravity || mode == Combination )
@@ -342,36 +475,50 @@ int main()
 
         // update snapshots
 
+        float strobeTime = 1.0f;
+        if ( mode != LinearMotionSmooth )
+            strobeTime = 0.1f;
+        if ( mode == Gravity || mode == Combination )
+            strobeTime = 0.0585f;
+
         snapshotAccumulator += dt;
-        if ( snapshotAccumulator > 0.1f && snapshots.size() < 30 )
+        if ( snapshotAccumulator >= strobeTime && snapshots.size() < 30 )
         {
             snapshots.push_back( stone.rigidBody );
-            snapshotAccumulator = 0;
+            if ( snapshotAccumulator != FLT_MAX )
+                snapshotAccumulator -= strobeTime;
+            else
+                snapshotAccumulator = dt;
         }
 
         // render snapshots
 
-        glDisable( GL_LIGHTING );
-
-        glColor4f( 0.25f, 0.25f, 0.25f, 1 );
-
-        glEnable( GL_DEPTH_TEST );
-        glDepthMask( GL_FALSE );
-
-        for ( int i = 0; i < snapshots.size(); ++i )
+        if ( mode != LinearMotionStrobe && mode != AngularMotion )
         {
-            glPushMatrix();
+            glDisable( GL_LIGHTING );
 
-            RigidBody & rigidBody = snapshots[i];
+            glLineWidth( 2.0f );
 
-            RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
-            float opengl_transform[16];
-            biconvexTransform.localToWorld.store( opengl_transform );
-            glMultMatrixf( opengl_transform );
+            glColor4f( 0.25f, 0.25f, 0.25f, 1 );
 
-            RenderMesh( cheapMesh );
+            glEnable( GL_DEPTH_TEST );
+            glDepthMask( GL_FALSE );
 
-            glPopMatrix();
+            for ( int i = 0; i < snapshots.size(); ++i )
+            {
+                glPushMatrix();
+
+                RigidBody & rigidBody = snapshots[i];
+
+                RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
+                float opengl_transform[16];
+                biconvexTransform.localToWorld.store( opengl_transform );
+                glMultMatrixf( opengl_transform );
+
+                RenderMesh( cheapMesh );
+
+                glPopMatrix();
+            }
         }
 
         // setup lights for stone render
@@ -394,7 +541,6 @@ int main()
 
         glEnable( GL_BLEND ); 
         glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-        glLineWidth( 1 );
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
         glEnable( GL_DEPTH_TEST );
         glDepthMask( GL_FALSE );
@@ -409,19 +555,60 @@ int main()
         glMaterialfv( GL_FRONT, GL_SPECULAR, mat_specular );
         glMaterialfv( GL_FRONT, GL_SHININESS, mat_shininess );
 
+        glLineWidth( 3 );
+
         RenderMesh( mesh );
 
         glPopMatrix();
 
+        // record to video
+
+        if ( video )
+        {
+            // "index" is used to read pixels from framebuffer to a PBO
+            // "nextIndex" is used to update pixels in the other PBO
+            index = ( index + 1 ) % NumPBOs;
+            int prevIndex = ( index + NumPBOs - 1 ) % NumPBOs;
+
+            // set the target framebuffer to read
+            glReadBuffer( GL_FRONT );
+
+            // read pixels from framebuffer to PBO
+            // glReadPixels() should return immediately.
+            glBindBufferARB( GL_PIXEL_PACK_BUFFER_ARB, pboIds[index] );
+            glReadPixels( 0, 0, displayWidth, displayHeight, GL_BGR, GL_UNSIGNED_BYTE, 0 );
+            if ( frame > (unsigned) NumPBOs )
+            {
+                // map the PBO to process its data by CPU
+                glBindBufferARB( GL_PIXEL_PACK_BUFFER_ARB, pboIds[prevIndex] );
+                GLubyte * ptr = (GLubyte*) glMapBufferARB( GL_PIXEL_PACK_BUFFER_ARB,
+                                                           GL_READ_ONLY_ARB );
+                if ( ptr )
+                {
+                    char filename[256];
+                    sprintf( filename, "output/frame-%05d.tga", frame - NumPBOs );
+                    #ifdef LETTERBOX
+                    WriteTGA( filename, displayWidth, displayHeight - 80, ptr + displayWidth * 3 * 40 );
+                    #else
+                    WriteTGA( filename, displayWidth, displayHeight, ptr );
+                    #endif
+                    glUnmapBufferARB( GL_PIXEL_PACK_BUFFER_ARB );
+                }
+            }
+
+            // back to conventional pixel operation
+            glBindBufferARB( GL_PIXEL_PACK_BUFFER_ARB, 0 );
+        }
+
         // update the display
         
-        UpdateDisplay( 1 );
+        UpdateDisplay( video ? 0 : 1 );
 
         // update time
 
-        frame++;
-
         CheckOpenGLError( "frame end" );
+
+        frame++;
     }
 
     CloseDisplay();
