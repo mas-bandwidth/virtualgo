@@ -71,6 +71,7 @@ if not os.is "windows" then
         valid_tools = premake.action.get("gmake").valid_tools,
      
         execute = function ()
+            os.rmdir "output"
             os.mkdir "output"
             if os.execute "make -j32 Support" == 0 then
                 os.execute "./Support"
@@ -102,6 +103,7 @@ if not os.is "windows" then
         valid_tools = premake.action.get("gmake").valid_tools,
      
         execute = function ()
+            os.rmdir "output"
             os.mkdir "output"
             if os.execute "make -j32 Dynamics" == 0 then
                 os.execute "./Dynamics"
@@ -118,6 +120,7 @@ if not os.is "windows" then
         valid_tools = premake.action.get("gmake").valid_tools,
      
         execute = function ()
+            os.rmdir "output"
             os.mkdir "output"
             if os.execute "make -j32 Collision" == 0 then
                 os.execute "./Collision"
@@ -134,6 +137,8 @@ if not os.is "windows" then
         valid_tools = premake.action.get("gmake").valid_tools,
      
         execute = function ()
+            os.rmdir "output"
+            os.mkdir "output"
             if os.execute "make -j32 VirtualGo" == 0 then
                 os.execute "./VirtualGo"
             end

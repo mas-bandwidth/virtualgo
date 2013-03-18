@@ -2,21 +2,10 @@ DONE:
 
 TODO:
 
-    --------------------------------------------------------
 
-    Separate collision demo
 
-    Same demo will cover collision detection,
-    collision detection with push out (tunelling)
-    and various collision response.
 
-    The demo will NOT render a full board, and will run
-    only in wireframe.
 
-    The demo will NOT cover board edge and corner cases
-
-    The demo will not have a floor, it is a go board
-    with drop off when outside primary surface case.
 
     --------------------------------------------------------
 

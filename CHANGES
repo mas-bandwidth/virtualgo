@@ -1,4 +1,18 @@
 
+Separated collision demo, added video recording (17/3/2013):
+------------------------------------------------------------
+
+    Separate collision demo
+
+    Add video capture to collision demo
+
+    Add mode where go stone sticks on the board after push out
+
+    Add mode where go stone penetrates the board and freezes
+
+    Render contact point and normal in push out mode in red
+
+
 Added video recording to support demo (17/3/2013):
 --------------------------------------------------
 

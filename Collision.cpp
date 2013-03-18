@@ -32,6 +32,8 @@ float scrollZ = 0;
 enum Mode
 {
     Nothing,
+    Penetration,
+    PushOutWithContact,
     LinearCollisionResponse,
     AngularCollisionResponse,
     CollisionResponseWithFriction,
@@ -68,6 +70,9 @@ StoneDropType stoneDropType = STONE_DROP_RandomNoSpin;
 Stone stone;
 StoneSize size = STONE_SIZE_34;
 Stone stoneSizes[STONE_SIZE_NumValues];
+
+bool collided = false;
+StaticContact boardContact;
 
 void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 {
@@ -106,6 +111,15 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     {
         rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
     }
+
+    if ( mode == LinearCollisionResponse )
+    {
+        rigidBody.orientation = quat4f(1,0,0,0);
+        rigidBody.angularMomentum = vec3f(0,0,0);
+    }
+
+    if ( mode < LinearCollisionResponse )
+        rigidBody.angularMomentum = vec3f(0,0,0);
 
     rigidBody.Update();
 }
@@ -154,9 +168,26 @@ void CheckOpenGLError( const char * message )
     }    
 }
 
-int main()
-{
-    printf( "[virtual go]\n" );
+int main( int argc, char * argv[] )
+{   
+    bool playback = false;
+    bool video = false;
+
+    for ( int i = 1; i < argc; ++i )
+    {
+        if ( strcmp( argv[i], "playback" ) == 0 )
+        {
+            printf( "playback\n" );
+            playback = true;
+        }
+        else if ( strcmp( argv[i], "video" ) == 0 )
+        {
+            printf( "video\n" );
+            video = true;
+        }
+    }
+
+    printf( "[collision demo]\n" );
 
     // initialize stones
 
@@ -179,7 +210,7 @@ int main()
 
     printf( "opening display: %d x %d\n", displayWidth, displayHeight );
 
-    if ( !OpenDisplay( "Virtual Go", displayWidth, displayHeight, 32 ) )
+    if ( !OpenDisplay( "Collision", displayWidth, displayHeight, 32 ) )
     {
         printf( "error: failed to open display" );
         return 1;
@@ -245,22 +276,52 @@ int main()
 
     CheckOpenGLError( "after opengl setup" );
 
+    // create 2 pixel buffer objects, you need to delete them when program exits.
+    // glBufferDataARB with NULL pointer reserves only memory space.
+    const int NumPBOs = 2;
+    GLuint pboIds[NumPBOs];
+    int index = 0;
+    const int dataSize = displayWidth * displayHeight * 3;
+    if ( video )
+    {
+        glGenBuffersARB( NumPBOs, pboIds );
+        for ( int i = 0; i < NumPBOs; ++i )
+        {
+            glBindBufferARB( GL_PIXEL_UNPACK_BUFFER_ARB, pboIds[i] );
+            glBufferDataARB( GL_PIXEL_UNPACK_BUFFER_ARB, dataSize, 0, GL_STREAM_DRAW_ARB );
+        }
+        glBindBufferARB( GL_PIXEL_UNPACK_BUFFER_ARB, 0 );
+    }
+
+    // record input to a file
+    // read it back in playback mode for recording video
+    FILE * inputFile = fopen( "output/recordedInputs", playback ? "rb" : "wb" );
+    if ( !inputFile )
+    {
+        printf( "failed to open input file\n" );
+        return 1;
+    }
+
+    CheckOpenGLError( "after pbos" );
+
     bool quit = false;
 
-    srand( time( NULL ) );
+    srand( 10 );
 
     const float normal_dt = 1.0f / 60.0f;
     const float slowmo_dt = normal_dt * 0.1f;
 
     float dt = normal_dt;
 
-    uint64_t frame = 0;
+    unsigned int frame = 0;
 
     bool prevOne = false;
     bool prevTwo = false;
     bool prevThree = false;
     bool prevFour = false;
     bool prevFive = false;
+    bool prevSix = false;
+    bool prevSeven = false;
     bool prevSpace = false;
     bool prevEnter = false;
     bool prevAltCtrlUp = false;
@@ -277,7 +338,18 @@ int main()
 
         platform::Input input;
         
-        input = platform::Input::Sample();
+        if ( !playback )
+        {
+            input = platform::Input::Sample();
+            fwrite( &input, sizeof( platform::Input ), 1, inputFile );
+            fflush( inputFile );
+        }
+        else
+        {
+            const int size = sizeof( platform::Input );
+            if ( !fread( &input, size, 1, inputFile ) )
+                quit = true;
+        }
 
         if ( input.quit )
             quit = true;
@@ -474,43 +546,66 @@ int main()
 
             if ( input.one && !prevOne )
             {
-                mode = LinearCollisionResponse;
+                mode = Penetration;
                 dt = normal_dt;
                 slowmo = false;
+                RandomStone( stone.biconvex, stone.rigidBody, mode );
             }
             prevOne = input.one;
 
             if ( input.two && !prevTwo )
             {
-                mode = AngularCollisionResponse;
+                mode = PushOutWithContact;
                 dt = normal_dt;
                 slowmo = false;
+                RandomStone( stone.biconvex, stone.rigidBody, mode );
             }
             prevTwo = input.two;
 
             if ( input.three && !prevThree )
             {
-                mode = CollisionResponseWithFriction;
+                mode = LinearCollisionResponse;
                 dt = normal_dt;
                 slowmo = false;
+                RandomStone( stone.biconvex, stone.rigidBody, mode );
             }
             prevThree = input.three;
 
             if ( input.four && !prevFour )
             {
-                mode = RollingFriction;
+                mode = AngularCollisionResponse;
                 dt = normal_dt;
                 slowmo = false;
+                RandomStone( stone.biconvex, stone.rigidBody, mode );
             }
             prevFour = input.four;
 
             if ( input.five && !prevFive )
             {
+                mode = CollisionResponseWithFriction;
+                dt = normal_dt;
+                slowmo = false;
+                RandomStone( stone.biconvex, stone.rigidBody, mode );
+            }
+            prevFive = input.five;
+
+            if ( input.six && !prevSix )
+            {
+                mode = RollingFriction;
+                dt = normal_dt;
+                slowmo = false;
+                RandomStone( stone.biconvex, stone.rigidBody, mode );
+            }
+            prevSix = input.six;
+
+            if ( input.seven && !prevSeven )
+            {
                 mode = SolidColor;
                 dt = normal_dt;
                 slowmo = false;
+                RandomStone( stone.biconvex, stone.rigidBody, mode );
             }
-            prevFive = input.five;
+            prevSeven = input.seven;
 
             prevAltCtrlUp = false;
             prevAltCtrlDown = false;
@@ -526,7 +621,6 @@ int main()
         if ( mode == Nothing )
         {
             UpdateDisplay( 1 );
-            frame++;
             continue;
         }
         // setup lights
@@ -628,6 +722,7 @@ int main()
         // push it out with a spring impulse -- this gives a cool effect
         // when the board thickness is adjusted dynamically (trapoline)
 
+        if ( mode > Penetration )
         {
             StaticContact boardContact;
             if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )
@@ -640,31 +735,35 @@ int main()
         const float tightness = ( target_dt < dt ) ? 0.2f : 0.1f;
         dt += ( target_dt - dt ) * tightness;
 
-        const int iterations = 20;
+        const int iterations = mode < LinearCollisionResponse ? 1 : 20;
 
         const float iteration_dt = dt / iterations;
 
         for ( int i = 0; i < iterations; ++i )
         {
             const float gravity = 9.8f * 10;    // cms/sec^2
-            stone.rigidBody.linearMomentum += vec3f(0,-gravity,0) * stone.rigidBody.mass * iteration_dt;
+    
+            if ( mode > Penetration || !collided )
+                stone.rigidBody.linearMomentum += vec3f(0,-gravity,0) * stone.rigidBody.mass * iteration_dt;
+            else
+                stone.rigidBody.linearMomentum = vec3f(0,0,0);
 
             stone.rigidBody.Update();
 
             stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
+
             quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
             stone.rigidBody.orientation += spin * iteration_dt;
             stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
 
             // collision between stone and board
 
-            bool collided = false;
+            collided = false;
 
             const float board_e = 0.85f;
             const float board_u = sliding ? 0.35f : 0.15f;
 
-            StaticContact boardContact;
-            if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )
+            if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact, mode > Penetration ) )
             {
                 if ( mode == LinearCollisionResponse )
                     ApplyLinearCollisionImpulse( boardContact, board_e );
@@ -724,14 +823,14 @@ int main()
                         stone.rigidBody.angularMomentum *= factor;
                     }
                 }
+
+                // apply damping
+
+                const float factor = DecayFactor( 0.99999f, dt );
+
+                stone.rigidBody.linearMomentum *= factor;
+                stone.rigidBody.angularMomentum *= factor;
             }
-
-            // apply damping
-
-            const float factor = DecayFactor( 0.99999f, dt );
-
-            stone.rigidBody.linearMomentum *= factor;
-            stone.rigidBody.angularMomentum *= factor;
         }
 
         // setup lights for board
@@ -884,9 +983,66 @@ int main()
 
         glPopMatrix();
 
+        // render red contact point and normal if in push out mode
+
+        if ( collided && mode == PushOutWithContact )
+        {
+            glDisable( GL_LIGHTING );
+
+            glColor4f(1,0,0,1);
+
+            glLineWidth( 5 );
+
+            glBegin( GL_LINES );
+            glVertex3f( boardContact.point.x(), boardContact.point.y(), boardContact.point.z() );
+            glVertex3f( boardContact.point.x() + boardContact.normal.x(), 
+                        boardContact.point.y() + boardContact.normal.y(),
+                        boardContact.point.z() + boardContact.normal.z() );
+            glEnd();
+        }
+
+        // record to video
+
+        if ( video )
+        {
+            // "index" is used to read pixels from framebuffer to a PBO
+            // "nextIndex" is used to update pixels in the other PBO
+            index = ( index + 1 ) % NumPBOs;
+            int prevIndex = ( index + NumPBOs - 1 ) % NumPBOs;
+
+            // set the target framebuffer to read
+            glReadBuffer( GL_FRONT );
+
+            // read pixels from framebuffer to PBO
+            // glReadPixels() should return immediately.
+            glBindBufferARB( GL_PIXEL_PACK_BUFFER_ARB, pboIds[index] );
+            glReadPixels( 0, 0, displayWidth, displayHeight, GL_BGR, GL_UNSIGNED_BYTE, 0 );
+            if ( frame > (unsigned) NumPBOs )
+            {
+                // map the PBO to process its data by CPU
+                glBindBufferARB( GL_PIXEL_PACK_BUFFER_ARB, pboIds[prevIndex] );
+                GLubyte * ptr = (GLubyte*) glMapBufferARB( GL_PIXEL_PACK_BUFFER_ARB,
+                                                           GL_READ_ONLY_ARB );
+                if ( ptr )
+                {
+                    char filename[256];
+                    sprintf( filename, "output/frame-%05d.tga", frame - NumPBOs );
+                    #ifdef LETTERBOX
+                    WriteTGA( filename, displayWidth, displayHeight - 80, ptr + displayWidth * 3 * 40 );
+                    #else
+                    WriteTGA( filename, displayWidth, displayHeight, ptr );
+                    #endif
+                    glUnmapBufferARB( GL_PIXEL_PACK_BUFFER_ARB );
+                }
+            }
+
+            // back to conventional pixel operation
+            glBindBufferARB( GL_PIXEL_PACK_BUFFER_ARB, 0 );
+        }
+
         // update the display
         
-        UpdateDisplay( 1 );
+        UpdateDisplay( video ? 0 : 1 );
 
         // update time
 

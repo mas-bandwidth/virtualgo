@@ -27,7 +27,8 @@ struct DynamicContact
 inline bool StoneBoardCollision( const Biconvex & biconvex,
                                  const Board & board, 
                                  RigidBody & rigidBody,
-                                 StaticContact & contact );
+                                 StaticContact & contact,
+                                 bool pushOut = false );
 
 inline bool StoneFloorCollision( const Biconvex & biconvex,
                                  const Board & board, 
@@ -800,7 +801,8 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 bool StoneBoardCollision( const Biconvex & biconvex,
                           const Board & board, 
                           RigidBody & rigidBody,
-                          StaticContact & contact )
+                          StaticContact & contact,
+                          bool pushOut )
 {
     // detect collision with the board
 
@@ -811,7 +813,8 @@ bool StoneBoardCollision( const Biconvex & biconvex,
 
     // project the stone out of the board
 
-    rigidBody.position += normal * depth;
+    if ( pushOut )
+        rigidBody.position += normal * depth;
 
     // fill the contact information for the caller
 
