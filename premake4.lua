@@ -65,6 +65,7 @@ if not os.is "windows" then
         valid_tools = premake.action.get("gmake").valid_tools,
      
         execute = function ()
+            os.mkdir "output"
             if os.execute "make -j32 Support" == 0 then
                 os.execute "./Support"
             end

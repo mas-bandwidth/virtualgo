@@ -14,8 +14,25 @@
 
 using namespace platform;
 
-int main()
-{
+int main( int argc, char * argv[] )
+{   
+    bool playback = false;
+    bool video = false;
+
+    for ( int i = 1; i < argc; ++i )
+    {
+        if ( strcmp( argv[i], "playback" ) == 0 )
+        {
+            printf( "playback\n" );
+            playback = true;
+        }
+        else if ( strcmp( argv[i], "video" ) == 0 )
+        {
+            printf( "video\n" );
+            video = true;
+        }
+    }
+
     printf( "[support demo]\n" );
 
     Biconvex biconvex( 2.2f, 1.13f );
@@ -46,6 +63,32 @@ int main()
     glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
     glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
+    // create 2 pixel buffer objects, you need to delete them when program exits.
+    // glBufferDataARB with NULL pointer reserves only memory space.
+    const int NumPBOs = 2;
+    GLuint pboIds[NumPBOs];
+    int index = 0;
+    const int dataSize = displayWidth * displayHeight * 3;
+    if ( video )
+    {
+        glGenBuffersARB( NumPBOs, pboIds );
+        for ( int i = 0; i < NumPBOs; ++i )
+        {
+            glBindBufferARB( GL_PIXEL_UNPACK_BUFFER_ARB, pboIds[i] );
+            glBufferDataARB( GL_PIXEL_UNPACK_BUFFER_ARB, dataSize, 0, GL_STREAM_DRAW_ARB );
+        }
+        glBindBufferARB( GL_PIXEL_UNPACK_BUFFER_ARB, 0 );
+    }
+
+    // record input to a file
+    // read it back in playback mode for recording video
+    FILE * inputFile = fopen( "output/recordedInputs", playback ? "rb" : "wb" );
+    if ( !inputFile )
+    {
+        printf( "failed to open input file\n" );
+        return 1;
+    }
+
     mat4f rotation = mat4f::identity();
 
     double t = 0.0f;
@@ -60,17 +103,28 @@ int main()
 
     const float dt = 1.0f / 60.0f;
 
-    uint64_t frame = 0;
+    unsigned int frame = 0;
 
     while ( !quit )
     {
         UpdateEvents();
 
-        platform::Input input;
+        Input input;
         
-        input = platform::Input::Sample();
+        if ( !playback )
+        {
+            input = platform::Input::Sample();
+            fwrite( &input, sizeof( platform::Input ), 1, inputFile );
+            fflush( inputFile );
+        }
+        else
+        {
+            const int size = sizeof( platform::Input );
+            if ( !fread( &input, size, 1, inputFile ) )
+                quit = true;
+        }
 
-        if ( input.escape || input.quit )
+        if ( input.quit )
             quit = true;
 
         if ( input.space && !prevSpace )
@@ -175,9 +229,48 @@ int main()
             glEnd();
         }
 
+        // record to video
+
+        if ( video )
+        {
+            // "index" is used to read pixels from framebuffer to a PBO
+            // "nextIndex" is used to update pixels in the other PBO
+            index = ( index + 1 ) % NumPBOs;
+            int prevIndex = ( index + NumPBOs - 1 ) % NumPBOs;
+
+            // set the target framebuffer to read
+            glReadBuffer( GL_FRONT );
+
+            // read pixels from framebuffer to PBO
+            // glReadPixels() should return immediately.
+            glBindBufferARB( GL_PIXEL_PACK_BUFFER_ARB, pboIds[index] );
+            glReadPixels( 0, 0, displayWidth, displayHeight, GL_BGR, GL_UNSIGNED_BYTE, 0 );
+            if ( frame > (unsigned) NumPBOs )
+            {
+                // map the PBO to process its data by CPU
+                glBindBufferARB( GL_PIXEL_PACK_BUFFER_ARB, pboIds[prevIndex] );
+                GLubyte * ptr = (GLubyte*) glMapBufferARB( GL_PIXEL_PACK_BUFFER_ARB,
+                                                           GL_READ_ONLY_ARB );
+                if ( ptr )
+                {
+                    char filename[256];
+                    sprintf( filename, "output/frame-%05d.tga", frame - NumPBOs );
+                    #ifdef LETTERBOX
+                    WriteTGA( filename, displayWidth, displayHeight - 80, ptr + displayWidth * 3 * 40 );
+                    #else
+                    WriteTGA( filename, displayWidth, displayHeight, ptr );
+                    #endif
+                    glUnmapBufferARB( GL_PIXEL_PACK_BUFFER_ARB );
+                }
+            }
+
+            // back to conventional pixel operation
+            glBindBufferARB( GL_PIXEL_PACK_BUFFER_ARB, 0 );
+        }
+
         // update the display
         
-        UpdateDisplay( 1 );
+        UpdateDisplay( video ? 0 : 1 );
 
         // update time
 

@@ -1,4 +1,14 @@
 
+Added video recording to support demo (17/3/2013):
+--------------------------------------------------
+
+    You can now record video from the support demo
+
+    This gives a good visual demonstration of biconvex support
+    witha rotating go stone projecting its bounds onto an axis
+    with an orthographic projection.
+
+
 Added dynamics demo and captured videos for article (16/3/2013):
 ----------------------------------------------------------------
 

@@ -4,17 +4,6 @@ TODO:
 
     --------------------------------------------------------
 
-    I'm pretty sure I've worked out why some edge collisions
-    are weird. In the case of circle edge vs. board edge
-    we should always use the board normal not the biconvex
-    circle edge normal.
-
-    If we are using the circle edge normal then this would
-    explain the strange (rare) bounce back against the back
-    of the edge that I see.
-
-    --------------------------------------------------------
-
     Separate collision demo
 
     Same demo will cover collision detection,
@@ -31,6 +20,16 @@ TODO:
 
     --------------------------------------------------------
 
+    I'm pretty sure I've worked out why some edge collisions
+    are weird. In the case of circle edge vs. board edge
+    we should always use the board normal not the biconvex
+    circle edge normal.
+
+    If we are using the circle edge normal then this would
+    explain the strange (rare) bounce back against the back
+    of the edge that I see.
+
+    --------------------------------------------------------
 
 
 
