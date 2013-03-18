@@ -38,6 +38,12 @@ project "Dynamics"
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
+project "Collision"
+    kind "ConsoleApp"
+    files { "*.h", "Collision.cpp", "Platform.cpp", "stb_image.c" }
+    configuration { "macosx" }
+        links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
+
 project "VirtualGo"
     kind "ConsoleApp"
     files { "*.h", "VirtualGo.cpp", "Platform.cpp", "stb_image.c" }
@@ -99,6 +105,22 @@ if not os.is "windows" then
             os.mkdir "output"
             if os.execute "make -j32 Dynamics" == 0 then
                 os.execute "./Dynamics"
+            end
+        end
+    }
+
+    newaction
+    {
+        trigger     = "collision",
+        description = "Build and run collision demo",
+        valid_kinds = premake.action.get("gmake").valid_kinds,
+        valid_languages = premake.action.get("gmake").valid_languages,
+        valid_tools = premake.action.get("gmake").valid_tools,
+     
+        execute = function ()
+            os.mkdir "output"
+            if os.execute "make -j32 Collision" == 0 then
+                os.execute "./Collision"
             end
         end
     }
