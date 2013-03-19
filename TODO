@@ -2,10 +2,15 @@ DONE:
 
 TODO:
 
+    Things are very clearly NOT right with the edge collision case
 
+    The stone is getting pushed out too far. Also, the normal is
+    not correct. I believe that it is an error to not use the
+    edge normal as the push out / contact normal.
 
-
-
+    However, in OTHER cases, it is better to use the biconvex
+    normal than the edge normal. How to determine which normal
+    to use deterministically?
 
     --------------------------------------------------------
 

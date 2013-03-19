@@ -765,7 +765,9 @@ int main( int argc, char * argv[] )
 
             if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact, mode > Penetration ) )
             {
-                if ( mode == LinearCollisionResponse )
+                if ( mode == PushOutWithContact )
+                    stone.rigidBody.linearMomentum = vec3f(0,0,0);
+                else if ( mode == LinearCollisionResponse )
                     ApplyLinearCollisionImpulse( boardContact, board_e );
                 else if ( mode == AngularCollisionResponse )
                     ApplyCollisionImpulseWithFriction( boardContact, board_e, 0.0f );
