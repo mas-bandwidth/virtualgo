@@ -194,7 +194,10 @@ int main( int argc, char * argv[] )
     printf( "tesselating go stones...\n" );
 
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
+    {
+        printf( "%d:\n", i );
         stoneSizes[i].Initialize( (StoneSize)i );
+    }
     
     Mesh mesh[STONE_SIZE_NumValues];
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
