@@ -33,9 +33,7 @@ float scrollZ = 0;
 enum Mode
 {
     Nothing,
-    LinearCollisionResponse,
-    AngularCollisionResponse,
-    CollisionResponseWithFriction,
+    Wireframe,
     SolidColor,
     Textured,
     NumModes
@@ -78,7 +76,7 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     rigidBody.position = vec3f( x, board.GetThickness() + 15.0f, z );
     rigidBody.linearMomentum = vec3f(0,0,0);
 
-    if ( stoneDropType == STONE_DROP_Horizontal || mode == LinearCollisionResponse )
+    if ( stoneDropType == STONE_DROP_Horizontal )
     {
         rigidBody.orientation = quat4f(1,0,0,0);
         rigidBody.angularMomentum = vec3f(0,0,0);
@@ -546,7 +544,7 @@ int main()
 
             if ( input.one && !prevOne )
             {
-                mode = LinearCollisionResponse;
+                mode = Wireframe;
                 dt = normal_dt;
                 slowmo = false;
             }
@@ -554,7 +552,7 @@ int main()
 
             if ( input.two && !prevTwo )
             {
-                mode = AngularCollisionResponse;
+                mode = SolidColor;
                 dt = normal_dt;
                 slowmo = false;
             }
@@ -562,27 +560,11 @@ int main()
 
             if ( input.three && !prevThree )
             {
-                mode = CollisionResponseWithFriction;
-                dt = normal_dt;
-                slowmo = false;
-            }
-            prevThree = input.three;
-
-            if ( input.four && !prevFour )
-            {
-                mode = SolidColor;
-                dt = normal_dt;
-                slowmo = false;
-            }
-            prevFour = input.four;
-
-            if ( input.five && !prevFive )
-            {
                 mode = Textured;
                 dt = normal_dt;
                 slowmo = false;
             }
-            prevFive = input.five;
+            prevThree = input.three;
 
             prevAltCtrlUp = false;
             prevAltCtrlDown = false;
@@ -738,12 +720,7 @@ int main()
             StaticContact boardContact;
             if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )
             {
-                if ( mode == LinearCollisionResponse )
-                    ApplyLinearCollisionImpulse( boardContact, board_e );
-                else if ( mode == AngularCollisionResponse )
-                    ApplyCollisionImpulseWithFriction( boardContact, board_e, 0.0f );
-                else if ( mode >= CollisionResponseWithFriction )
-                    ApplyCollisionImpulseWithFriction( boardContact, board_e, board_u );
+                ApplyCollisionImpulseWithFriction( boardContact, board_e, board_u );
                 stone.rigidBody.Update();
                 collided = true;
             }
@@ -756,12 +733,7 @@ int main()
             StaticContact floorContact;
             if ( StoneFloorCollision( stone.biconvex, board, stone.rigidBody, floorContact ) )
             {
-                if ( mode == LinearCollisionResponse )
-                    ApplyLinearCollisionImpulse( floorContact, floor_e );
-                else if ( mode == AngularCollisionResponse )
-                    ApplyCollisionImpulseWithFriction( floorContact, floor_e, 0.0f );
-                else if ( mode >= CollisionResponseWithFriction )
-                    ApplyCollisionImpulseWithFriction( floorContact, floor_e, floor_u );
+                ApplyCollisionImpulseWithFriction( floorContact, floor_e, floor_u );
                 stone.rigidBody.Update();
                 collided = true;
             }

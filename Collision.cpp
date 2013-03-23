@@ -82,7 +82,7 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     rigidBody.position = vec3f( x, board.GetThickness() + 15.0f, z );
     rigidBody.linearMomentum = vec3f(0,0,0);
 
-    if ( stoneDropType == STONE_DROP_Horizontal || mode == LinearCollisionResponse )
+    if ( stoneDropType == STONE_DROP_Horizontal )
     {
         rigidBody.orientation = quat4f(1,0,0,0);
         rigidBody.angularMomentum = vec3f(0,0,0);
@@ -110,12 +110,6 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     else if ( stoneDropType == STONE_DROP_RandomWithSpin )
     {
         rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f( random_float(0.1f,1), random_float(0.1f,1), random_float(0.1f,1) ) );
-    }
-
-    if ( mode == LinearCollisionResponse )
-    {
-        rigidBody.orientation = quat4f(1,0,0,0);
-        rigidBody.angularMomentum = vec3f(0,0,0);
     }
 
     if ( mode < LinearCollisionResponse )
@@ -194,10 +188,7 @@ int main( int argc, char * argv[] )
     printf( "tesselating go stones...\n" );
 
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
-    {
-        printf( "%d:\n", i );
         stoneSizes[i].Initialize( (StoneSize)i );
-    }
     
     Mesh mesh[STONE_SIZE_NumValues];
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
@@ -281,18 +272,14 @@ int main( int argc, char * argv[] )
 
     // create 2 pixel buffer objects, you need to delete them when program exits.
     // glBufferDataARB with NULL pointer reserves only memory space.
-    const int NumPBOs = 2;
-    GLuint pboIds[NumPBOs];
+    GLuint pbo;
     int index = 0;
     const int dataSize = displayWidth * displayHeight * 3;
     if ( video )
     {
-        glGenBuffersARB( NumPBOs, pboIds );
-        for ( int i = 0; i < NumPBOs; ++i )
-        {
-            glBindBufferARB( GL_PIXEL_UNPACK_BUFFER_ARB, pboIds[i] );
-            glBufferDataARB( GL_PIXEL_UNPACK_BUFFER_ARB, dataSize, 0, GL_STREAM_DRAW_ARB );
-        }
+        glGenBuffersARB( 1, pboId );
+        glBindBufferARB( GL_PIXEL_UNPACK_BUFFER_ARB, pboId );
+        glBufferDataARB( GL_PIXEL_UNPACK_BUFFER_ARB, dataSize, 0, GL_STREAM_DRAW_ARB );
         glBindBufferARB( GL_PIXEL_UNPACK_BUFFER_ARB, 0 );
     }
 
@@ -1010,35 +997,28 @@ int main( int argc, char * argv[] )
 
         if ( video )
         {
-            // "index" is used to read pixels from framebuffer to a PBO
-            // "nextIndex" is used to update pixels in the other PBO
-            index = ( index + 1 ) % NumPBOs;
-            int prevIndex = ( index + NumPBOs - 1 ) % NumPBOs;
-
             // set the target framebuffer to read
             glReadBuffer( GL_FRONT );
 
             // read pixels from framebuffer to PBO
             // glReadPixels() should return immediately.
-            glBindBufferARB( GL_PIXEL_PACK_BUFFER_ARB, pboIds[index] );
+            glBindBufferARB( GL_PIXEL_PACK_BUFFER_ARB, pboId );
             glReadPixels( 0, 0, displayWidth, displayHeight, GL_BGR, GL_UNSIGNED_BYTE, 0 );
-            if ( frame > (unsigned) NumPBOs )
+
+            // map the PBO to process its data by CPU
+            glBindBufferARB( GL_PIXEL_PACK_BUFFER_ARB, pboId );
+            GLubyte * ptr = (GLubyte*) glMapBufferARB( GL_PIXEL_PACK_BUFFER_ARB,
+                                                       GL_READ_ONLY_ARB );
+            if ( ptr )
             {
-                // map the PBO to process its data by CPU
-                glBindBufferARB( GL_PIXEL_PACK_BUFFER_ARB, pboIds[prevIndex] );
-                GLubyte * ptr = (GLubyte*) glMapBufferARB( GL_PIXEL_PACK_BUFFER_ARB,
-                                                           GL_READ_ONLY_ARB );
-                if ( ptr )
-                {
-                    char filename[256];
-                    sprintf( filename, "output/frame-%05d.tga", frame - NumPBOs );
-                    #ifdef LETTERBOX
-                    WriteTGA( filename, displayWidth, displayHeight - 80, ptr + displayWidth * 3 * 40 );
-                    #else
-                    WriteTGA( filename, displayWidth, displayHeight, ptr );
-                    #endif
-                    glUnmapBufferARB( GL_PIXEL_PACK_BUFFER_ARB );
-                }
+                char filename[256];
+                sprintf( filename, "output/frame-%05d.tga", frame );
+                #ifdef LETTERBOX
+                WriteTGA( filename, displayWidth, displayHeight - 80, ptr + displayWidth * 3 * 40 );
+                #else
+                WriteTGA( filename, displayWidth, displayHeight, ptr );
+                #endif
+                glUnmapBufferARB( GL_PIXEL_PACK_BUFFER_ARB );
             }
 
             // back to conventional pixel operation
