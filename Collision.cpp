@@ -270,14 +270,13 @@ int main( int argc, char * argv[] )
 
     CheckOpenGLError( "after opengl setup" );
 
-    // create 2 pixel buffer objects, you need to delete them when program exits.
-    // glBufferDataARB with NULL pointer reserves only memory space.
-    GLuint pbo;
+    // create pixel buffer objects
+    GLuint pboId;
     int index = 0;
     const int dataSize = displayWidth * displayHeight * 3;
     if ( video )
     {
-        glGenBuffersARB( 1, pboId );
+        glGenBuffersARB( 1, &pboId );
         glBindBufferARB( GL_PIXEL_UNPACK_BUFFER_ARB, pboId );
         glBufferDataARB( GL_PIXEL_UNPACK_BUFFER_ARB, dataSize, 0, GL_STREAM_DRAW_ARB );
         glBindBufferARB( GL_PIXEL_UNPACK_BUFFER_ARB, 0 );
