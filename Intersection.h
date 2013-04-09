@@ -194,9 +194,8 @@ inline StoneBoardRegion DetermineStoneBoardRegion( const Board & board, vec3f po
 {
     const float thickness = board.GetThickness();
     
-    const float y = position.y();
-
     const float x = position.x();
+    const float y = position.y();
     const float z = position.z();
 
     const float w = board.GetHalfWidth();
@@ -210,12 +209,12 @@ inline StoneBoardRegion DetermineStoneBoardRegion( const Board & board, vec3f po
     else if ( x >= w - r )                        // would potentially be intersecting with a stone at any time
         edges |= BOARD_EDGE_Right;
 
-    if ( z >= h - r )
+    if ( y >= h - r )
         edges |= BOARD_EDGE_Top;
-    else if ( z <= -h + r )
+    else if ( y <= -h + r )
         edges |= BOARD_EDGE_Bottom;
 
-    broadPhaseReject = ( y > thickness + radius ) || x < -w - r || x > w + r || z < -h - r || z > h + r;
+    broadPhaseReject = ( z > thickness + radius ) || x < -w - r || x > w + r || y < -h - r || y > h + r;
 
     return (StoneBoardRegion) edges;
 }
@@ -259,8 +258,10 @@ inline bool IntersectStoneBoard( const Board & board,
     {
         numAxes = 1;
         axis[0].d = t;
-        axis[0].normal = vec3f(0,1,0);
+        axis[0].normal = vec3f(0,0,1);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
+
+    /*
     }
     else if ( region == STONE_BOARD_REGION_LeftSide )
     {
@@ -494,36 +495,40 @@ inline bool IntersectStoneBoard( const Board & board,
         axis[6].d = dot( vec3f( w, t, h ), axis[6].normal );
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[6].normal, axis[6].s1, axis[6].s2 );
     }
+    */
 
-    // not colliding if no axes defined
-    if ( numAxes == 0 )
-        return false;
-
-    // not colliding if any axis separates the stone and the board
-    for ( int i = 0; i < numAxes; ++i )
-    {
-        if ( axis[i].s1 > axis[i].d )
+        // not colliding if no axes defined
+        if ( numAxes == 0 )
             return false;
-    }
 
-    // colliding: find axis with the least amount of penetration
-    float leastPenetrationDepth = FLT_MAX;
-    Axis * leastPenetrationAxis = NULL;
-    for ( int i = 0; i < numAxes; ++i )
-    {
-        const float depth = axis[i].d - axis[i].s1;
-        if ( depth < leastPenetrationDepth )
+        // not colliding if any axis separates the stone and the board
+        for ( int i = 0; i < numAxes; ++i )
         {
-            leastPenetrationDepth = depth;
-            leastPenetrationAxis = &axis[i];
+            if ( axis[i].s1 > axis[i].d )
+                return false;
         }
+
+        // colliding: find axis with the least amount of penetration
+        float leastPenetrationDepth = FLT_MAX;
+        Axis * leastPenetrationAxis = NULL;
+        for ( int i = 0; i < numAxes; ++i )
+        {
+            const float depth = axis[i].d - axis[i].s1;
+            if ( depth < leastPenetrationDepth )
+            {
+                leastPenetrationDepth = depth;
+                leastPenetrationAxis = &axis[i];
+            }
+        }
+
+        assert( leastPenetrationAxis );
+        normal = leastPenetrationAxis->normal;
+        depth = leastPenetrationDepth;
+
+        return true;
     }
 
-    assert( leastPenetrationAxis );
-    normal = leastPenetrationAxis->normal;
-    depth = leastPenetrationDepth;
-
-    return true;
+    return false;
 }
 
 #endif

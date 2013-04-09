@@ -6,8 +6,8 @@
 
     We model the go board as an axis aligned rectangular prism.
 
-    Since the floor is the plane y = 0, the top surface of the board
-    is the plane y = thickness.
+    Since the floor is the plane z = 0, the top surface of the board
+    is the plane z = thickness.
 
     Go board dimensions:
 

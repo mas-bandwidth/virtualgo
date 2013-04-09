@@ -77,9 +77,9 @@ StaticContact boardContact;
 void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 {
     const float x = scrollX;
-    const float z = scrollZ;
+    const float y = scrollZ;
 
-    rigidBody.position = vec3f( x, board.GetThickness() + 15.0f, z );
+    rigidBody.position = vec3f( x, y, board.GetThickness() + 15.0f );
     rigidBody.linearMomentum = vec3f(0,0,0);
 
     if ( stoneDropType == STONE_DROP_Horizontal )
@@ -89,17 +89,17 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     }
     else if ( stoneDropType == STONE_DROP_CCW45Degrees )
     {
-        rigidBody.orientation = quat4f::axisRotation( -0.25f * pi, vec3f(0,0,-1) );
+        rigidBody.orientation = quat4f::axisRotation( -0.25f * pi, vec3f(0,-1,0) );
         rigidBody.angularMomentum = vec3f(0,0,0);
     }
     else if ( stoneDropType == STONE_DROP_Vertical )
     {
-        rigidBody.orientation = quat4f::axisRotation( 0.5f * pi, vec3f(0,0,-1) );
+        rigidBody.orientation = quat4f::axisRotation( 0.5f * pi, vec3f(0,-1,0) );
         rigidBody.angularMomentum = vec3f(0,0,0);
     }
     else if ( stoneDropType == STONE_DROP_CW45Degrees )
     {
-        rigidBody.orientation = quat4f::axisRotation( 0.25f * pi, vec3f(0,0,-1) );
+        rigidBody.orientation = quat4f::axisRotation( 0.25f * pi, vec3f(0,-1,0) );
         rigidBody.angularMomentum = vec3f(0,0,0);
     }
     else if ( stoneDropType == STONE_DROP_RandomNoSpin )
@@ -632,13 +632,6 @@ int main( int argc, char * argv[] )
 
         glLoadIdentity();
         
-        float flipX[] = { -1,0,0,0,
-                           0,1,0,0,
-                           0,0,1,0,
-                           0,0,0,1 };
-        
-        glMultMatrixf( flipX );
-
         gluPerspective( FOV, (float) displayWidth / (float) displayHeight, Near, Far );
 
         glMatrixMode( GL_MODELVIEW );    
@@ -660,12 +653,12 @@ int main( int argc, char * argv[] )
             if ( zoomLevel == 0 )
             {
                 targetLookAt = vec3f(x,y,z);
-                targetPosition = vec3f(x,y,z-5);
+                targetPosition = vec3f(x,y-5,z);
             }
             else if ( zoomLevel == 1 )
             {
-                targetLookAt = vec3f(x,y+1,z);
-                targetPosition = vec3f(x,y+1,z-10);
+                targetLookAt = vec3f(x,y,z+1);
+                targetPosition = vec3f(x,y-10,z+1);
             }
             else if ( zoomLevel == 2 )
             {
@@ -674,13 +667,13 @@ int main( int argc, char * argv[] )
             }
             else if ( zoomLevel == 3 )
             {
-                targetLookAt = vec3f(x,y+2,z);
-                targetPosition = vec3f(x,y+20,z-30);
+                targetLookAt = vec3f(x,y,z+2);
+                targetPosition = vec3f(x,y-30,z+20);
             }
             else if ( zoomLevel == 4 )
             {
                 targetLookAt = vec3f(x,y,z);
-                targetPosition = vec3f(x,y+55,z);
+                targetPosition = vec3f(x,y,z+55);
             }
 
             if ( cameraMode == mode )
@@ -694,7 +687,7 @@ int main( int argc, char * argv[] )
                 cameraPosition = targetPosition;
             }
 
-            float amountBelow = t - fmax( targetPosition.y(), targetLookAt.y() );
+            float amountBelow = t - fmax( targetPosition.z(), targetLookAt.z() );
             if ( amountBelow > 0 )
                 scrollY += amountBelow;
 
@@ -733,7 +726,7 @@ int main( int argc, char * argv[] )
             const float gravity = 9.8f * 10;    // cms/sec^2
     
             if ( mode > Penetration || !collided )
-                stone.rigidBody.linearMomentum += vec3f(0,-gravity,0) * stone.rigidBody.mass * iteration_dt;
+                stone.rigidBody.linearMomentum += vec3f(0,0,-gravity) * stone.rigidBody.mass * iteration_dt;
             else
                 stone.rigidBody.linearMomentum = vec3f(0,0,0);
 

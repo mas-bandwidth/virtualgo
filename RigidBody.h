@@ -47,14 +47,24 @@ struct RigidBody
         float z = clamp( angularMomentum.z(), -MaxAngularMomentum, MaxAngularMomentum );
         angularMomentum = vec3f( x,y,z );
 
+        mat4f rotation;
+        orientation.toMatrix( rotation );
+        mat4f transposeRotation = transpose( rotation );
+        mat4f i = rotation * inverseInertiaTensor * transposeRotation;
+
         linearVelocity = linearMomentum * inverseMass;
-        angularVelocity = transformVector( inverseInertiaTensor, angularMomentum );
+        angularVelocity = transformVector( i, angularMomentum );
     }
 
     vec3f GetVelocityAtWorldPoint( vec3f point ) const
     {
+        mat4f rotation;
+        orientation.toMatrix( rotation );
+        mat4f transposeRotation = transpose( rotation );
+        mat4f i = rotation * inverseInertiaTensor * transposeRotation;
+
         // IMPORTANT: angular momentum may have been updated without updating angular velocity
-        vec3f angularVelocity = transformVector( inverseInertiaTensor, angularMomentum );
+        vec3f angularVelocity = transformVector( i, angularMomentum );
         return linearVelocity + cross( angularVelocity, point - position );
     }
 
@@ -65,15 +75,19 @@ struct RigidBody
 
         const float linearKE = length_squared( linearMomentum ) / ( 2 * mass );
 
-        vec3f angularVelocity = transformVector( inverseInertiaTensor, angularMomentum );
+        mat4f rotation;
+        orientation.toMatrix( rotation );
+        mat4f transposeRotation = transpose( rotation );
+        vec3f angularMomentumLocal = transformVector( transposeRotation, angularMomentum );
+        vec3f angularVelocityLocal = transformVector( inverseInertiaTensor, angularMomentum );
 
         const float ix = inertia.x();
         const float iy = inertia.y();
         const float iz = inertia.z();
 
-        const float wx = angularVelocity.x();
-        const float wy = angularVelocity.y();
-        const float wz = angularVelocity.z();
+        const float wx = angularVelocityLocal.x();
+        const float wy = angularVelocityLocal.y();
+        const float wz = angularVelocityLocal.z();
 
         const float angularKE = 0.5f * ( ix * wx * wx + 
                                          iy * wy * wy +
@@ -110,7 +124,7 @@ struct RigidBodyTransform
     vec3f GetUp() const
     {
         // get on up
-        return transformVector( localToWorld, vec3f(0,1,0) );
+        return transformVector( localToWorld, vec3f(0,0,1) );
     }
 
     vec3f GetPosition() const

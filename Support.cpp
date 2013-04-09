@@ -148,7 +148,15 @@ int main( int argc, char * argv[] )
 
             glScalef( 0.6f, 0.6f, 0.6f );
 
-            vec3f lightPosition( -2, +10, 0 );
+            vec3f lightPosition( -1, +2, -5 );
+
+            GLfloat light_ambient[] = { 0.7, 0.7, 0.7, 1.0 };
+            GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
+            GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+
+            glLightfv( GL_LIGHT0, GL_AMBIENT, light_ambient );
+            glLightfv( GL_LIGHT0, GL_DIFFUSE, light_diffuse );
+            glLightfv( GL_LIGHT0, GL_SPECULAR, light_specular );
 
             glMatrixMode( GL_MODELVIEW );
             glLoadIdentity();
@@ -170,10 +178,8 @@ int main( int argc, char * argv[] )
 
             glShadeModel( GL_SMOOTH );
 
-            GLfloat lightAmbientColor[] = { 0.75, 0.75, 0.75, 1.0 };
+            GLfloat lightAmbientColor[] = { 1, 1, 1, 1.0 };
             glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
-
-            glLightf( GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.01f );
 
             GLfloat position[4];
             position[0] = lightPosition.x();
@@ -190,6 +196,8 @@ int main( int argc, char * argv[] )
             float opengl_transform[16];
             biconvexTransform.localToWorld.store( opengl_transform );
             glMultMatrixf( opengl_transform );
+
+            glColor4f(1,1,1,1);
 
             RenderMesh( mesh );
 

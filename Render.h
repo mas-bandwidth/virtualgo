@@ -224,45 +224,45 @@ void RenderBoard( const Board & board )
 
     // top of board
 
-    glNormal3f( 0,1,0 );
+    glNormal3f( 0,0,1 );
 
-    glTexCoord2f( 1, 0 );   glVertex3f( width/2, thickness, -height/2 );
-    glTexCoord2f( 1, 1 );   glVertex3f( width/2, thickness, height/2 );
-    glTexCoord2f( 0, 1 );   glVertex3f( -width/2, thickness, height/2 );
-    glTexCoord2f( 0, 0 );   glVertex3f( -width/2, thickness, -height/2 );
+    glTexCoord2f( 1, 0 );   glVertex3f( width/2, -height/2, thickness );
+    glTexCoord2f( 1, 1 );   glVertex3f( width/2, height/2, thickness );
+    glTexCoord2f( 0, 1 );   glVertex3f( -width/2, height/2, thickness );
+    glTexCoord2f( 0, 0 );   glVertex3f( -width/2, -height/2, thickness );
 
     // front side
 
     glNormal3f( 0,0,-1 );
     
-    glVertex3f( width/2, 0, -height/2 );
-    glVertex3f( width/2, thickness, -height/2 );
-    glVertex3f( -width/2, thickness, -height/2 );
-    glVertex3f( -width/2, 0, -height/2 );
+    glVertex3f( width/2, -height/2, 0 );
+    glVertex3f( width/2, -height/2, thickness );
+    glVertex3f( -width/2, -height/2, thickness );
+    glVertex3f( -width/2, -height/2, 0 );
 
     // back side
 
     glNormal3f( 0,0,+1 );
-    glVertex3f( width/2, thickness, height/2 );
-    glVertex3f( width/2, 0, height/2 );
-    glVertex3f( -width/2, 0, height/2 );
-    glVertex3f( -width/2, thickness, height/2 );
+    glVertex3f( width/2, height/2, thickness );
+    glVertex3f( width/2, height/2, 0 );
+    glVertex3f( -width/2, height/2, 0 );
+    glVertex3f( -width/2, height/2, thickness );
 
     // left side
 
     glNormal3f( -1,0,0 );
-    glVertex3f( -width/2, 0, -height/2 );
-    glVertex3f( -width/2, thickness, -height/2 );
-    glVertex3f( -width/2, thickness, +height/2 );
-    glVertex3f( -width/2, 0, +height/2 );
+    glVertex3f( -width/2, -height/2, 0 );
+    glVertex3f( -width/2, -height/2, thickness );
+    glVertex3f( -width/2, +height/2, thickness );
+    glVertex3f( -width/2, +height/2, 0 );
 
     // right side
 
     glNormal3f( +1,0,0 );
-    glVertex3f( width/2, thickness, -height/2 );
-    glVertex3f( width/2, 0, -height/2 );
-    glVertex3f( width/2, 0, +height/2 );
-    glVertex3f( width/2, thickness, +height/2 );
+    glVertex3f( width/2, -height/2, thickness );
+    glVertex3f( width/2, -height/2, 0 );
+    glVertex3f( width/2, +height/2, 0 );
+    glVertex3f( width/2, +height/2, thickness );
 
     glEnd();
 }

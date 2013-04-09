@@ -31,7 +31,9 @@ void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float 
 
     const vec3f r = contact.point - rigidBody.position;
 
-    const float k = rigidBody.inverseMass + dot( cross( r, contact.normal ), transformVector( i, cross( r, contact.normal ) ) );
+    const float k = rigidBody.inverseMass + 
+                    dot( cross( r, contact.normal ), 
+                         transformVector( i, cross( r, contact.normal ) ) );
 
     const float j = - ( 1 + e ) * vn / k;
 
@@ -50,7 +52,9 @@ void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float 
 
         const float vt = dot( velocityAtPoint, tangent );
 
-        const float kt = rigidBody.inverseMass + dot( cross( r, tangent ), transformVector( i, cross( r, tangent ) ) );
+        const float kt = rigidBody.inverseMass + 
+                         dot( cross( r, tangent ), 
+                              transformVector( i, cross( r, tangent ) ) );
 
         const float jt = clamp( -vt / kt, -u * j, u * j );
 

@@ -100,19 +100,41 @@ int main()
     glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
     glEnable( GL_LIGHTING );
+    
     glEnable( GL_LIGHT0 );
-
+    glEnable( GL_LIGHT1 );
+    glEnable( GL_LIGHT2 );
+    glEnable( GL_LIGHT3 );
+    
     glShadeModel( GL_SMOOTH );
 
-    GLfloat lightAmbientColor[] = { 0.75, 0.75, 0.75, 1.0 };
+    GLfloat lightAmbientColor[] = { 0.2, 0.2, 0.2, 1.0 };
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
 
-    glLightf( GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.01f );
+    GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
+    GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+
+    glLightfv( GL_LIGHT0, GL_AMBIENT, light_ambient );
+    glLightfv( GL_LIGHT0, GL_DIFFUSE, light_diffuse );
+    glLightfv( GL_LIGHT0, GL_SPECULAR, light_specular );
+
+    glLightfv( GL_LIGHT1, GL_AMBIENT, light_ambient );
+    glLightfv( GL_LIGHT1, GL_DIFFUSE, light_diffuse );
+    glLightfv( GL_LIGHT1, GL_SPECULAR, light_specular );
+
+    glLightfv( GL_LIGHT2, GL_AMBIENT, light_ambient );
+    glLightfv( GL_LIGHT2, GL_DIFFUSE, light_diffuse );
+    glLightfv( GL_LIGHT2, GL_SPECULAR, light_specular );
+
+    glLightfv( GL_LIGHT3, GL_AMBIENT, light_ambient );
+    glLightfv( GL_LIGHT3, GL_DIFFUSE, light_diffuse );
+    glLightfv( GL_LIGHT3, GL_SPECULAR, light_specular );
 
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     glLineWidth( 4 );
-    glColor4f( 0.5f,0.5f,0.5f,1 );
+    glColor4f( 1,1,1,1 );
     glEnable( GL_CULL_FACE );
     glCullFace( GL_BACK );
 
@@ -200,20 +222,37 @@ int main()
 
             glMatrixMode( GL_MODELVIEW );
             glLoadIdentity();
-            gluLookAt( -5, 0, 0, 
+            gluLookAt( 0, 0, -5, 
                        0, 0, 0, 
                        0, 1, 0 );
 
             // set light position
 
-            GLfloat lightPosition[] = { -10, 3, 10, 1 };
-            glLightfv( GL_LIGHT0, GL_POSITION, lightPosition );
-
+            GLfloat lightPosition0[] = { 250, 1000, -500, 1 };
+            GLfloat lightPosition1[] = { -250, 0, -250, 1 };
+            GLfloat lightPosition2[] = { 100, 0, -100, 1 };
+            GLfloat lightPosition3[] = { 0, +1000, +1000, 1 };
+            
+            glLightfv( GL_LIGHT0, GL_POSITION, lightPosition0 );
+            glLightfv( GL_LIGHT1, GL_POSITION, lightPosition1 );
+            glLightfv( GL_LIGHT2, GL_POSITION, lightPosition2 );
+            glLightfv( GL_LIGHT3, GL_POSITION, lightPosition3 );
+    
             // render stone
+
+            GLfloat mat_ambient[] = { 0.25, 0.25, 0.25, 1.0 };
+            GLfloat mat_diffuse[] = { 0.45, 0.45, 0.45, 1.0 };
+            GLfloat mat_specular[] = { 0.1, 0.1, 0.1, 1.0 };
+            GLfloat mat_shininess[] = { 100.0 };
+
+            glMaterialfv( GL_FRONT, GL_AMBIENT, mat_ambient );
+            glMaterialfv( GL_FRONT, GL_DIFFUSE, mat_diffuse );
+            glMaterialfv( GL_FRONT, GL_SPECULAR, mat_specular );
+            glMaterialfv( GL_FRONT, GL_SHININESS, mat_shininess );
 
             const float targetRotation = rotating ? 0.28f : 0.0f;
             smoothedRotation += ( targetRotation - smoothedRotation ) * 0.15f;
-            mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(1,-2,3) );
+            mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(-3,-2,1) );
             rotation = rotation * deltaRotation;
 
             RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
@@ -223,6 +262,8 @@ int main()
             float opengl_transform[16];
             biconvexTransform.localToWorld.store( opengl_transform );
             glMultMatrixf( opengl_transform );
+
+            glEnable( GL_LIGHTING );
 
             if ( mode == Naive )
             {
