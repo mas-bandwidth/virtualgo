@@ -1,12 +1,18 @@
 DONE:
 
-TODO:
-
-    -----------------------------------------------------------------
-
     Convert to right handed coordinates
 
-    Re-enable energy kinetic energy post-collision test
+TODO:
+
+    Support demo appears to be wrong (not picking up circle edge case?)
+
+    Contact point is wrong with biconvex vs. primary surface
+
+    Why are cracks showing in tessellation demo?
+
+    Re-enable energy kinetic energy post-collision test. 
+
+    Does it pass? If not, why not?
 
     -----------------------------------------------------------------
 

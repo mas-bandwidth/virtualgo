@@ -51,7 +51,7 @@ inline void ClosestFeaturesBiconvexPlane_LocalSpace( vec3f planeNormal,
         // sphere surface collision
         const float sphereRadius = biconvex.GetSphereRadius();
         const float sphereOffset = planeNormal.y() < 0 ? -biconvex.GetSphereOffset() : +biconvex.GetSphereOffset();
-        vec3f sphereCenter( 0, sphereOffset, 0 );
+        vec3f sphereCenter( 0, 0, sphereOffset );
         biconvexPoint = sphereCenter - normalize( planeNormal ) * sphereRadius;
         biconvexNormal = normalize( biconvexPoint - sphereCenter );
     }
@@ -96,9 +96,9 @@ inline bool ClosestFeaturePrimarySurface( const Board & board,
     boardNormal = vec3f(0,0,1);
 
     const float x = boardPoint.x();
-    const float z = boardPoint.z();
+    const float y = boardPoint.y();
 
-    return x >= -w && x <= w && z >= -h && z <= h;
+    return x >= -w && x <= w && y >= -h && y <= h;
 }
 
 inline bool ClosestFeatureLeftSide( const Board & board, 
@@ -109,6 +109,8 @@ inline bool ClosestFeatureLeftSide( const Board & board,
                                     vec3f & boardPoint,
                                     vec3f & boardNormal )
 {
+    // todo: convert right handed
+
     const float w = board.GetWidth() / 2;
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();

@@ -77,7 +77,7 @@ StaticContact boardContact;
 void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
 {
     const float x = scrollX;
-    const float y = scrollZ;
+    const float y = scrollY;
 
     rigidBody.position = vec3f( x, y, board.GetThickness() + 15.0f );
     rigidBody.linearMomentum = vec3f(0,0,0);
@@ -393,13 +393,13 @@ int main( int argc, char * argv[] )
 
         if ( input.w )
         {
-            stone.rigidBody.angularMomentum += Spin * vec3f(0,1,0);
+            stone.rigidBody.angularMomentum += Spin * vec3f(0,0,1);
             appliedSpin = true;
         }
 
         if ( input.e )
         {
-            stone.rigidBody.angularMomentum += Spin * vec3f(0,0,1);
+            stone.rigidBody.angularMomentum += Spin * vec3f(0,1,0);
             appliedSpin = true;
         }
 
@@ -509,28 +509,29 @@ int main( int argc, char * argv[] )
                 sx = 1;
 
             if ( input.up )
-                sz = 1;
-
-            if ( input.down )
-                sz = -1;
-
-            if ( input.a )
                 sy = 1;
 
-            if ( input.z )
+            if ( input.down )
                 sy = -1;
+
+            if ( input.a )
+                sz = -1;
+
+            if ( input.z )
+                sz = +1;
 
             vec3f scroll(sx,sy,sz);
 
             if ( length_squared( scroll ) > 0 )
             {
                 scroll = normalize( scroll ) * ScrollSpeed * normal_dt;
+
                 scrollX += scroll.x();
                 scrollY += scroll.y();
                 scrollZ += scroll.z();
 
-                if ( scrollY > 50 )
-                    scrollY = 50;
+                if ( scrollZ > 50 )
+                    scrollZ = 50;
             }
 
             if ( input.one && !prevOne )
@@ -689,14 +690,14 @@ int main( int argc, char * argv[] )
 
             float amountBelow = t - fmax( targetPosition.z(), targetLookAt.z() );
             if ( amountBelow > 0 )
-                scrollY += amountBelow;
+                scrollZ += amountBelow;
 
             cameraMode = mode;
 
-            vec3f cameraUp = cross( normalize( cameraLookAt - cameraPosition ), vec3f(1,0,0) );
+            vec3f cameraUp = cross( normalize( cameraLookAt - cameraPosition ), vec3f(-1,0,0) );
 
-            gluLookAt( cameraPosition.x(), max( cameraPosition.y(), t ), cameraPosition.z(),
-                       cameraLookAt.x(), max( cameraLookAt.y(), t ), cameraLookAt.z(),
+            gluLookAt( cameraPosition.x(), cameraPosition.y(), max( cameraPosition.z(), t ),
+                       cameraLookAt.x(), cameraLookAt.y(), max( cameraLookAt.z(), t ),
                        cameraUp.x(), cameraUp.y(), cameraUp.z() );
         }
 
@@ -848,9 +849,9 @@ int main( int argc, char * argv[] )
 
         if ( cameraPosition.x() >= -w - e &&
              cameraPosition.x() <= +w + e &&
-             cameraPosition.z() >= -h - e - Near &&
-             cameraPosition.z() <= +h + e + Near &&
-             cameraPosition.y() <= t + e )
+             cameraPosition.y() >= -h - e - Near &&
+             cameraPosition.y() <= +h + e + Near &&
+             cameraPosition.z() <= t + e )
         {
             glDisable( GL_DEPTH_TEST );
 
@@ -858,8 +859,8 @@ int main( int argc, char * argv[] )
 
             glLineWidth( 5 );
             glBegin( GL_LINES );
-            glVertex3f( -1000, board.GetThickness(), cameraPosition.z() + Near + 0.1f );
-            glVertex3f( +1000, board.GetThickness(), cameraPosition.z() + Near + 0.1f );
+            glVertex3f( -1000, cameraPosition.y() + Near + 0.1f, t );
+            glVertex3f( +1000, cameraPosition.y() + Near + 0.1f, t );
             glEnd();
 
             glEnable( GL_DEPTH_TEST );

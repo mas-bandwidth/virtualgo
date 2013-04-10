@@ -185,27 +185,27 @@ void RenderBiconvexNaive( const Biconvex & biconvex, int numSegments = 128, int 
     glEnd();
 }
 
-void RenderGrid( float y, float size, float gridWidth, float gridHeight )
+void RenderGrid( float z, float size, float gridWidth, float gridHeight )
 {
     glBegin( GL_QUADS );
 
     const float dx = gridWidth;
-    const float dz = gridHeight;
+    const float dy = gridHeight;
 
     float x = - ( size - 1 ) * 0.5f * gridWidth;
 
     for ( int i = 0; i < size - 1; ++i )
     {
-        float z = - ( size - 1 ) * 0.5f * gridHeight;
+        float y = - ( size - 1 ) * 0.5f * gridHeight;
 
         for ( int j = 0; j < size - 1; ++j )
         {
             glVertex3f( x + dx, y, z );
-            glVertex3f( x + dx, y, z + dz );
-            glVertex3f( x, y, z + dz );
+            glVertex3f( x + dx, y + dy, z );
+            glVertex3f( x, y + dy, z );
             glVertex3f( x, y, z );
 
-            z += dz;
+            y += dy;
         }
 
         x += dx;

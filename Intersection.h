@@ -86,7 +86,7 @@ inline float IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
                                                 vec3f & normal )
 {
     const float sphereDot = biconvex.GetSphereDot();
-    const float planeNormalDot = fabs( dot( vec3f(0,1,0), planeNormal ) );
+    const float planeNormalDot = fabs( dot( vec3f(0,0,1), planeNormal ) );
     if ( planeNormalDot > sphereDot )
     {
         // sphere surface collision
@@ -149,10 +149,10 @@ inline float IntersectRayBoard( const Board & board,
     // statistically speaking this is the most likely
     {
         float t;
-        if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,1,0), 0, t, epsilon ) )
+        if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), 0, t, epsilon ) )
         {
             point = rayStart + rayDirection * t;
-            normal = vec3f(0,1,0);
+            normal = vec3f(0,0,1);
             const float w = board.GetHalfWidth();
             const float h = board.GetHalfHeight();
             const float px = point.x();
