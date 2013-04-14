@@ -1,8 +1,22 @@
 DONE:
 
-    Convert to right handed coordinates
+    Port to XCode and get OpenGL basic stone rendering working
+
+    Convert to right handed coordinates (WIP fixing up)
 
 TODO:
+
+    Find a way to unify code between xcode and sublime codebases
+
+    Implement collision detection with walls (eg. plane)
+
+    Determine appropriate zoom level for iPhone vs. iPad so the
+    application is usable on both. Right now it is too zoomed in
+    on the iPhone version!
+
+    Detect stone at rest (to stop drift on slope...)
+
+    -----------------------------------------------------------------
 
     Support demo appears to be wrong (not picking up circle edge case?)
 
@@ -15,40 +29,6 @@ TODO:
     Does it pass? If not, why not?
 
     -----------------------------------------------------------------
-
-    Simplify go engine into a static library with a simple interface 
-    that can be used to interface with other engines/projects.
-
-    Move the library source into "source" directory.
-
-    Move the test programs into "tests" subdirectory.
-
-    Ideally, this would make it so that native code could be easily
-    built into a static library then linked into some module in Loom.
-
-    What would be best is if there was a simple library header
-    to create a go simulation, specify the dimensions and so on
-
-    Ideally, I would like to keep the model and the presentation
-    layer separate, eg. model/view separation. This way I can keep
-    the simulation layer unchanged even if I swap out a completely
-    different render interface.
-
-    Ideally, the render interface would be plug-inable and would
-    support multiple board render methods, eg. wireframe, solid,
-    textured etc. This is probably overkill.
-
-    Leave the dynamic module separation up to the engine (eg. Loom)
-
-    -----------------------------------------------------------------
-
-    Port to iPad using Loom engine!
-
-    Is it possible to get OpenGL display access using Loom? 
-
-    If so then this is a pretty good way to get cool scriting
-    and potential dynamic reloads working within an engine
-    that should make it easier to port to android devices.
 
     -----------------------------------------------------------------
 

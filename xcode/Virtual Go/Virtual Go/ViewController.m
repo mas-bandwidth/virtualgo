@@ -84,13 +84,23 @@ enum
 
 @implementation ViewController
 
-const float ZoomIn = 5;
-const float ZoomOut = 12;
+const float ZoomIn_iPad = 12;               // tuned to real go stone size on iPad 3
+const float ZoomOut_iPad = 26;
+
+const float ZoomIn_iPhone = 6;              // tuned to real go stone size on iPhone 5
+const float ZoomOut_iPhone = 12;
+
 const float ZoomInTightness = 0.25f;
 const float ZoomOutTightness = 0.15f;
 
-const float AccelerometerFrequency = 100;
+const float AccelerometerFrequency = 60;
 const float AccelerometerTightness = 0.1f;
+const float JerkThreshold = 0.25f;
+
+bool iPad()
+{
+    return UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad;
+}
 
 - (void)viewDidLoad
 {
@@ -121,7 +131,8 @@ const float AccelerometerTightness = 0.1f;
     _pendingUnpause = false;
     
     _zoomed = false;
-    _smoothZoom = ZoomOut;
+    
+    _smoothZoom = iPad() ? ZoomOut_iPad : ZoomOut_iPhone;
     
     _rawAcceleration = vec3f(0,0,-1);
     _smoothedAcceleration = vec3f(0,0,-1);
@@ -297,6 +308,7 @@ const float AccelerometerTightness = 0.1f;
 - (void)handleSingleTap:(NSDictionary *)touches
 {
     NSLog( @"single tap" );
+    _paused = !_paused;
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
@@ -338,15 +350,15 @@ const float AccelerometerTightness = 0.1f;
 {
     float aspect = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
     
-    const float targetZoom = _zoomed ? ZoomIn : ZoomOut;
+    const float targetZoom = iPad() ? ( _zoomed ? ZoomIn_iPad : ZoomOut_iPad ) : ( _zoomed ? ZoomIn_iPhone : ZoomOut_iPhone );
     
     _smoothZoom += ( targetZoom - _smoothZoom ) * ( _zoomed ? ZoomInTightness : ZoomOutTightness );
     
     GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective( GLKMathDegreesToRadians(40.0f), aspect, 0.1f, 100.0f );
     
-    GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeLookAt( 0, -_smoothZoom, 0,
+    GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeLookAt( 0, 0, _smoothZoom,
                                                            0, 0, 0,
-                                                           0, 0, 1 );
+                                                           0, 1, 0 );
     
     GLKMatrix4 modelViewMatrix = GLKMatrix4Identity;
     modelViewMatrix = GLKMatrix4Rotate( modelViewMatrix, _rotation, 1, 1, 1 );
@@ -365,7 +377,7 @@ const float AccelerometerTightness = 0.1f;
     
     _rotation += dt * 0.5f;
     
-    if ( length( _jerkAcceleration ) > 0.25f )
+    if ( length( _jerkAcceleration ) > JerkThreshold )
         NSLog( @"jerk acceleration: %f,%f,%f", _jerkAcceleration.x(), _jerkAcceleration.y(), _jerkAcceleration.z() );
 }
 
