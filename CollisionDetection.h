@@ -684,9 +684,11 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
     bool broadPhaseReject;
     StoneBoardRegion region = DetermineStoneBoardRegion( board, biconvexPosition, boundingSphereRadius, broadPhaseReject );
 
+    /*
     const float w = board.GetWidth() / 2;
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
+    */
 
     if ( region == STONE_BOARD_REGION_Primary )
     {
@@ -865,8 +867,6 @@ bool StoneFloorCollision( const Biconvex & biconvex,
                           RigidBody & rigidBody,
                           StaticContact & contact )
 {
-    const float boundingSphereRadius = biconvex.GetBoundingSphereRadius();
-
     vec3f biconvexPosition = rigidBody.position;
 
     RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );

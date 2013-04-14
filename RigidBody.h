@@ -79,7 +79,7 @@ struct RigidBody
         orientation.toMatrix( rotation );
         mat4f transposeRotation = transpose( rotation );
         vec3f angularMomentumLocal = transformVector( transposeRotation, angularMomentum );
-        vec3f angularVelocityLocal = transformVector( inverseInertiaTensor, angularMomentum );
+        vec3f angularVelocityLocal = transformVector( inverseInertiaTensor, angularMomentumLocal );
 
         const float ix = inertia.x();
         const float iy = inertia.y();

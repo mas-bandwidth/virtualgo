@@ -250,8 +250,8 @@ inline bool IntersectStoneBoard( const Board & board,
     vec3f biconvexUp = biconvexTransform.GetUp();
     vec3f biconvexCenter = biconvexTransform.GetPosition();
 
-    const float w = board.GetWidth() / 2;
-    const float h = board.GetHeight() / 2;
+//    const float w = board.GetWidth() / 2;
+//    const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
 
     if ( region == STONE_BOARD_REGION_Primary )

@@ -181,7 +181,6 @@ inline vec3f GetNearestPointOnBiconvexSurface_LocalSpace( vec3f point,
     vec3f b = normalize( vec3f( point.x(), point.y(), 0 ) ) * circleRadius;
     if ( sphereOffset * a.z() > 0 )         // IMPORTANT: only consider "a" if on same half of biconvex as point
         return b;
-    const float sphereDot = biconvex.GetSphereDot();
     const float pointDot = fabs( dot( vec3f(0,0,1), normalize(point) ) );
     if ( pointDot < 1.0f - epsilon )
     {

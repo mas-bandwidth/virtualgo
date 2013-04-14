@@ -10,8 +10,6 @@
 
 struct Vertex
 {
-    float u;
-    float v;
     vec3f position;
     vec3f normal;
 };
@@ -85,7 +83,7 @@ public:
 
 protected:
 
-    int GetGridCellBucket( int x, int y, int z )
+    int GetGridCellBucket( uint32_t x, uint32_t y, uint32_t z )
     {
         uint32_t data[3] = { x, y, z };
         return hash( (const uint8_t*) &data[0], 12 ) % numBuckets;
@@ -113,9 +111,7 @@ protected:
             const Vertex & v = vertexBuffer[i];
             vec3f dp = v.position - vertex.position;
             vec3f dn = v.normal - vertex.normal;
-            if ( fabs( v.u - vertex.u ) < epsilonSquared &&
-                 fabs( v.v - vertex.v ) < epsilonSquared &&
-                 length_squared( dp ) < epsilonSquared && 
+            if ( length_squared( dp ) < epsilonSquared &&
                  length_squared( dn ) < epsilonSquared )
             {
                 index = i;
@@ -134,6 +130,9 @@ protected:
         const float vy = vertex.position.y();
         const float vz = vertex.position.z();
 
+        // todo: this code is dumb. christer says it is faster to test
+        // against adjacent cells vs. adding to multiple buckets here
+        
         for ( int ix = -1; ix <= 1; ++ix )
         {
             for ( int iy = -1; iy <= 1; ++iy )
@@ -163,6 +162,13 @@ protected:
 
 private:
 
+    // todo: how to make sure vertex/index buffers are aligned 16 bytes?!
+    
+    // todo: provide a way to export this data to some basic mesh format
+    // then I can run nvtristrip over it and get something more efficient
+    
+    // todo: should almost certainly go for 16 bit index buffers. don't need meshes > 64k verts!
+    
     std::vector<Vertex> vertexBuffer;
     
     std::vector<int> indexBuffer;
@@ -258,18 +264,12 @@ void SubdivideBiconvexMesh( Mesh & mesh,
     {
         Vertex v1,v2,v3;
 
-        v1.u = a.x() * texture_a + texture_b;
-        v1.v = a.z() * texture_a + texture_b;
         v1.position = a;
         v1.normal = an;
 
-        v2.u = b.x() * texture_a + texture_b;
-        v2.v = b.z() * texture_a + texture_b;
         v2.position = b;
         v2.normal = bn;
 
-        v3.u = c.x() * texture_a + texture_b;
-        v3.v = c.z() * texture_a + texture_b;
         v3.position = c;
         v3.normal = cn;
 
@@ -373,35 +373,23 @@ void GenerateBiconvexMesh( Mesh & mesh, const Biconvex & biconvex, int subdivisi
 
                 Vertex v1,v2,v3;
 
-                v1.u = a.x() * texture_a + texture_b;
-                v1.v = a.y() * texture_a + texture_b;
                 v1.position = a;
                 v1.normal = an;
 
-                v2.u = c.y() * texture_a + texture_b;
-                v2.v = c.y() * texture_a + texture_b;
                 v2.position = c;
                 v2.normal = cn;
 
-                v3.u = b.y() * texture_a + texture_b;
-                v3.v = b.y() * texture_a + texture_b;
                 v3.position = b;
                 v3.normal = bn;
 
                 mesh.AddTriangle( v1, v3, v2 );
 
-                v1.u = a.y() * texture_a + texture_b;
-                v1.v = a.y() * texture_a + texture_b;
                 v1.position = a;
                 v1.normal = an;
 
-                v2.u = d.y() * texture_a + texture_b;
-                v2.v = d.y() * texture_a + texture_b;
                 v2.position = d;
                 v2.normal = dn;
 
-                v3.u = c.y() * texture_a + texture_b;
-                v3.v = c.y() * texture_a + texture_b;
                 v3.position = c;
                 v3.normal = cn;
 

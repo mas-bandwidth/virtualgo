@@ -285,15 +285,12 @@ void RenderMesh( Mesh & mesh )
         const Vertex & b = vertexBuffer[index_b];
         const Vertex & c = vertexBuffer[index_c];
 
-        glTexCoord2f( a.u, a.v );
         glNormal3f( a.normal.x(), a.normal.y(), a.normal.z() );
         glVertex3f( a.position.x(), a.position.y(), a.position.z() );
 
-        glTexCoord2f( b.u, b.v );
         glNormal3f( b.normal.x(), b.normal.y(), b.normal.z() );
         glVertex3f( b.position.x(), b.position.y(), b.position.z() );
 
-        glTexCoord2f( c.u, c.v );
         glNormal3f( c.normal.x(), c.normal.y(), c.normal.z() );
         glVertex3f( c.position.x(), c.position.y(), c.position.z() );
     }

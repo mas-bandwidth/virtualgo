@@ -6,16 +6,6 @@ DONE:
 
 TODO:
 
-    Find a way to unify code between xcode and sublime codebases
-
-    Implement collision detection with walls (eg. plane)
-
-    Determine appropriate zoom level for iPhone vs. iPad so the
-    application is usable on both. Right now it is too zoomed in
-    on the iPhone version!
-
-    Detect stone at rest (to stop drift on slope...)
-
     -----------------------------------------------------------------
 
     Support demo appears to be wrong (not picking up circle edge case?)
@@ -29,6 +19,16 @@ TODO:
     Does it pass? If not, why not?
 
     -----------------------------------------------------------------
+
+    Find a way to unify code between xcode and sublime codebases
+
+    Implement collision detection with walls (eg. plane)
+
+    Determine appropriate zoom level for iPhone vs. iPad so the
+    application is usable on both. Right now it is too zoomed in
+    on the iPhone version!
+
+    Detect stone at rest (to stop drift on slope...)
 
     -----------------------------------------------------------------
 

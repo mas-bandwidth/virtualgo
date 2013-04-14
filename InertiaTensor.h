@@ -42,40 +42,40 @@ float CalculateBiconvexVolume( const Biconvex & biconvex )
 
 void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, vec3f & inertia, mat4f & inertiaTensor, mat4f & inverseInertiaTensor )
 {
-    const double resolution = 0.1;
-    const double width = biconvex.GetWidth();
-    const double height = biconvex.GetHeight();
-    const double xz_steps = ceil( width / resolution );
-    const double y_steps = ceil( height / resolution );
-    const double dx = width / xz_steps;
-    const double dy = height / y_steps;
-    const double dz = width / xz_steps;
-    double sx = -width / 2;
-    double sy = -height / 2;
-    double sz = -width / 2;
-    double ix = 0.0;
-    double iy = 0.0;
-    double iz = 0.0;
-    const double v = CalculateBiconvexVolume( biconvex );
-    const double p = mass / v;
-    const double m = dx*dy*dz * p;
+    const float resolution = 0.1;
+    const float width = biconvex.GetWidth();
+    const float height = biconvex.GetHeight();
+    const float xz_steps = ceil( width / resolution );
+    const float y_steps = ceil( height / resolution );
+    const float dx = width / xz_steps;
+    const float dy = height / y_steps;
+    const float dz = width / xz_steps;
+    float sx = -width / 2;
+    float sy = -height / 2;
+    float sz = -width / 2;
+    float ix = 0.0;
+    float iy = 0.0;
+    float iz = 0.0;
+    const float v = CalculateBiconvexVolume( biconvex );
+    const float p = mass / v;
+    const float m = dx*dy*dz * p;
     for ( int index_z = 0; index_z <= xz_steps; ++index_z )
     {
         for ( int index_y = 0; index_y <= y_steps; ++index_y )
         {
             for ( int index_x = 0; index_x <= xz_steps; ++index_x )
             {
-                const double x = sx + index_x * dx;
-                const double y = sy + index_y * dy;
-                const double z = sz + index_z * dz;
+                const float x = sx + index_x * dx;
+                const float y = sy + index_y * dy;
+                const float z = sz + index_z * dz;
 
                 vec3f point(x,y,z);
 
                 if ( PointInsideBiconvex_LocalSpace( point, biconvex ) )
                 {
-                    const double rx2 = z*z + y*y;
-                    const double ry2 = x*x + z*z;
-                    const double rz2 = x*x + y*y;
+                    const float rx2 = z*z + y*y;
+                    const float ry2 = x*x + z*z;
+                    const float rz2 = x*x + y*y;
 
                     ix += rx2 * m;
                     iy += ry2 * m;
@@ -90,14 +90,7 @@ void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, vec3
     //  => 1/480 h^3 (3 h^2-30 h r+80 r^2)
     const float h = height;
     const float r = biconvex.GetSphereRadius();
-    const float h2 = h * h;
-    const float h3 = h2 * h;
-    const float h4 = h3 * h;
-    const float h5 = h4 * h;
-    const float r2 = r * r;
-    const float r3 = r2 * r;
-    const float r4 = r3 * r;
-    const float exact_iy = pi * p * ( 1/480.0f * h3 * ( 3*h2 - 30*h*r + 80*r2 ) );
+    const float exact_iy = pi * p * ( 1/480.0f * h*h*h * ( 3*h*h - 30*h*r + 80*r*r ) );
 
     iy = exact_iy;
 
