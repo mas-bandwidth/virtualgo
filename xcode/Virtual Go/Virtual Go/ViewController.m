@@ -46,12 +46,30 @@ enum
     
     Stone _stone;
     Mesh _mesh;
+    
+    bool _paused;
+    bool _pendingUnpause;
+    
+    bool _zoomed;
+    float _smoothZoom;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
 
 - (void)setupGL;
 - (void)tearDownGL;
+
+- (void)didBecomeActive:(NSNotification *)notification;
+- (void)willResignActive:(NSNotification *)notification;
+- (void)didEnterBackground:(NSNotification *)notification;
+- (void)willEnterForeground:(NSNotification *)notification;
+
+- (void)deviceOrientationDidChange:(NSNotification *)notification;
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event;
 
 - (BOOL)loadShaders;
 - (BOOL)compileShader:(GLuint *)shader type:(GLenum)type file:(NSString *)file;
@@ -62,9 +80,16 @@ enum
 
 @implementation ViewController
 
+const float ZoomIn = 5;
+const float ZoomOut = 12;
+const float ZoomInTightness = 0.25f;
+const float ZoomOutTightness = 0.15f;
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+
+    [self setupNotifications];
     
     self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
 
@@ -80,6 +105,12 @@ enum
     _stone.Initialize( STONE_SIZE_34 );
     
     GenerateBiconvexMesh( _mesh, _stone.biconvex );
+    
+    _paused = true;
+    _pendingUnpause = false;
+    
+    _zoomed = false;
+    _smoothZoom = ZoomOut;
 
     [self setupGL];
 }
@@ -87,11 +118,59 @@ enum
 - (void)dealloc
 {
     [self tearDownGL];
-    
-    if ([EAGLContext currentContext] == self.context)
+
+    if ( [EAGLContext currentContext] == self.context )
     {
         [EAGLContext setCurrentContext:nil];
     }
+
+    [ [NSNotificationCenter defaultCenter] removeObserver:self ];
+}
+
+- (void)setupNotifications
+{
+    [ [NSNotificationCenter defaultCenter] addObserver : self
+                                              selector : @selector(didBecomeActive:)
+                                                  name : UIApplicationDidBecomeActiveNotification object:nil ];
+
+    [ [NSNotificationCenter defaultCenter] addObserver : self
+                                              selector : @selector(willResignActive:)
+                                                  name : UIApplicationWillResignActiveNotification object:nil ];
+    
+    [ [NSNotificationCenter defaultCenter] addObserver : self
+                                              selector : @selector(didEnterBackground:)
+                                                  name : UIApplicationDidEnterBackgroundNotification object:nil ];
+
+    [ [NSNotificationCenter defaultCenter] addObserver : self
+                                              selector : @selector(willEnterForeground:)
+                                                  name : UIApplicationWillEnterForegroundNotification object:nil ];
+    
+    [ [NSNotificationCenter defaultCenter] addObserver : self
+                                              selector : @selector(deviceOrientationDidChange:)
+                                                  name : UIDeviceOrientationDidChangeNotification object:nil ];
+}
+
+- (void)didBecomeActive:(NSNotification *)notification
+{
+    NSLog( @"did become active" );
+    _pendingUnpause = true;
+}
+
+- (void)willResignActive:(NSNotification *)notification
+{
+    NSLog( @"will resign active" );
+    _paused = true;
+    _pendingUnpause = false;
+}
+
+- (void)didEnterBackground:(NSNotification *)notification
+{
+    NSLog( @"did enter background" );
+}
+
+- (void)willEnterForeground:(NSNotification *)notification
+{
+    NSLog( @"will enter foreground" );
 }
 
 - (void)didReceiveMemoryWarning
@@ -138,6 +217,8 @@ enum
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, _mesh.GetNumIndices()*sizeof(GLuint), _mesh.GetIndexBuffer(), GL_STATIC_DRAW );
     
     self.preferredFramesPerSecond = 60;
+
+    self.view.multipleTouchEnabled = YES;
 }
 
 - (void)tearDownGL
@@ -154,15 +235,101 @@ enum
     }
 }
 
-#pragma mark - GLKView and GLKViewController delegate methods
+- (BOOL)canBecomeFirstResponder
+{
+    return YES;
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [self becomeFirstResponder];
+}
+
+- (void)touchesBegan:(NSSet*)touches withEvent:(UIEvent *)event
+{
+    NSLog( @"touches began" );
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    // ...
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    UITouch * touch = [touches anyObject];
+    
+    if ( touch.tapCount == 1 )
+    {
+        
+        NSDictionary * touchLoc = [NSDictionary dictionaryWithObject:
+                                   [NSValue valueWithCGPoint:[touch locationInView:self.view]] forKey:@"location"];
+        
+        [self performSelector:@selector(handleSingleTap:) withObject:touchLoc afterDelay:0.2];
+        
+    }
+    else if ( touch.tapCount >= 2 )
+    {
+        NSLog( @"double tap" );
+
+        _zoomed = !_zoomed;
+
+        [NSObject cancelPreviousPerformRequestsWithTarget:self];
+    }
+}
+
+- (void)handleSingleTap:(NSDictionary *)touches
+{
+    NSLog( @"single tap" );
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [NSObject cancelPreviousPerformRequestsWithTarget:self];
+}
+
+- (void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event
+{
+    NSLog( @"motion began" );
+}
+
+- (void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event
+{
+    NSLog( @"motion ended" );
+}
+
+- (void)motionCancelled:(UIEventSubtype)motion withEvent:(UIEvent *)event
+{
+    NSLog( @"motion cancelled" );
+}
+
+/*
+ const int AccelerometerFrequency = 60;
+ 
+ - (void)configureAccelerometer
+ {
+ UIAccelerometer * accelerometer = [UIAccelerometer sharedAccelerometer];
+ accelerometer.updateInterval = 1 / AccelerometerFrequency;
+ accelerometer.delegate = self;
+ }
+ */
+
+- (void)deviceOrientationDidChange:(NSNotification *)notification
+{
+    NSLog( @"device orientation did change" );
+}
 
 - (void)update
 {
     float aspect = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
     
+    const float targetZoom = _zoomed ? ZoomIn : ZoomOut;
+    
+    _smoothZoom += ( targetZoom - _smoothZoom ) * ( _zoomed ? ZoomInTightness : ZoomOutTightness );
+    
     GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective( GLKMathDegreesToRadians(40.0f), aspect, 0.1f, 100.0f );
     
-    GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeLookAt( 0, -5, 0,
+    GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeLookAt( 0, -_smoothZoom, 0,
                                                            0, 0, 0,
                                                            0, 0, 1 );
     
@@ -174,7 +341,14 @@ enum
     
     _modelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelViewMatrix );
     
-    _rotation += self.timeSinceLastUpdate * 0.5f;
+    float dt = self.timeSinceLastUpdate;
+    if ( dt > 1 / 10.0f )
+        dt = 1 / 10.0f;
+    
+    if ( _paused )
+        dt = 0.0f;
+    
+    _rotation += dt * 0.5f;
 }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
@@ -192,6 +366,15 @@ enum
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indexBuffer );
 
     glDrawElements( GL_TRIANGLES, _mesh.GetNumTriangles()*3, GL_UNSIGNED_INT, NULL );
+    
+    // IMPORTANT: attempt avoid the pop when restoring the app
+    // this does not seem to work. i need to understand what is going on
+    if ( _pendingUnpause )
+    {
+        _pendingUnpause = false;
+        _paused = false;
+        NSLog( @"pending unpause -> unpause" );
+    }
 }
 
 #pragma mark -  OpenGL ES 2 shader compilation
