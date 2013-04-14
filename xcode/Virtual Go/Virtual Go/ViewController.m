@@ -52,6 +52,10 @@ enum
     
     bool _zoomed;
     float _smoothZoom;
+    
+    vec3f _rawAcceleration;                 // raw data from the accelometer
+    vec3f _smoothedAcceleration;            // smoothed acceleration = gravity
+    vec3f _jerkAcceleration;                // jerk acceleration = short motions, above a threshold = bump the board
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -85,13 +89,20 @@ const float ZoomOut = 12;
 const float ZoomInTightness = 0.25f;
 const float ZoomOutTightness = 0.15f;
 
+const float AccelerometerFrequency = 100;
+const float AccelerometerTightness = 0.1f;
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 
     [self setupNotifications];
+
+    UIAccelerometer * accelerometer = [UIAccelerometer sharedAccelerometer];
+    accelerometer.updateInterval = 1 / AccelerometerFrequency;
+    accelerometer.delegate = self;
     
-    self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    self.context = [ [EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 ];
 
     if (!self.context)
     {
@@ -111,6 +122,10 @@ const float ZoomOutTightness = 0.15f;
     
     _zoomed = false;
     _smoothZoom = ZoomOut;
+    
+    _rawAcceleration = vec3f(0,0,-1);
+    _smoothedAcceleration = vec3f(0,0,-1);
+    _jerkAcceleration = vec3f(0,0,0);
 
     [self setupGL];
 }
@@ -161,6 +176,7 @@ const float ZoomOutTightness = 0.15f;
     NSLog( @"will resign active" );
     _paused = true;
     _pendingUnpause = false;
+    NSLog( @"pause" );
 }
 
 - (void)didEnterBackground:(NSNotification *)notification
@@ -290,33 +306,32 @@ const float ZoomOutTightness = 0.15f;
 
 - (void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event
 {
-    NSLog( @"motion began" );
+    // ...
 }
 
 - (void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event
 {
-    NSLog( @"motion ended" );
+    if ( event.subtype == UIEventSubtypeMotionShake )
+    {
+        NSLog( @"shake" );
+    }
 }
 
 - (void)motionCancelled:(UIEventSubtype)motion withEvent:(UIEvent *)event
 {
-    NSLog( @"motion cancelled" );
+    // ...
 }
 
-/*
- const int AccelerometerFrequency = 60;
- 
- - (void)configureAccelerometer
- {
- UIAccelerometer * accelerometer = [UIAccelerometer sharedAccelerometer];
- accelerometer.updateInterval = 1 / AccelerometerFrequency;
- accelerometer.delegate = self;
- }
- */
+- (void)accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration
+{
+    _rawAcceleration = vec3f( acceleration.x, acceleration.y, acceleration.z );
+    _smoothedAcceleration += ( _rawAcceleration - _smoothedAcceleration ) * AccelerometerTightness;
+    _jerkAcceleration = _rawAcceleration - _smoothedAcceleration;
+}
 
 - (void)deviceOrientationDidChange:(NSNotification *)notification
 {
-    NSLog( @"device orientation did change" );
+    // ...
 }
 
 - (void)update
@@ -349,6 +364,9 @@ const float ZoomOutTightness = 0.15f;
         dt = 0.0f;
     
     _rotation += dt * 0.5f;
+    
+    if ( length( _jerkAcceleration ) > 0.25f )
+        NSLog( @"jerk acceleration: %f,%f,%f", _jerkAcceleration.x(), _jerkAcceleration.y(), _jerkAcceleration.z() );
 }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
@@ -373,7 +391,7 @@ const float ZoomOutTightness = 0.15f;
     {
         _pendingUnpause = false;
         _paused = false;
-        NSLog( @"pending unpause -> unpause" );
+        NSLog( @"unpause" );
     }
 }
 
