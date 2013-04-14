@@ -483,13 +483,13 @@ int main( int argc, char * argv[] )
 
             if ( input.up )
             {
-                stone.rigidBody.linearMomentum += Slide * vec3f(0,0,1) * dt;
+                stone.rigidBody.linearMomentum += Slide * vec3f(0,1,0) * dt;
                 sliding = true;
             }
 
             if ( input.down )
             {
-                stone.rigidBody.linearMomentum += Slide * vec3f(0,0,-1) * dt;
+                stone.rigidBody.linearMomentum += Slide * vec3f(0,-1,0) * dt;
                 sliding = true;
             }
 
@@ -664,7 +664,7 @@ int main( int argc, char * argv[] )
             else if ( zoomLevel == 2 )
             {
                 targetLookAt = vec3f(x,y+4,z);
-                targetPosition = vec3f(x,y+8,z-25);
+                targetPosition = vec3f(x,y-25,z+8);
             }
             else if ( zoomLevel == 3 )
             {

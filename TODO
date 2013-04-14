@@ -1,18 +1,18 @@
 DONE:
 
-    Port to XCode and get OpenGL basic stone rendering working
-
     Convert to right handed coordinates (WIP fixing up)
+
+    Fixed biconvex support
+
+    Fixed weirdness with camera zoom levels
+
+    Fixed stone strafe sliding directions
 
 TODO:
 
-    -----------------------------------------------------------------
-
-    Support demo appears to be wrong (not picking up circle edge case?)
-
     Contact point is wrong with biconvex vs. primary surface
 
-    Why are cracks showing in tessellation demo?
+    Highest level zoom cam is incorrect -- like a sign is flipped (eg. front to behind object)
 
     Re-enable energy kinetic energy post-collision test. 
 
@@ -20,13 +20,23 @@ TODO:
 
     -----------------------------------------------------------------
 
+    Reduce frequency of substeps -- I think we only need to 
+    integrate the orientation with these substeps, and don't
+    need to run collision detection and response at this rate!
+
+    (Tunnelling may become more of a problem...)
+
+    -----------------------------------------------------------------
+
+    Tessellation demo appears to be inside out?
+
+    Why are cracks showing in tessellation demo?
+
+    -----------------------------------------------------------------
+
     Find a way to unify code between xcode and sublime codebases
 
     Implement collision detection with walls (eg. plane)
-
-    Determine appropriate zoom level for iPhone vs. iPad so the
-    application is usable on both. Right now it is too zoomed in
-    on the iPhone version!
 
     Detect stone at rest (to stop drift on slope...)
 

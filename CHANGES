@@ -1,4 +1,23 @@
 
+Ported stone demo to iPad/iPhone (14/4/2013):
+---------------------------------------------
+
+    Simple OpenGL rendering with OpenGL ES 2.0
+
+    Detected single tap vs. double tap
+
+    Detected application wake up / sleep
+
+    Disabled different orientations in app
+
+    Read accelerometer value, lowpass to find gravity
+    then take the highpass to detect acceleration jerks
+
+    Determine appropriate zoom level for iPhone vs. iPad so the
+    go stone at zoomed out mode is actual size, and in zoomed in
+    mode does not clip against the screen bounds.
+
+
 Separated collision demo, added video recording (17/3/2013):
 ------------------------------------------------------------
 

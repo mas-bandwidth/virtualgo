@@ -32,7 +32,7 @@ public:
         sphereRadius = ( width*width + height*height ) / ( 4 * height );
         sphereRadiusSquared = sphereRadius * sphereRadius;
         sphereOffset = sphereRadius - height/2;
-        sphereDot = dot( vec3f(0,0,1), normalize( vec3f( width/2, sphereOffset, 0 ) ) );
+        sphereDot = dot( vec3f(1,0,0), normalize( vec3f( width/2, sphereOffset, 0 ) ) );
 
         circleRadius = width / 2;
 
