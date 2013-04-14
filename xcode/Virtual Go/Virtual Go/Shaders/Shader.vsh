@@ -17,12 +17,13 @@ uniform mat3 normalMatrix;
 void main()
 {
     vec3 eyeNormal = normalize( normalMatrix * normal );
-    vec3 lightPosition = vec3( 0.0, 0.0, 1.0 );
+    vec3 lightPosition = vec3( 0.0, 1.0, 0.0 );
     vec4 diffuseColor = vec4( 1.0, 1.0, 1.0, 1.0 );
+    vec4 ambientColor = vec4( 0.5, 0.5, 0.5, 1.0 );
     
     float nDotVP = max( 0.0, dot( eyeNormal, normalize( lightPosition ) ) );
                  
-    colorVarying = diffuseColor * nDotVP;
+    colorVarying = ambientColor + diffuseColor * nDotVP;
     
     gl_Position = modelViewProjectionMatrix * position;
 }

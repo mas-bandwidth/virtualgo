@@ -159,20 +159,20 @@ enum
 - (void)update
 {
     float aspect = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
-    GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(45.0f), aspect, 0.1f, 100.0f);
     
-    // todo: need a way to compose the camera matrix better -- eg. lookat
-    // because this is currently looking down the positive z axis, and I don't want that
+    GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective( GLKMathDegreesToRadians(40.0f), aspect, 0.1f, 100.0f );
     
-    GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeTranslation(0.0f, 0.0f, -3.0f);
+    GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeLookAt( 0, -5, 0,
+                                                           0, 0, 0,
+                                                           0, 0, 1 );
     
     GLKMatrix4 modelViewMatrix = GLKMatrix4Identity;
-    modelViewMatrix = GLKMatrix4Rotate(modelViewMatrix, _rotation, 1.0f, 1.0f, 1.0f);
-    modelViewMatrix = GLKMatrix4Multiply(baseModelViewMatrix, modelViewMatrix);
+    modelViewMatrix = GLKMatrix4Rotate( modelViewMatrix, _rotation, 1, 1, 1 );
+    modelViewMatrix = GLKMatrix4Multiply( baseModelViewMatrix, modelViewMatrix );
     
-    _normalMatrix = GLKMatrix3InvertAndTranspose(GLKMatrix4GetMatrix3(modelViewMatrix), NULL);
+    _normalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(modelViewMatrix), NULL );
     
-    _modelViewProjectionMatrix = GLKMatrix4Multiply(projectionMatrix, modelViewMatrix);
+    _modelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelViewMatrix );
     
     _rotation += self.timeSinceLastUpdate * 0.5f;
 }

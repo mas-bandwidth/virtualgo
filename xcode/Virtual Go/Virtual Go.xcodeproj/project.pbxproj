@@ -89,11 +89,9 @@
 		F2665458171A3CF000CFB131 /* CollisionDetection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CollisionDetection.h; sourceTree = "<group>"; };
 		F2665459171A3CF000CFB131 /* CollisionResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CollisionResponse.h; sourceTree = "<group>"; };
 		F266545A171A3CF000CFB131 /* Common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Common.h; sourceTree = "<group>"; };
-		F266545B171A3CF000CFB131 /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Config.h; sourceTree = "<group>"; };
 		F266545C171A3CF000CFB131 /* InertiaTensor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InertiaTensor.h; sourceTree = "<group>"; };
 		F266545D171A3CF000CFB131 /* Intersection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Intersection.h; sourceTree = "<group>"; };
 		F266545E171A3CF000CFB131 /* Mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mesh.h; sourceTree = "<group>"; };
-		F266545F171A3CF000CFB131 /* Platform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Platform.h; sourceTree = "<group>"; };
 		F2665460171A3CF000CFB131 /* Render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Render.h; sourceTree = "<group>"; };
 		F2665461171A3CF000CFB131 /* RigidBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RigidBody.h; sourceTree = "<group>"; };
 		F2665463171A3CF000CFB131 /* Stone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Stone.h; sourceTree = "<group>"; };
@@ -173,11 +171,9 @@
 				F2665458171A3CF000CFB131 /* CollisionDetection.h */,
 				F2665459171A3CF000CFB131 /* CollisionResponse.h */,
 				F266545A171A3CF000CFB131 /* Common.h */,
-				F266545B171A3CF000CFB131 /* Config.h */,
 				F266545C171A3CF000CFB131 /* InertiaTensor.h */,
 				F266545D171A3CF000CFB131 /* Intersection.h */,
 				F266545E171A3CF000CFB131 /* Mesh.h */,
-				F266545F171A3CF000CFB131 /* Platform.h */,
 				F2665460171A3CF000CFB131 /* Render.h */,
 				F2665461171A3CF000CFB131 /* RigidBody.h */,
 				F2665463171A3CF000CFB131 /* Stone.h */,
