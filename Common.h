@@ -213,7 +213,7 @@ inline quat4f multiply( const quat4f & q1, const quat4f & q2 )
 inline quat4f normalize( const quat4f & q, const float epsilon = 0.0001f )
 {
     const float length = q.length();
-    assert( length > epsilon  );
+    assert( length > epsilon );
     float inv = 1.0f / length;
     quat4f result;
     result.x = q.x * inv;

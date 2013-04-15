@@ -93,7 +93,7 @@ const float ZoomOutTightness = 0.15f;
 
 const float AccelerometerFrequency = 60;
 const float AccelerometerTightness = 0.1f;
-const float JerkThreshold = 0.25f;
+const float JerkThreshold = 0.1f;
 
 bool iPad()
 {
@@ -122,17 +122,13 @@ bool iPad()
     view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
     
     _stone.Initialize( STONE_SIZE_34 );
-    
-    _stone.rigidBody.position = vec3f( 0, 0, 20 );//_stone.biconvex.GetHeight()/2 );
-    _stone.rigidBody.orientation = quat4f(1,0,0,0);
-    _stone.rigidBody.linearVelocity = vec3f(0,0,0);
-    _stone.rigidBody.angularVelocity = vec3f(0,0,0);
-    _stone.rigidBody.Update();
-    
+
     GenerateBiconvexMesh( _mesh, _stone.biconvex );
-    
+
+    [self setupGL];
+
     _paused = true;
-    _zoomed = iPad();
+    _zoomed = false;
     
     _smoothZoom = iPad() ? ZoomOut_iPad : ZoomOut_iPhone;
     
@@ -140,7 +136,7 @@ bool iPad()
     _smoothedAcceleration = vec3f(0,0,-1);
     _jerkAcceleration = vec3f(0,0,0);
 
-    [self setupGL];
+    [self dropStone];
 }
 
 - (void)dealloc
@@ -293,7 +289,7 @@ bool iPad()
         NSDictionary * touchLoc = [NSDictionary dictionaryWithObject:
                                    [NSValue valueWithCGPoint:[touch locationInView:self.view]] forKey:@"location"];
         
-        [self performSelector:@selector(handleSingleTap:) withObject:touchLoc afterDelay:0.2];
+        [self performSelector:@selector(handleSingleTap:) withObject:touchLoc afterDelay:0.3];
         
     }
     else if ( touch.tapCount >= 2 )
@@ -309,6 +305,8 @@ bool iPad()
 - (void)handleSingleTap:(NSDictionary *)touches
 {
     NSLog( @"single tap" );
+    
+    [self dropStone];
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
@@ -345,6 +343,15 @@ bool iPad()
     // ...
 }
 
+- (void)dropStone
+{
+    _stone.rigidBody.position = vec3f( 0, 0, _smoothZoom );
+    _stone.rigidBody.orientation = quat4f(1,0,0,0);
+    _stone.rigidBody.linearMomentum = vec3f(0,0,0);
+
+    _stone.rigidBody.Update();
+}
+
 - (void)updatePhysics:(float)dt
 {
     if ( dt == 0 )
@@ -354,6 +361,11 @@ bool iPad()
     
     Stone & stone = _stone;
     
+    // apply jerk acceleration to stone
+    
+    if ( length( _jerkAcceleration ) > JerkThreshold )
+        stone.rigidBody.linearMomentum += _jerkAcceleration * stone.rigidBody.mass * dt;
+    
     // update stone physics
 
     const int iterations = 20;
@@ -362,9 +374,11 @@ bool iPad()
 
     for ( int i = 0; i < iterations; ++i )
     {
-        const float gravity = 9.8f * 10;    // cms/sec^2
+        vec3f down = normalize( _smoothedAcceleration );
+        
+        vec3f gravity = 9.8f * 10 * down;
 
-        stone.rigidBody.linearMomentum += vec3f(0,0,-gravity) * stone.rigidBody.mass * iteration_dt;
+        stone.rigidBody.linearMomentum += gravity * stone.rigidBody.mass * iteration_dt;
 
         stone.rigidBody.Update();
 
@@ -378,23 +392,24 @@ bool iPad()
             stone.rigidBody.orientation += spin * rotation_substep_dt;
             stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
         }
-
+        
         // collision between stone and board
 
-        /*
         collided = false;
 
-        const float board_e = 0.8f;
-        const float board_u = 0.1f;
+        const float board_e = 0.5f;
+        const float board_u = 0.5f;
 
         StaticContact boardContact;
+        
         if ( StoneFloorCollision( stone.biconvex, stone.rigidBody, boardContact ) )
         {
             ApplyCollisionImpulseWithFriction( boardContact, board_e, board_u );
+            
             stone.rigidBody.Update();
+            
             collided = true;
         }
-        */
 
         // this is a *massive* hack to approximate rolling/spinning
         // friction and it is completely made up and not accurate at all!
@@ -402,10 +417,13 @@ bool iPad()
         if ( collided )
         {
             float momentum = length( stone.rigidBody.angularMomentum );
-            const float factor_a = DecayFactor( 0.9915f, dt );
-            const float factor_b = DecayFactor( 0.9995f, dt );
+            
+            const float factor_a = 0.9915f;//DecayFactor( 0.9915f, iteration_dt );
+            const float factor_b = 0.9995f;//DecayFactor( 0.9995f, iteration_dt );
+            
             const float a = 0.0f;
             const float b = 1.0f;
+            
             if ( momentum >= b )
             {
                 stone.rigidBody.angularMomentum *= factor_b;
@@ -424,8 +442,8 @@ bool iPad()
 
         // apply damping
 
-        const float linear_factor = DecayFactor( 0.99999f, dt );
-        const float angular_factor = DecayFactor( 0.9999f, dt );
+        const float linear_factor = DecayFactor( 0.99999f, iteration_dt );
+        const float angular_factor = DecayFactor( 0.9999f, iteration_dt );
 
         stone.rigidBody.linearMomentum *= linear_factor;
         stone.rigidBody.angularMomentum *= angular_factor;
@@ -444,10 +462,16 @@ bool iPad()
     
     GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective( GLKMathDegreesToRadians(40.0f), aspect, 0.1f, 100.0f );
     
+    /*
+    GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeLookAt( 0, -5, 1,
+                                                           0, 0, 0,
+                                                           1, 0, 0 );
+    */
+
     GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeLookAt( 0, 0, _smoothZoom,
                                                            0, 0, 0,
                                                            0, 1, 0 );
-        
+    
     RigidBodyTransform biconvexTransform( _stone.rigidBody.position, _stone.rigidBody.orientation );
     float opengl_transform[16];
     biconvexTransform.localToWorld.store( opengl_transform );
@@ -455,7 +479,7 @@ bool iPad()
 
     GLKMatrix4 modelViewMatrix = GLKMatrix4MakeWithArray( opengl_transform );
     
-    modelViewMatrix = GLKMatrix4Multiply( modelViewMatrix, baseModelViewMatrix );
+    modelViewMatrix = GLKMatrix4Multiply( baseModelViewMatrix, modelViewMatrix );
     
     _normalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(modelViewMatrix), NULL );
     
