@@ -84,17 +84,17 @@
 		F2665453171A3C8900CFB131 /* vec2f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vec2f.h; sourceTree = "<group>"; };
 		F2665454171A3C8900CFB131 /* vec3f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vec3f.h; sourceTree = "<group>"; };
 		F2665455171A3C8900CFB131 /* vec4f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vec4f.h; sourceTree = "<group>"; };
-		F2665456171A3CEF00CFB131 /* Biconvex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Biconvex.h; sourceTree = "<group>"; };
-		F2665457171A3CEF00CFB131 /* Board.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Board.h; sourceTree = "<group>"; };
-		F2665458171A3CF000CFB131 /* CollisionDetection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CollisionDetection.h; sourceTree = "<group>"; };
-		F2665459171A3CF000CFB131 /* CollisionResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CollisionResponse.h; sourceTree = "<group>"; };
-		F266545A171A3CF000CFB131 /* Common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Common.h; sourceTree = "<group>"; };
-		F266545C171A3CF000CFB131 /* InertiaTensor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InertiaTensor.h; sourceTree = "<group>"; };
-		F266545D171A3CF000CFB131 /* Intersection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Intersection.h; sourceTree = "<group>"; };
-		F266545E171A3CF000CFB131 /* Mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mesh.h; sourceTree = "<group>"; };
-		F2665460171A3CF000CFB131 /* Render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Render.h; sourceTree = "<group>"; };
-		F2665461171A3CF000CFB131 /* RigidBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RigidBody.h; sourceTree = "<group>"; };
-		F2665463171A3CF000CFB131 /* Stone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Stone.h; sourceTree = "<group>"; };
+		F2776EAD171B834800E73C61 /* Biconvex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Biconvex.h; path = ../../Biconvex.h; sourceTree = "<group>"; };
+		F2776EAE171B834800E73C61 /* Board.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Board.h; path = ../../Board.h; sourceTree = "<group>"; };
+		F2776EAF171B834800E73C61 /* CollisionDetection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CollisionDetection.h; path = ../../CollisionDetection.h; sourceTree = "<group>"; };
+		F2776EB0171B834800E73C61 /* CollisionResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CollisionResponse.h; path = ../../CollisionResponse.h; sourceTree = "<group>"; };
+		F2776EB1171B834800E73C61 /* Common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Common.h; path = ../../Common.h; sourceTree = "<group>"; };
+		F2776EB2171B834800E73C61 /* InertiaTensor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = InertiaTensor.h; path = ../../InertiaTensor.h; sourceTree = "<group>"; };
+		F2776EB3171B834800E73C61 /* Intersection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Intersection.h; path = ../../Intersection.h; sourceTree = "<group>"; };
+		F2776EB4171B834800E73C61 /* Mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Mesh.h; path = ../../Mesh.h; sourceTree = "<group>"; };
+		F2776EB5171B834800E73C61 /* Render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Render.h; path = ../../Render.h; sourceTree = "<group>"; };
+		F2776EB6171B834800E73C61 /* RigidBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RigidBody.h; path = ../../RigidBody.h; sourceTree = "<group>"; };
+		F2776EB7171B834800E73C61 /* Stone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Stone.h; path = ../../Stone.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -166,17 +166,17 @@
 				F2665412171A205500CFB131 /* Shader.vsh */,
 				F2665414171A205500CFB131 /* ViewController.h */,
 				F2665415171A205500CFB131 /* ViewController.m */,
-				F2665456171A3CEF00CFB131 /* Biconvex.h */,
-				F2665457171A3CEF00CFB131 /* Board.h */,
-				F2665458171A3CF000CFB131 /* CollisionDetection.h */,
-				F2665459171A3CF000CFB131 /* CollisionResponse.h */,
-				F266545A171A3CF000CFB131 /* Common.h */,
-				F266545C171A3CF000CFB131 /* InertiaTensor.h */,
-				F266545D171A3CF000CFB131 /* Intersection.h */,
-				F266545E171A3CF000CFB131 /* Mesh.h */,
-				F2665460171A3CF000CFB131 /* Render.h */,
-				F2665461171A3CF000CFB131 /* RigidBody.h */,
-				F2665463171A3CF000CFB131 /* Stone.h */,
+				F2776EAD171B834800E73C61 /* Biconvex.h */,
+				F2776EAE171B834800E73C61 /* Board.h */,
+				F2776EAF171B834800E73C61 /* CollisionDetection.h */,
+				F2776EB0171B834800E73C61 /* CollisionResponse.h */,
+				F2776EB1171B834800E73C61 /* Common.h */,
+				F2776EB2171B834800E73C61 /* InertiaTensor.h */,
+				F2776EB3171B834800E73C61 /* Intersection.h */,
+				F2776EB4171B834800E73C61 /* Mesh.h */,
+				F2776EB5171B834800E73C61 /* Render.h */,
+				F2776EB6171B834800E73C61 /* RigidBody.h */,
+				F2776EB7171B834800E73C61 /* Stone.h */,
 				F2665445171A3C8900CFB131 /* vectorial */,
 				F26653F9171A205400CFB131 /* Supporting Files */,
 			);

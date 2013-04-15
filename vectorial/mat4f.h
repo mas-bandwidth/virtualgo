@@ -7,7 +7,7 @@
 #define VECTORIAL_MAT4F_H
 
 #ifndef VECTORIAL_SIMD4X4F_H
-  #include "vectorial/simd4x4f.h"
+  #include "simd4x4f.h"
 #endif
 
 #ifndef VECTORIAL_VEC4F_H

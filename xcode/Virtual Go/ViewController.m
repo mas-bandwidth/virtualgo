@@ -39,7 +39,6 @@ enum
     
     GLKMatrix4 _modelViewProjectionMatrix;
     GLKMatrix3 _normalMatrix;
-    float _rotation;
     
     GLuint _vertexBuffer;
     GLuint _indexBuffer;
@@ -48,7 +47,6 @@ enum
     Mesh _mesh;
     
     bool _paused;
-    bool _pendingUnpause;
     
     bool _zoomed;
     float _smoothZoom;
@@ -125,12 +123,16 @@ bool iPad()
     
     _stone.Initialize( STONE_SIZE_34 );
     
+    _stone.rigidBody.position = vec3f( 0, 0, _stone.biconvex.GetHeight()/2 );
+    _stone.rigidBody.orientation = quat4f(1,0,0,0);
+    _stone.rigidBody.linearVelocity = vec3f(0,0,0);
+    _stone.rigidBody.angularVelocity = vec3f(0,0,0);
+    _stone.rigidBody.Update();
+    
     GenerateBiconvexMesh( _mesh, _stone.biconvex );
     
     _paused = true;
-    _pendingUnpause = false;
-    
-    _zoomed = false;
+    _zoomed = iPad();
     
     _smoothZoom = iPad() ? ZoomOut_iPad : ZoomOut_iPhone;
     
@@ -179,15 +181,13 @@ bool iPad()
 - (void)didBecomeActive:(NSNotification *)notification
 {
     NSLog( @"did become active" );
-    _pendingUnpause = true;
+    _paused = false;
 }
 
 - (void)willResignActive:(NSNotification *)notification
 {
     NSLog( @"will resign active" );
     _paused = true;
-    _pendingUnpause = false;
-    NSLog( @"pause" );
 }
 
 - (void)didEnterBackground:(NSNotification *)notification
@@ -202,6 +202,8 @@ bool iPad()
 
 - (void)didReceiveMemoryWarning
 {
+    NSLog( @"did receive memory warning" );
+
     [super didReceiveMemoryWarning];
 
     if ([self isViewLoaded] && ([[self view] window] == nil))
@@ -279,7 +281,6 @@ bool iPad()
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    // ...
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
@@ -308,12 +309,10 @@ bool iPad()
 - (void)handleSingleTap:(NSDictionary *)touches
 {
     NSLog( @"single tap" );
-    _paused = !_paused;
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    [NSObject cancelPreviousPerformRequestsWithTarget:self];
 }
 
 - (void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event
@@ -346,7 +345,96 @@ bool iPad()
     // ...
 }
 
-- (void)update
+- (void)updatePhysics:(float)dt
+{
+    if ( dt == 0 )
+        return;
+    
+    bool collided = false;
+    
+    Stone & stone = _stone;
+    
+    // update stone physics
+
+    const int iterations = 20;
+
+    const float iteration_dt = dt / iterations;
+
+    for ( int i = 0; i < iterations; ++i )
+    {
+        const float gravity = 9.8f * 10;    // cms/sec^2
+
+        stone.rigidBody.linearMomentum += vec3f(0,0,-gravity) * stone.rigidBody.mass * iteration_dt;
+
+        stone.rigidBody.Update();
+
+        stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
+
+        const int rotation_substeps = 10;
+        const float rotation_substep_dt = iteration_dt / rotation_substeps;
+        for ( int j = 0; j < rotation_substeps; ++j )
+        {
+            quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
+            stone.rigidBody.orientation += spin * rotation_substep_dt;
+            stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
+        }
+
+        // collision between stone and board
+
+        /*
+        collided = false;
+
+        const float board_e = 0.8f;
+        const float board_u = 0.1f;
+
+        StaticContact boardContact;
+        if ( StoneFloorCollision( stone.biconvex, stone.rigidBody, boardContact ) )
+        {
+            ApplyCollisionImpulseWithFriction( boardContact, board_e, board_u );
+            stone.rigidBody.Update();
+            collided = true;
+        }
+        */
+
+        // this is a *massive* hack to approximate rolling/spinning
+        // friction and it is completely made up and not accurate at all!
+
+        if ( collided )
+        {
+            float momentum = length( stone.rigidBody.angularMomentum );
+            const float factor_a = DecayFactor( 0.9915f, dt );
+            const float factor_b = DecayFactor( 0.9995f, dt );
+            const float a = 0.0f;
+            const float b = 1.0f;
+            if ( momentum >= b )
+            {
+                stone.rigidBody.angularMomentum *= factor_b;
+            }
+            else if ( momentum <= a )
+            {
+                stone.rigidBody.angularMomentum *= factor_a;
+            }
+            else
+            {
+                const float alpha = ( momentum - a ) / ( b - a );
+                const float factor = factor_a * ( 1 - alpha ) + factor_b * alpha;
+                stone.rigidBody.angularMomentum *= factor;
+            }
+        }
+
+        // apply damping
+
+        const float linear_factor = DecayFactor( 0.99999f, dt );
+        const float angular_factor = DecayFactor( 0.9999f, dt );
+
+        stone.rigidBody.linearMomentum *= linear_factor;
+        stone.rigidBody.angularMomentum *= angular_factor;
+        
+        stone.rigidBody.Update();
+    }
+}
+
+- (void)render
 {
     float aspect = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
     
@@ -361,12 +449,23 @@ bool iPad()
                                                            0, 1, 0 );
     
     GLKMatrix4 modelViewMatrix = GLKMatrix4Identity;
-    modelViewMatrix = GLKMatrix4Rotate( modelViewMatrix, _rotation, 1, 1, 1 );
-    modelViewMatrix = GLKMatrix4Multiply( baseModelViewMatrix, modelViewMatrix );
     
+    // todo: multiply by rigid body matrix for rigidbody
+    /*
+    modelViewMatrix = GLKMatrix4Rotate( modelViewMatrix, _rotation, 1, 1, 1 );
+     */
+
+    modelViewMatrix = GLKMatrix4Multiply( baseModelViewMatrix, modelViewMatrix );
+
     _normalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(modelViewMatrix), NULL );
     
     _modelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelViewMatrix );
+}
+
+- (void)update
+{
+    if ( length( _jerkAcceleration ) > JerkThreshold )
+        NSLog( @"jerk acceleration: %f,%f,%f", _jerkAcceleration.x(), _jerkAcceleration.y(), _jerkAcceleration.z() );
     
     float dt = self.timeSinceLastUpdate;
     if ( dt > 1 / 10.0f )
@@ -375,15 +474,14 @@ bool iPad()
     if ( _paused )
         dt = 0.0f;
     
-    _rotation += dt * 0.5f;
+    [self updatePhysics:dt];
     
-    if ( length( _jerkAcceleration ) > JerkThreshold )
-        NSLog( @"jerk acceleration: %f,%f,%f", _jerkAcceleration.x(), _jerkAcceleration.y(), _jerkAcceleration.z() );
+    [self render];
 }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
-    glClearColor( 0.2f, 0.2f, 0.2f, 1.0f );
+    glClearColor( 0.1f, 0.1f, 0.1f, 1.0f );
     
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     
@@ -394,17 +492,8 @@ bool iPad()
     
     glBindBuffer( GL_ARRAY_BUFFER, _vertexBuffer );
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indexBuffer );
-
-    glDrawElements( GL_TRIANGLES, _mesh.GetNumTriangles()*3, GL_UNSIGNED_INT, NULL );
     
-    // IMPORTANT: attempt avoid the pop when restoring the app
-    // this does not seem to work. i need to understand what is going on
-    if ( _pendingUnpause )
-    {
-        _pendingUnpause = false;
-        _paused = false;
-        NSLog( @"unpause" );
-    }
+    glDrawElements( GL_TRIANGLES, _mesh.GetNumTriangles()*3, GL_UNSIGNED_INT, NULL );
 }
 
 #pragma mark -  OpenGL ES 2 shader compilation

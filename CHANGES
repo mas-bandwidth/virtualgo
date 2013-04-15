@@ -1,4 +1,30 @@
 
+Various post-GDC fixes (14/4/2013):
+-----------------------------------
+
+    Convert to right handed coordinates (WIP fixing up)
+
+    Fixed biconvex support
+
+    Fixed weirdness with camera zoom levels
+
+    Fixed stone strafe sliding directions
+
+    Contact point is wrong with biconvex vs. primary surface
+
+    Re-enable energy kinetic energy post-collision test. Works with epsilon!
+
+    Fix lighting in collision demo
+
+    Remove VirtualGo.cpp demo -- too similar to collision demo
+
+    Tessellation demo appears to be inside out?
+
+    Why are cracks showing in tessellation demo? Not any more!
+
+    Find a way to unify code between xcode and sublime codebases
+
+    
 Ported stone demo to iPad/iPhone (14/4/2013):
 ---------------------------------------------
 

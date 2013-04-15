@@ -6,7 +6,7 @@
 #ifndef VECTORIAL_VEC2F_H
 
 #ifndef VECTORIAL_SIMD4F_H
-  #include "vectorial/simd4f.h"
+  #include "simd4f.h"
 #endif
 
 

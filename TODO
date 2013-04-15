@@ -1,26 +1,20 @@
 DONE:
 
-    Convert to right handed coordinates (WIP fixing up)
-
-    Fixed biconvex support
-
-    Fixed weirdness with camera zoom levels
-
-    Fixed stone strafe sliding directions
-
-    Contact point is wrong with biconvex vs. primary surface
-
-    Re-enable energy kinetic energy post-collision test. Works with epsilon!
-
-    Fix lighting in collision demo
-
-    Remove VirtualGo.cpp demo -- too similar to collision demo
-
-    Tessellation demo appears to be inside out?
-
-    Why are cracks showing in tessellation demo? Not any more!
-
 TODO:
+
+    Get basic stone physics into iOS app
+
+    Get basic collision working with floor
+
+    Hook up gravity to be driven by the accelerometer
+
+    Add the jerk acceleration to the stone (or subtract, I think...)
+
+    Implement collision detection with walls (eg. plane)
+
+    Detect stone at rest (to stop drift on slope...)
+
+    -----------------------------------------------------------------
 
     Fix tessellation demo so the two tessellation methods match
 
@@ -32,14 +26,6 @@ TODO:
 
     Move the video recording framework into Platform.h/cpp so
     it isn't cut & paste in every demo program!
-
-    -----------------------------------------------------------------
-
-    Find a way to unify code between xcode and sublime codebases
-
-    Implement collision detection with walls (eg. plane)
-
-    Detect stone at rest (to stop drift on slope...)
 
     -----------------------------------------------------------------
 
