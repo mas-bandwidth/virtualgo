@@ -1,18 +1,42 @@
 DONE:
 
-TODO:
-
     Get basic stone physics into iOS app
 
     Get basic collision working with floor
 
     Hook up gravity to be driven by the accelerometer
 
-    Add the jerk acceleration to the stone (or subtract, I think...)
+    Add the jerk acceleration to the stone
 
-    Implement collision detection with walls (eg. plane)
+    Tune elasticity and friction
 
-    Detect stone at rest (to stop drift on slope...)
+TODO:
+
+    Dig up old code I have for generating view frustum plane
+
+    If the stone is within bounding sphere radius of near plane
+    snap position to center - eye position axis
+
+    Add collision planes for walls. Include, near, far and side planes.
+
+    Implement select and drag for the stone
+
+    If you click on (or near) the stone it should go into select mode
+    which applies strong damping on the rotation -- eg. then the stone
+    should follow precisely where you move, and inherit linear velocity
+    from your swiping.
+
+    Angular effects are not necessary as friction will induce them
+
+    Implement two-press select for placing a stone
+
+    Think of some gesture or something that could induce a spinning
+    motion on the stone, it's definitely cool to play with a spinning
+    go stone!
+
+    How to detect launching the board up? When this happens,
+    make the stone bounce upwards in an exaggerated gesture
+    (eg. nuclear tesuji!)
 
     -----------------------------------------------------------------
 
