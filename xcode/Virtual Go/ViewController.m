@@ -123,7 +123,7 @@ bool iPad()
     
     _stone.Initialize( STONE_SIZE_34 );
     
-    _stone.rigidBody.position = vec3f( 0, 0, _stone.biconvex.GetHeight()/2 );
+    _stone.rigidBody.position = vec3f( 0, 0, 20 );//_stone.biconvex.GetHeight()/2 );
     _stone.rigidBody.orientation = quat4f(1,0,0,0);
     _stone.rigidBody.linearVelocity = vec3f(0,0,0);
     _stone.rigidBody.angularVelocity = vec3f(0,0,0);
@@ -447,16 +447,16 @@ bool iPad()
     GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeLookAt( 0, 0, _smoothZoom,
                                                            0, 0, 0,
                                                            0, 1, 0 );
-    
-    GLKMatrix4 modelViewMatrix = GLKMatrix4Identity;
-    
-    // todo: multiply by rigid body matrix for rigidbody
-    /*
-    modelViewMatrix = GLKMatrix4Rotate( modelViewMatrix, _rotation, 1, 1, 1 );
-     */
+        
+    RigidBodyTransform biconvexTransform( _stone.rigidBody.position, _stone.rigidBody.orientation );
+    float opengl_transform[16];
+    biconvexTransform.localToWorld.store( opengl_transform );
+    glMultMatrixf( opengl_transform );
 
-    modelViewMatrix = GLKMatrix4Multiply( baseModelViewMatrix, modelViewMatrix );
-
+    GLKMatrix4 modelViewMatrix = GLKMatrix4MakeWithArray( opengl_transform );
+    
+    modelViewMatrix = GLKMatrix4Multiply( modelViewMatrix, baseModelViewMatrix );
+    
     _normalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(modelViewMatrix), NULL );
     
     _modelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelViewMatrix );
@@ -484,6 +484,9 @@ bool iPad()
     glClearColor( 0.1f, 0.1f, 0.1f, 1.0f );
     
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    
+    if ( _paused )
+        return;
     
     glUseProgram( _program );
     

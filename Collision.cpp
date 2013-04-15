@@ -773,7 +773,7 @@ int main( int argc, char * argv[] )
                 const float floor_u = sliding ? 0.35f : 0.15f;
 
                 StaticContact floorContact;
-                if ( StoneFloorCollision( stone.biconvex, board, stone.rigidBody, floorContact ) )
+                if ( StoneFloorCollision( stone.biconvex, stone.rigidBody, floorContact ) )
                 {
                     if ( mode == LinearCollisionResponse )
                         ApplyLinearCollisionImpulse( floorContact, floor_e );
