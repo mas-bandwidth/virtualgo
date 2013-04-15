@@ -39,8 +39,23 @@ void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float 
 
     const float j = - ( 1 + e ) * vn / k;
 
+    assert( j == j );
+    assert( k == k );
+
+    assert( contact.normal.x() == contact.normal.x() );
+    assert( contact.normal.y() == contact.normal.y() );
+    assert( contact.normal.z() == contact.normal.z() );
+
     rigidBody.linearMomentum += j * contact.normal;
     rigidBody.angularMomentum += j * cross( r, contact.normal );
+
+    assert( rigidBody.linearMomentum.x() == rigidBody.linearMomentum.x() );
+    assert( rigidBody.linearMomentum.y() == rigidBody.linearMomentum.y() );
+    assert( rigidBody.linearMomentum.z() == rigidBody.linearMomentum.z() );
+
+    assert( rigidBody.angularMomentum.x() == rigidBody.angularMomentum.x() );
+    assert( rigidBody.angularMomentum.y() == rigidBody.angularMomentum.y() );
+    assert( rigidBody.angularMomentum.z() == rigidBody.angularMomentum.z() );
 
     const float ke_after_collision = rigidBody.GetKineticEnergy();
 
@@ -64,8 +79,19 @@ void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float 
 
         const float jt = clamp( -vt / kt, -u * j, u * j );
 
+        assert( jt == jt );
+        assert( kt == kt );
+        
         rigidBody.linearMomentum += jt * tangent;
         rigidBody.angularMomentum += jt * cross( r, tangent );
+
+        assert( rigidBody.linearMomentum.x() == rigidBody.linearMomentum.x() );
+        assert( rigidBody.linearMomentum.y() == rigidBody.linearMomentum.y() );
+        assert( rigidBody.linearMomentum.z() == rigidBody.linearMomentum.z() );
+
+        assert( rigidBody.angularMomentum.x() == rigidBody.angularMomentum.x() );
+        assert( rigidBody.angularMomentum.y() == rigidBody.angularMomentum.y() );
+        assert( rigidBody.angularMomentum.z() == rigidBody.angularMomentum.z() );
     }
 
     const float ke_after_friction = rigidBody.GetKineticEnergy();

@@ -39,6 +39,7 @@ enum
     
     GLKMatrix4 _modelViewProjectionMatrix;
     GLKMatrix3 _normalMatrix;
+    GLKMatrix4 _clipMatrix;
     
     GLuint _vertexBuffer;
     GLuint _indexBuffer;
@@ -47,8 +48,9 @@ enum
     Mesh _mesh;
     
     bool _paused;
-    
     bool _zoomed;
+    bool _justDropped;
+
     float _smoothZoom;
     
     vec3f _rawAcceleration;                 // raw data from the accelometer
@@ -129,6 +131,7 @@ bool iPad()
 
     _paused = true;
     _zoomed = false;
+    _justDropped = false;
     
     _smoothZoom = iPad() ? ZoomOut_iPad : ZoomOut_iPhone;
     
@@ -355,15 +358,14 @@ bool iPad()
         _stone.rigidBody.angularMomentum = normalize( _stone.rigidBody.angularMomentum ) * maxMoment;
 
     _stone.rigidBody.Update();
+
+    _justDropped = true;
 }
 
 - (void)updatePhysics:(float)dt
 {
-    if ( dt == 0 )
-        return;
-    
-    bool collided = false;
-    
+    dt = 1.0f / 60.0f;
+        
     Stone & stone = _stone;
     
     // apply jerk acceleration to stone
@@ -372,7 +374,7 @@ bool iPad()
         stone.rigidBody.linearMomentum += _jerkAcceleration * stone.rigidBody.mass * dt;
     
     // update stone physics
-
+    
     const int iterations = 20;
 
     const float iteration_dt = dt / iterations;
@@ -389,6 +391,7 @@ bool iPad()
 
         stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
 
+        /*
         const int rotation_substeps = 10;
         const float rotation_substep_dt = iteration_dt / rotation_substeps;
         for ( int j = 0; j < rotation_substeps; ++j )
@@ -397,25 +400,99 @@ bool iPad()
             stone.rigidBody.orientation += spin * rotation_substep_dt;
             stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
         }
+         */
+
+        quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
+        stone.rigidBody.orientation += spin * iteration_dt;
+        stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
         
         // collision between stone and board
 
-        collided = false;
-
-        const float board_e = 0.5f;
-        const float board_u = 0.5f;
-
-        StaticContact boardContact;
+        bool collided = false;
         
-        if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, boardContact ) )
+        const float e = 0.5f;
+        const float u = 0.5f;
+
+        StaticContact contact;
+        
+        if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, contact ) )
         {
-            ApplyCollisionImpulseWithFriction( boardContact, board_e, board_u );
-            
+            ApplyCollisionImpulseWithFriction( contact, e, u );
             stone.rigidBody.Update();
-            
             collided = true;
         }
 
+        // if just dropped let it first fall through the near plane
+        // then it can start colliding with the frustum planes
+
+        if ( _justDropped )
+        {
+            const float r = stone.biconvex.GetBoundingSphereRadius();
+
+            if ( stone.rigidBody.position.z() + r >= _smoothZoom )
+                stone.rigidBody.position = vec3f( 0, 0, stone.rigidBody.position.z() );
+            else
+                _justDropped = false;
+        }
+        else
+        {
+            mat4f clipMatrix;
+            clipMatrix.load( _clipMatrix.m );
+
+            Frustum frustum;
+            CalculateFrustumPlanes( clipMatrix, frustum );
+
+            // todo: going to need iterative contact solver to resolve
+            // simultaneous collisions without popping -- right now the
+            // various planes are fighting each other, can push into another plane
+            // and then get popped out next frame etc...
+            
+            // collision between stone and near plane
+
+            if ( StonePlaneCollision( stone.biconvex, frustum.front, stone.rigidBody, contact ) )
+            {
+                ApplyCollisionImpulseWithFriction( contact, e, u );
+                stone.rigidBody.Update();
+                collided = true;
+            }
+
+            // collision between stone and left plane
+
+            if ( StonePlaneCollision( stone.biconvex, frustum.left, stone.rigidBody, contact ) )
+            {
+                ApplyCollisionImpulseWithFriction( contact, e, u );
+                stone.rigidBody.Update();
+                collided = true;
+            }
+
+            // collision between stone and right plane
+
+            if ( StonePlaneCollision( stone.biconvex, frustum.right, stone.rigidBody, contact ) )
+            {
+                ApplyCollisionImpulseWithFriction( contact, e, u );
+                stone.rigidBody.Update();
+                collided = true;
+            }
+
+            // collision between stone and top plane
+
+            if ( StonePlaneCollision( stone.biconvex, frustum.top, stone.rigidBody, contact ) )
+            {
+                ApplyCollisionImpulseWithFriction( contact, e, u );
+                stone.rigidBody.Update();
+                collided = true;
+            }
+
+            // collision between stone and bottom plane
+
+            if ( StonePlaneCollision( stone.biconvex, frustum.bottom, stone.rigidBody, contact ) )
+            {
+                ApplyCollisionImpulseWithFriction( contact, e, u );
+                stone.rigidBody.Update();
+                collided = true;
+            }
+        }
+        
         // this is a *massive* hack to approximate rolling/spinning
         // friction and it is completely made up and not accurate at all!
 
@@ -423,32 +500,35 @@ bool iPad()
         {
             float momentum = length( stone.rigidBody.angularMomentum );
             
-            const float factor_a = 0.9925f;
-            const float factor_b = 0.9995f;
-            
-            const float a = 0.0f;
-            const float b = 1.0f;
-            
-            if ( momentum >= b )
+            if ( momentum > 0 )
             {
-                stone.rigidBody.angularMomentum *= factor_b;
-            }
-            else if ( momentum <= a )
-            {
-                stone.rigidBody.angularMomentum *= factor_a;
-            }
-            else
-            {
-                const float alpha = ( momentum - a ) / ( b - a );
-                const float factor = factor_a * ( 1 - alpha ) + factor_b * alpha;
-                stone.rigidBody.angularMomentum *= factor;
+                const float factor_a = 0.9925f;
+                const float factor_b = 0.9995f;
+                
+                const float a = 0.0f;
+                const float b = 1.0f;
+                
+                if ( momentum >= b )
+                {
+                    stone.rigidBody.angularMomentum *= factor_b;
+                }
+                else if ( momentum <= a )
+                {
+                    stone.rigidBody.angularMomentum *= factor_a;
+                }
+                else
+                {
+                    const float alpha = ( momentum - a ) / ( b - a );
+                    const float factor = factor_a * ( 1 - alpha ) + factor_b * alpha;
+                    stone.rigidBody.angularMomentum *= factor;
+                }
             }
         }
 
         // apply damping
 
-        const float linear_factor = DecayFactor( 0.9999f, iteration_dt );
-        const float angular_factor = DecayFactor( 0.9999f, iteration_dt );
+        const float linear_factor = 0.99999f;
+        const float angular_factor = 0.99999f;
 
         stone.rigidBody.linearMomentum *= linear_factor;
         stone.rigidBody.angularMomentum *= angular_factor;
@@ -467,12 +547,6 @@ bool iPad()
     
     GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective( GLKMathDegreesToRadians(40.0f), aspect, 0.1f, 100.0f );
     
-    /*
-    GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeLookAt( 0, -5, 1,
-                                                           0, 0, 0,
-                                                           1, 0, 0 );
-    */
-
     GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeLookAt( 0, 0, _smoothZoom,
                                                            0, 0, 0,
                                                            0, 1, 0 );
@@ -480,7 +554,6 @@ bool iPad()
     RigidBodyTransform biconvexTransform( _stone.rigidBody.position, _stone.rigidBody.orientation );
     float opengl_transform[16];
     biconvexTransform.localToWorld.store( opengl_transform );
-    glMultMatrixf( opengl_transform );
 
     GLKMatrix4 modelViewMatrix = GLKMatrix4MakeWithArray( opengl_transform );
     
@@ -489,6 +562,8 @@ bool iPad()
     _normalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(modelViewMatrix), NULL );
     
     _modelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelViewMatrix );
+    
+    _clipMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
 }
 
 - (void)update
@@ -507,11 +582,17 @@ bool iPad()
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
-    glClearColor( 0.1f, 0.1f, 0.1f, 1.0f );
+    if ( _justDropped )
+        glClearColor( 1, 1, 1, 1 );
+    else
+        glClearColor( 0, 0, 0, 1 );
     
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     
     if ( _paused )
+        return;
+    
+    if ( _justDropped && _stone.rigidBody.position.z() >= _smoothZoom - 1.0f )
         return;
     
     glUseProgram( _program );
