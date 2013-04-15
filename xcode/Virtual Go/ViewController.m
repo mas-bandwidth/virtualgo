@@ -406,25 +406,16 @@ bool iPad()
         stone.rigidBody.orientation += spin * iteration_dt;
         stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
         
-        // collision between stone and board
+        // if just dropped let it first fall through the near plane
+        // then it can start colliding with the frustum planes
+
+        StaticContact contact;
 
         bool collided = false;
         
         const float e = 0.5f;
         const float u = 0.5f;
-
-        StaticContact contact;
         
-        if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, contact ) )
-        {
-            ApplyCollisionImpulseWithFriction( contact, e, u );
-            stone.rigidBody.Update();
-            collided = true;
-        }
-
-        // if just dropped let it first fall through the near plane
-        // then it can start colliding with the frustum planes
-
         if ( _justDropped )
         {
             const float r = stone.biconvex.GetBoundingSphereRadius();
@@ -493,6 +484,15 @@ bool iPad()
             }
         }
         
+        // collision between stone and board
+
+        if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, contact ) )
+        {
+            ApplyCollisionImpulseWithFriction( contact, e, u );
+            stone.rigidBody.Update();
+            collided = true;
+        }
+
         // this is a *massive* hack to approximate rolling/spinning
         // friction and it is completely made up and not accurate at all!
 
