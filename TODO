@@ -1,15 +1,6 @@
 DONE:
 
-    Add collision planes for walls. Include, near, far and side planes.
-
-    If the stone is within bounding sphere radius of near plane
-    snap position to center - eye position axis
-
-    If stone is close to the eye clear screen white
-
 TODO:
-
-    Fix up code to get correct frustrums
 
     Implement select and drag for the stone
 

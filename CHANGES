@@ -16,6 +16,17 @@ Work on iOS app (14/4/2013):
 
     Adjusted to size 40 stone as it has a cool lazy wobble!
 
+    Add collision planes for walls. Include, near, far and side planes.
+
+    If the stone is within bounding sphere radius of near plane
+    snap position to center - eye position axis
+
+    If stone is close to the eye clear screen white
+
+    Fix up code to get correct frustrum planes
+
+    *** WOW!!! ***
+
 
 Various post-GDC fixes (14/4/2013):
 -----------------------------------
