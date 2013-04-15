@@ -12,13 +12,15 @@ void ApplyLinearCollisionImpulse( StaticContact & contact, float e )
     contact.rigidBody->linearMomentum += j * contact.normal;
 }
 
-void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float u )
+void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float u, float epsilon = 0.001f )
 {
 	RigidBody & rigidBody = *contact.rigidBody;
 
     vec3f velocityAtPoint = rigidBody.GetVelocityAtWorldPoint( contact.point );
 
     const float vn = min( 0, dot( velocityAtPoint, contact.normal ) );
+
+    const float ke_before_collision = rigidBody.GetKineticEnergy();
 
     // calculate inverse inertia tensor in world space
 
@@ -40,13 +42,17 @@ void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float 
     rigidBody.linearMomentum += j * contact.normal;
     rigidBody.angularMomentum += j * cross( r, contact.normal );
 
+    const float ke_after_collision = rigidBody.GetKineticEnergy();
+
+    assert( ke_after_collision <= ke_before_collision + epsilon );
+
     // apply friction impulse
 
     velocityAtPoint = rigidBody.GetVelocityAtWorldPoint( contact.point );
 
     vec3f tangentVelocity = velocityAtPoint - contact.normal * dot( velocityAtPoint, contact.normal );
 
-    if ( length_squared( tangentVelocity ) > 0.001f * 0.001f )
+    if ( length_squared( tangentVelocity ) > epsilon * epsilon )
     {
         vec3f tangent = normalize( tangentVelocity );
 
@@ -61,6 +67,10 @@ void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float 
         rigidBody.linearMomentum += jt * tangent;
         rigidBody.angularMomentum += jt * cross( r, tangent );
     }
+
+    const float ke_after_friction = rigidBody.GetKineticEnergy();
+
+    assert( ke_after_friction <= ke_after_collision + epsilon );
 }
 
 #endif

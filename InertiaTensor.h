@@ -45,25 +45,25 @@ void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, vec3
     const float resolution = 0.1;
     const float width = biconvex.GetWidth();
     const float height = biconvex.GetHeight();
-    const float xz_steps = ceil( width / resolution );
-    const float y_steps = ceil( height / resolution );
-    const float dx = width / xz_steps;
-    const float dy = height / y_steps;
-    const float dz = width / xz_steps;
+    const float xy_steps = ceil( width / resolution );
+    const float z_steps = ceil( height / resolution );
+    const float dx = width / xy_steps;
+    const float dy = width / xy_steps;
+    const float dz = height / xy_steps;
     float sx = -width / 2;
-    float sy = -height / 2;
-    float sz = -width / 2;
+    float sy = -width / 2;
+    float sz = -height / 2;
     float ix = 0.0;
     float iy = 0.0;
     float iz = 0.0;
     const float v = CalculateBiconvexVolume( biconvex );
     const float p = mass / v;
     const float m = dx*dy*dz * p;
-    for ( int index_z = 0; index_z <= xz_steps; ++index_z )
+    for ( int index_z = 0; index_z <= z_steps; ++index_z )
     {
-        for ( int index_y = 0; index_y <= y_steps; ++index_y )
+        for ( int index_y = 0; index_y <= xy_steps; ++index_y )
         {
-            for ( int index_x = 0; index_x <= xz_steps; ++index_x )
+            for ( int index_x = 0; index_x <= xy_steps; ++index_x )
             {
                 const float x = sx + index_x * dx;
                 const float y = sy + index_y * dy;
@@ -85,14 +85,20 @@ void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, vec3
         }
     }
 
+    // todo: i fucked this up. fix it!
+
+    /*
     // http://wolframalpha.com
     // integrate ( r^2 - ( y + r - h/2 ) ^ 2 ) ^ 2 dy from y = 0 to h/2
     //  => 1/480 h^3 (3 h^2-30 h r+80 r^2)
     const float h = height;
     const float r = biconvex.GetSphereRadius();
-    const float exact_iy = pi * p * ( 1/480.0f * h*h*h * ( 3*h*h - 30*h*r + 80*r*r ) );
+    const float exact_iz = pi * p * ( 1/480.0f * h*h*h * ( 3*h*h - 30*h*r + 80*r*r ) );
 
-    iy = exact_iy;
+    iz = exact_iz;
+
+    printf( "inertia tensor: %f, %f,%f\n", ix, iy, iz );
+    */
 
     const float inertiaValues[] = { ix, iy, iz };
 

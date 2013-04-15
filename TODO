@@ -8,29 +8,30 @@ DONE:
 
     Fixed stone strafe sliding directions
 
-TODO:
-
     Contact point is wrong with biconvex vs. primary surface
 
-    Highest level zoom cam is incorrect -- like a sign is flipped (eg. front to behind object)
+    Re-enable energy kinetic energy post-collision test. Works with epsilon!
 
-    Re-enable energy kinetic energy post-collision test. 
+    Fix lighting in collision demo
 
-    Does it pass? If not, why not?
-
-    -----------------------------------------------------------------
-
-    Reduce frequency of substeps -- I think we only need to 
-    integrate the orientation with these substeps, and don't
-    need to run collision detection and response at this rate!
-
-    (Tunnelling may become more of a problem...)
-
-    -----------------------------------------------------------------
+    Remove VirtualGo.cpp demo -- too similar to collision demo
 
     Tessellation demo appears to be inside out?
 
-    Why are cracks showing in tessellation demo?
+    Why are cracks showing in tessellation demo? Not any more!
+
+TODO:
+
+    Fix tessellation demo so the two tessellation methods match
+
+    Fix the rotation and lighting back how it was with y<->z
+
+    Fix up the dynamics demo
+
+    Fix up the unit tests
+
+    Move the video recording framework into Platform.h/cpp so
+    it isn't cut & paste in every demo program!
 
     -----------------------------------------------------------------
 

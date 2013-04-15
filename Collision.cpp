@@ -515,10 +515,10 @@ int main( int argc, char * argv[] )
                 sy = -1;
 
             if ( input.a )
-                sz = -1;
+                sz = 1;
 
             if ( input.z )
-                sz = +1;
+                sz = -1;
 
             vec3f scroll(sx,sy,sz);
 
@@ -615,11 +615,11 @@ int main( int argc, char * argv[] )
         }
         // setup lights
 
-        GLfloat lightPosition0[] = { 250, 1000, -500, 1 };
-        GLfloat lightPosition1[] = { -250, 0, -250, 1 };
-        GLfloat lightPosition2[] = { 100, 0, -100, 1 };
+        GLfloat lightPosition0[] = { 250, -500, 1000, 1 };
+        GLfloat lightPosition1[] = { -250, -250, 0, 1 };
+        GLfloat lightPosition2[] = { 100, -100, 0, 1 };
         GLfloat lightPosition3[] = { 0, +1000, +1000, 1 };
-        GLfloat lightPosition4[] = { 0, -1000, 0, 1 };
+        GLfloat lightPosition4[] = { 0, 0, -1000, 1 };
         
         glLightfv( GL_LIGHT0, GL_POSITION, lightPosition0 );
         glLightfv( GL_LIGHT1, GL_POSITION, lightPosition1 );
@@ -718,7 +718,7 @@ int main( int argc, char * argv[] )
         const float tightness = ( target_dt < dt ) ? 0.2f : 0.1f;
         dt += ( target_dt - dt ) * tightness;
 
-        const int iterations = mode < LinearCollisionResponse ? 1 : 20;
+        const int iterations = 20;
 
         const float iteration_dt = dt / iterations;
 
@@ -735,16 +735,21 @@ int main( int argc, char * argv[] )
 
             stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
 
-            quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
-            stone.rigidBody.orientation += spin * iteration_dt;
-            stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
+            const int rotation_substeps = 10;
+            const float rotation_substep_dt = iteration_dt / rotation_substeps;
+            for ( int j = 0; j < rotation_substeps; ++j )
+            {
+                quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
+                stone.rigidBody.orientation += spin * rotation_substep_dt;
+                stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
+            }
 
             // collision between stone and board
 
             collided = false;
 
-            const float board_e = 0.85f;
-            const float board_u = sliding ? 0.35f : 0.15f;
+            const float board_e = 0.8f;
+            const float board_u = sliding ? 0.35f : 0.1f;
 
             if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact, mode > Penetration ) )
             {
@@ -765,7 +770,7 @@ int main( int argc, char * argv[] )
             if ( mode >= SolidColor )
             {
                 const float floor_e = 0.5f;
-                const float floor_u = sliding ? 0.35f : 0.25f;
+                const float floor_u = sliding ? 0.35f : 0.15f;
 
                 StaticContact floorContact;
                 if ( StoneFloorCollision( stone.biconvex, board, stone.rigidBody, floorContact ) )
@@ -789,7 +794,7 @@ int main( int argc, char * argv[] )
                 if ( collided )
                 {
                     float momentum = length( stone.rigidBody.angularMomentum );
-                    const float factor_a = DecayFactor( 0.9925f, dt );
+                    const float factor_a = DecayFactor( 0.9915f, dt );
                     const float factor_b = DecayFactor( 0.9995f, dt );
                     const float a = 0.0f;
                     const float b = 1.0f;
@@ -811,10 +816,11 @@ int main( int argc, char * argv[] )
 
                 // apply damping
 
-                const float factor = DecayFactor( 0.99999f, dt );
+                const float linear_factor = DecayFactor( 0.99999f, dt );
+                const float angular_factor = DecayFactor( 0.9999f, dt );
 
-                stone.rigidBody.linearMomentum *= factor;
-                stone.rigidBody.angularMomentum *= factor;
+                stone.rigidBody.linearMomentum *= linear_factor;
+                stone.rigidBody.angularMomentum *= angular_factor;
             }
         }
 

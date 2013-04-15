@@ -45,12 +45,12 @@ inline void ClosestFeaturesBiconvexPlane_LocalSpace( vec3f planeNormal,
                                                      vec3f & planePoint )
 {
     const float sphereDot = biconvex.GetSphereDot();
-    const float planeNormalDot = fabs( dot( vec3f(0,1,0), planeNormal ) );
+    const float planeNormalDot = fabs( dot( vec3f(0,0,1), planeNormal ) );
     if ( planeNormalDot > sphereDot )
     {
         // sphere surface collision
         const float sphereRadius = biconvex.GetSphereRadius();
-        const float sphereOffset = planeNormal.y() < 0 ? -biconvex.GetSphereOffset() : +biconvex.GetSphereOffset();
+        const float sphereOffset = planeNormal.z() < 0 ? -biconvex.GetSphereOffset() : +biconvex.GetSphereOffset();
         vec3f sphereCenter( 0, 0, sphereOffset );
         biconvexPoint = sphereCenter - normalize( planeNormal ) * sphereRadius;
         biconvexNormal = normalize( biconvexPoint - sphereCenter );
@@ -59,7 +59,7 @@ inline void ClosestFeaturesBiconvexPlane_LocalSpace( vec3f planeNormal,
     {
         // circle edge collision
         const float circleRadius = biconvex.GetCircleRadius();
-        biconvexPoint = normalize( vec3f( -planeNormal.x(), 0, -planeNormal.z() ) ) * circleRadius;
+        biconvexPoint = normalize( vec3f( -planeNormal.x(), -planeNormal.y(), 0 ) ) * circleRadius;
         biconvexNormal = normalize( biconvexPoint );
     }
 
@@ -881,7 +881,7 @@ bool StoneFloorCollision( const Biconvex & biconvex,
 
     float depth = -s1;
 
-    rigidBody.position += vec3f(0,depth,0);
+    rigidBody.position += vec3f(0,0,depth);
 
     vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,0,1,0) );
 

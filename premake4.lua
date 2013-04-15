@@ -44,12 +44,6 @@ project "Collision"
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
-project "VirtualGo"
-    kind "ConsoleApp"
-    files { "*.h", "VirtualGo.cpp", "Platform.cpp", "stb_image.c" }
-    configuration { "macosx" }
-        links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
-
 project "UnitTest"
     kind "ConsoleApp"
     files { "UnitTest.cpp" }
@@ -124,23 +118,6 @@ if not os.is "windows" then
             os.mkdir "output"
             if os.execute "make -j32 Collision" == 0 then
                 os.execute "./Collision"
-            end
-        end
-    }
-
-    newaction
-    {
-        trigger     = "go",
-        description = "Build and run virtual go",
-        valid_kinds = premake.action.get("gmake").valid_kinds,
-        valid_languages = premake.action.get("gmake").valid_languages,
-        valid_tools = premake.action.get("gmake").valid_tools,
-     
-        execute = function ()
-            os.rmdir "output"
-            os.mkdir "output"
-            if os.execute "make -j32 VirtualGo" == 0 then
-                os.execute "./VirtualGo"
             end
         end
     }

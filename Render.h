@@ -233,7 +233,7 @@ void RenderBoard( const Board & board )
 
     // front side
 
-    glNormal3f( 0,0,-1 );
+    glNormal3f( 0,-1,0 );
     
     glVertex3f( width/2, -height/2, 0 );
     glVertex3f( width/2, -height/2, thickness );
@@ -242,7 +242,7 @@ void RenderBoard( const Board & board )
 
     // back side
 
-    glNormal3f( 0,0,+1 );
+    glNormal3f( 0,+1,0 );
     glVertex3f( width/2, height/2, thickness );
     glVertex3f( width/2, height/2, 0 );
     glVertex3f( -width/2, height/2, 0 );

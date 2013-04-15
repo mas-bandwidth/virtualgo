@@ -213,13 +213,6 @@ int main()
             glLoadIdentity();
             gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
 
-            float flipX[] = { -1,0,0,0,
-                               0,1,0,0,
-                               0,0,1,0,
-                               0,0,0,1 };
-
-            glMultMatrixf( flipX );
-
             glMatrixMode( GL_MODELVIEW );
             glLoadIdentity();
             gluLookAt( 0, 0, -5, 
