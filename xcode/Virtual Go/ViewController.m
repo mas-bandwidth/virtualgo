@@ -121,7 +121,7 @@ bool iPad()
     view.context = self.context;
     view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
     
-    _stone.Initialize( STONE_SIZE_34 );
+    _stone.Initialize( STONE_SIZE_40 );
 
     GenerateBiconvexMesh( _mesh, _stone.biconvex );
 
@@ -349,6 +349,11 @@ bool iPad()
     _stone.rigidBody.orientation = quat4f(1,0,0,0);
     _stone.rigidBody.linearMomentum = vec3f(0,0,0);
 
+    const float maxMoment = 1.0f;
+    const float angularMoment = length( _stone.rigidBody.angularMomentum );
+    if ( angularMoment > maxMoment )
+        _stone.rigidBody.angularMomentum = normalize( _stone.rigidBody.angularMomentum ) * maxMoment;
+
     _stone.rigidBody.Update();
 }
 
@@ -402,7 +407,7 @@ bool iPad()
 
         StaticContact boardContact;
         
-        if ( StoneFloorCollision( stone.biconvex, stone.rigidBody, boardContact ) )
+        if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, boardContact ) )
         {
             ApplyCollisionImpulseWithFriction( boardContact, board_e, board_u );
             
@@ -418,8 +423,8 @@ bool iPad()
         {
             float momentum = length( stone.rigidBody.angularMomentum );
             
-            const float factor_a = 0.9915f;//DecayFactor( 0.9915f, iteration_dt );
-            const float factor_b = 0.9995f;//DecayFactor( 0.9995f, iteration_dt );
+            const float factor_a = 0.9925f;
+            const float factor_b = 0.9995f;
             
             const float a = 0.0f;
             const float b = 1.0f;
@@ -442,7 +447,7 @@ bool iPad()
 
         // apply damping
 
-        const float linear_factor = DecayFactor( 0.99999f, iteration_dt );
+        const float linear_factor = DecayFactor( 0.9999f, iteration_dt );
         const float angular_factor = DecayFactor( 0.9999f, iteration_dt );
 
         stone.rigidBody.linearMomentum *= linear_factor;
@@ -488,9 +493,6 @@ bool iPad()
 
 - (void)update
 {
-    if ( length( _jerkAcceleration ) > JerkThreshold )
-        NSLog( @"jerk acceleration: %f,%f,%f", _jerkAcceleration.x(), _jerkAcceleration.y(), _jerkAcceleration.z() );
-    
     float dt = self.timeSinceLastUpdate;
     if ( dt > 1 / 10.0f )
         dt = 1 / 10.0f;

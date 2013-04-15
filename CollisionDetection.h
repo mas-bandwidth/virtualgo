@@ -861,7 +861,8 @@ bool StoneBoardCollision( const Biconvex & biconvex,
     return true;
 }
 
-bool StoneFloorCollision( const Biconvex & biconvex,
+bool StonePlaneCollision( const Biconvex & biconvex,
+                          vec4f plane,
                           RigidBody & rigidBody,
                           StaticContact & contact )
 {
@@ -869,26 +870,29 @@ bool StoneFloorCollision( const Biconvex & biconvex,
 
     RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
 
+    vec3f planeNormal( plane.x(), plane.y(), plane.z() );
+    float planeD = plane.w();
+
     float s1,s2;
     vec3f biconvexUp = biconvexTransform.GetUp();
     vec3f biconvexCenter = biconvexTransform.GetPosition();
-    BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(0,0,1), s1, s2 );
+    BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, planeNormal, s1, s2 );
     
-    if ( s1 > 0 )
+    if ( s1 > planeD )
         return false;
 
-    float depth = -s1;
+    float depth = planeD - s1;
 
-    rigidBody.position += vec3f(0,0,depth);
+    rigidBody.position += planeNormal * depth;
 
-    vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,0,1,0) );
+    vec4f local_plane = TransformPlane( biconvexTransform.worldToLocal, plane );
 
     vec3f local_stonePoint;
     vec3f local_stoneNormal;
     vec3f local_floorPoint;
 
-    ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( plane.x(), plane.y(), plane.z() ), 
-                                             plane.w(), 
+    ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( local_plane.x(), local_plane.y(), local_plane.z() ), 
+                                             local_plane.w(), 
                                              biconvex, 
                                              local_stonePoint,
                                              local_stoneNormal,
@@ -896,7 +900,7 @@ bool StoneFloorCollision( const Biconvex & biconvex,
 
     contact.rigidBody = &rigidBody;
     contact.point = TransformPoint( biconvexTransform.localToWorld, local_floorPoint );
-    contact.normal = vec3f(0,0,1);
+    contact.normal = planeNormal;
     contact.depth = depth;
 
     return true;
