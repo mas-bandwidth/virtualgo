@@ -1,15 +1,5 @@
 DONE:
 
-    Get basic stone physics into iOS app
-
-    Get basic collision working with floor
-
-    Hook up gravity to be driven by the accelerometer
-
-    Add the jerk acceleration to the stone
-
-    Tune elasticity and friction
-
 TODO:
 
     Dig up old code I have for generating view frustum plane

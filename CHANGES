@@ -1,4 +1,22 @@
 
+Work on iOS app (14/4/2013):
+----------------------------
+
+    Get basic stone physics into iOS app
+
+    Get basic collision working with floor
+
+    Hook up gravity to be driven by the accelerometer
+
+    *** WOW!!! ***
+
+    Tune elasticity and friction
+
+    Add the jerk acceleration to the stone
+
+    Adjusted to size 40 stone as it has a cool lazy wobble!
+
+
 Various post-GDC fixes (14/4/2013):
 -----------------------------------
 
@@ -24,7 +42,7 @@ Various post-GDC fixes (14/4/2013):
 
     Find a way to unify code between xcode and sublime codebases
 
-    
+
 Ported stone demo to iPad/iPhone (14/4/2013):
 ---------------------------------------------
 
