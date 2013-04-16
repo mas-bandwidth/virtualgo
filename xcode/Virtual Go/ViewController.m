@@ -62,6 +62,10 @@ enum
     bool _swipeStarted;
     float _swipeTime;
     CGPoint _swipeStartPoint;
+
+    bool _holdStarted;
+    float _holdTime;
+    CGPoint _holdPoint;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -99,15 +103,22 @@ const float ZoomOut_iPhone = 12;
 const float ZoomInTightness = 0.25f;
 const float ZoomOutTightness = 0.15f;
 
-const float AccelerometerFrequency = 60;
+const float AccelerometerFrequency = 30;
 const float AccelerometerTightness = 0.1f;
-const float JerkThreshold = 0.1f;
-const float LaunchThreshold = 0.5f;
-const float LaunchMomentum = 10;
 
-const float MinimumSwipeLength = 50;           // pixels
-const float MaxSwipeTime = 1.0f;               // seconds
+const float JerkThreshold = 0.1f;
+
+const float LaunchThreshold = 0.5f;
+const float LaunchMomentum = 8;
+
+const float MinimumSwipeLength = 50;            // points
+const float SwipeLengthPerSecond = 250;         // points
+const float MaxSwipeTime = 1.0f;                // seconds
 const float SwipeMomentum = 10.0f;
+
+const float HoldDelay = 0.05f;                  // seconds
+const float HoldDamping = 0.75f;                
+const float HoldMoveThreshold = 40;             // points
 
 bool iPad()
 {
@@ -137,7 +148,7 @@ bool iPad()
     
     _stone.Initialize( STONE_SIZE_40 );
 
-    GenerateBiconvexMesh( _mesh, _stone.biconvex );
+    GenerateBiconvexMesh( _mesh, _stone.biconvex, 4 );
 
     [self setupGL];
 
@@ -154,6 +165,9 @@ bool iPad()
 
     _swipeTime = 0;
     _swipeStarted = false;
+
+    _holdTime = 0;
+    _holdStarted = false;
 
     [self dropStone];
 }
@@ -294,13 +308,26 @@ bool iPad()
 
 - (void)updateTouch:(float)dt
 {
-    if ( !_swipeStarted )
-        return;
+    if ( _holdStarted )
+    {
+        const float prevTime = _holdTime;
 
-    _swipeTime += dt;
+        _holdTime += dt;
 
-    if ( _swipeTime > MaxSwipeTime )
-        _swipeStarted = false;
+        if ( prevTime < HoldDelay && _holdTime >= HoldDelay )
+            NSLog( @"hold" );
+
+        if ( _holdTime >= HoldDelay )
+            _stone.rigidBody.angularMomentum *= HoldDamping;
+    }
+
+    if ( _swipeStarted )
+    {
+        _swipeTime += dt;
+
+        if ( _swipeTime > MaxSwipeTime )
+            _swipeStarted = false;
+    }
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -308,51 +335,80 @@ bool iPad()
     // todo: if a swipe is started and another different finger is place
     // on the ipad, cancel the swipe! --- swipe is a pure one finger motion
     
-    if ( _swipeStarted )
-        return;
-
+    NSLog( @"touches began" );
+    
     UITouch * touch = [touches anyObject];
 
-    _swipeTime = 0;
-    _swipeStarted = true;
-    _swipeStartPoint = [touch locationInView:self.view];
+    if ( !_holdStarted )
+    {
+        _holdStarted = true;
+        _holdTime = 0;
+        _holdPoint = [touch locationInView:self.view];
+    }
 
-    NSLog( @"touch: x=%f, y=%f", _swipeStartPoint.x, _swipeStartPoint.y );
+    if ( !_swipeStarted )
+    {
+        _swipeTime = 0;
+        _swipeStarted = true;
+        _swipeStartPoint = [touch locationInView:self.view];
+    }
 }
 
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event 
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    if ( !_swipeStarted )
-        return;
-
-    // todo: only if touch matches original swipe touch finger!
-    
-    UITouch * touch = [touches anyObject];
-
-    CGPoint currentPosition = [touch locationInView:self.view];
-
-    vec3f swipePoint( _swipeStartPoint.x, _swipeStartPoint.y, 0 );
-    
-    vec3f swipeDelta( _swipeStartPoint.x - currentPosition.x,
-                      _swipeStartPoint.y - currentPosition.y,
-                      0 );
-    
-    if ( length( swipeDelta ) >= MinimumSwipeLength )
+    if ( _holdStarted )
     {
-        // IMPORTANT: convert points to pixels!
-        const float contentScaleFactor = [self.view contentScaleFactor];
-        swipePoint *= contentScaleFactor;
-        swipeDelta *= contentScaleFactor;
-        
-        [self handleSwipe:swipeDelta atPoint:swipePoint ];
+        _holdStarted = false;
 
-        _swipeStarted = false;
+        UITouch * touch = [touches anyObject];
+
+        CGPoint currentPosition = [touch locationInView:self.view];
+
+        vec3f delta( _holdPoint.x - currentPosition.x,
+                     _holdPoint.y - currentPosition.y,
+                     0 );
+
+        if ( length( delta ) > HoldMoveThreshold )
+        {
+            NSLog( @"hold moved" );
+            _holdStarted = false;
+        }
+    }
+
+    if ( _swipeStarted )
+    {
+        // todo: only if touch matches original swipe touch finger!
+        
+        UITouch * touch = [touches anyObject];
+
+        CGPoint currentPosition = [touch locationInView:self.view];
+
+        vec3f swipePoint( _swipeStartPoint.x, _swipeStartPoint.y, 0 );
+        
+        vec3f swipeDelta( _swipeStartPoint.x - currentPosition.x,
+                          _swipeStartPoint.y - currentPosition.y,
+                          0 );
+        
+        if ( length( swipeDelta ) >= MinimumSwipeLength + SwipeLengthPerSecond * _swipeTime )
+        {
+            // IMPORTANT: convert points to pixels!
+            const float contentScaleFactor = [self.view contentScaleFactor];
+            swipePoint *= contentScaleFactor;
+            swipeDelta *= contentScaleFactor;
+            
+            [self handleSwipe:swipeDelta atPoint:swipePoint ];
+
+            _swipeStarted = false;
+        }
     }
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    NSLog( @"touches ended" );
+    
     // todo: only if touch finger matches original!
+    _holdStarted = false;
     _swipeStarted = false;
 
     UITouch * touch = [touches anyObject];
@@ -378,8 +434,7 @@ bool iPad()
 
 - (void)handleSingleTap:(NSDictionary *)touches
 {
-    NSLog( @"single tap" );
-    
+//    NSLog( @"single tap" );
 //    [self dropStone];
 }
 
@@ -459,6 +514,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    _holdStarted = false;
     _swipeStarted = false;
 }
 
@@ -545,7 +601,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     
     bool collided = false;
 
-    const int iterations = 20;
+    const int iterations = 10;
 
     const float iteration_dt = dt / iterations;
 

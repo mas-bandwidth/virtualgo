@@ -1,36 +1,60 @@
 DONE:
 
+    Click and hold damp the stone rotation
+
 TODO:
-
-    Click and hold (anywhere) should damp the stone like R in the demo
-
-    -----------------------------------------------------------------
-
-    iPad shaking needs a larger amount of impulse because the play area
-    is larger when zoomed out. It feels that shaking doesn't do much,
-    while on the iPhone it feels very effective.
-
-    -----------------------------------------------------------------
-
-    Cancel swipe if multiple touches occur. Swipe is one finger only!
-
-    -----------------------------------------------------------------
-
-    Dropping a stone is something that is disruptive. It should never
-    happen accidentally while you are moving the device around. 
-
-    Perhaps it should be a timed hold? eg. hold a touch down for 1/2 a second
-    = new stone launched. Will this interfere with the one two placement? Yes.
-
-    -----------------------------------------------------------------
 
     Implement select and drag for the stone
 
     Inherit velocity when released
 
+    -----------------------------------------------------------------
+
+    Cancel swipe/hold if multiple touches occur. 
+
+    Swipe is one finger only!
+
+    -----------------------------------------------------------------
+
     Implement one-two click for placing stone
 
-    *** At this point I have a good prototype for virtual go iOS ***
+    First click places the stone but holds it in an alpha state? 
+    50% alpha? It's where it will go, but it's not here yet...
+
+    Stone should pulse in alpha actually while being placed...!
+
+    Second click locks in the stone and it goes solid opaque quickly.
+
+    Ideally sound effects for both phase, click - pah. 
+
+    -----------------------------------------------------------------
+
+    !!!! IOS PROTOTYPE COMPLETE !!!!
+
+    -----------------------------------------------------------------
+
+
+
+
+
+    -----------------------------------------------------------------
+
+    Polish:
+
+    Seems that hold sometimes does not trigger. Not sure why yet?
+    It seems that touch began triggers, but somehow the hold doesn't
+    kick in. Maybe the touch began but it doesn't know where?
+    Anyway, this is reproduceable so can be fixed later.
+
+    Would be nice to be able to transition from hold -> swipe mode
+    without needing to repress the touch. 
+
+    eg. if you are still 
+    for x seconds then you are holding, if you are moving then
+    you are not holding, if you move fast a threshold you swiped.
+
+
+
 
     -----------------------------------------------------------------
 
