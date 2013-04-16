@@ -168,7 +168,7 @@ bool iPad()
     _justDropped = false;
     _hasRendered = false;
     
-    _smoothZoom = iPad() ? ZoomOut_iPad : ZoomOut_iPhone;
+    _smoothZoom = false;
     
     _rawAcceleration = vec3f(0,0,-1);
     _smoothedAcceleration = vec3f(0,0,-1);
@@ -653,21 +653,40 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     CalculateFrustumPlanes( clipMatrix, frustum );
     
     // apply jerk acceleration to stone
+
+    const float jerk = length( _jerkAcceleration );
     
-    if ( length( _jerkAcceleration ) > JerkThreshold )
+    if ( jerk > JerkThreshold )
         stone.rigidBody.linearMomentum += _jerkAcceleration * stone.rigidBody.mass * dt;
 
     // detect when the user has asked to launch the stone into the air
-
+    
     const vec3f down = normalize( _smoothedAcceleration );
     const vec3f up = -down;
 
-    const float launchAccel = dot( _jerkAcceleration, up );
-
-    if ( launchAccel > LaunchThreshold )
+    if ( iPad() )
     {
-        stone.rigidBody.linearMomentum += up * LaunchMomentum * launchAccel;
-        stone.rigidBody.Update();
+        // for pads, let the launch go up in the air only!
+        // other launches feel wrong and cause nausea -- treat the tablet like the board
+        
+        const float jerkUp = dot( _jerkAcceleration, up );
+        
+        if ( jerkUp > LaunchThreshold )
+        {
+            stone.rigidBody.linearMomentum += jerkUp * LaunchMomentum * up;
+            stone.rigidBody.Update();
+        }
+    }
+    else
+    {
+        // for the iphone let the player shake the stone around like a toy
+        // the go stone is trapped inside the phone. this looks cool!
+        
+        if ( jerk > LaunchThreshold )
+        {
+            stone.rigidBody.linearMomentum += _jerkAcceleration * LaunchMomentum;
+            stone.rigidBody.Update();
+        }
     }
     
     // update stone physics

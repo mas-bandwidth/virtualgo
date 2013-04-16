@@ -1,4 +1,19 @@
 
+Tweak launch (15/4/2013):
+-------------------------
+
+    Previously the launch only worked in the up direction
+
+    I've changed it so that any jerk > 0.5 will launch in
+    that direction.
+
+    When you shake or move the iPhone about it now looks
+    quite cool, like the stone is shaking about in there.
+
+    The cost is that accidental bumps can move the stone
+    a lot more than intended along the playing surface.
+
+
 Drag stone (15/4/2013):
 -----------------------
 
