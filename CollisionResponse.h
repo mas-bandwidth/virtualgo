@@ -18,6 +18,10 @@ void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float 
 
     vec3f velocityAtPoint = rigidBody.GetVelocityAtWorldPoint( contact.point );
 
+    assert( velocityAtPoint.x() == velocityAtPoint.x() );
+    assert( velocityAtPoint.y() == velocityAtPoint.y() );
+    assert( velocityAtPoint.z() == velocityAtPoint.z() );
+    
     const float vn = min( 0, dot( velocityAtPoint, contact.normal ) );
 
     const float ke_before_collision = rigidBody.GetKineticEnergy();

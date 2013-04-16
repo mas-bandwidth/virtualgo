@@ -1,4 +1,81 @@
 
+Spin on swipe (15/4/20130):
+---------------------------
+
+    Determine start and endpoint of swipe in screen space
+
+    Determine swipe time in seconds
+
+    Call a handler function with the data
+
+    It seems that swipe time varies a lot for swipes
+    that seem otherwise simular.
+
+    This indicates that calculating exact "swipe velocity" is 
+    probably not a good idea with the current setup. 
+
+    This is because the velocity counts the start and end points, 
+    and therefore includes any hold time before the swipe is fired
+    off.
+
+    But for now, I'm going to just assume that the only thing 
+    I can extract is the start point and the swipe delta in
+    screen space. Lets work with that!
+
+    Convert swipe start point to a ray.
+
+    Intersect this ray with a plane with normal +z
+    through the center of the go stone.
+
+    To calculate the direction of the angular moment, take the cross
+    product of the swipe direction * swipe momentum constant and
+    apply it as if applying angular part of velocity at a point.
+
+    OK I tried all of this and it sucks.
+
+    The solution is that on any swipe I apply an angular impulse
+    around the up vector. This works well and is as simple as
+    possible!
+
+
+Swipe detection (15/4/2013):
+----------------------------
+
+    Simple built in swipe gesture does not provide starting point of swipe
+
+    It is just one of four directions: left/right/up/down
+
+    This is fine for flipping pages and so on, but it does not
+    suit my needs. I need to know where the swipe is relative
+    to the go stone, so I can work out the axis of rotation!
+
+    It would seem that the smartest thing to do would be to detect
+    a press down then set a flag then if a release is detected
+    a certain distance away and within a certain time then this
+    is a swipe.
+
+    This gives me a direction of the start and end points of the swipe.
+
+    Cancel swipe if it goes on too long, eg. 1 second
+
+
+More iOS demo app tuning (15/4/2013):
+-------------------------------------
+
+    Home sick with a sore back :(
+
+    Clamp z coordinate to be no larger than smoothZoom 
+    (stop the stone rolling back behind your eye... !!!)
+
+    Implement code to detect launching the stone up. WOW!
+
+    If stone is just dropped and above frustum clamp velocity 
+    so it cannot have z into the eye. 
+
+    This stop the stone "sticking" when released holding the 
+    phone upside down.
+
+
 Work on iOS app (14/4/2013):
 ----------------------------
 

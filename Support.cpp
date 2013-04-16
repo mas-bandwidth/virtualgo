@@ -137,8 +137,14 @@ int main( int argc, char * argv[] )
         {
             glMatrixMode( GL_PROJECTION );
             glLoadIdentity();
-
             glOrtho( -1.5, +1.5f, -1.0f, +1.0f, 0.1f, 100.0f );
+
+            float flipX[] = { -1,0,0,0,
+                               0,1,0,0,
+                               0,0,1,0,
+                               0,0,0,1 };
+
+            glMultMatrixf( flipX );
 
             glScalef( 0.6f, 0.6f, 0.6f );
 

@@ -40,6 +40,7 @@ enum
     GLKMatrix4 _modelViewProjectionMatrix;
     GLKMatrix3 _normalMatrix;
     GLKMatrix4 _clipMatrix;
+    GLKMatrix4 _inverseClipMatrix;
     
     GLuint _vertexBuffer;
     GLuint _indexBuffer;
@@ -50,12 +51,17 @@ enum
     bool _paused;
     bool _zoomed;
     bool _justDropped;
+    bool _hasRendered;
 
     float _smoothZoom;
     
     vec3f _rawAcceleration;                 // raw data from the accelometer
     vec3f _smoothedAcceleration;            // smoothed acceleration = gravity
     vec3f _jerkAcceleration;                // jerk acceleration = short motions, above a threshold = bump the board
+
+    bool _swipeStarted;
+    float _swipeTime;
+    CGPoint _swipeStartPoint;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -96,6 +102,12 @@ const float ZoomOutTightness = 0.15f;
 const float AccelerometerFrequency = 60;
 const float AccelerometerTightness = 0.1f;
 const float JerkThreshold = 0.1f;
+const float LaunchThreshold = 0.5f;
+const float LaunchMomentum = 10;
+
+const float MinimumSwipeLength = 50;           // pixels
+const float MaxSwipeTime = 1.0f;               // seconds
+const float SwipeMomentum = 10.0f;
 
 bool iPad()
 {
@@ -132,12 +144,16 @@ bool iPad()
     _paused = true;
     _zoomed = false;
     _justDropped = false;
+    _hasRendered = false;
     
     _smoothZoom = iPad() ? ZoomOut_iPad : ZoomOut_iPhone;
     
     _rawAcceleration = vec3f(0,0,-1);
     _smoothedAcceleration = vec3f(0,0,-1);
     _jerkAcceleration = vec3f(0,0,0);
+
+    _swipeTime = 0;
+    _swipeStarted = false;
 
     [self dropStone];
 }
@@ -181,6 +197,7 @@ bool iPad()
 {
     NSLog( @"did become active" );
     _paused = false;
+    _hasRendered = false;
 }
 
 - (void)willResignActive:(NSNotification *)notification
@@ -273,17 +290,71 @@ bool iPad()
     [self becomeFirstResponder];
 }
 
-- (void)touchesBegan:(NSSet*)touches withEvent:(UIEvent *)event
+// -------------------
+
+- (void)updateTouch:(float)dt
 {
-    NSLog( @"touches began" );
+    if ( !_swipeStarted )
+        return;
+
+    _swipeTime += dt;
+
+    if ( _swipeTime > MaxSwipeTime )
+        _swipeStarted = false;
 }
 
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    // todo: if a swipe is started and another different finger is place
+    // on the ipad, cancel the swipe! --- swipe is a pure one finger motion
+    
+    if ( _swipeStarted )
+        return;
+
+    UITouch * touch = [touches anyObject];
+
+    _swipeTime = 0;
+    _swipeStarted = true;
+    _swipeStartPoint = [touch locationInView:self.view];
+
+    NSLog( @"touch: x=%f, y=%f", _swipeStartPoint.x, _swipeStartPoint.y );
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event 
+{
+    if ( !_swipeStarted )
+        return;
+
+    // todo: only if touch matches original swipe touch finger!
+    
+    UITouch * touch = [touches anyObject];
+
+    CGPoint currentPosition = [touch locationInView:self.view];
+
+    vec3f swipePoint( _swipeStartPoint.x, _swipeStartPoint.y, 0 );
+    
+    vec3f swipeDelta( _swipeStartPoint.x - currentPosition.x,
+                      _swipeStartPoint.y - currentPosition.y,
+                      0 );
+    
+    if ( length( swipeDelta ) >= MinimumSwipeLength )
+    {
+        // IMPORTANT: convert points to pixels!
+        const float contentScaleFactor = [self.view contentScaleFactor];
+        swipePoint *= contentScaleFactor;
+        swipeDelta *= contentScaleFactor;
+        
+        [self handleSwipe:swipeDelta atPoint:swipePoint ];
+
+        _swipeStarted = false;
+    }
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    // todo: only if touch finger matches original!
+    _swipeStarted = false;
+
     UITouch * touch = [touches anyObject];
     
     if ( touch.tapCount == 1 )
@@ -309,11 +380,86 @@ bool iPad()
 {
     NSLog( @"single tap" );
     
-    [self dropStone];
+//    [self dropStone];
+}
+
+void gluUnProject( GLfloat winx, GLfloat winy, GLfloat winz,
+                   const mat4f inverseClipMatrix,
+                   const GLint viewport[4],
+                   GLfloat *objx, GLfloat *objy, GLfloat *objz )
+{
+    vec4f in( ( ( winx - viewport[0] ) / viewport[2] ) * 2 - 1,
+              ( ( winy - viewport[1] ) / viewport[3] ) * 2 - 1,
+              ( winz ) * 2 - 1,
+              1.0f );
+
+    assert( in.x() >= -1 );
+    assert( in.x() <= +1 );
+    assert( in.y() >= -1 );
+    assert( in.y() <= +1 );
+    assert( in.z() >= -1 );
+    assert( in.z() <= +1 );
+    
+    vec4f out = inverseClipMatrix * in;
+    
+    *objx = out.x() / out.w();
+    *objy = out.y() / out.w();
+    *objz = out.z() / out.w();
+}
+
+void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y, vec3f & rayStart, vec3f & rayDirection )
+{
+    GLint viewport[4];
+    glGetIntegerv( GL_VIEWPORT, viewport );
+
+    const float displayHeight = viewport[3];
+
+    float x = screen_x;
+    float y = displayHeight - screen_y;
+
+    GLfloat x1,y1,z1;
+    GLfloat x2,y2,z2;
+
+    gluUnProject( x, y, 0, inverseClipMatrix, viewport, &x1, &y1, &z1 );
+    gluUnProject( x, y, 1, inverseClipMatrix, viewport, &x2, &y2, &z2 );
+
+    vec3f ray1( x1,y1,z1 );
+    vec3f ray2( x2,y2,z2 );
+
+    rayStart = ray1;
+    rayDirection = normalize( ray2 - ray1 );
+}
+
+- (void)handleSwipe:(vec3f)delta atPoint:(vec3f)point
+{
+    NSLog( @"swipe" );
+
+    const vec3f up = -normalize( _smoothedAcceleration );
+    
+    _stone.rigidBody.angularMomentum += SwipeMomentum * up;
+    _stone.rigidBody.Update();
+
+    /*
+    vec3f rayStart, rayDirection;
+    
+    mat4f inverseClipMatrix;
+    inverseClipMatrix.load( _inverseClipMatrix.m );
+    
+    GetPickRay( inverseClipMatrix, point.x(), point.y(), rayStart, rayDirection );
+    
+    float t = 0;
+    if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), _stone.rigidBody.position.z(), t ) )
+    {
+        vec3f point = rayStart + rayDirection * t;
+
+        vec3f direction = normalize( vec3f( delta.x(), delta.y(), 0 ) );
+    }
+    */
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    _swipeStarted = false;
 }
 
 - (void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event
@@ -364,25 +510,47 @@ bool iPad()
 
 - (void)updatePhysics:(float)dt
 {
-    dt = 1.0f / 60.0f;
-        
+    if ( !_hasRendered )
+        return;
+
     Stone & stone = _stone;
+
+    // calculate frustum planes for collision
+
+    mat4f clipMatrix;
+    clipMatrix.load( _clipMatrix.m );
+
+    Frustum frustum;
+    CalculateFrustumPlanes( clipMatrix, frustum );
     
     // apply jerk acceleration to stone
     
     if ( length( _jerkAcceleration ) > JerkThreshold )
         stone.rigidBody.linearMomentum += _jerkAcceleration * stone.rigidBody.mass * dt;
+
+    // detect when the user has asked to launch the stone into the air
+
+    const vec3f down = normalize( _smoothedAcceleration );
+    const vec3f up = -down;
+
+    const float launchAccel = dot( _jerkAcceleration, up );
+
+    if ( launchAccel > LaunchThreshold )
+    {
+        stone.rigidBody.linearMomentum += up * LaunchMomentum * launchAccel;
+        stone.rigidBody.Update();
+    }
     
     // update stone physics
     
+    bool collided = false;
+
     const int iterations = 20;
 
     const float iteration_dt = dt / iterations;
 
     for ( int i = 0; i < iterations; ++i )
-    {
-        vec3f down = normalize( _smoothedAcceleration );
-        
+    {        
         vec3f gravity = 9.8f * 10 * down;
 
         stone.rigidBody.linearMomentum += gravity * stone.rigidBody.mass * iteration_dt;
@@ -391,7 +559,6 @@ bool iPad()
 
         stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
 
-        /*
         const int rotation_substeps = 10;
         const float rotation_substep_dt = iteration_dt / rotation_substeps;
         for ( int j = 0; j < rotation_substeps; ++j )
@@ -399,19 +566,14 @@ bool iPad()
             quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
             stone.rigidBody.orientation += spin * rotation_substep_dt;
             stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
-        }
-         */
-
-        quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
-        stone.rigidBody.orientation += spin * iteration_dt;
-        stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
+        }        
         
         // if just dropped let it first fall through the near plane
         // then it can start colliding with the frustum planes
 
         StaticContact contact;
 
-        bool collided = false;
+        bool iteration_collided = false;
         
         const float e = 0.5f;
         const float u = 0.5f;
@@ -420,31 +582,24 @@ bool iPad()
         {
             const float r = stone.biconvex.GetBoundingSphereRadius();
 
-            if ( stone.rigidBody.position.z() + r >= _smoothZoom )
-                stone.rigidBody.position = vec3f( 0, 0, stone.rigidBody.position.z() );
+            if ( stone.rigidBody.position.z() >= _smoothZoom - r )
+            {
+                stone.rigidBody.position = vec3f( 0, 0, min( stone.rigidBody.position.z(), _smoothZoom ) );
+                if ( stone.rigidBody.linearMomentum.z() > 1 )
+                    stone.rigidBody.linearMomentum = vec3f( stone.rigidBody.linearMomentum.x(), stone.rigidBody.linearMomentum.y(), 1 );
+            }
             else
                 _justDropped = false;
         }
         else
         {
-            mat4f clipMatrix;
-            clipMatrix.load( _clipMatrix.m );
-
-            Frustum frustum;
-            CalculateFrustumPlanes( clipMatrix, frustum );
-
-            // todo: going to need iterative contact solver to resolve
-            // simultaneous collisions without popping -- right now the
-            // various planes are fighting each other, can push into another plane
-            // and then get popped out next frame etc...
-            
             // collision between stone and near plane
 
             if ( StonePlaneCollision( stone.biconvex, frustum.front, stone.rigidBody, contact ) )
             {
                 ApplyCollisionImpulseWithFriction( contact, e, u );
                 stone.rigidBody.Update();
-                collided = true;
+                iteration_collided = true;
             }
 
             // collision between stone and left plane
@@ -453,7 +608,7 @@ bool iPad()
             {
                 ApplyCollisionImpulseWithFriction( contact, e, u );
                 stone.rigidBody.Update();
-                collided = true;
+                iteration_collided = true;
             }
 
             // collision between stone and right plane
@@ -462,7 +617,7 @@ bool iPad()
             {
                 ApplyCollisionImpulseWithFriction( contact, e, u );
                 stone.rigidBody.Update();
-                collided = true;
+                iteration_collided = true;
             }
 
             // collision between stone and top plane
@@ -471,7 +626,7 @@ bool iPad()
             {
                 ApplyCollisionImpulseWithFriction( contact, e, u );
                 stone.rigidBody.Update();
-                collided = true;
+                iteration_collided = true;
             }
 
             // collision between stone and bottom plane
@@ -480,23 +635,23 @@ bool iPad()
             {
                 ApplyCollisionImpulseWithFriction( contact, e, u );
                 stone.rigidBody.Update();
-                collided = true;
+                iteration_collided = true;
+            }
+
+            // collision between stone and board surface
+            
+            if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, contact ) )
+            {
+                ApplyCollisionImpulseWithFriction( contact, e, u );
+                stone.rigidBody.Update();
+                iteration_collided = true;
             }
         }
-        
-        // collision between stone and board
-
-        if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, contact ) )
-        {
-            ApplyCollisionImpulseWithFriction( contact, e, u );
-            stone.rigidBody.Update();
-            collided = true;
-        }
-
+                
         // this is a *massive* hack to approximate rolling/spinning
         // friction and it is completely made up and not accurate at all!
 
-        if ( collided )
+        if ( iteration_collided )
         {
             float momentum = length( stone.rigidBody.angularMomentum );
             
@@ -522,6 +677,8 @@ bool iPad()
                     const float factor = factor_a * ( 1 - alpha ) + factor_b * alpha;
                     stone.rigidBody.angularMomentum *= factor;
                 }
+
+                collided = true;
             }
         }
 
@@ -564,17 +721,26 @@ bool iPad()
     _modelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelViewMatrix );
     
     _clipMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
+
+    bool invertible;
+    _inverseClipMatrix = GLKMatrix4Invert( _clipMatrix, &invertible );
+    assert( invertible );
+
+    _hasRendered = true;
 }
 
 - (void)update
 {
     float dt = self.timeSinceLastUpdate;
+
     if ( dt > 1 / 10.0f )
         dt = 1 / 10.0f;
     
     if ( _paused )
         dt = 0.0f;
     
+    [self updateTouch:dt];
+
     [self updatePhysics:dt];
     
     [self render];
@@ -592,7 +758,9 @@ bool iPad()
     if ( _paused )
         return;
     
-    if ( _justDropped && _stone.rigidBody.position.z() >= _smoothZoom - 1.0f )
+    const float r = _stone.biconvex.GetBoundingSphereRadius();
+    
+    if ( _justDropped && _stone.rigidBody.position.z() >= _smoothZoom - r )
         return;
     
     glUseProgram( _program );

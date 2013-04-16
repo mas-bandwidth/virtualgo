@@ -2,11 +2,78 @@ DONE:
 
 TODO:
 
+    Click and hold (anywhere) should damp the stone like R in the demo
+
+    -----------------------------------------------------------------
+
+    iPad shaking needs a larger amount of impulse because the play area
+    is larger when zoomed out. It feels that shaking doesn't do much,
+    while on the iPhone it feels very effective.
+
+    -----------------------------------------------------------------
+
+    Cancel swipe if multiple touches occur. Swipe is one finger only!
+
+    -----------------------------------------------------------------
+
+    Dropping a stone is something that is disruptive. It should never
+    happen accidentally while you are moving the device around. 
+
+    Perhaps it should be a timed hold? eg. hold a touch down for 1/2 a second
+    = new stone launched. Will this interfere with the one two placement? Yes.
+
+    -----------------------------------------------------------------
+
     Implement select and drag for the stone
 
-    Swipe gesture not on the stone should induce spin about -gravity axis
+    Inherit velocity when released
 
-    Implement code to detect launching the stone up. What does the accelerometer do?
+    Implement one-two click for placing stone
+
+    *** At this point I have a good prototype for virtual go iOS ***
+
+    -----------------------------------------------------------------
+
+    The accelerometer not being accurate on side tilt is actually
+    not true, it is caused by the frustum planes being not exactly
+    flat.
+
+    I'm not sure if I should do anything about this.
+
+    I cannot clamp the value as I want tilting to work on side planes
+
+    I could consider some sort of clamp to nearest plane normal
+    concept if within some tolerence, this might be a good idea
+    but would make sliding asymmetrical with the floor.
+
+    -----------------------------------------------------------------
+
+    Implement board render texture
+
+    Implement board render with grid lines
+
+    Implement better lighting
+
+    Implement simple shadow (projection)
+
+    Implement iterative solver for simultaneous constraints (eg. corners)
+
+    -----------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     -----------------------------------------------------------------
 
