@@ -53,11 +53,11 @@ inline bool IntersectRayBiconvex_LocalSpace( vec3f rayStart,
     const float sphereRadiusSquared = biconvex.GetSphereRadiusSquared();
 
     // intersect ray with bottom sphere
-    vec3f bottomSphereCenter( 0, -sphereOffset, 0 );
+    vec3f bottomSphereCenter( 0, 0, -sphereOffset );
     if ( IntersectRaySphere( rayStart, rayDirection, bottomSphereCenter, sphereRadius, sphereRadiusSquared, t ) )
     {
         point = rayStart + rayDirection * t;
-        if ( point.y() >= 0 )
+        if ( point.z() >= 0 )
         {
             normal = normalize( point - bottomSphereCenter );
             return true;
@@ -65,11 +65,11 @@ inline bool IntersectRayBiconvex_LocalSpace( vec3f rayStart,
     }
 
     // intersect ray with top sphere
-    vec3f topSphereCenter( 0, sphereOffset, 0 );
+    vec3f topSphereCenter( 0, 0, sphereOffset );
     if ( IntersectRaySphere( rayStart, rayDirection, topSphereCenter, sphereRadius, sphereRadiusSquared, t ) )
     {
         point = rayStart + rayDirection * t;
-        if ( point.y() <= 0 )
+        if ( point.z() <= 0 )
         {
             normal = normalize( point - topSphereCenter );
             return true;
@@ -77,34 +77,6 @@ inline bool IntersectRayBiconvex_LocalSpace( vec3f rayStart,
     }
 
     return false;
-}
-
-inline float IntersectPlaneBiconvex_LocalSpace( vec3f planeNormal,
-                                                float planeDistance,
-                                                const Biconvex & biconvex,
-                                                vec3f & point,
-                                                vec3f & normal )
-{
-    const float sphereDot = biconvex.GetSphereDot();
-    const float planeNormalDot = fabs( dot( vec3f(0,0,1), planeNormal ) );
-    if ( planeNormalDot > sphereDot )
-    {
-        // sphere surface collision
-        const float sphereRadius = biconvex.GetSphereRadius();
-        const float sphereOffset = planeNormal.y() < 0 ? -biconvex.GetSphereOffset() : +biconvex.GetSphereOffset();
-        vec3f sphereCenter( 0, sphereOffset, 0 );
-        point = sphereCenter - normalize( planeNormal ) * sphereRadius;
-    }
-    else
-    {
-        // circle edge collision
-        const float circleRadius = biconvex.GetCircleRadius();
-        point = normalize( vec3f( -planeNormal.x(), 0, -planeNormal.z() ) ) * circleRadius;
-    }
-
-    normal = planeNormal;
-
-    return dot( -planeNormal, point ) + planeDistance;
 }
 
 inline float IntersectRayStone( const Biconvex & biconvex, 

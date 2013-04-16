@@ -30,7 +30,8 @@ inline bool StoneBoardCollision( const Biconvex & biconvex,
                                  StaticContact & contact,
                                  bool pushOut = false );
 
-inline bool StoneFloorCollision( const Biconvex & biconvex,
+inline bool StonePlaneCollision( const Biconvex & biconvex,
+                                 vec4f plane,
                                  RigidBody & rigidBody,
                                  StaticContact & contact );
 

@@ -1,5 +1,27 @@
 
-Spin on swipe (15/4/20130):
+Drag stone (15/4/2013):
+-----------------------
+
+    Click and hold damps the stone rotation
+
+    Detect click intersect with stone. Go into "select" mode
+
+    While in select mode damp the stone rotation. Don't apply gravity.
+
+    Calculate xy offset from stone center on first intersection,
+    and depth of intersection z.
+
+    Then intersect ray with that plane and calculate stone center
+    using offset.
+
+    Somehow this gives a perspective effect that is unpleasant.
+
+    To fix I need to implement the offsetting in screen coords?
+
+    Inherit velocity on stone release. Feels really good!
+
+
+Spin on swipe (15/4/2013):
 ---------------------------
 
     Determine start and endpoint of swipe in screen space

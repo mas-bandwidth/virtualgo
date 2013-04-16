@@ -1,12 +1,6 @@
 DONE:
 
-    Click and hold damp the stone rotation
-
 TODO:
-
-    Implement select and drag for the stone
-
-    Inherit velocity when released
 
     -----------------------------------------------------------------
 
@@ -53,8 +47,22 @@ TODO:
     for x seconds then you are holding, if you are moving then
     you are not holding, if you move fast a threshold you swiped.
 
+    There is some weird perspective effect on the drag
 
+    I want the center of the stone to remain basically the same
+    offset, in screen-space, from the center of the touch.
 
+    I think this means I need to do the offsetting in screen space,
+    and then project this offset to the xy plane to find the center
+    point for the biconvex (?!)
+
+    Pops occur in the corners/edges. Need iterative contacts.
+
+    Pops sometimes occur when clicking stone before drag.
+    Something wrong with the offset math?
+
+    Stone drag appears wrong. Strange perspective effect.
+    Need to convert offset to work in screen space?
 
     -----------------------------------------------------------------
 

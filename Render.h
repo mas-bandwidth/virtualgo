@@ -21,36 +21,6 @@ void ClearScreen( int displayWidth, int displayHeight, float r = 0, float g = 0,
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 }
 
-void GetPickRay( float screen_x, float screen_y, vec3f & rayStart, vec3f & rayDirection )
-{
-    // IMPORTANT: discussion about various ways to convert mouse coordinates -> pick ray
-    // http://stackoverflow.com/questions/2093096/implementing-ray-picking
-
-    GLint viewport[4];
-    GLfloat modelview[16];
-    GLfloat projection[16];
-    glGetIntegerv( GL_VIEWPORT, viewport );
-    glGetFloatv( GL_MODELVIEW_MATRIX, modelview );
-    glGetFloatv( GL_PROJECTION_MATRIX, projection );
-
-    const float displayHeight = viewport[3];
-
-    float x = screen_x;
-    float y = displayHeight - screen_y;
-
-    GLfloat x1,y1,z1;
-    GLfloat x2,y2,z2;
-
-    gluUnProject( x, y, 0, modelview, projection, viewport, &x1, &y1, &z1 );
-    gluUnProject( x, y, 1, modelview, projection, viewport, &x2, &y2, &z2 );
-
-    vec3f ray1( x1,y1,z1 );
-    vec3f ray2( x2,y2,z2 );
-
-    rayStart = ray1;
-    rayDirection = normalize( ray2 - ray1 );
-}
-
 void RenderBiconvexNaive( const Biconvex & biconvex, int numSegments = 128, int numRings = 32 )
 {
     glBegin( GL_TRIANGLES );
