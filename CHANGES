@@ -1,4 +1,21 @@
 
+Fixed bug in select and drag, handle multi-touch (16/4/2013):
+-------------------------------------------------------------
+
+    Ray vs. plane intersection was not properly handling
+    plane d, leading to the intersection being a mirror
+    plane, rather than the intended plane.
+
+    This manifested as popping and strange perspective 
+    artifacts in stone select and drag.
+
+    Cancel swipe/hold if multiple touches occur.
+
+    Swipe is one finger only!
+
+    Drag is one finger only!
+
+
 Tweak launch (15/4/2013):
 -------------------------
 

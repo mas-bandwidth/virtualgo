@@ -4,37 +4,13 @@ TODO:
 
     -----------------------------------------------------------------
 
-    The iPhone feels good with the launch all directions.
+    Get icon ready
 
-    The iPad does not. iPad wants to be treated differently.
+    Get app ready to testflight so other people can play with it
 
-    I think the iPad wants zoomed out, and for launch to be up only.
+    This is the most important step now. 
 
-    I think the iPad also wants a smaller amount of vertical motion
-    for the stones. It really hurts to see them zoom in so close.
-
-    -----------------------------------------------------------------
-
-    Cancel swipe/hold if multiple touches occur. 
-
-    Swipe is one finger only!
-
-    -----------------------------------------------------------------
-
-    Implement one-two click for placing stone
-
-    First click places the stone but holds it in an alpha state? 
-    50% alpha? It's where it will go, but it's not here yet...
-
-    Stone should pulse in alpha actually while being placed...!
-
-    Second click locks in the stone and it goes solid opaque quickly.
-
-    Ideally sound effects for both phase, click - pah. 
-
-    -----------------------------------------------------------------
-
-    !!!! IOS PROTOTYPE COMPLETE !!!!
+    It is good enough to get testers playing around with it!
 
     -----------------------------------------------------------------
 
@@ -51,29 +27,15 @@ TODO:
     kick in. Maybe the touch began but it doesn't know where?
     Anyway, this is reproduceable so can be fixed later.
 
-    Would be nice to be able to transition from hold -> swipe mode
-    without needing to repress the touch. 
-
-    eg. if you are still 
-    for x seconds then you are holding, if you are moving then
-    you are not holding, if you move fast a threshold you swiped.
-
-    There is some weird perspective effect on the drag
-
-    I want the center of the stone to remain basically the same
-    offset, in screen-space, from the center of the touch.
-
-    I think this means I need to do the offsetting in screen space,
-    and then project this offset to the xy plane to find the center
-    point for the biconvex (?!)
-
     Pops occur in the corners/edges. Need iterative contacts.
 
-    Pops sometimes occur when clicking stone before drag.
-    Something wrong with the offset math?
+    Blow into the microphone moves the stone up (iphone only)
 
-    Stone drag appears wrong. Strange perspective effect.
-    Need to convert offset to work in screen space?
+    -----------------------------------------------------------------
+
+    Prefer spin direction the stone is already spinning around on swipe
+
+    If there is no existing rotation 
 
     -----------------------------------------------------------------
 
@@ -88,6 +50,19 @@ TODO:
     I could consider some sort of clamp to nearest plane normal
     concept if within some tolerence, this might be a good idea
     but would make sliding asymmetrical with the floor.
+
+    -----------------------------------------------------------------
+
+    Implement one-two click for placing stone
+
+    First click places the stone but holds it in an alpha state? 
+    50% alpha? It's where it will go, but it's not here yet...
+
+    Stone should pulse in alpha actually while being placed...!
+
+    Second click locks in the stone and it goes solid opaque quickly.
+
+    Ideally sound effects for both phase, click - pah. 
 
     -----------------------------------------------------------------
 

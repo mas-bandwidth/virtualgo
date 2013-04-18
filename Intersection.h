@@ -15,7 +15,7 @@ inline bool IntersectRayPlane( vec3f rayStart,
     const float d = dot( rayDirection, planeNormal );
     if ( d > -epsilon )
         return false;
-    t = - ( dot( rayStart, planeNormal ) + planeDistance ) / d;
+    t = - ( dot( rayStart, planeNormal ) - planeDistance ) / d;
     assert( t >= 0 );
     return true;
 }

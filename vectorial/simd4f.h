@@ -8,7 +8,7 @@
 #define VECTORIAL_SIMD4F_H
 
 #ifndef VECTORIAL_CONFIG_H
-  #include "vectorial/config.h"
+  #include "config.h"
 #endif
 
 
