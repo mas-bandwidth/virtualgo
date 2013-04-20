@@ -1,4 +1,32 @@
 
+Setup testflight, got a few beta testers (18/4/2013):
+-----------------------------------------------------
+
+    Get icon ready
+
+    Integrate with testflight SDK and start distributing to testers
+
+    Send Test flight invites to:
+
+     - Paul Bragiel
+     - Mark McCubbin
+     - Dave Taylor
+     - Morgan
+     - Matt Ditton
+     - Dave Jaffe
+     - Go Game Guru
+     - Thomas Rizos
+     - Rex Guo
+
+    Invite URL is http://tflig.ht/ZvH5xr
+
+    Apparently I need to collect all their devices, then 
+    make a build adding these devices to my provisioning
+    profile.
+
+    This is problematic as this profile seems to have max 99 devices?!
+
+
 Fixed bug in select and drag, handle multi-touch (16/4/2013):
 -------------------------------------------------------------
 

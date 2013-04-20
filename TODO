@@ -1,26 +1,67 @@
 DONE:
 
+    Find wood seamless textures from clipart sites
+
 TODO:
 
-    -----------------------------------------------------------------
+    Render wood texture background
 
-    Get icon ready
+    Implement simple drop-shadow projected onto board
 
-    Get app ready to testflight so other people can play with it
+    Blur the shadow
 
-    This is the most important step now. 
-
-    It is good enough to get testers playing around with it!
+    Make the shadow blur out and fade out as the stone moves away
 
     -----------------------------------------------------------------
 
+    Render go board lines
+
+    Ideally want some rendered alpha lines that look realistic
+
+    Don't want hard lines that look perfect (too perfect!)
+
+    -----------------------------------------------------------------
+
+    Capture go stone sounds
+
+    Buy a microphone
+
+    Research how to capture foley
+
+    Need sound of stone hitting board with different variations
+
+    Stone hitting metal for the sides of the frustum
+
+    Stone hitting glass for the front screen
+
+    -----------------------------------------------------------------
+
+    Capture go stone diffuse textures
+
+    Implement some way to swipe select between go stone textures
+
+    Perhaps double swipe up/down -- I'd like to let the user
+    mix and match go stones with different go boards, and perhaps
+    save them off as presets.
+
+    -----------------------------------------------------------------
+
+    Implement double swipe detection
+
+    Double swipe left/right select between different go board 
+    textures, eg. light, dark, red wood etc.
+
+    -----------------------------------------------------------------
+
+
+
+
+
 
 
 
 
     -----------------------------------------------------------------
-
-    Polish:
 
     Seems that hold sometimes does not trigger. Not sure why yet?
     It seems that touch began triggers, but somehow the hold doesn't

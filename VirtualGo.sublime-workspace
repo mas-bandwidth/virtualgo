@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"cont",
+				"contentScaleFactor"
+			],
+			[
 				"Collision",
 				"CollisionResponseWithFriction"
 			],
@@ -71,27 +75,11 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "TODO",
-			"settings":
-			{
-				"buffer_size": 4923,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "Biconvex.h",
-			"settings":
-			{
-				"buffer_size": 13248,
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "Packages/Makefile/Make.sublime-build",
 	"command_palette":
 	{
-		"height": 107.0,
+		"height": 392.0,
 		"selected_items":
 		[
 			[
@@ -127,11 +115,14 @@
 				"Package Control: Install Package"
 			]
 		],
-		"width": 449.0
+		"width": 392.0
 	},
 	"console":
 	{
-		"height": 61.0
+		"height": 61.0,
+		"history":
+		[
+		]
 	},
 	"distraction_free":
 	{
@@ -144,42 +135,71 @@
 	},
 	"file_history":
 	[
-		"/Users/gaffer/virtualgo/premake4.lua",
-		"/Users/gaffer/virtualgo/VirtualGo.cpp",
-		"/Users/gaffer/virtualgo/Collision.cpp",
 		"/Users/gaffer/virtualgo/TODO",
-		"/Users/gaffer/virtualgo/Render.h",
-		"/Users/gaffer/virtualgo/Angular.cpp",
-		"/Users/gaffer/virtualgo/Picking.cpp",
-		"/Users/gaffer/virtualgo/Tessellation.cpp",
-		"/Users/gaffer/virtualgo/DIAGRAMS",
 		"/Users/gaffer/virtualgo/CHANGES",
-		"/Users/gaffer/virtualgo/Support.cpp",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go.xcodeproj/project.pbxproj",
+		"/Users/gaffer/virtualgo/Intersection.h",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/ViewController.m",
+		"/Users/gaffer/Desktop/tolga.txt",
+		"/Users/gaffer/Desktop/blair.txt",
+		"/Users/gaffer/virtualgo/Stone.h",
+		"/Users/gaffer/virtualgo/Collision.cpp",
+		"/Users/gaffer/virtualgo/Render.h",
+		"/Users/gaffer/virtualgo/Common.h",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/ViewController.h",
+		"/Users/gaffer/virtualgo/CollisionDetection.h",
+		"/Users/gaffer/virtualgo/RigidBody.h",
+		"/Users/gaffer/virtualgo/Mesh.h",
+		"/Users/gaffer/Downloads/TestFlightSDK1.2.4/README.md",
+		"/Users/gaffer/virtualgo/vectorial/mat4f.h",
+		"/Users/gaffer/virtualgo/Picking.cpp",
+		"/Users/gaffer/virtualgo/Platform.h",
+		"/Users/gaffer/virtualgo/CollisionResponse.h",
+		"/Users/gaffer/virtualgo/vectorial/simd4x4f.h",
+		"/Users/gaffer/Dropbox/talks/gdc2009/sandbox/source/Render.h",
+		"/Users/gaffer/Dropbox/talks/gdc2009/sandbox/source/Mathematics.h",
+		"/Users/gaffer/virtualgo/vectorial/vec4f.h",
 		"/Users/gaffer/virtualgo/Biconvex.h",
+		"/Users/gaffer/Dropbox/gdc/2009/sandbox/source/Render.h",
+		"/Users/gaffer/Dropbox/gdc/2009/sandbox/source/Common.h",
+		"/Users/gaffer/Dropbox/gdc/2009/sandbox/source/Mathematics.h",
+		"/Users/gaffer/virtualgo/VirtualGo.cpp",
+		"/Users/gaffer/virtualgo/InertiaTensor.h",
+		"/Users/gaffer/virtualgo/premake4.lua",
+		"/Users/gaffer/virtualgo/Tessellation.cpp",
+		"/Users/gaffer/virtualgo/Support.cpp",
+		"/Users/gaffer/virtualgo/VirtualGo.sublime-project",
+		"/Users/gaffer/virtualgo/Board.h",
+		"/Users/gaffer/virtualgo/Dynamics.cpp",
+		"/Users/gaffer/Desktop/RollingFriction.c",
+		"/Users/gaffer/Desktop/CoulombFriction.c",
+		"/Users/gaffer/Desktop/gdc/CalculateBiconvex.c",
+		"/Users/gaffer/virtualgo/RigidBody.c",
+		"/Users/gaffer/Desktop/VelocityAtPoint.c",
+		"/Users/gaffer/Desktop/InertiaTensor.c",
+		"/Users/gaffer/virtualgo/stb_image.c",
+		"/Users/gaffer/virtualgo/stb_image.h",
+		"/Users/gaffer/virtualgo/Config.h",
+		"/Users/gaffer/virtualgo/Platform.cpp",
+		"/Users/gaffer/virtualgo/UnitTest.cpp",
+		"/Users/gaffer/virtualgo/TALK",
+		"/Users/gaffer/virtualgo/obj/Debug/Collision/Platform.d",
+		"/Users/gaffer/virtualgo/Collision.h",
+		"/Users/gaffer/Documents/bugs",
+		"/Users/gaffer/virtualgo/vectorial/simd4f.h",
+		"/Users/gaffer/Desktop/backup2",
+		"/Users/gaffer/virtualgo/Angular.cpp",
+		"/Users/gaffer/virtualgo/DIAGRAMS",
 		"/Users/gaffer/virtualgo/ARTICLES",
 		"/Users/gaffer/virtualgo/Tesselation",
 		"/Users/gaffer/virtualgo/Tesselation.cpp",
-		"/Users/gaffer/virtualgo/TALK",
-		"/Users/gaffer/virtualgo/Common.h",
-		"/Users/gaffer/virtualgo/Mesh.h",
 		"/Users/gaffer/virtualgo/vectorial/simd4f_common.h",
 		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
-		"/Users/gaffer/virtualgo/vectorial/simd4f.h",
-		"/Users/gaffer/virtualgo/Platform.h",
-		"/Users/gaffer/virtualgo/Platform.cpp",
 		"/Users/gaffer/virtualgo/vectorial/simd4f_sse.h",
-		"/Users/gaffer/virtualgo/Config.h",
-		"/Users/gaffer/virtualgo/Stone.h",
 		"/Users/gaffer/virtualgo/UnitTest++/CurrentTest.cpp",
-		"/Users/gaffer/virtualgo/Intersection.h",
-		"/Users/gaffer/virtualgo/Board.h",
-		"/Users/gaffer/virtualgo/Collision.h",
-		"/Users/gaffer/virtualgo/UnitTest.cpp",
 		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Core/MeshFactory.h",
 		"/Users/gaffer/virtualgo/obj/Debug/VirtualGo/Platform.d",
-		"/Users/gaffer/virtualgo/RigidBody.h",
 		"/Users/gaffer/Board.h",
-		"/Users/gaffer/virtualgo/vectorial/mat4f.h",
 		"/Users/gaffer/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
 		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/VirtualGo/VirtualGo.cpp",
 		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Mathematics/Biconvex.h",
@@ -191,13 +211,10 @@
 		"/Users/gaffer/virtualgo/output.txt",
 		"/Users/gaffer/virtualgo/vectorial/simd4f_neon.h",
 		"/Users/gaffer/virtualgo/UnitTest++/Posix/SignalTranslator.cpp",
-		"/Users/gaffer/virtualgo/vectorial/simd4x4f.h",
 		"/Users/gaffer/bio.txt",
 		"/Users/gaffer/opengl/OpenGL.cpp",
-		"/Users/gaffer/virtualgo/vectorial/vec4f.h",
 		"/Users/gaffer/virtualgo/build/obj/Debug/CurrentTest.d",
 		"/Users/gaffer/virtualgo/build/obj/Debug/TestRunner.d",
-		"/Users/gaffer/virtualgo/VirtualGo.sublime-project",
 		"/Users/gaffer/virtualgo/build/obj/Debug/TimeConstraint.d",
 		"/Users/gaffer/Desktop/hosting meeting with OTG",
 		"/Users/gaffer/Desktop/hosting meeting with GH",
@@ -245,41 +262,15 @@
 		"/Users/gaffer/git/network/shadow/Shortcuts.txt",
 		"/Users/gaffer/git/network/ruby/common.rb",
 		"/Users/gaffer/git/network/ruby/levels.rb",
-		"/Users/gaffer/git/network/incoming/mpScriptingManager.cpp",
-		"/Users/gaffer/git/network/incoming/mpScriptingManager.h",
-		"/Users/gaffer/git/network/incoming/mpAuthorityManager.cpp",
-		"/Users/gaffer/git/network/incoming/mpDebug.cpp",
-		"/Users/gaffer/git/network/incoming/mpInventoryManager.cpp",
-		"/Users/gaffer/TASKS",
-		"/Users/gaffer/git/network/incoming/mpState.cpp",
-		"/Users/gaffer/git/network/incoming/mpVariableManager.cpp",
-		"/Users/gaffer/git/network/src/netLevelData.cpp",
-		"/Users/gaffer/git/network/incoming/mpTypes.h",
-		"/Users/gaffer/git/network/incoming/mpStateManager.cpp",
-		"/Users/gaffer/git/network/test/TestProtocol.cpp",
-		"/Users/gaffer/git/network/incoming/mpCreatureManager.cpp",
-		"/Users/gaffer/git/network/include/netUtil.h",
-		"/Users/gaffer/git/network/include/netDataLanguage.h",
-		"/Users/gaffer/git/network/incoming/Multiplayer.cpp",
-		"/Users/gaffer/git/network/ruby/whoops.txt",
-		"/Users/gaffer/git/network/incoming/Network.cpp",
-		"/Users/gaffer/git/network/ruby/ndl/Constants.net",
-		"/Users/gaffer/git/network/include/netTime.h",
-		"/Users/gaffer/git/network/incoming/mpInterface.cpp",
-		"/Users/gaffer/git/network/incoming/mpPlayerManager.cpp",
-		"/Users/gaffer/git/network/incoming/mpShortcutsManager.cpp",
-		"/Users/gaffer/git/network/incoming/mpDefinitions.h",
-		"/Users/gaffer/git/network/test/Data.cpp",
-		"/Users/gaffer/git/network/test/PreBuild.cpp",
-		"/Users/gaffer/git/network/test/UnitTest.cpp"
+		"/Users/gaffer/git/network/incoming/mpScriptingManager.cpp"
 	],
 	"find":
 	{
-		"height": 35.0
+		"height": 38.0
 	},
 	"find_in_files":
 	{
-		"height": 0.0,
+		"height": 93.0,
 		"where_history":
 		[
 			"",
@@ -309,134 +300,134 @@
 		"case_sensitive": true,
 		"find_history":
 		[
-			"float t",
-			"dt",
-			"space",
-			"hack:",
+			"PROVISION",
+			"PROVISIONING",
+			"_selectOffset",
+			"_selectDepth",
+			"select",
+			"_selectIntersectionPoint",
+			"_selectIntersection",
+			"selectDepth",
+			"timetamp",
+			"_selected",
+			"_select",
+			"Mesh",
+			"holdStarted",
+			"LaunchMomentum",
+			"HoldThreshold",
+			"updateTouch",
+			"handleSwipe",
+			"swipeStart",
+			"handleSwipe",
+			"_inverse",
+			"_clipMatrix",
+			"GetPickRay",
+			"PickRay",
+			"GetMousePickRay",
+			"GetMousePickRay\nGetMousePickRay",
+			"GetMousePickRay",
+			"GetMousePickRay\nGetMousePickRay",
+			"GetMousePickRay",
+			"updatePhysics",
+			"u = ",
+			"updateTouch",
+			"updatePhysics",
+			"updatePhyscis",
+			"updatePhysics",
+			"updateTouch",
+			"touchesBegan",
+			"dropStone",
+			"frustum",
+			"iteratively",
+			"_clipMatrix",
+			"Plane",
+			"dropStone",
+			"_stone",
+			"Frustum",
 			"0.5",
-			"mode",
-			"LinearCollisionResponse",
-			"RigidBodyTransform",
-			"colliding",
-			"dt",
-			"step_dt",
-			"GL_LIGHTING",
-			"FallingStone",
-			"prevCollision",
-			"StoneAndBoard",
-			"glLineWidth",
-			"prevSpace",
-			"tesselation",
-			"Tesselation",
-			"RenderBic",
-			"247",
-			"printf",
-			"list",
-			"listvectorvec",
-			"list",
-			"2 )",
-			"Quit",
-			"GenerateBiconvex",
-			"t = ",
-			"dt",
-			"DisplayWidth",
-			"CloseDisplay",
-			"bevel",
-			"LIGHTING",
-			"Test",
-			"NearestPointOnStone",
-			"IntersectRayStone",
-			"Intersect_RayStone",
-			"BoardEdges",
-			"BOARD_EDGE",
+			"drop",
+			"Jerk",
+			"gravity",
+			"LookAt",
+			"_rotation",
+			"inertiaTensor",
+			"InertiaTensor",
+			"CollisionResponse",
+			"Go",
+			"cross",
+			"lights",
+			"_CW",
+			"CCW",
+			".up",
+			"camera",
+			"axis",
+			"stoneSizes",
+			"stone",
+			"DetermineStoneBoardRegion",
+			"ClosestFeaturePrimarySurface",
+			"cross",
+			"Primary",
+			"0,1,0",
+			"left",
+			"0,1,0",
+			"Support",
+			"scrollY",
+			"scrollX",
+			"deltaAngle",
+			"scrollX",
+			"deltaAngle",
+			"IntersectStoneBoard",
+			"\n\nIntersectStoneBoard",
+			"\nIntersectStoneBoard",
+			"IntersectStoneBoard",
 			"ClosestFeaturesStoneBoard",
-			"Generate",
-			"GenerateBiconvex",
-			"HACK",
-			"Generate",
-			"GenerateBiconvexMesh",
-			"Generate",
-			"SMOOTH",
-			"GenerateBiconvex",
-			"RenderBiconvex",
-			"axisRotation",
-			"Generate",
-			"rotation",
-			"Generate",
-			"buildList",
-			"cleanup",
-			"scaleAndTranslateSurface",
-			"GenerateBiconvexMesh",
-			"RenderBiconvex",
-			"SMOOTH",
-			"RenderBiconvex",
-			"OpenDisplay",
-			"Normal",
-			"RenderBiconvex",
-			"ClearScreen",
-			"RenderBiconvex",
-			"HACK",
-			"TODO",
-			"Quaternion",
-			"flipX",
-			"hack",
+			"ASSERTasse",
+			"rigidBody.",
 			"todo",
-			"hack",
-			"steps = ",
-			"ke_before",
-			"GetVelocityAtPoint",
+			"glColor",
+			"Ambient",
+			"rotation",
+			"LIGHT",
+			"RenderStone",
+			"rotation",
+			"setup light",
+			"LIGHT",
+			"world velocity",
 			"inverseInertiaTensor",
 			"inertiaTensor",
-			"BiconvexInertiaTensor",
-			"inertiaTensor",
-			"KineticEnergy",
-			"Kinetic",
-			"hack",
+			"max",
+			"AngularCollision",
+			"frame",
+			"PBO",
+			"num",
+			"%",
+			"RandomNoSpin",
 			"printf",
-			"x axis",
+			"PointInside",
+			"doublefloat",
+			"CalculateBiconvexInertiaTensor",
+			"Inertia",
+			"angularMomentum += ",
+			"axisRotation",
+			"boardContact",
+			"collided",
+			"StoneBoardCollision",
+			"prevOne",
 			"RandomStone",
-			"IntersectStoneBoard",
-			"epsilon",
-			"printf",
-			"i = ",
-			"printf",
-			"mass = ",
-			"Calculate",
-			"mass = ",
-			"todo",
-			"0.1f *",
-			"0.1 *",
-			"todo",
-			"* 0.1",
-			"angularVelocity",
-			"todo",
-			"p = ",
-			"CalculateBiconvex",
+			"RestoreDefaults",
 			"RandomStone",
-			"Biconvex",
-			"BiconvexInr",
-			"Biconvex biconvex",
+			"LinearCollisionResponse",
 			"RandomStone",
-			"Biconvex bicon",
-			"Ellip",
-			"zero",
-			"RandomStone",
-			"prevEnter",
-			"steps",
-			"RandomStone",
-			"float mass",
-			"RigidBody()",
-			"Ellipsoid",
-			"Biconvex",
-			"todo",
-			"flipX",
-			"scaled_dt",
-			"angularVelocity",
-			"scaled_dt",
-			"RenderBiconvex_Lines",
-			"prevSpace",
-			"scaled",
-			"scaleddt"
+			"int main",
+			"TEXTURE",
+			"RollingFriction",
+			"Textured",
+			"Texture",
+			"scrollX",
+			"LIGHT4",
+			"Support",
+			"frame ",
+			"snapshotAccum"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -460,67 +451,14 @@
 	"groups":
 	[
 		{
-			"selected": 1,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "TODO",
-					"settings":
-					{
-						"buffer_size": 4923,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								23,
-								23
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "Biconvex.h",
-					"settings":
-					{
-						"buffer_size": 13248,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								552,
-								552
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 188.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
 			]
 		}
 	],
 	"incremental_find":
 	{
-		"height": 38.0
+		"height": 30.0
 	},
 	"input":
 	{
@@ -553,9 +491,10 @@
 	{
 		"height": 124.0
 	},
+	"project": "VirtualGo.sublime-project",
 	"replace":
 	{
-		"height": 68.0
+		"height": 56.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -564,55 +503,215 @@
 		"selected_items":
 		[
 			[
-				"biconvex.h",
-				"Biconvex.h"
+				"changes",
+				"CHANGES"
 			],
 			[
 				"todo",
 				"TODO"
 			],
 			[
-				"premake4.lua",
-				"premake4.lua"
+				"intersection.h",
+				"Intersection.h"
 			],
 			[
-				"virtualgo.cpp",
-				"VirtualGo.cpp"
+				"view",
+				"xcode/Virtual Go/ViewController.m"
 			],
 			[
 				"collision.cpp",
 				"Collision.cpp"
 			],
 			[
+				"collisiondetection.h",
+				"CollisionDetection.h"
+			],
+			[
 				"render.h",
 				"Render.h"
+			],
+			[
+				"rigidbody.h",
+				"RigidBody.h"
+			],
+			[
+				"",
+				"xcode/Virtual Go/ViewController.m"
+			],
+			[
+				"mesh.h",
+				"Mesh.h"
+			],
+			[
+				"stone.h",
+				"Stone.h"
+			],
+			[
+				"mat4f.h",
+				"vectorial/mat4f.h"
+			],
+			[
+				"common.h",
+				"Common.h"
+			],
+			[
+				"platform.h",
+				"Platform.h"
+			],
+			[
+				"viewcontroller.m",
+				"xcode/Virtual Go/ViewController.m"
+			],
+			[
+				"viewcontroller.h",
+				"xcode/Virtual Go/ViewController.h"
+			],
+			[
+				"dropstone",
+				"~/Dropbox/talks/gdc2009/sandbox/source/Render.h"
+			],
+			[
+				"collisionresponse.h",
+				"CollisionResponse.h"
+			],
+			[
+				"vec4f.h",
+				"vectorial/vec4f.h"
+			],
+			[
+				"biconvex.h",
+				"Biconvex.h"
+			],
+			[
+				"simd4x4f.h",
+				"vectorial/simd4x4f.h"
+			],
+			[
+				"support.cpp",
+				"Support.cpp"
+			],
+			[
+				"tessellation.cpp",
+				"Tessellation.cpp"
+			],
+			[
+				"premake4.lua",
+				"premake4.lua"
+			],
+			[
+				"inertiatensor.h",
+				"InertiaTensor.h"
+			],
+			[
+				".up",
+				"VirtualGo.sublime-project"
+			],
+			[
+				"go.cpp",
+				"VirtualGo.cpp"
+			],
+			[
+				"board.h",
+				"Board.h"
+			],
+			[
+				"colliionresponse.h",
+				"CollisionResponse.h"
+			],
+			[
+				"dynamics.cpp",
+				"Dynamics.cpp"
+			],
+			[
+				"rigidbod.h",
+				"RigidBody.h"
+			],
+			[
+				"virtualgo.cpp",
+				"VirtualGo.cpp"
 			],
 			[
 				"premake",
 				"premake4.lua"
 			],
 			[
-				"diagrams",
-				"DIAGRAMS"
+				"mat4f",
+				"vectorial/mat4f.h"
 			],
 			[
-				"changes",
-				"CHANGES"
+				"stb_image.c",
+				"stb_image.c"
 			],
 			[
-				"tesselation.cpp",
-				"Tessellation.cpp"
+				"config.h",
+				"Config.h"
 			],
 			[
-				"picking.cpp",
-				"Picking.cpp"
+				"platform.cpp",
+				"Platform.cpp"
 			],
 			[
 				"pre",
 				"premake4.lua"
 			],
 			[
+				"stb",
+				"stb_image.c"
+			],
+			[
+				"virtuago.cpp",
+				"VirtualGo.cpp"
+			],
+			[
+				"unittest.cpp",
+				"UnitTest.cpp"
+			],
+			[
+				"vitualgo.cpp",
+				"VirtualGo.cpp"
+			],
+			[
 				"tess",
+				"Tessellation.cpp"
+			],
+			[
+				"talk",
+				"TALK"
+			],
+			[
+				"picking.cpp",
+				"Picking.cpp"
+			],
+			[
+				"mesh",
+				"Mesh.h"
+			],
+			[
+				"collisiondet",
+				"CollisionDetection.h"
+			],
+			[
+				"collision.h",
+				"Collision.h"
+			],
+			[
+				"tdo",
+				"TODO"
+			],
+			[
+				"simd4f.h",
+				"vectorial/simd4f.h"
+			],
+			[
+				"simd",
+				"vectorial/simd4x4f.h"
+			],
+			[
+				"diagrams",
+				"DIAGRAMS"
+			],
+			[
+				"tesselation.cpp",
 				"Tessellation.cpp"
 			],
 			[
@@ -632,48 +731,16 @@
 				"ARTICLES"
 			],
 			[
-				"talk",
-				"TALK"
-			],
-			[
-				"common.h",
-				"Common.h"
-			],
-			[
 				"comomn.h",
 				"vectorial/simd4f_common.h"
-			],
-			[
-				"mesh.h",
-				"Mesh.h"
-			],
-			[
-				"platform.cpp",
-				"Platform.cpp"
-			],
-			[
-				"platform.h",
-				"Platform.h"
 			],
 			[
 				"simd4f_sse.h",
 				"vectorial/simd4f_sse.h"
 			],
 			[
-				"simd4f.h",
-				"vectorial/simd4f.h"
-			],
-			[
 				"vec3f",
 				"vectorial/vec3f.h"
-			],
-			[
-				"stone.h",
-				"Stone.h"
-			],
-			[
-				"config.h",
-				"Config.h"
 			],
 			[
 				"comm",
@@ -684,36 +751,12 @@
 				"premake4.lua"
 			],
 			[
-				"intersection.h",
-				"Intersection.h"
-			],
-			[
-				"unittest.cpp",
-				"UnitTest.cpp"
-			],
-			[
-				"collision.h",
-				"Collision.h"
-			],
-			[
 				"intersect.",
 				"Intersection.h"
 			],
 			[
 				"vec3f.h",
 				"vectorial/vec3f.h"
-			],
-			[
-				"mat4f.h",
-				"vectorial/mat4f.h"
-			],
-			[
-				"",
-				"CHANGES"
-			],
-			[
-				"vitualgo.cpp",
-				"VirtualGo.cpp"
 			],
 			[
 				"output.txt",
@@ -726,14 +769,6 @@
 			[
 				"out",
 				"output.txt"
-			],
-			[
-				"simd",
-				"vectorial/simd4x4f.h"
-			],
-			[
-				"vec4f.h",
-				"vectorial/vec4f.h"
 			],
 			[
 				"con",
@@ -750,10 +785,6 @@
 			[
 				"sim",
 				"vectorial/simd4x4f.h"
-			],
-			[
-				"mat4f",
-				"vectorial/mat4f.h"
 			],
 			[
 				"mat",
@@ -982,98 +1013,6 @@
 			[
 				"testgamefixture.h",
 				"test/TestGameFixture.h"
-			],
-			[
-				"tood",
-				"build/obj/x64/Debug/UnitTest++/MemoryOutStream.d"
-			],
-			[
-				"testtokenmanager.cpp",
-				"test/TestTokenManager.cpp"
-			],
-			[
-				"testleveldata.h",
-				"test/TestLevelData.h"
-			],
-			[
-				"testleveldata.cpp",
-				"test/TestLevelData.cpp"
-			],
-			[
-				"netlevelstatemachine.h",
-				"include/netLevelStateMachine.h"
-			],
-			[
-				"netlevelstatemachine.cpp",
-				"src/netLevelStateMachine.cpp"
-			],
-			[
-				"netleveldata.h",
-				"include/netLevelData.h"
-			],
-			[
-				"testgameod",
-				"test/TestGameModeData.h"
-			],
-			[
-				"netsubwad",
-				"src/netSubWadData.cpp"
-			],
-			[
-				"subwads",
-				"shadow/SubWads.txt"
-			],
-			[
-				"gamemode.rb",
-				"ruby/gameModes.rb"
-			],
-			[
-				"testgamem",
-				"test/TestGameModeData.h"
-			],
-			[
-				"netmke.rb",
-				"ruby/netMake.rb"
-			],
-			[
-				"testgamemodedata.h",
-				"test/TestGameModeData.h"
-			],
-			[
-				"testgamemode.cpp",
-				"test/TestGameModeData.cpp"
-			],
-			[
-				"netprotocol.cpp",
-				"src/netProtocol.cpp"
-			],
-			[
-				"constants.rb",
-				"ruby/constants.rb"
-			],
-			[
-				"testndl.cpp",
-				"test/TestNDL.cpp"
-			],
-			[
-				"testlevelstatemachine.cpp",
-				"test/TestLevelStateMachine.cpp"
-			],
-			[
-				"testgame",
-				"test/TestGameModeData.h"
-			],
-			[
-				"netconfig.h",
-				"include/netConfig.h"
-			],
-			[
-				"gamemodes",
-				"shadow/m4/GameModes.net.14152"
-			],
-			[
-				"enums.net",
-				"ruby/ndl/Enums.net"
 			]
 		],
 		"width": 0.0
@@ -1086,10 +1025,24 @@
 		],
 		"width": 0.0
 	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
 	"show_minimap": true,
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": false,
 	"side_bar_width": 276.0,
-	"status_bar_visible": true
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
 }

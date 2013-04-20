@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F203E5831720C6650040ECA8 /* libTestFlight.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F203E57F1720C6650040ECA8 /* libTestFlight.a */; };
+		F203E5841720C6650040ECA8 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = F203E5801720C6650040ECA8 /* README.md */; };
+		F203E5851720C6650040ECA8 /* release_notes.md in Resources */ = {isa = PBXBuildFile; fileRef = F203E5811720C6650040ECA8 /* release_notes.md */; };
+		F203E5871720C9260040ECA8 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F203E5861720C9260040ECA8 /* libz.dylib */; };
 		F26653EF171A205400CFB131 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F26653EE171A205400CFB131 /* UIKit.framework */; };
 		F26653F1171A205400CFB131 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F26653F0171A205400CFB131 /* Foundation.framework */; };
 		F26653F3171A205400CFB131 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F26653F2171A205400CFB131 /* CoreGraphics.framework */; };
@@ -23,24 +27,22 @@
 		F2665411171A205500CFB131 /* Shader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = F2665410171A205500CFB131 /* Shader.fsh */; };
 		F2665413171A205500CFB131 /* Shader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = F2665412171A205500CFB131 /* Shader.vsh */; };
 		F2665416171A205500CFB131 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2665415171A205500CFB131 /* ViewController.m */; };
-		F266541E171A205500CFB131 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F266541D171A205500CFB131 /* SenTestingKit.framework */; };
-		F266541F171A205500CFB131 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F26653EE171A205400CFB131 /* UIKit.framework */; };
-		F2665420171A205500CFB131 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F26653F0171A205400CFB131 /* Foundation.framework */; };
-		F2665428171A205500CFB131 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = F2665426171A205500CFB131 /* InfoPlist.strings */; };
-		F266542B171A205500CFB131 /* Virtual_GoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F266542A171A205500CFB131 /* Virtual_GoTests.m */; };
+		F2D6AD69171FDF5A00930D69 /* virtual go.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD68171FDF5A00930D69 /* virtual go.png */; };
+		F2D6AD6B171FDFE500930D69 /* virtual go retina.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD6A171FDFE500930D69 /* virtual go retina.png */; };
+		F2D6AD6D171FE05600930D69 /* virtual go retina ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD6C171FE05600930D69 /* virtual go retina ipad.png */; };
+		F2D6AD6F171FE09400930D69 /* virtual go ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD6E171FE09400930D69 /* virtual go ipad.png */; };
+		F2D6AD7E1720556F00930D69 /* Default-Portrait@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD7D1720556F00930D69 /* Default-Portrait@2x~ipad.png */; };
+		F2D6AD801720557300930D69 /* Default-Portrait~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD7F1720557300930D69 /* Default-Portrait~ipad.png */; };
+		F2D6AD821720557A00930D69 /* Default-Landscape~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */; };
+		F2D6AD841720557E00930D69 /* Default-Landscape@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		F2665421171A205500CFB131 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F26653E3171A205400CFB131 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = F26653EA171A205400CFB131;
-			remoteInfo = "Virtual Go";
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
+		F203E57F1720C6650040ECA8 /* libTestFlight.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libTestFlight.a; sourceTree = "<group>"; };
+		F203E5801720C6650040ECA8 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		F203E5811720C6650040ECA8 /* release_notes.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = release_notes.md; sourceTree = "<group>"; };
+		F203E5821720C6650040ECA8 /* TestFlight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFlight.h; sourceTree = "<group>"; };
+		F203E5861720C9260040ECA8 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		F26653EB171A205400CFB131 /* Virtual Go.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Virtual Go.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F26653EE171A205400CFB131 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		F26653F0171A205400CFB131 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -62,28 +64,7 @@
 		F2665412171A205500CFB131 /* Shader.vsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.vsh; path = Shaders/Shader.vsh; sourceTree = "<group>"; };
 		F2665414171A205500CFB131 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		F2665415171A205500CFB131 /* ViewController.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; path = ViewController.m; sourceTree = "<group>"; };
-		F266541C171A205500CFB131 /* Virtual GoTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Virtual GoTests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F266541D171A205500CFB131 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
-		F2665425171A205500CFB131 /* Virtual GoTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Virtual GoTests-Info.plist"; sourceTree = "<group>"; };
-		F2665427171A205500CFB131 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		F2665429171A205500CFB131 /* Virtual_GoTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Virtual_GoTests.h; sourceTree = "<group>"; };
-		F266542A171A205500CFB131 /* Virtual_GoTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Virtual_GoTests.m; sourceTree = "<group>"; };
-		F2665446171A3C8900CFB131 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
-		F2665447171A3C8900CFB131 /* mat4f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mat4f.h; sourceTree = "<group>"; };
-		F2665448171A3C8900CFB131 /* simd4f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd4f.h; sourceTree = "<group>"; };
-		F2665449171A3C8900CFB131 /* simd4f_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd4f_common.h; sourceTree = "<group>"; };
-		F266544A171A3C8900CFB131 /* simd4f_gnu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd4f_gnu.h; sourceTree = "<group>"; };
-		F266544B171A3C8900CFB131 /* simd4f_neon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd4f_neon.h; sourceTree = "<group>"; };
-		F266544C171A3C8900CFB131 /* simd4f_scalar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd4f_scalar.h; sourceTree = "<group>"; };
-		F266544D171A3C8900CFB131 /* simd4f_sse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd4f_sse.h; sourceTree = "<group>"; };
-		F266544E171A3C8900CFB131 /* simd4x4f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd4x4f.h; sourceTree = "<group>"; };
-		F266544F171A3C8900CFB131 /* simd4x4f_gnu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd4x4f_gnu.h; sourceTree = "<group>"; };
-		F2665450171A3C8900CFB131 /* simd4x4f_neon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd4x4f_neon.h; sourceTree = "<group>"; };
-		F2665451171A3C8900CFB131 /* simd4x4f_scalar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd4x4f_scalar.h; sourceTree = "<group>"; };
-		F2665452171A3C8900CFB131 /* simd4x4f_sse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd4x4f_sse.h; sourceTree = "<group>"; };
-		F2665453171A3C8900CFB131 /* vec2f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vec2f.h; sourceTree = "<group>"; };
-		F2665454171A3C8900CFB131 /* vec3f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vec3f.h; sourceTree = "<group>"; };
-		F2665455171A3C8900CFB131 /* vec4f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vec4f.h; sourceTree = "<group>"; };
 		F2776EAD171B834800E73C61 /* Biconvex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Biconvex.h; path = ../../Biconvex.h; sourceTree = "<group>"; };
 		F2776EAE171B834800E73C61 /* Board.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Board.h; path = ../../Board.h; sourceTree = "<group>"; };
 		F2776EAF171B834800E73C61 /* CollisionDetection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CollisionDetection.h; path = ../../CollisionDetection.h; sourceTree = "<group>"; };
@@ -95,6 +76,14 @@
 		F2776EB5171B834800E73C61 /* Render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Render.h; path = ../../Render.h; sourceTree = "<group>"; };
 		F2776EB6171B834800E73C61 /* RigidBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RigidBody.h; path = ../../RigidBody.h; sourceTree = "<group>"; };
 		F2776EB7171B834800E73C61 /* Stone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Stone.h; path = ../../Stone.h; sourceTree = "<group>"; };
+		F2D6AD68171FDF5A00930D69 /* virtual go.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "virtual go.png"; sourceTree = "<group>"; };
+		F2D6AD6A171FDFE500930D69 /* virtual go retina.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "virtual go retina.png"; sourceTree = "<group>"; };
+		F2D6AD6C171FE05600930D69 /* virtual go retina ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "virtual go retina ipad.png"; sourceTree = "<group>"; };
+		F2D6AD6E171FE09400930D69 /* virtual go ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "virtual go ipad.png"; sourceTree = "<group>"; };
+		F2D6AD7D1720556F00930D69 /* Default-Portrait@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Portrait@2x~ipad.png"; sourceTree = "<group>"; };
+		F2D6AD7F1720557300930D69 /* Default-Portrait~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Portrait~ipad.png"; sourceTree = "<group>"; };
+		F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape~ipad.png"; sourceTree = "<group>"; };
+		F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape@2x~ipad.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,32 +91,36 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F203E5871720C9260040ECA8 /* libz.dylib in Frameworks */,
 				F26653EF171A205400CFB131 /* UIKit.framework in Frameworks */,
 				F26653F1171A205400CFB131 /* Foundation.framework in Frameworks */,
 				F26653F3171A205400CFB131 /* CoreGraphics.framework in Frameworks */,
 				F26653F5171A205400CFB131 /* GLKit.framework in Frameworks */,
 				F26653F7171A205400CFB131 /* OpenGLES.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F2665418171A205500CFB131 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				F266541E171A205500CFB131 /* SenTestingKit.framework in Frameworks */,
-				F266541F171A205500CFB131 /* UIKit.framework in Frameworks */,
-				F2665420171A205500CFB131 /* Foundation.framework in Frameworks */,
+				F203E5831720C6650040ECA8 /* libTestFlight.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F203E57E1720C6650040ECA8 /* testflight */ = {
+			isa = PBXGroup;
+			children = (
+				F203E5861720C9260040ECA8 /* libz.dylib */,
+				F203E57F1720C6650040ECA8 /* libTestFlight.a */,
+				F203E5801720C6650040ECA8 /* README.md */,
+				F203E5811720C6650040ECA8 /* release_notes.md */,
+				F203E5821720C6650040ECA8 /* TestFlight.h */,
+			);
+			path = testflight;
+			sourceTree = "<group>";
+		};
 		F26653E2171A205400CFB131 = {
 			isa = PBXGroup;
 			children = (
+				F2D6AD70172053A900930D69 /* resources */,
 				F26653F8171A205400CFB131 /* Virtual Go */,
-				F2665423171A205500CFB131 /* Virtual Go Tests */,
 				F26653ED171A205400CFB131 /* Frameworks */,
 				F26653EC171A205400CFB131 /* Products */,
 			);
@@ -137,7 +130,6 @@
 			isa = PBXGroup;
 			children = (
 				F26653EB171A205400CFB131 /* Virtual Go.app */,
-				F266541C171A205500CFB131 /* Virtual GoTests.octest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -177,7 +169,7 @@
 				F2776EB5171B834800E73C61 /* Render.h */,
 				F2776EB6171B834800E73C61 /* RigidBody.h */,
 				F2776EB7171B834800E73C61 /* Stone.h */,
-				F2665445171A3C8900CFB131 /* vectorial */,
+				F203E57E1720C6650040ECA8 /* testflight */,
 				F26653F9171A205400CFB131 /* Supporting Files */,
 			);
 			path = "Virtual Go";
@@ -197,47 +189,19 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		F2665423171A205500CFB131 /* Virtual Go Tests */ = {
+		F2D6AD70172053A900930D69 /* resources */ = {
 			isa = PBXGroup;
 			children = (
-				F2665429171A205500CFB131 /* Virtual_GoTests.h */,
-				F266542A171A205500CFB131 /* Virtual_GoTests.m */,
-				F2665424171A205500CFB131 /* Supporting Files */,
+				F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */,
+				F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */,
+				F2D6AD7F1720557300930D69 /* Default-Portrait~ipad.png */,
+				F2D6AD7D1720556F00930D69 /* Default-Portrait@2x~ipad.png */,
+				F2D6AD6E171FE09400930D69 /* virtual go ipad.png */,
+				F2D6AD6C171FE05600930D69 /* virtual go retina ipad.png */,
+				F2D6AD6A171FDFE500930D69 /* virtual go retina.png */,
+				F2D6AD68171FDF5A00930D69 /* virtual go.png */,
 			);
-			name = "Virtual Go Tests";
-			path = "Virtual GoTests";
-			sourceTree = "<group>";
-		};
-		F2665424171A205500CFB131 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				F2665425171A205500CFB131 /* Virtual GoTests-Info.plist */,
-				F2665426171A205500CFB131 /* InfoPlist.strings */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		F2665445171A3C8900CFB131 /* vectorial */ = {
-			isa = PBXGroup;
-			children = (
-				F2665446171A3C8900CFB131 /* config.h */,
-				F2665447171A3C8900CFB131 /* mat4f.h */,
-				F2665448171A3C8900CFB131 /* simd4f.h */,
-				F2665449171A3C8900CFB131 /* simd4f_common.h */,
-				F266544A171A3C8900CFB131 /* simd4f_gnu.h */,
-				F266544B171A3C8900CFB131 /* simd4f_neon.h */,
-				F266544C171A3C8900CFB131 /* simd4f_scalar.h */,
-				F266544D171A3C8900CFB131 /* simd4f_sse.h */,
-				F266544E171A3C8900CFB131 /* simd4x4f.h */,
-				F266544F171A3C8900CFB131 /* simd4x4f_gnu.h */,
-				F2665450171A3C8900CFB131 /* simd4x4f_neon.h */,
-				F2665451171A3C8900CFB131 /* simd4x4f_scalar.h */,
-				F2665452171A3C8900CFB131 /* simd4x4f_sse.h */,
-				F2665453171A3C8900CFB131 /* vec2f.h */,
-				F2665454171A3C8900CFB131 /* vec3f.h */,
-				F2665455171A3C8900CFB131 /* vec4f.h */,
-			);
-			path = vectorial;
+			name = resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -259,25 +223,6 @@
 			productName = "Virtual Go";
 			productReference = F26653EB171A205400CFB131 /* Virtual Go.app */;
 			productType = "com.apple.product-type.application";
-		};
-		F266541B171A205500CFB131 /* Virtual GoTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = F2665431171A205500CFB131 /* Build configuration list for PBXNativeTarget "Virtual GoTests" */;
-			buildPhases = (
-				F2665417171A205500CFB131 /* Sources */,
-				F2665418171A205500CFB131 /* Frameworks */,
-				F2665419171A205500CFB131 /* Resources */,
-				F266541A171A205500CFB131 /* ShellScript */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				F2665422171A205500CFB131 /* PBXTargetDependency */,
-			);
-			name = "Virtual GoTests";
-			productName = "Virtual GoTests";
-			productReference = F266541C171A205500CFB131 /* Virtual GoTests.octest */;
-			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
 
@@ -301,7 +246,6 @@
 			projectRoot = "";
 			targets = (
 				F26653EA171A205400CFB131 /* Virtual Go */,
-				F266541B171A205500CFB131 /* Virtual GoTests */,
 			);
 		};
 /* End PBXProject section */
@@ -319,34 +263,20 @@
 				F266540F171A205500CFB131 /* MainStoryboard_iPad.storyboard in Resources */,
 				F2665411171A205500CFB131 /* Shader.fsh in Resources */,
 				F2665413171A205500CFB131 /* Shader.vsh in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F2665419171A205500CFB131 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				F2665428171A205500CFB131 /* InfoPlist.strings in Resources */,
+				F2D6AD69171FDF5A00930D69 /* virtual go.png in Resources */,
+				F2D6AD6B171FDFE500930D69 /* virtual go retina.png in Resources */,
+				F2D6AD6D171FE05600930D69 /* virtual go retina ipad.png in Resources */,
+				F2D6AD6F171FE09400930D69 /* virtual go ipad.png in Resources */,
+				F2D6AD7E1720556F00930D69 /* Default-Portrait@2x~ipad.png in Resources */,
+				F2D6AD801720557300930D69 /* Default-Portrait~ipad.png in Resources */,
+				F2D6AD821720557A00930D69 /* Default-Landscape~ipad.png in Resources */,
+				F2D6AD841720557E00930D69 /* Default-Landscape@2x~ipad.png in Resources */,
+				F203E5841720C6650040ECA8 /* README.md in Resources */,
+				F203E5851720C6650040ECA8 /* release_notes.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		F266541A171A205500CFB131 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F26653E7171A205400CFB131 /* Sources */ = {
@@ -359,23 +289,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F2665417171A205500CFB131 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				F266542B171A205500CFB131 /* Virtual_GoTests.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		F2665422171A205500CFB131 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = F26653EA171A205400CFB131 /* Virtual Go */;
-			targetProxy = F2665421171A205500CFB131 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		F26653FB171A205400CFB131 /* InfoPlist.strings */ = {
@@ -400,14 +314,6 @@
 				F266540E171A205500CFB131 /* en */,
 			);
 			name = MainStoryboard_iPad.storyboard;
-			sourceTree = "<group>";
-		};
-		F2665426171A205500CFB131 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				F2665427171A205500CFB131 /* en */,
-			);
-			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -441,6 +347,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRIP_INSTALLED_PRODUCT = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -458,7 +365,7 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				COPY_PHASE_STRIP = YES;
+				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
@@ -466,6 +373,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				SDKROOT = iphoneos;
+				STRIP_INSTALLED_PRODUCT = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -477,6 +385,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Virtual Go/Virtual Go-Prefix.pch";
 				INFOPLIST_FILE = "Virtual Go/Virtual Go-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/Virtual Go/testflight\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -488,42 +400,12 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Virtual Go/Virtual Go-Prefix.pch";
 				INFOPLIST_FILE = "Virtual Go/Virtual Go-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/Virtual Go/testflight\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
-			};
-			name = Release;
-		};
-		F2665432171A205500CFB131 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/Virtual Go.app/Virtual Go";
-				FRAMEWORK_SEARCH_PATHS = (
-					"\"$(SDKROOT)/Developer/Library/Frameworks\"",
-					"\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"",
-				);
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "Virtual Go/Virtual Go-Prefix.pch";
-				INFOPLIST_FILE = "Virtual GoTests/Virtual GoTests-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUNDLE_LOADER)";
-				WRAPPER_EXTENSION = octest;
-			};
-			name = Debug;
-		};
-		F2665433171A205500CFB131 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/Virtual Go.app/Virtual Go";
-				FRAMEWORK_SEARCH_PATHS = (
-					"\"$(SDKROOT)/Developer/Library/Frameworks\"",
-					"\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"",
-				);
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "Virtual Go/Virtual Go-Prefix.pch";
-				INFOPLIST_FILE = "Virtual GoTests/Virtual GoTests-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUNDLE_LOADER)";
-				WRAPPER_EXTENSION = octest;
 			};
 			name = Release;
 		};
@@ -544,15 +426,6 @@
 			buildConfigurations = (
 				F266542F171A205500CFB131 /* Debug */,
 				F2665430171A205500CFB131 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		F2665431171A205500CFB131 /* Build configuration list for PBXNativeTarget "Virtual GoTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				F2665432171A205500CFB131 /* Debug */,
-				F2665433171A205500CFB131 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
