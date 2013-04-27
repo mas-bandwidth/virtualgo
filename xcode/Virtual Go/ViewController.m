@@ -77,6 +77,8 @@ enum
     double _selectPrevTimestamp;
     vec3f _selectIntersectionPoint;
     vec3f _selectPrevIntersectionPoint;
+    
+    GLuint _woodTexture;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -164,6 +166,8 @@ bool iPad()
     GenerateBiconvexMesh( _mesh, _stone.biconvex, 4 );
 
     [self setupGL];
+    
+    [self loadTextures];
 
     _paused = true;
     _zoomed = false;
@@ -303,6 +307,61 @@ bool iPad()
         glDeleteProgram( _program );
         _program = 0;
     }
+}
+
+- (void)loadTextures
+{
+    _woodTexture = [self loadTexture:@"wood.png"];
+    
+    NSLog( @"wood texture: %d", _woodTexture );
+}
+
+- (GLuint)loadTexture:(NSString *)filename
+{    
+    CGImageRef textureImage = [UIImage imageNamed:filename].CGImage;
+    if ( !textureImage )
+    {
+        NSLog( @"Failed to load image %@", filename );
+        exit(1);
+    }
+ 
+    size_t textureWidth = CGImageGetWidth( textureImage );
+    size_t textureHeight = CGImageGetHeight( textureImage );
+ 
+    GLubyte * textureData = (GLubyte *) calloc( textureWidth*textureHeight*4, sizeof(GLubyte) );
+ 
+    CGContextRef textureContext = CGBitmapContextCreate( textureData, textureWidth, textureHeight, 8, textureWidth*4,
+        CGImageGetColorSpace(textureImage), kCGImageAlphaPremultipliedLast );
+ 
+    CGContextDrawImage( textureContext, CGRectMake( 0, 0, textureWidth, textureHeight ), textureImage );
+ 
+    CGContextRelease( textureContext );
+ 
+    GLuint textureId;
+
+    glGenTextures( 1, &textureId );
+    glBindTexture( GL_TEXTURE_2D, textureId );
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData );
+
+    glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
+    glGenerateMipmap( GL_TEXTURE_2D );
+
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+    GLfloat maxAnisotropy;
+    glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy );
+
+    free( textureData );
+
+    return textureId;
+}
+
+
+- (void)freeTextures
+{
+    
 }
 
 - (BOOL)canBecomeFirstResponder

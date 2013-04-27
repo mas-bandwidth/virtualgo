@@ -6,19 +6,33 @@ TODO:
 
     Render wood texture background
 
-    Implement simple drop-shadow projected onto board
+    -----------------------------------------------------------------
 
-    Blur the shadow
+    Apply a light impulse along the camera ray when first selecting a stone
 
-    Make the shadow blur out and fade out as the stone moves away
+    This way you can tap stones and they will react
 
     -----------------------------------------------------------------
 
     Render go board lines
 
-    Ideally want some rendered alpha lines that look realistic
+    -----------------------------------------------------------------
 
-    Don't want hard lines that look perfect (too perfect!)
+    Implement a way to pick the stone up with two finger swipe
+    towards the stone, eg. 
+
+    -----------------------------------------------------------------
+
+    Implement a way to place the stone: one finger hold then tap
+    to confirm the stone placement
+
+    -----------------------------------------------------------------
+
+    Implement simple drop-shadow projected onto board
+
+    Blur the shadow
+
+    Make the shadow blur out and fade out as the stone moves away
 
     -----------------------------------------------------------------
 
@@ -43,6 +57,16 @@ TODO:
     Perhaps double swipe up/down -- I'd like to let the user
     mix and match go stones with different go boards, and perhaps
     save them off as presets.
+
+    -----------------------------------------------------------------
+
+    Add counters for various actions, eg. num swipes, num zoom in
+    num zoom outs, num times stone hit near plane, num times stone
+    spun longer than X seconds, etc.
+
+    This way I can hook up to testflight checkpoints and know
+    what users are doing (or not doing) in the application
+    when they run it.
 
     -----------------------------------------------------------------
 

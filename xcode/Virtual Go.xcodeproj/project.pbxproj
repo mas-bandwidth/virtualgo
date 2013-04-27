@@ -35,6 +35,7 @@
 		F2D6AD801720557300930D69 /* Default-Portrait~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD7F1720557300930D69 /* Default-Portrait~ipad.png */; };
 		F2D6AD821720557A00930D69 /* Default-Landscape~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */; };
 		F2D6AD841720557E00930D69 /* Default-Landscape@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */; };
+		F2E9E24F172B52C900F9C494 /* wood.png in Resources */ = {isa = PBXBuildFile; fileRef = F2E9E24E172B52C900F9C494 /* wood.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -84,6 +85,7 @@
 		F2D6AD7F1720557300930D69 /* Default-Portrait~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Portrait~ipad.png"; sourceTree = "<group>"; };
 		F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape~ipad.png"; sourceTree = "<group>"; };
 		F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape@2x~ipad.png"; sourceTree = "<group>"; };
+		F2E9E24E172B52C900F9C494 /* wood.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = wood.png; path = "Virtual Go/textures/wood.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -192,6 +194,7 @@
 		F2D6AD70172053A900930D69 /* resources */ = {
 			isa = PBXGroup;
 			children = (
+				F2E9E24B172B4D5D00F9C494 /* textures */,
 				F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */,
 				F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */,
 				F2D6AD7F1720557300930D69 /* Default-Portrait~ipad.png */,
@@ -202,6 +205,14 @@
 				F2D6AD68171FDF5A00930D69 /* virtual go.png */,
 			);
 			name = resources;
+			sourceTree = "<group>";
+		};
+		F2E9E24B172B4D5D00F9C494 /* textures */ = {
+			isa = PBXGroup;
+			children = (
+				F2E9E24E172B52C900F9C494 /* wood.png */,
+			);
+			name = textures;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -273,6 +284,7 @@
 				F2D6AD841720557E00930D69 /* Default-Landscape@2x~ipad.png in Resources */,
 				F203E5841720C6650040ECA8 /* README.md in Resources */,
 				F203E5851720C6650040ECA8 /* release_notes.md in Resources */,
+				F2E9E24F172B52C900F9C494 /* wood.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
