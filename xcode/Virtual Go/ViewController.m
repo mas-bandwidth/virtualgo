@@ -42,7 +42,7 @@ enum Counters
     COUNTER_SelectedStone,
     COUNTER_DraggedStone,
     COUNTER_FlickedStone,
-    COUNTER_TappedStone,
+    COUNTER_TouchedStone,
 
     COUNTER_HitNearPlane,
 
@@ -87,7 +87,7 @@ const char * CounterNames[] =
     "selected stone",
     "dragged stone",
     "flicked stone",
-    "tapped stone",
+    "touched stone",
     
     "hit near plane",
 
@@ -313,6 +313,8 @@ const float HoldDamping = 0.75f;
 const float HoldMoveThreshold = 40;             // points
 
 const float SelectDamping = 0.75f;
+
+const float TouchImpulse = 3.0f;
 
 bool iPad()
 {
@@ -644,6 +646,8 @@ bool iPad()
             _selectTimestamp = [touch timestamp];
             _selectPrevIntersectionPoint = _selectIntersectionPoint;
             _selectPrevTimestamp = _selectTimestamp;
+
+            _stone.rigidBody.ApplyImpulseAtWorldPoint( intersectionPoint, vec3f(0,0,-TouchImpulse) );
         }
     }
 
@@ -803,7 +807,7 @@ bool iPad()
             {
                 const float currentTimestamp = [touch timestamp];
                 if ( currentTimestamp - _selectTimestamp < 0.1f )
-                    [self incrementCounter:COUNTER_TappedStone];
+                    [self incrementCounter:COUNTER_TouchedStone];
             }
         }
     }
@@ -1217,7 +1221,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
     const bool sliding = !atRest &&
                          length( _stone.rigidBody.linearVelocity ) < 10.0f &&
-                         length( _stone.rigidBody.angularVelocity ) < 0.5f;
+                         length( _stone.rigidBody.angularVelocity ) < 1.0f;
 
     if ( _detectionTimer[CONDITION_SlidingGroundPlane].Update( dt, sliding && _collisionPlanes == COLLISION_GroundPlane, SlideTime ) )
     {
@@ -1260,9 +1264,9 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     const float upSpin = fabs( dot( _stone.rigidBody.angularVelocity, up ) );
     const float totalSpin = length( _stone.rigidBody.angularVelocity );
 
-    const bool spinning = length( _stone.rigidBody.linearVelocity ) < 5.0 &&
+    const bool spinning = length( _stone.rigidBody.linearVelocity ) < 10.0 &&
                           dot( rigidBodyTransform.GetUp(), up ) < 0.25f &&
-                          upSpin > 1.5f && fabs( upSpin / totalSpin ) > 0.7f &&
+                          upSpin > 1.0f && fabs( upSpin / totalSpin ) > 0.7f &&
                           _secondsSinceLastSwipe < 1.0f;
 
     if ( _detectionTimer[CONDITION_SpinningGroundPlane].Update( dt, spinning && recentGroundCollision, SpinTime ) )

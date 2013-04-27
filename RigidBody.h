@@ -95,6 +95,13 @@ struct RigidBody
 
         return linearKE + angularKE;
     }
+
+    void ApplyImpulseAtWorldPoint( const vec3f & point, const vec3f & impulse )
+    {
+        vec3f r = point - position;
+        linearMomentum += impulse;
+        angularMomentum += cross( r, impulse );
+    }
 };
 
 inline quat4f AngularVelocityToSpin( const quat4f & orientation, vec3f angularVelocity )
