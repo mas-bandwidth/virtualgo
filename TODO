@@ -1,8 +1,17 @@
 DONE:
 
-    Find wood seamless textures from clipart sites
-
 TODO:
+
+    Add more difficult checkpoints:
+
+     - at rest on ground/left/right/top/bottom/near planes
+     - sliding on ground/left/right/top/bottom/near planes
+     - spin on ground/left/right/top/bottom/near plane
+
+    Would be nice to see if a particular user is using an interaction
+    over and over, eg. lots of spinning, or lots of flicking etc.
+
+    -----------------------------------------------------------------
 
     Render wood texture background
 

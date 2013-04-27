@@ -7,6 +7,7 @@
 //
 
 #import "ViewController.h"
+#import "testflight/TestFlight.h"
 
 #include "Common.h"
 #include "Biconvex.h"
@@ -32,6 +33,35 @@ enum
     NUM_ATTRIBUTES
 };
 
+enum Counters
+{
+    COUNTER_ZoomedIn,
+    COUNTER_ZoomedOut,
+    COUNTER_AppliedImpulse,
+    COUNTER_Swiped,
+    COUNTER_SelectedStone,
+    COUNTER_DraggedStone,
+    COUNTER_FlickedStone,
+    COUNTER_TappedStone,
+
+    COUNTER_HitNearPlane,
+
+    COUNTER_NumValues
+};
+
+const char * CounterNames[] = 
+{
+    "zoomed in",
+    "zoomed out",
+    "applied impulse",
+    "swiped",
+    "selected stone",
+    "dragged stone",
+    "flicked stone",
+    "tapped stone",
+    "hit near plane"
+};
+
 @interface ViewController ()
 {
     GLuint _program;
@@ -49,7 +79,6 @@ enum
     
     bool _paused;
     bool _zoomed;
-    bool _justDropped;
     bool _hasRendered;
 
     float _smoothZoom;
@@ -79,6 +108,8 @@ enum
     vec3f _selectPrevIntersectionPoint;
     
     GLuint _woodTexture;
+    
+    uint64_t _counters[COUNTER_NumValues];
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -171,7 +202,6 @@ bool iPad()
 
     _paused = true;
     _zoomed = false;
-    _justDropped = false;
     _hasRendered = false;
     
     _smoothZoom = false;
@@ -361,7 +391,7 @@ bool iPad()
 
 - (void)freeTextures
 {
-    
+    glDeleteTextures( 1, &_woodTexture );
 }
 
 - (BOOL)canBecomeFirstResponder
@@ -418,9 +448,6 @@ bool iPad()
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    // todo: if a swipe is started and another different finger is place
-    // on the ipad, cancel the swipe! --- swipe is a pure one finger motion
-    
     NSLog( @"touches began" );
     
     UITouch * touch = [touches anyObject];
@@ -448,6 +475,8 @@ bool iPad()
         if ( IntersectRayStone( _stone.biconvex, transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
         {
             NSLog( @"select" );
+            
+            [self incrementCounter:COUNTER_SelectedStone];
 
             _selected = true;
             _selectTouch = touch;
@@ -583,9 +612,42 @@ bool iPad()
         {
             NSLog( @"double tap" );
 
+            if ( _zoomed )
+                [self incrementCounter:COUNTER_ZoomedOut];
+            else
+                [self incrementCounter:COUNTER_ZoomedIn];
+            
             _zoomed = !_zoomed;
 
             [NSObject cancelPreviousPerformRequestsWithTarget:self];
+        }
+    }
+    else
+    {
+        if ( [touches containsObject:_selectTouch] )
+        {
+            UITouch * touch = _selectTouch;
+            
+            CGPoint selectPoint = [touch locationInView:self.view];
+            
+            const float dx = selectPoint.x - _selectPoint.x;
+            const float dy = selectPoint.y - _selectPoint.y;
+
+            const float distance = sqrt( dx*dx + dy*dy );
+
+            if ( distance > 10 )
+            {
+                if ( length( _stone.rigidBody.linearMomentum ) > 1 )
+                    [self incrementCounter:COUNTER_FlickedStone];    
+                else
+                    [self incrementCounter:COUNTER_DraggedStone];
+            }
+            else
+            {
+                const float currentTimestamp = [touch timestamp];
+                if ( currentTimestamp - _selectTimestamp < 0.1f )
+                    [self incrementCounter:COUNTER_TappedStone];
+            }
         }
     }
 
@@ -651,6 +713,8 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     const vec3f up = -normalize( _smoothedAcceleration );
     _stone.rigidBody.angularMomentum += SwipeMomentum * up;
     _stone.rigidBody.Update();
+
+    [self incrementCounter:COUNTER_Swiped];
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
@@ -691,7 +755,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
 - (void)dropStone
 {
-    _stone.rigidBody.position = vec3f( 0, 0, _smoothZoom );
+    _stone.rigidBody.position = vec3f( 0, 0, 0 );
     _stone.rigidBody.orientation = quat4f(1,0,0,0);
     _stone.rigidBody.linearMomentum = vec3f(0,0,0);
 
@@ -701,8 +765,12 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
         _stone.rigidBody.angularMomentum = normalize( _stone.rigidBody.angularMomentum ) * maxMoment;
 
     _stone.rigidBody.Update();
+}
 
-    _justDropped = true;
+- (void)incrementCounter:(Counters)counterIndex
+{
+    if ( ++_counters[counterIndex] == 1 )
+        [TestFlight passCheckpoint:[NSString stringWithUTF8String:CounterNames[counterIndex]]];
 }
 
 - (void)updatePhysics:(float)dt
@@ -723,7 +791,6 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     // apply jerk acceleration to stone
 
     const float jerk = length( _jerkAcceleration );
-    
     if ( jerk > JerkThreshold )
         stone.rigidBody.linearMomentum += _jerkAcceleration * stone.rigidBody.mass * dt;
 
@@ -743,6 +810,8 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
         {
             stone.rigidBody.linearMomentum += jerkUp * LaunchMomentum * up;
             stone.rigidBody.Update();
+
+            [self incrementCounter:COUNTER_AppliedImpulse];
         }
     }
     else
@@ -754,6 +823,8 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
         {
             stone.rigidBody.linearMomentum += _jerkAcceleration * LaunchMomentum;
             stone.rigidBody.Update();
+            
+            [self incrementCounter:COUNTER_AppliedImpulse];
         }
     }
     
@@ -795,75 +866,63 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
         
         const float e = 0.5f;
         const float u = 0.5f;
+    
+        // collision between stone and near plane
+
+        vec4f nearPlane( 0, 0, -1, -_smoothZoom*2.0f/3.0f );
         
-        if ( _justDropped )
+        if ( StonePlaneCollision( stone.biconvex, nearPlane, stone.rigidBody, contact ) )
         {
-            const float r = stone.biconvex.GetBoundingSphereRadius();
+            ApplyCollisionImpulseWithFriction( contact, e, u );
+            stone.rigidBody.Update();
+            iteration_collided = true;
 
-            if ( stone.rigidBody.position.z() >= _smoothZoom - r )
-            {
-                stone.rigidBody.position = vec3f( 0, 0, min( stone.rigidBody.position.z(), _smoothZoom ) );
-                if ( stone.rigidBody.linearMomentum.z() > 1 )
-                    stone.rigidBody.linearMomentum = vec3f( stone.rigidBody.linearMomentum.x(), stone.rigidBody.linearMomentum.y(), 1 );
-            }
-            else
-                _justDropped = false;
+            [self incrementCounter:COUNTER_HitNearPlane];
         }
-        else
+
+        // collision between stone and left plane
+
+        if ( StonePlaneCollision( stone.biconvex, frustum.left, stone.rigidBody, contact ) )
         {
-            // collision between stone and near plane
+            ApplyCollisionImpulseWithFriction( contact, e, u );
+            stone.rigidBody.Update();
+            iteration_collided = true;
+        }
 
-            if ( StonePlaneCollision( stone.biconvex, frustum.front, stone.rigidBody, contact ) )
-            {
-                ApplyCollisionImpulseWithFriction( contact, e, u );
-                stone.rigidBody.Update();
-                iteration_collided = true;
-            }
+        // collision between stone and right plane
 
-            // collision between stone and left plane
+        if ( StonePlaneCollision( stone.biconvex, frustum.right, stone.rigidBody, contact ) )
+        {
+            ApplyCollisionImpulseWithFriction( contact, e, u );
+            stone.rigidBody.Update();
+            iteration_collided = true;
+        }
 
-            if ( StonePlaneCollision( stone.biconvex, frustum.left, stone.rigidBody, contact ) )
-            {
-                ApplyCollisionImpulseWithFriction( contact, e, u );
-                stone.rigidBody.Update();
-                iteration_collided = true;
-            }
+        // collision between stone and top plane
 
-            // collision between stone and right plane
+        if ( StonePlaneCollision( stone.biconvex, frustum.top, stone.rigidBody, contact ) )
+        {
+            ApplyCollisionImpulseWithFriction( contact, e, u );
+            stone.rigidBody.Update();
+            iteration_collided = true;
+        }
 
-            if ( StonePlaneCollision( stone.biconvex, frustum.right, stone.rigidBody, contact ) )
-            {
-                ApplyCollisionImpulseWithFriction( contact, e, u );
-                stone.rigidBody.Update();
-                iteration_collided = true;
-            }
+        // collision between stone and bottom plane
 
-            // collision between stone and top plane
+        if ( StonePlaneCollision( stone.biconvex, frustum.bottom, stone.rigidBody, contact ) )
+        {
+            ApplyCollisionImpulseWithFriction( contact, e, u );
+            stone.rigidBody.Update();
+            iteration_collided = true;
+        }
 
-            if ( StonePlaneCollision( stone.biconvex, frustum.top, stone.rigidBody, contact ) )
-            {
-                ApplyCollisionImpulseWithFriction( contact, e, u );
-                stone.rigidBody.Update();
-                iteration_collided = true;
-            }
-
-            // collision between stone and bottom plane
-
-            if ( StonePlaneCollision( stone.biconvex, frustum.bottom, stone.rigidBody, contact ) )
-            {
-                ApplyCollisionImpulseWithFriction( contact, e, u );
-                stone.rigidBody.Update();
-                iteration_collided = true;
-            }
-
-            // collision between stone and board surface
-            
-            if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, contact ) )
-            {
-                ApplyCollisionImpulseWithFriction( contact, e, u );
-                stone.rigidBody.Update();
-                iteration_collided = true;
-            }
+        // collision between stone and board surface
+        
+        if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, contact ) )
+        {
+            ApplyCollisionImpulseWithFriction( contact, e, u );
+            stone.rigidBody.Update();
+            iteration_collided = true;
         }
                 
         // this is a *massive* hack to approximate rolling/spinning
@@ -944,6 +1003,23 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     _inverseClipMatrix = GLKMatrix4Invert( _clipMatrix, &invertible );
     assert( invertible );
 
+    glClearColor( 0, 0, 0, 1 );
+
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    
+    if ( _paused )
+        return;
+    
+    glUseProgram( _program );
+    
+    glUniformMatrix4fv( uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _modelViewProjectionMatrix.m );
+    glUniformMatrix3fv( uniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _normalMatrix.m );
+    
+    glBindBuffer( GL_ARRAY_BUFFER, _vertexBuffer );
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indexBuffer );
+    
+    glDrawElements( GL_TRIANGLES, _mesh.GetNumTriangles()*3, GL_UNSIGNED_INT, NULL );
+
     _hasRendered = true;
 }
 
@@ -966,30 +1042,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
-    if ( _justDropped )
-        glClearColor( 1, 1, 1, 1 );
-    else
-        glClearColor( 0, 0, 0, 1 );
-    
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    
-    if ( _paused )
-        return;
-    
-    const float r = _stone.biconvex.GetBoundingSphereRadius();
-    
-    if ( _justDropped && _stone.rigidBody.position.z() >= _smoothZoom - r )
-        return;
-    
-    glUseProgram( _program );
-    
-    glUniformMatrix4fv( uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _modelViewProjectionMatrix.m );
-    glUniformMatrix3fv( uniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _normalMatrix.m );
-    
-    glBindBuffer( GL_ARRAY_BUFFER, _vertexBuffer );
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indexBuffer );
-    
-    glDrawElements( GL_TRIANGLES, _mesh.GetNumTriangles()*3, GL_UNSIGNED_INT, NULL );
+    [self render];
 }
 
 #pragma mark -  OpenGL ES 2 shader compilation

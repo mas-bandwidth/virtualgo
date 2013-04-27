@@ -1,4 +1,16 @@
 
+Added testflight checkpoints for common interactions:
+-----------------------------------------------------
+
+     - zoomed in
+     - zoomed out
+     - applied impulse
+     - selected stone
+     - dragged stone
+     - flicked stone
+     - tapped stone
+     - bounced off near plane
+
 Setup testflight, got a few beta testers (18/4/2013):
 -----------------------------------------------------
 
