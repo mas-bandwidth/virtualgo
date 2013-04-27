@@ -2,17 +2,6 @@ DONE:
 
 TODO:
 
-    Add more difficult checkpoints:
-
-     - at rest on ground/left/right/top/bottom/near planes
-     - sliding on ground/left/right/top/bottom/near planes
-     - spin on ground/left/right/top/bottom/near plane
-
-    Would be nice to see if a particular user is using an interaction
-    over and over, eg. lots of spinning, or lots of flicking etc.
-
-    -----------------------------------------------------------------
-
     Render wood texture background
 
     -----------------------------------------------------------------
@@ -28,12 +17,15 @@ TODO:
     -----------------------------------------------------------------
 
     Implement a way to pick the stone up with two finger swipe
-    towards the stone, eg. 
+    towards the stone, this is something Evan Cho naturally tried
+    to do, therefore it is intuitive and I should support it. 
 
     -----------------------------------------------------------------
 
     Implement a way to place the stone: one finger hold then tap
     to confirm the stone placement
+
+    Ideally, this would also snap to nearest grid (add grid lines...)
 
     -----------------------------------------------------------------
 

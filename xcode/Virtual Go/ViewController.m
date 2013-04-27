@@ -46,6 +46,35 @@ enum Counters
 
     COUNTER_HitNearPlane,
 
+    COUNTER_AtRestGroundPlane,
+    COUNTER_AtRestLeftPlane,
+    COUNTER_AtRestRightPlane,
+    COUNTER_AtRestTopPlane,
+    COUNTER_AtRestBottomPlane,
+    COUNTER_AtRestNearPlane,
+
+    COUNTER_SlidingGroundPlane,
+    COUNTER_SlidingLeftPlane,
+    COUNTER_SlidingRightPlane,
+    COUNTER_SlidingTopPlane,
+    COUNTER_SlidingBottomPlane,
+    COUNTER_SlidingNearPlane,
+
+    COUNTER_SpinningGroundPlane,
+    COUNTER_SpinningLeftPlane,
+    COUNTER_SpinningRightPlane,
+    COUNTER_SpinningTopPlane,
+    COUNTER_SpinningBottomPlane,
+    COUNTER_SpinningNearPlane,
+
+    COUNTER_OrientationPerfectlyFlat,
+    COUNTER_OrientationNeutral,
+    COUNTER_OrientationLeft,
+    COUNTER_OrientationRight,
+    COUNTER_OrientationUp,
+    COUNTER_OrientationDown,
+    COUNTER_OrientationUpsideDown,
+
     COUNTER_NumValues
 };
 
@@ -59,7 +88,117 @@ const char * CounterNames[] =
     "dragged stone",
     "flicked stone",
     "tapped stone",
-    "hit near plane"
+    
+    "hit near plane",
+
+    "at rest ground plane",
+    "at rest left plane",
+    "at rest right plane",
+    "at rest top plane",
+    "at rest bottom plane",
+    "at rest near plane",
+    
+    "sliding ground plane",
+    "sliding left plane",
+    "sliding right plane",
+    "sliding top plane",
+    "sliding bottom plane",
+    "sliding near plane",
+
+    "spinning ground plane",
+    "spinning left plane",
+    "spinning right plane",
+    "spinning top plane",
+    "spinning bottom plane",
+    "spinning near plane",
+
+    "orientation perfectly flat",
+    "orientation neutral",
+    "orientation left",
+    "orientation right",
+    "orientation up",
+    "orientation down",
+    "orientation upside down"
+};
+
+struct DetectionTimer
+{
+    DetectionTimer()
+    {
+        time = 0;
+        detected = false;
+    }
+
+    bool Update( float dt, bool condition, float threshold = 0.25f )
+    {
+        if ( condition )
+        {
+            time += dt;
+            if ( time > threshold )
+            {
+                if ( !detected )
+                {
+                    detected = true;
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            detected = false;
+            time = 0;
+        }
+
+        return false;
+    }
+
+    float time;
+    bool detected;
+};
+
+enum Conditions
+{
+    CONDITION_AtRestGroundPlane,
+    CONDITION_AtRestLeftPlane,
+    CONDITION_AtRestRightPlane,
+    CONDITION_AtRestTopPlane,
+    CONDITION_AtRestBottomPlane,
+    CONDITION_AtRestNearPlane,
+
+    CONDITION_SlidingGroundPlane,
+    CONDITION_SlidingLeftPlane,
+    CONDITION_SlidingRightPlane,
+    CONDITION_SlidingTopPlane,
+    CONDITION_SlidingBottomPlane,
+    CONDITION_SlidingNearPlane,
+
+    CONDITION_SpinningGroundPlane,
+    CONDITION_SpinningLeftPlane,
+    CONDITION_SpinningRightPlane,
+    CONDITION_SpinningTopPlane,
+    CONDITION_SpinningBottomPlane,
+    CONDITION_SpinningNearPlane,
+
+    CONDITION_OrientationPerfectlyFlat,
+    CONDITION_OrientationNeutral,
+    CONDITION_OrientationLeft,
+    CONDITION_OrientationRight,
+    CONDITION_OrientationUp,
+    CONDITION_OrientationDown,
+    CONDITION_OrientationUpsideDown,
+
+    CONDITION_NumValues
+};
+
+enum CollisionPlanes
+{
+    COLLISION_GroundPlane,
+    COLLISION_LeftPlane,
+    COLLISION_RightPlane,
+    COLLISION_TopPlane,
+    COLLISION_BottomPlane,
+    COLLISION_NearPlane,
+    COLLISION_NumValues
 };
 
 @interface ViewController ()
@@ -110,6 +249,15 @@ const char * CounterNames[] =
     GLuint _woodTexture;
     
     uint64_t _counters[COUNTER_NumValues];
+    
+    uint32_t _collisionPlanes;
+
+    double _secondsSinceCollision[COLLISION_NumValues];
+
+    bool _swipedThisFrame;
+    double _secondsSinceLastSwipe;
+    
+    DetectionTimer _detectionTimer[CONDITION_NumValues];
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -214,6 +362,13 @@ bool iPad()
     _holdStarted = false;
     _selected = false;
 
+    _collisionPlanes = 0;
+
+    memset( _secondsSinceCollision, 0, sizeof( _secondsSinceCollision ) );
+
+    _swipedThisFrame = false;
+    _secondsSinceLastSwipe = 0;
+
     [self dropStone];
 }
 
@@ -254,30 +409,30 @@ bool iPad()
 
 - (void)didBecomeActive:(NSNotification *)notification
 {
-    NSLog( @"did become active" );
+//    NSLog( @"did become active" );
     _paused = false;
     _hasRendered = false;
 }
 
 - (void)willResignActive:(NSNotification *)notification
 {
-    NSLog( @"will resign active" );
+//    NSLog( @"will resign active" );
     _paused = true;
 }
 
 - (void)didEnterBackground:(NSNotification *)notification
 {
-    NSLog( @"did enter background" );
+//    NSLog( @"did enter background" );
 }
 
 - (void)willEnterForeground:(NSNotification *)notification
 {
-    NSLog( @"will enter foreground" );
+//    NSLog( @"will enter foreground" );
 }
 
 - (void)didReceiveMemoryWarning
 {
-    NSLog( @"did receive memory warning" );
+//    NSLog( @"did receive memory warning" );
 
     [super didReceiveMemoryWarning];
 
@@ -343,7 +498,7 @@ bool iPad()
 {
     _woodTexture = [self loadTexture:@"wood.png"];
     
-    NSLog( @"wood texture: %d", _woodTexture );
+//    NSLog( @"wood texture: %d", _woodTexture );
 }
 
 - (GLuint)loadTexture:(NSString *)filename
@@ -430,7 +585,9 @@ bool iPad()
             _holdTime += dt;
 
             if ( prevTime < HoldDelay && _holdTime >= HoldDelay )
-                NSLog( @"hold" );
+            {
+//                NSLog( @"hold" );
+            }
 
             if ( _holdTime >= HoldDelay )
                 _stone.rigidBody.angularMomentum *= HoldDamping;
@@ -448,7 +605,7 @@ bool iPad()
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    NSLog( @"touches began" );
+//    NSLog( @"touches began" );
     
     UITouch * touch = [touches anyObject];
 
@@ -474,7 +631,7 @@ bool iPad()
 
         if ( IntersectRayStone( _stone.biconvex, transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
         {
-            NSLog( @"select" );
+//            NSLog( @"select" );
             
             [self incrementCounter:COUNTER_SelectedStone];
 
@@ -559,7 +716,7 @@ bool iPad()
 
             if ( length( delta ) > HoldMoveThreshold )
             {
-                NSLog( @"hold moved" );
+                //NSLog( @"hold moved" );
                 _holdStarted = false;
             }
         }
@@ -593,7 +750,7 @@ bool iPad()
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    NSLog( @"touches ended" );
+//    NSLog( @"touches ended" );
     
     if ( !_selected )
     {
@@ -610,7 +767,7 @@ bool iPad()
         }
         else if ( touch.tapCount >= 2 )
         {
-            NSLog( @"double tap" );
+//            NSLog( @"double tap" );
 
             if ( _zoomed )
                 [self incrementCounter:COUNTER_ZoomedOut];
@@ -637,7 +794,7 @@ bool iPad()
 
             if ( distance > 10 )
             {
-                if ( length( _stone.rigidBody.linearMomentum ) > 1 )
+                if ( length( _stone.rigidBody.linearVelocity ) > 20.0f )
                     [self incrementCounter:COUNTER_FlickedStone];    
                 else
                     [self incrementCounter:COUNTER_DraggedStone];
@@ -709,12 +866,14 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
 - (void)handleSwipe:(vec3f)delta atPoint:(vec3f)point
 {
-    NSLog( @"swipe" );
+//    NSLog( @"swipe" );
     const vec3f up = -normalize( _smoothedAcceleration );
     _stone.rigidBody.angularMomentum += SwipeMomentum * up;
     _stone.rigidBody.Update();
 
     [self incrementCounter:COUNTER_Swiped];
+
+    _swipedThisFrame = true;
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
@@ -732,7 +891,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 {
     if ( event.subtype == UIEventSubtypeMotionShake )
     {
-        NSLog( @"shake" );
+//        NSLog( @"shake" );
     }
 }
 
@@ -829,6 +988,8 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     }
     
     // update stone physics
+
+    _collisionPlanes = 0;
     
     bool collided = false;
 
@@ -869,15 +1030,15 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     
         // collision between stone and near plane
 
-        vec4f nearPlane( 0, 0, -1, -_smoothZoom*2.0f/3.0f );
+        vec4f nearPlane( 0, 0, -1, -_smoothZoom * ( iPad() ? 0.5f : 1.0f ) );
         
         if ( StonePlaneCollision( stone.biconvex, nearPlane, stone.rigidBody, contact ) )
         {
             ApplyCollisionImpulseWithFriction( contact, e, u );
             stone.rigidBody.Update();
             iteration_collided = true;
-
             [self incrementCounter:COUNTER_HitNearPlane];
+            _collisionPlanes |= COLLISION_NearPlane;
         }
 
         // collision between stone and left plane
@@ -887,6 +1048,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
             ApplyCollisionImpulseWithFriction( contact, e, u );
             stone.rigidBody.Update();
             iteration_collided = true;
+            _collisionPlanes |= COLLISION_LeftPlane;
         }
 
         // collision between stone and right plane
@@ -896,6 +1058,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
             ApplyCollisionImpulseWithFriction( contact, e, u );
             stone.rigidBody.Update();
             iteration_collided = true;
+            _collisionPlanes |= COLLISION_RightPlane;
         }
 
         // collision between stone and top plane
@@ -905,6 +1068,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
             ApplyCollisionImpulseWithFriction( contact, e, u );
             stone.rigidBody.Update();
             iteration_collided = true;
+            _collisionPlanes |= COLLISION_TopPlane;
         }
 
         // collision between stone and bottom plane
@@ -914,6 +1078,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
             ApplyCollisionImpulseWithFriction( contact, e, u );
             stone.rigidBody.Update();
             iteration_collided = true;
+            _collisionPlanes |= COLLISION_BottomPlane;
         }
 
         // collision between stone and board surface
@@ -923,6 +1088,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
             ApplyCollisionImpulseWithFriction( contact, e, u );
             stone.rigidBody.Update();
             iteration_collided = true;
+            _collisionPlanes |= COLLISION_GroundPlane;
         }
                 
         // this is a *massive* hack to approximate rolling/spinning
@@ -969,6 +1135,208 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
         
         stone.rigidBody.Update();
     }
+}
+
+- (void)updateDetection:(float)dt
+{
+    // update seconds since last swipe
+
+    if ( _swipedThisFrame )
+        _secondsSinceLastSwipe = 0;
+    else
+        _secondsSinceLastSwipe += dt;
+
+    // update seconds since collision
+
+    for ( int i = 0; i < COLLISION_NumValues; ++i )
+        _secondsSinceCollision[i] += dt;
+
+    if ( _collisionPlanes == COLLISION_GroundPlane )
+        _secondsSinceCollision[COLLISION_GroundPlane] = 0;
+
+    if ( _collisionPlanes == COLLISION_LeftPlane )
+        _secondsSinceCollision[COLLISION_LeftPlane] = 0;
+
+    if ( _collisionPlanes == COLLISION_RightPlane )
+        _secondsSinceCollision[COLLISION_RightPlane] = 0;
+
+    if ( _collisionPlanes == COLLISION_TopPlane )
+        _secondsSinceCollision[COLLISION_TopPlane] = 0;
+
+    if ( _collisionPlanes == COLLISION_BottomPlane )
+        _secondsSinceCollision[COLLISION_BottomPlane] = 0;
+
+    if ( _collisionPlanes == COLLISION_NearPlane )
+        _secondsSinceCollision[COLLISION_NearPlane] = 0;
+
+    const bool recentGroundCollision = _secondsSinceCollision[COLLISION_GroundPlane] < 0.1f;
+    const bool recentLeftCollision = _secondsSinceCollision[COLLISION_LeftPlane] < 0.1f;
+    const bool recentRightCollision = _secondsSinceCollision[COLLISION_RightPlane] < 0.1f;
+    const bool recentTopCollision = _secondsSinceCollision[COLLISION_TopPlane] < 0.1f;
+    const bool recentBottomCollision = _secondsSinceCollision[COLLISION_BottomPlane] < 0.1f;
+    const bool recentNearCollision = _secondsSinceCollision[COLLISION_NearPlane] < 0.1f;
+
+    // detect at rest on each collision plane
+
+    const bool atRest = length( _stone.rigidBody.linearVelocity ) < 1.0f &&
+                        length( _stone.rigidBody.angularVelocity ) < 0.5f;
+
+    if ( _detectionTimer[CONDITION_AtRestGroundPlane].Update( dt, atRest && _collisionPlanes == COLLISION_GroundPlane ) )
+    {
+        [self incrementCounter:COUNTER_AtRestGroundPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_AtRestLeftPlane].Update( dt, atRest && _collisionPlanes == COLLISION_LeftPlane ) )
+    {
+        [self incrementCounter:COUNTER_AtRestLeftPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_AtRestRightPlane].Update( dt, atRest && _collisionPlanes == COLLISION_RightPlane ) )
+    {
+        [self incrementCounter:COUNTER_AtRestRightPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_AtRestTopPlane].Update( dt, atRest && _collisionPlanes == COLLISION_TopPlane ) )
+    {
+        [self incrementCounter:COUNTER_AtRestTopPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_AtRestBottomPlane].Update( dt, atRest && _collisionPlanes == COLLISION_BottomPlane ) )
+    {
+        [self incrementCounter:COUNTER_AtRestBottomPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_AtRestNearPlane].Update( dt, atRest && _collisionPlanes == COLLISION_NearPlane ) )
+    {
+        [self incrementCounter:COUNTER_AtRestNearPlane];
+    }
+
+    // detect sliding on each collision plane
+
+    const float SlideTime = 0.5f;
+
+    const bool sliding = !atRest &&
+                         length( _stone.rigidBody.linearVelocity ) < 10.0f &&
+                         length( _stone.rigidBody.angularVelocity ) < 0.5f;
+
+    if ( _detectionTimer[CONDITION_SlidingGroundPlane].Update( dt, sliding && _collisionPlanes == COLLISION_GroundPlane, SlideTime ) )
+    {
+        [self incrementCounter:COUNTER_SlidingGroundPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_SlidingLeftPlane].Update( dt, sliding && _collisionPlanes == COLLISION_LeftPlane, SlideTime ) )
+    {
+        [self incrementCounter:COUNTER_SlidingLeftPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_SlidingRightPlane].Update( dt, sliding && _collisionPlanes == COLLISION_RightPlane, SlideTime ) )
+    {
+        [self incrementCounter:COUNTER_SlidingRightPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_SlidingTopPlane].Update( dt, sliding && _collisionPlanes == COLLISION_TopPlane, SlideTime ) )
+    {
+        [self incrementCounter:COUNTER_SlidingTopPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_SlidingBottomPlane].Update( dt, sliding && _collisionPlanes == COLLISION_BottomPlane, SlideTime ) )
+    {
+        [self incrementCounter:COUNTER_SlidingBottomPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_SlidingNearPlane].Update( dt, sliding && _collisionPlanes == COLLISION_NearPlane, SlideTime ) )
+    {
+        [self incrementCounter:COUNTER_SlidingNearPlane];
+    }
+
+    // detect spinning on each collision plane
+
+    const float SpinTime = 0.25f;
+
+    const vec3f up = normalize( -_smoothedAcceleration );
+
+    RigidBodyTransform rigidBodyTransform( _stone.rigidBody.position, _stone.rigidBody.orientation );
+    
+    const float upSpin = fabs( dot( _stone.rigidBody.angularVelocity, up ) );
+    const float totalSpin = length( _stone.rigidBody.angularVelocity );
+
+    const bool spinning = length( _stone.rigidBody.linearVelocity ) < 5.0 &&
+                          dot( rigidBodyTransform.GetUp(), up ) < 0.25f &&
+                          upSpin > 1.5f && fabs( upSpin / totalSpin ) > 0.7f &&
+                          _secondsSinceLastSwipe < 1.0f;
+
+    if ( _detectionTimer[CONDITION_SpinningGroundPlane].Update( dt, spinning && recentGroundCollision, SpinTime ) )
+    {
+        [self incrementCounter:COUNTER_SpinningGroundPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_SpinningLeftPlane].Update( dt, spinning && recentLeftCollision, SpinTime ) )
+    {
+        [self incrementCounter:COUNTER_SpinningLeftPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_SpinningRightPlane].Update( dt, spinning && recentRightCollision, SpinTime ) )
+    {
+        [self incrementCounter:COUNTER_SpinningRightPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_SpinningTopPlane].Update( dt, spinning && recentTopCollision, SpinTime ) )
+    {
+        [self incrementCounter:COUNTER_SpinningTopPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_SpinningBottomPlane].Update( dt, spinning && recentBottomCollision, SpinTime ) )
+    {
+        [self incrementCounter:COUNTER_SpinningBottomPlane];
+    }
+
+    if ( _detectionTimer[CONDITION_SpinningNearPlane].Update( dt, spinning && recentNearCollision, SpinTime ) )
+    {
+        [self incrementCounter:COUNTER_SpinningNearPlane];
+    }
+
+    // update orientation detection
+
+    const float OrientationTime = 1.0f;
+
+    if ( _detectionTimer[CONDITION_OrientationPerfectlyFlat].Update( dt, dot( up, vec3f(0,0,1) ) > 0.99f, OrientationTime ) )
+    {
+        [self incrementCounter:COUNTER_OrientationPerfectlyFlat];
+    }
+    
+    if ( _detectionTimer[CONDITION_OrientationNeutral].Update( dt, dot( up, vec3f(0,0,1) ) > 0.75f, OrientationTime ) )
+    {
+        [self incrementCounter:COUNTER_OrientationNeutral];
+    }
+
+    if ( _detectionTimer[CONDITION_OrientationLeft].Update( dt, dot( up, vec3f(1,0,0) ) > 0.75f, OrientationTime ) )
+    {
+        [self incrementCounter:COUNTER_OrientationLeft];
+    }
+
+    if ( _detectionTimer[CONDITION_OrientationRight].Update( dt, dot( up, vec3f(-1,0,0) ) > 0.75f, OrientationTime ) )
+    {
+        [self incrementCounter:COUNTER_OrientationRight];
+    }
+
+    if ( _detectionTimer[CONDITION_OrientationUp].Update( dt, dot( up, vec3f(0,1,0) ) > 0.75f, OrientationTime ) )
+    {
+        [self incrementCounter:COUNTER_OrientationUp];
+    }
+    
+    if ( _detectionTimer[CONDITION_OrientationDown].Update( dt, dot( up, vec3f(0,-1,0) ) > 0.75f, OrientationTime ) )
+    {
+        [self incrementCounter:COUNTER_OrientationDown];
+    }
+
+    if ( _detectionTimer[CONDITION_OrientationUpsideDown].Update( dt, dot( up, vec3f(0,0,-1) ) > 0.75f, OrientationTime ) )
+    {
+        [self incrementCounter:COUNTER_OrientationUpsideDown];
+    }
+
+    // clear values this frame
+
+    _swipedThisFrame = false;
 }
 
 - (void)render
@@ -1036,6 +1404,8 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     [self updateTouch:dt];
 
     [self updatePhysics:dt];
+
+    [self updateDetection:dt];
     
     [self render];
 }

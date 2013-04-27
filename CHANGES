@@ -1,6 +1,25 @@
 
-Added testflight checkpoints for common interactions:
------------------------------------------------------
+Detected more complicated checkpoints (28/4/2013):
+--------------------------------------------------
+
+    Detect at rest on each plane
+
+    Detect sliding on each plane
+
+    Tuned flick vs. drag threshold
+
+    Detect spinning on each plane
+
+    Detect various device orientations:
+
+     - perfectly flat
+     - neutral (nearly flat)
+     - left, right, up, down
+     - upside down
+
+
+Added testflight checkpoints for common interactions (27/4/2013):
+-----------------------------------------------------------------
 
      - zoomed in
      - zoomed out
@@ -10,6 +29,7 @@ Added testflight checkpoints for common interactions:
      - flicked stone
      - tapped stone
      - bounced off near plane
+
 
 Setup testflight, got a few beta testers (18/4/2013):
 -----------------------------------------------------
