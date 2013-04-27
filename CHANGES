@@ -1,4 +1,15 @@
 
+Small impulse applied when you touch the stone (28/4/2013):
+-----------------------------------------------------------
+
+    Apply a light impulse along the camera ray when first selecting a stone
+
+    This way you can tap stones and they will react by wobbling,
+    depending on where on the stone you touched.
+
+    In practice this looks quite realistic!
+
+
 Detected more complicated checkpoints (28/4/2013):
 --------------------------------------------------
 
