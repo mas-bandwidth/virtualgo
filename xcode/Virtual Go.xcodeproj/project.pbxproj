@@ -24,9 +24,11 @@
 		F2665409171A205500CFB131 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2665408171A205500CFB131 /* Default-568h@2x.png */; };
 		F266540C171A205500CFB131 /* MainStoryboard_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F266540A171A205500CFB131 /* MainStoryboard_iPhone.storyboard */; };
 		F266540F171A205500CFB131 /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F266540D171A205500CFB131 /* MainStoryboard_iPad.storyboard */; };
-		F2665411171A205500CFB131 /* StoneShader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = F2665410171A205500CFB131 /* StoneShader.fsh */; };
-		F2665413171A205500CFB131 /* StoneShader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = F2665412171A205500CFB131 /* StoneShader.vsh */; };
 		F2665416171A205500CFB131 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2665415171A205500CFB131 /* ViewController.m */; };
+		F2A3914E172CFACC00A6A74D /* BoardShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F2A39145172CFA7D00A6A74D /* BoardShader.fragment */; };
+		F2A3914F172CFACC00A6A74D /* StoneShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F2A39146172CFA7D00A6A74D /* StoneShader.fragment */; };
+		F2A39150172CFACC00A6A74D /* BoardShader.vertex in Resources */ = {isa = PBXBuildFile; fileRef = F2A39147172CFA7D00A6A74D /* BoardShader.vertex */; };
+		F2A39151172CFACC00A6A74D /* StoneShader.vertex in Resources */ = {isa = PBXBuildFile; fileRef = F2A39148172CFA7D00A6A74D /* StoneShader.vertex */; };
 		F2D6AD69171FDF5A00930D69 /* virtual go.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD68171FDF5A00930D69 /* virtual go.png */; };
 		F2D6AD6B171FDFE500930D69 /* virtual go retina.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD6A171FDFE500930D69 /* virtual go retina.png */; };
 		F2D6AD6D171FE05600930D69 /* virtual go retina ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD6C171FE05600930D69 /* virtual go retina ipad.png */; };
@@ -36,8 +38,6 @@
 		F2D6AD821720557A00930D69 /* Default-Landscape~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */; };
 		F2D6AD841720557E00930D69 /* Default-Landscape@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */; };
 		F2E9E24F172B52C900F9C494 /* wood.png in Resources */ = {isa = PBXBuildFile; fileRef = F2E9E24E172B52C900F9C494 /* wood.png */; };
-		F2E9E253172CE76A00F9C494 /* BoardShader.fsh in Sources */ = {isa = PBXBuildFile; fileRef = F2E9E251172CE76A00F9C494 /* BoardShader.fsh */; };
-		F2E9E254172CE76A00F9C494 /* BoardShader.vsh in Sources */ = {isa = PBXBuildFile; fileRef = F2E9E252172CE76A00F9C494 /* BoardShader.vsh */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -63,8 +63,6 @@
 		F2665408171A205500CFB131 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		F266540B171A205500CFB131 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
 		F266540E171A205500CFB131 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
-		F2665410171A205500CFB131 /* StoneShader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = StoneShader.fsh; path = Shaders/StoneShader.fsh; sourceTree = "<group>"; };
-		F2665412171A205500CFB131 /* StoneShader.vsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = StoneShader.vsh; path = Shaders/StoneShader.vsh; sourceTree = "<group>"; };
 		F2665414171A205500CFB131 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		F2665415171A205500CFB131 /* ViewController.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; path = ViewController.m; sourceTree = "<group>"; };
 		F266541D171A205500CFB131 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
@@ -79,6 +77,10 @@
 		F2776EB5171B834800E73C61 /* Render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Render.h; path = ../../Render.h; sourceTree = "<group>"; };
 		F2776EB6171B834800E73C61 /* RigidBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RigidBody.h; path = ../../RigidBody.h; sourceTree = "<group>"; };
 		F2776EB7171B834800E73C61 /* Stone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Stone.h; path = ../../Stone.h; sourceTree = "<group>"; };
+		F2A39145172CFA7D00A6A74D /* BoardShader.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = BoardShader.fragment; path = "Virtual Go/shaders/BoardShader.fragment"; sourceTree = "<group>"; };
+		F2A39146172CFA7D00A6A74D /* StoneShader.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = StoneShader.fragment; path = "Virtual Go/shaders/StoneShader.fragment"; sourceTree = "<group>"; };
+		F2A39147172CFA7D00A6A74D /* BoardShader.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = BoardShader.vertex; path = "Virtual Go/shaders/BoardShader.vertex"; sourceTree = "<group>"; };
+		F2A39148172CFA7D00A6A74D /* StoneShader.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = StoneShader.vertex; path = "Virtual Go/shaders/StoneShader.vertex"; sourceTree = "<group>"; };
 		F2D6AD68171FDF5A00930D69 /* virtual go.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "virtual go.png"; sourceTree = "<group>"; };
 		F2D6AD6A171FDFE500930D69 /* virtual go retina.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "virtual go retina.png"; sourceTree = "<group>"; };
 		F2D6AD6C171FE05600930D69 /* virtual go retina ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "virtual go retina ipad.png"; sourceTree = "<group>"; };
@@ -88,8 +90,6 @@
 		F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape~ipad.png"; sourceTree = "<group>"; };
 		F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape@2x~ipad.png"; sourceTree = "<group>"; };
 		F2E9E24E172B52C900F9C494 /* wood.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = wood.png; path = "Virtual Go/textures/wood.png"; sourceTree = "<group>"; };
-		F2E9E251172CE76A00F9C494 /* BoardShader.fsh */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = BoardShader.fsh; path = Shaders/BoardShader.fsh; sourceTree = "<group>"; };
-		F2E9E252172CE76A00F9C494 /* BoardShader.vsh */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = BoardShader.vsh; path = Shaders/BoardShader.vsh; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -208,11 +208,22 @@
 			name = icons;
 			sourceTree = "<group>";
 		};
+		F2A3914D172CFA8F00A6A74D /* shaders */ = {
+			isa = PBXGroup;
+			children = (
+				F2A39145172CFA7D00A6A74D /* BoardShader.fragment */,
+				F2A39146172CFA7D00A6A74D /* StoneShader.fragment */,
+				F2A39147172CFA7D00A6A74D /* BoardShader.vertex */,
+				F2A39148172CFA7D00A6A74D /* StoneShader.vertex */,
+			);
+			name = shaders;
+			sourceTree = "<group>";
+		};
 		F2D6AD70172053A900930D69 /* resources */ = {
 			isa = PBXGroup;
 			children = (
+				F2A3914D172CFA8F00A6A74D /* shaders */,
 				F2A3913D172CE92000A6A74D /* icons */,
-				F2E9E250172CE66100F9C494 /* shaders */,
 				F2E9E24B172B4D5D00F9C494 /* textures */,
 			);
 			name = resources;
@@ -224,18 +235,6 @@
 				F2E9E24E172B52C900F9C494 /* wood.png */,
 			);
 			name = textures;
-			sourceTree = "<group>";
-		};
-		F2E9E250172CE66100F9C494 /* shaders */ = {
-			isa = PBXGroup;
-			children = (
-				F2665410171A205500CFB131 /* StoneShader.fsh */,
-				F2665412171A205500CFB131 /* StoneShader.vsh */,
-				F2E9E251172CE76A00F9C494 /* BoardShader.fsh */,
-				F2E9E252172CE76A00F9C494 /* BoardShader.vsh */,
-			);
-			name = shaders;
-			path = "Virtual Go";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -289,14 +288,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F2A3914E172CFACC00A6A74D /* BoardShader.fragment in Resources */,
+				F2A3914F172CFACC00A6A74D /* StoneShader.fragment in Resources */,
+				F2A39150172CFACC00A6A74D /* BoardShader.vertex in Resources */,
+				F2A39151172CFACC00A6A74D /* StoneShader.vertex in Resources */,
 				F26653FD171A205400CFB131 /* InfoPlist.strings in Resources */,
 				F2665405171A205400CFB131 /* Default.png in Resources */,
 				F2665407171A205500CFB131 /* Default@2x.png in Resources */,
 				F2665409171A205500CFB131 /* Default-568h@2x.png in Resources */,
 				F266540C171A205500CFB131 /* MainStoryboard_iPhone.storyboard in Resources */,
 				F266540F171A205500CFB131 /* MainStoryboard_iPad.storyboard in Resources */,
-				F2665411171A205500CFB131 /* StoneShader.fsh in Resources */,
-				F2665413171A205500CFB131 /* StoneShader.vsh in Resources */,
 				F2D6AD69171FDF5A00930D69 /* virtual go.png in Resources */,
 				F2D6AD6B171FDFE500930D69 /* virtual go retina.png in Resources */,
 				F2D6AD6D171FE05600930D69 /* virtual go retina ipad.png in Resources */,
@@ -321,8 +322,6 @@
 				F26653FF171A205400CFB131 /* main.m in Sources */,
 				F2665403171A205400CFB131 /* AppDelegate.m in Sources */,
 				F2665416171A205500CFB131 /* ViewController.m in Sources */,
-				F2E9E253172CE76A00F9C494 /* BoardShader.fsh in Sources */,
-				F2E9E254172CE76A00F9C494 /* BoardShader.vsh in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

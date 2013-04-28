@@ -1,10 +1,23 @@
 DONE:
 
+    Research how to 
+
+    Load separate shaders for board and stone
+
+    Switch between shaders ready for rendering
+
+    Sketch out code to render the quad using vert buffer
+
 TODO:
 
-    -----------------------------------------------------------------
+    Learn how to feed in texture coordinates via vertex buffer
 
-    Render wood texture background
+    Tune the board quad dimensions and texture density for the iPad
+
+    Tune separately for the iPhone
+
+    Generate a mipmap from the texture and turn on trilinear filtering
+    (need to recover VirtualGo.cpp and copy the code from there)
 
     -----------------------------------------------------------------
 
@@ -54,16 +67,6 @@ TODO:
     Perhaps double swipe up/down -- I'd like to let the user
     mix and match go stones with different go boards, and perhaps
     save them off as presets.
-
-    -----------------------------------------------------------------
-
-    Add counters for various actions, eg. num swipes, num zoom in
-    num zoom outs, num times stone hit near plane, num times stone
-    spun longer than X seconds, etc.
-
-    This way I can hook up to testflight checkpoints and know
-    what users are doing (or not doing) in the application
-    when they run it.
 
     -----------------------------------------------------------------
 

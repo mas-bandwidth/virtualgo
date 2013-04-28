@@ -459,8 +459,8 @@ bool iPad()
 {
     [EAGLContext setCurrentContext:self.context];
     
-    _stoneProgram = [self loadShader:@"StoneShader"];
     _boardProgram = [self loadShader:@"BoardShader"];
+    _stoneProgram = [self loadShader:@"StoneShader"];
     
     glEnable( GL_DEPTH_TEST );
     
@@ -1394,6 +1394,19 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
     glUseProgram( _boardProgram );
 
+    /*
+    GLfloat vertices[] = {-1, -1, 0, //bottom left corner
+                          -1,  1, 0, //top left corner
+                           1,  1, 0, //top right corner
+                           1, -1, 0}; // bottom right rocner
+
+    GLubyte indices[] = {0,1,2, // first triangle (bottom left - top left - top right)
+                         0,2,3}; // second triangle (bottom left - top right - bottom right)
+
+    glVertexPointer(3, GL_FLOAT, 0, vertices);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
+    */
+
     // ...
 
     // render stone
@@ -1407,6 +1420,9 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indexBuffer );
     
     glDrawElements( GL_TRIANGLES, _mesh.GetNumTriangles()*3, GL_UNSIGNED_INT, NULL );
+
+    glUnbindBuffer( GL_ARRAY_BUFFER, 0 );
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 
     _hasRendered = true;
 }
@@ -1447,8 +1463,14 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     GLuint program = glCreateProgram();
     
     // Create and compile vertex shader.
-    vertShaderPathname = [[NSBundle mainBundle] pathForResource:filename ofType:@"vsh"];
-    NSLog( @"vertShaderPathname: %@", vertShaderPathname );
+    vertShaderPathname = [[NSBundle mainBundle] pathForResource:filename ofType:@"vertex"];
+    
+    if ( !vertShaderPathname )
+    {
+        NSLog( @"Could not find vertex shader: %@", filename );
+        return 0;
+    }
+
     if (![self compileShader:&vertShader type:GL_VERTEX_SHADER file:vertShaderPathname])
     {
         NSLog( @"Failed to compile vertex shader" );
@@ -1456,8 +1478,14 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     }
     
     // Create and compile fragment shader.
-    fragShaderPathname = [[NSBundle mainBundle] pathForResource:filename ofType:@"fsh"];
-    NSLog( @"fragShaderPathname: %@", vertShaderPathname );
+    fragShaderPathname = [[NSBundle mainBundle] pathForResource:filename ofType:@"fragment"];
+
+    if ( !fragShaderPathname )
+    {
+        NSLog( @"Could not find fragment shader: %@", filename );
+        return 0;
+    }
+
     if (![self compileShader:&fragShader type:GL_FRAGMENT_SHADER file:fragShaderPathname])
     {
         NSLog( @"Failed to compile fragment shader" );
