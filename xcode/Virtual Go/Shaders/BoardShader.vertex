@@ -15,6 +15,7 @@ varying vec2 texCoordsVarying;
 
 uniform mat4 modelViewProjectionMatrix;
 uniform mat3 normalMatrix;
+uniform vec3 lightPosition;
 
 void main()
 {

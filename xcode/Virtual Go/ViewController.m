@@ -21,6 +21,7 @@ enum
 {
     UNIFORM_MODELVIEWPROJECTION_MATRIX,
     UNIFORM_NORMAL_MATRIX,
+    UNIFORM_LIGHT_POSITION,
     NUM_UNIFORMS
 };
 
@@ -215,6 +216,13 @@ enum CollisionPlanes
     GLKMatrix3 _boardNormalMatrix;
     GLint _boardUniforms[NUM_UNIFORMS];
 
+    GLuint _shadowProgram;
+    GLKMatrix4 _shadowModelViewProjectionMatrix;
+    GLKMatrix3 _shadowNormalMatrix;
+    GLint _shadowUniforms[NUM_UNIFORMS];
+
+    vec3f _lightPosition;
+
     bool _paused;
     bool _zoomed;
     bool _hasRendered;
@@ -368,6 +376,8 @@ bool iPad()
     _swipedThisFrame = false;
     _secondsSinceLastSwipe = 0;
 
+    _lightPosition = vec3f( 10, 10, 100 );
+
     [self dropStone];
 }
 
@@ -474,7 +484,7 @@ bool iPad()
     d.texCoords = vec2f( 1, 0 );
 
     _boardMesh.AddTriangle( a, c, b );
-    _boardMesh.AddTriangle( a, c, d );
+    _boardMesh.AddTriangle( a, d, c );
 }
 
 - (void)setupGL
@@ -482,6 +492,8 @@ bool iPad()
     [EAGLContext setCurrentContext:self.context];
         
     glEnable( GL_DEPTH_TEST );
+
+    glEnable( GL_CULL_FACE );
 
     // stone shader, textures, VBs/IBs etc.
     {    
@@ -504,6 +516,7 @@ bool iPad()
 
         _stoneUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _stoneProgram, "normalMatrix" );
         _stoneUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _stoneProgram, "modelViewProjectionMatrix" );
+        _stoneUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _stoneProgram, "lightPosition" );
     }
     
     // board shader, textures, VBs/IBs etc.
@@ -526,10 +539,21 @@ bool iPad()
         glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _boardIndexBuffer );
         glBufferData( GL_ELEMENT_ARRAY_BUFFER, _boardMesh.GetNumIndices()*sizeof(GLushort), _boardMesh.GetIndexBuffer(), GL_STATIC_DRAW );
         
-        _boardTexture = [self loadTexture:@"wood.png"];
+        _boardTexture = [self loadTexture:@"wood.jpg"];
 
         _boardUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _boardProgram, "normalMatrix" );
         _boardUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _boardProgram, "modelViewProjectionMatrix" );
+        _boardUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _boardProgram, "lightPosition" );
+    }
+
+    // shadow shader, uniforms etc.
+
+    {
+        _shadowProgram = [self loadShader:@"ShadowShader"];
+
+        _shadowUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _shadowProgram, "normalMatrix" );
+        _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _shadowProgram, "modelViewProjectionMatrix" );
+        _shadowUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _shadowProgram, "lightPosition" );
     }
   
     // configure opengl view
@@ -562,6 +586,12 @@ bool iPad()
     }
 
     glDeleteTextures( 1, &_boardTexture );
+
+    if ( _shadowProgram )
+    {
+        glDeleteProgram( _shadowProgram );
+        _shadowProgram = 0;
+    }
 }
 
 - (GLuint)loadTexture:(NSString *)filename
@@ -1089,7 +1119,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     
         // collision between stone and near plane
 
-        vec4f nearPlane( 0, 0, -1, -_smoothZoom * ( ( !_zoomed && iPad() ) ? 0.8f : 1.0f ) );
+        vec4f nearPlane( 0, 0, -1, -_smoothZoom );//* ( ( !_zoomed && iPad() ) ? 0.7f : 1.0f ) );
         
         if ( StonePlaneCollision( stone.biconvex, nearPlane, stone.rigidBody, contact ) )
         {
@@ -1430,6 +1460,10 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     _boardNormalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(baseModelViewMatrix), NULL );
     _boardModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
     
+    // todo: project onto ground plane
+    _shadowNormalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(modelViewMatrix), NULL );
+    _shadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelViewMatrix );
+
     _clipMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
 
     bool invertible;
@@ -1461,6 +1495,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
         glUniformMatrix4fv( _boardUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _boardModelViewProjectionMatrix.m );
         glUniformMatrix3fv( _boardUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _boardNormalMatrix.m );
+        glUniform3fv( _boardUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&_lightPosition );
 
         glDrawElements( GL_TRIANGLES, _boardMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
 
@@ -1472,6 +1507,39 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
         glDisableVertexAttribArray( GLKVertexAttribTexCoord0 );
     }
 
+    // render stone shadow
+    
+    {
+        glUseProgram( _shadowProgram );
+        
+        glBindBuffer( GL_ARRAY_BUFFER, _stoneVertexBuffer );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _stoneIndexBuffer );
+        
+        glEnableVertexAttribArray( GLKVertexAttribPosition );
+        glEnableVertexAttribArray( GLKVertexAttribNormal );
+        
+        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0 );
+        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)16 );
+        
+        glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _shadowModelViewProjectionMatrix.m );
+        glUniformMatrix3fv( _shadowUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _shadowNormalMatrix.m );
+        glUniform3fv( _shadowUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&_lightPosition );
+
+        glEnable( GL_BLEND );
+        glBlendFunc( GL_ZERO, GL_SRC_ALPHA );//GL_ZERO );
+
+        glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+
+        glDisable( GL_BLEND );
+        
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+        
+        glDisableVertexAttribArray( GLKVertexAttribPosition );
+        glDisableVertexAttribArray( GLKVertexAttribNormal );
+    }
+    
+    /*
     // render stone
 
     {
@@ -1488,6 +1556,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
         glUniformMatrix4fv( _stoneUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _stoneModelViewProjectionMatrix.m );
         glUniformMatrix3fv( _stoneUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _stoneNormalMatrix.m );
+        glUniform3fv( _stoneUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&_lightPosition );
 
         glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
 
@@ -1497,6 +1566,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
         glDisableVertexAttribArray( GLKVertexAttribPosition );
         glDisableVertexAttribArray( GLKVertexAttribNormal );
     }
+    */
 
     _hasRendered = true;
 }
