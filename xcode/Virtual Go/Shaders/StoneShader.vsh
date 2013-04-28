@@ -1,5 +1,5 @@
 //
-//  Shader.vsh
+//  StoneShader.vsh
 //  Virtual Go
 //
 //  Created by Glenn Fiedler on 4/13/13.

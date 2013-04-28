@@ -1,0 +1,17 @@
+//
+//  BoardShader.fsh
+//  Virtual Go
+//
+//  Created by Glenn Fiedler on 4/13/13.
+//  Copyright (c) 2013 Glenn Fiedler. All rights reserved.
+//
+
+uniform sampler2D uniformTexture;
+
+varying lowp vec4 colorVarying;
+varying lowp vec2 texCoordinateVarying;
+
+void main()
+{
+    gl_FragColor = colorVarying * texture2D( uniformTexture, texCoordinateVarying );
+}

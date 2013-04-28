@@ -24,8 +24,8 @@
 		F2665409171A205500CFB131 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2665408171A205500CFB131 /* Default-568h@2x.png */; };
 		F266540C171A205500CFB131 /* MainStoryboard_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F266540A171A205500CFB131 /* MainStoryboard_iPhone.storyboard */; };
 		F266540F171A205500CFB131 /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F266540D171A205500CFB131 /* MainStoryboard_iPad.storyboard */; };
-		F2665411171A205500CFB131 /* Shader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = F2665410171A205500CFB131 /* Shader.fsh */; };
-		F2665413171A205500CFB131 /* Shader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = F2665412171A205500CFB131 /* Shader.vsh */; };
+		F2665411171A205500CFB131 /* StoneShader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = F2665410171A205500CFB131 /* StoneShader.fsh */; };
+		F2665413171A205500CFB131 /* StoneShader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = F2665412171A205500CFB131 /* StoneShader.vsh */; };
 		F2665416171A205500CFB131 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2665415171A205500CFB131 /* ViewController.m */; };
 		F2D6AD69171FDF5A00930D69 /* virtual go.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD68171FDF5A00930D69 /* virtual go.png */; };
 		F2D6AD6B171FDFE500930D69 /* virtual go retina.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD6A171FDFE500930D69 /* virtual go retina.png */; };
@@ -36,6 +36,8 @@
 		F2D6AD821720557A00930D69 /* Default-Landscape~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */; };
 		F2D6AD841720557E00930D69 /* Default-Landscape@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */; };
 		F2E9E24F172B52C900F9C494 /* wood.png in Resources */ = {isa = PBXBuildFile; fileRef = F2E9E24E172B52C900F9C494 /* wood.png */; };
+		F2E9E253172CE76A00F9C494 /* BoardShader.fsh in Sources */ = {isa = PBXBuildFile; fileRef = F2E9E251172CE76A00F9C494 /* BoardShader.fsh */; };
+		F2E9E254172CE76A00F9C494 /* BoardShader.vsh in Sources */ = {isa = PBXBuildFile; fileRef = F2E9E252172CE76A00F9C494 /* BoardShader.vsh */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -61,8 +63,8 @@
 		F2665408171A205500CFB131 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		F266540B171A205500CFB131 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
 		F266540E171A205500CFB131 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
-		F2665410171A205500CFB131 /* Shader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.fsh; path = Shaders/Shader.fsh; sourceTree = "<group>"; };
-		F2665412171A205500CFB131 /* Shader.vsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.vsh; path = Shaders/Shader.vsh; sourceTree = "<group>"; };
+		F2665410171A205500CFB131 /* StoneShader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = StoneShader.fsh; path = Shaders/StoneShader.fsh; sourceTree = "<group>"; };
+		F2665412171A205500CFB131 /* StoneShader.vsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = StoneShader.vsh; path = Shaders/StoneShader.vsh; sourceTree = "<group>"; };
 		F2665414171A205500CFB131 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		F2665415171A205500CFB131 /* ViewController.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; path = ViewController.m; sourceTree = "<group>"; };
 		F266541D171A205500CFB131 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
@@ -86,6 +88,8 @@
 		F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape~ipad.png"; sourceTree = "<group>"; };
 		F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape@2x~ipad.png"; sourceTree = "<group>"; };
 		F2E9E24E172B52C900F9C494 /* wood.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = wood.png; path = "Virtual Go/textures/wood.png"; sourceTree = "<group>"; };
+		F2E9E251172CE76A00F9C494 /* BoardShader.fsh */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = BoardShader.fsh; path = Shaders/BoardShader.fsh; sourceTree = "<group>"; };
+		F2E9E252172CE76A00F9C494 /* BoardShader.vsh */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = BoardShader.vsh; path = Shaders/BoardShader.vsh; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -156,8 +160,6 @@
 				F2665402171A205400CFB131 /* AppDelegate.m */,
 				F266540A171A205500CFB131 /* MainStoryboard_iPhone.storyboard */,
 				F266540D171A205500CFB131 /* MainStoryboard_iPad.storyboard */,
-				F2665410171A205500CFB131 /* Shader.fsh */,
-				F2665412171A205500CFB131 /* Shader.vsh */,
 				F2665414171A205500CFB131 /* ViewController.h */,
 				F2665415171A205500CFB131 /* ViewController.m */,
 				F2776EAD171B834800E73C61 /* Biconvex.h */,
@@ -191,10 +193,9 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		F2D6AD70172053A900930D69 /* resources */ = {
+		F2A3913D172CE92000A6A74D /* icons */ = {
 			isa = PBXGroup;
 			children = (
-				F2E9E24B172B4D5D00F9C494 /* textures */,
 				F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */,
 				F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */,
 				F2D6AD7F1720557300930D69 /* Default-Portrait~ipad.png */,
@@ -203,6 +204,16 @@
 				F2D6AD6C171FE05600930D69 /* virtual go retina ipad.png */,
 				F2D6AD6A171FDFE500930D69 /* virtual go retina.png */,
 				F2D6AD68171FDF5A00930D69 /* virtual go.png */,
+			);
+			name = icons;
+			sourceTree = "<group>";
+		};
+		F2D6AD70172053A900930D69 /* resources */ = {
+			isa = PBXGroup;
+			children = (
+				F2A3913D172CE92000A6A74D /* icons */,
+				F2E9E250172CE66100F9C494 /* shaders */,
+				F2E9E24B172B4D5D00F9C494 /* textures */,
 			);
 			name = resources;
 			sourceTree = "<group>";
@@ -213,6 +224,18 @@
 				F2E9E24E172B52C900F9C494 /* wood.png */,
 			);
 			name = textures;
+			sourceTree = "<group>";
+		};
+		F2E9E250172CE66100F9C494 /* shaders */ = {
+			isa = PBXGroup;
+			children = (
+				F2665410171A205500CFB131 /* StoneShader.fsh */,
+				F2665412171A205500CFB131 /* StoneShader.vsh */,
+				F2E9E251172CE76A00F9C494 /* BoardShader.fsh */,
+				F2E9E252172CE76A00F9C494 /* BoardShader.vsh */,
+			);
+			name = shaders;
+			path = "Virtual Go";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -272,8 +295,8 @@
 				F2665409171A205500CFB131 /* Default-568h@2x.png in Resources */,
 				F266540C171A205500CFB131 /* MainStoryboard_iPhone.storyboard in Resources */,
 				F266540F171A205500CFB131 /* MainStoryboard_iPad.storyboard in Resources */,
-				F2665411171A205500CFB131 /* Shader.fsh in Resources */,
-				F2665413171A205500CFB131 /* Shader.vsh in Resources */,
+				F2665411171A205500CFB131 /* StoneShader.fsh in Resources */,
+				F2665413171A205500CFB131 /* StoneShader.vsh in Resources */,
 				F2D6AD69171FDF5A00930D69 /* virtual go.png in Resources */,
 				F2D6AD6B171FDFE500930D69 /* virtual go retina.png in Resources */,
 				F2D6AD6D171FE05600930D69 /* virtual go retina ipad.png in Resources */,
@@ -298,6 +321,8 @@
 				F26653FF171A205400CFB131 /* main.m in Sources */,
 				F2665403171A205400CFB131 /* AppDelegate.m in Sources */,
 				F2665416171A205500CFB131 /* ViewController.m in Sources */,
+				F2E9E253172CE76A00F9C494 /* BoardShader.fsh in Sources */,
+				F2E9E254172CE76A00F9C494 /* BoardShader.vsh in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

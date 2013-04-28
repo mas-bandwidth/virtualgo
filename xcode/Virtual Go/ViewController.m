@@ -203,7 +203,8 @@ enum CollisionPlanes
 
 @interface ViewController ()
 {
-    GLuint _program;
+    GLuint _stoneProgram;
+    GLuint _boardProgram;
     
     GLKMatrix4 _modelViewProjectionMatrix;
     GLKMatrix3 _normalMatrix;
@@ -277,7 +278,7 @@ enum CollisionPlanes
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event;
 
-- (BOOL)loadShaders;
+- (GLuint)loadShader:(NSString*)filename;
 - (BOOL)compileShader:(GLuint *)shader type:(GLenum)type file:(NSString *)file;
 - (BOOL)linkProgram:(GLuint)prog;
 - (BOOL)validateProgram:(GLuint)prog;
@@ -458,7 +459,8 @@ bool iPad()
 {
     [EAGLContext setCurrentContext:self.context];
     
-    [self loadShaders];
+    _stoneProgram = [self loadShader:@"StoneShader"];
+    _boardProgram = [self loadShader:@"BoardShader"];
     
     glEnable( GL_DEPTH_TEST );
     
@@ -489,10 +491,16 @@ bool iPad()
     glDeleteBuffers( 1, &_indexBuffer );
     glDeleteBuffers( 1, &_vertexBuffer );
     
-    if ( _program )
+    if ( _stoneProgram )
     {
-        glDeleteProgram( _program );
-        _program = 0;
+        glDeleteProgram( _stoneProgram );
+        _stoneProgram = 0;
+    }
+
+    if ( _boardProgram )
+    {
+        glDeleteProgram( _boardProgram );
+        _boardProgram = 0;
     }
 }
 
@@ -1382,7 +1390,15 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     if ( _paused )
         return;
     
-    glUseProgram( _program );
+    // render board
+
+    glUseProgram( _boardProgram );
+
+    // ...
+
+    // render stone
+
+    glUseProgram( _stoneProgram );
     
     glUniformMatrix4fv( uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _modelViewProjectionMatrix.m );
     glUniformMatrix3fv( uniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _normalMatrix.m );
@@ -1421,45 +1437,48 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
 #pragma mark -  OpenGL ES 2 shader compilation
 
-- (BOOL)loadShaders
+- (GLuint)loadShader:(NSString*)filename
 {
     GLuint vertShader, fragShader;
+
     NSString *vertShaderPathname, *fragShaderPathname;
     
     // Create shader program.
-    _program = glCreateProgram();
+    GLuint program = glCreateProgram();
     
     // Create and compile vertex shader.
-    vertShaderPathname = [[NSBundle mainBundle] pathForResource:@"Shader" ofType:@"vsh"];
+    vertShaderPathname = [[NSBundle mainBundle] pathForResource:filename ofType:@"vsh"];
+    NSLog( @"vertShaderPathname: %@", vertShaderPathname );
     if (![self compileShader:&vertShader type:GL_VERTEX_SHADER file:vertShaderPathname])
     {
         NSLog( @"Failed to compile vertex shader" );
-        return NO;
+        return 0;
     }
     
     // Create and compile fragment shader.
-    fragShaderPathname = [[NSBundle mainBundle] pathForResource:@"Shader" ofType:@"fsh"];
+    fragShaderPathname = [[NSBundle mainBundle] pathForResource:filename ofType:@"fsh"];
+    NSLog( @"fragShaderPathname: %@", vertShaderPathname );
     if (![self compileShader:&fragShader type:GL_FRAGMENT_SHADER file:fragShaderPathname])
     {
         NSLog( @"Failed to compile fragment shader" );
-        return NO;
+        return 0;
     }
     
     // Attach vertex shader to program.
-    glAttachShader( _program, vertShader );
+    glAttachShader( program, vertShader );
     
     // Attach fragment shader to program.
-    glAttachShader( _program, fragShader );
+    glAttachShader( program, fragShader );
     
     // Bind attribute locations.
     // This needs to be done prior to linking.
-    glBindAttribLocation( _program, GLKVertexAttribPosition, "position" );
-    glBindAttribLocation( _program, GLKVertexAttribNormal, "normal" );
+    glBindAttribLocation( program, GLKVertexAttribPosition, "position" );
+    glBindAttribLocation( program, GLKVertexAttribNormal, "normal" );
     
     // Link program.
-    if (![self linkProgram:_program])
+    if (![self linkProgram:program])
     {
-        NSLog( @"Failed to link program: %d", _program );
+        NSLog( @"Failed to link program: %d", program );
         
         if ( vertShader )
         {
@@ -1471,32 +1490,32 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
             glDeleteShader( fragShader );
             fragShader = 0;
         }
-        if ( _program )
+        if ( program )
         {
-            glDeleteProgram( _program );
-            _program = 0;
+            glDeleteProgram( program );
+            program = 0;
         }
         
-        return NO;
+        return 0;
     }
     
     // Get uniform locations.
-    uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _program, "modelViewProjectionMatrix" );
-    uniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _program, "normalMatrix" );
+    uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( program, "modelViewProjectionMatrix" );
+    uniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( program, "normalMatrix" );
     
     // Release vertex and fragment shaders.
     if ( vertShader )
     {
-        glDetachShader( _program, vertShader );
+        glDetachShader( program, vertShader );
         glDeleteShader( vertShader );
     }
     if ( fragShader )
     {
-        glDetachShader( _program, fragShader );
+        glDetachShader( program, fragShader );
         glDeleteShader( fragShader );
     }
     
-    return YES;
+    return program;
 }
 
 - (BOOL)compileShader:(GLuint *)shader type:(GLenum)type file:(NSString *)file
