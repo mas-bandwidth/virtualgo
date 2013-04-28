@@ -1,12 +1,23 @@
 DONE:
 
+    Implement shadow shader
+
+    Fixed problems with backface culling
+
 TODO:
+
+    Render both stone and shadow
+
+    Work out how to project stone onto ground plane
 
     -----------------------------------------------------------------
 
-    Implement simple drop-shadow projected onto board
+    Work out how to render the shadow to texture
 
-    Blur the shadow
+    Create a new shadow to pass over the shadow texture
+    and blur it out using a gaussian blur
+
+    Write a new shadow to blur back the shadow texture onto the board
 
     Make the shadow blur out and fade out as the stone moves away
     from the go board. This should give a sense of depth.

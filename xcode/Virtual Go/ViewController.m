@@ -1526,7 +1526,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
         glUniform3fv( _shadowUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&_lightPosition );
 
         glEnable( GL_BLEND );
-        glBlendFunc( GL_ZERO, GL_SRC_ALPHA );//GL_ZERO );
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
         glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
 
@@ -1539,7 +1539,6 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
         glDisableVertexAttribArray( GLKVertexAttribNormal );
     }
     
-    /*
     // render stone
 
     {
@@ -1566,8 +1565,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
         glDisableVertexAttribArray( GLKVertexAttribPosition );
         glDisableVertexAttribArray( GLKVertexAttribNormal );
     }
-    */
-
+    
     _hasRendered = true;
 }
 
