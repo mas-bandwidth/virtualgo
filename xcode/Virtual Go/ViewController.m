@@ -24,15 +24,6 @@ enum
     NUM_UNIFORMS
 };
 
-GLint uniforms[NUM_UNIFORMS];
-
-enum
-{
-    ATTRIB_VERTEX,
-    ATTRIB_NORMAL,
-    NUM_ATTRIBUTES
-};
-
 enum Counters
 {
     COUNTER_ZoomedIn,
@@ -202,21 +193,28 @@ enum CollisionPlanes
 };
 
 @interface ViewController ()
-{
-    GLuint _stoneProgram;
-    GLuint _boardProgram;
-    
-    GLKMatrix4 _modelViewProjectionMatrix;
-    GLKMatrix3 _normalMatrix;
+{    
     GLKMatrix4 _clipMatrix;
     GLKMatrix4 _inverseClipMatrix;
-    
-    GLuint _vertexBuffer;
-    GLuint _indexBuffer;
-    
+        
     Stone _stone;
-    Mesh _mesh;
+    Mesh<Vertex> _stoneMesh;
+    GLuint _stoneProgram;
+    GLuint _stoneVertexBuffer;
+    GLuint _stoneIndexBuffer;
+    GLKMatrix4 _stoneModelViewProjectionMatrix;
+    GLKMatrix3 _stoneNormalMatrix;
+    GLint _stoneUniforms[NUM_UNIFORMS];
     
+    Mesh<TexturedVertex> _boardMesh;
+    GLuint _boardProgram;
+    GLuint _boardTexture;
+    GLuint _boardVertexBuffer;
+    GLuint _boardIndexBuffer;
+    GLKMatrix4 _boardModelViewProjectionMatrix;
+    GLKMatrix3 _boardNormalMatrix;
+    GLint _boardUniforms[NUM_UNIFORMS];
+
     bool _paused;
     bool _zoomed;
     bool _hasRendered;
@@ -246,9 +244,7 @@ enum CollisionPlanes
     double _selectPrevTimestamp;
     vec3f _selectIntersectionPoint;
     vec3f _selectPrevIntersectionPoint;
-    
-    GLuint _woodTexture;
-    
+        
     uint64_t _counters[COUNTER_NumValues];
     
     uint32_t _collisionPlanes;
@@ -315,7 +311,7 @@ const float HoldMoveThreshold = 40;             // points
 
 const float SelectDamping = 0.75f;
 
-const float TouchImpulse = 3.0f;
+const float TouchImpulse = 4.0f;
 
 bool iPad()
 {
@@ -345,17 +341,17 @@ bool iPad()
     
     _stone.Initialize( STONE_SIZE_40 );
 
-    GenerateBiconvexMesh( _mesh, _stone.biconvex, 4 );
+    GenerateBiconvexMesh( _stoneMesh, _stone.biconvex, 4 );
+
+    [self generateBoardMesh];
 
     [self setupGL];
-    
-    [self loadTextures];
-
+  
     _paused = true;
     _zoomed = false;
     _hasRendered = false;
     
-    _smoothZoom = false;
+    _smoothZoom = [self getTargetZoom];
     
     _rawAcceleration = vec3f(0,0,-1);
     _smoothedAcceleration = vec3f(0,0,-1);
@@ -455,30 +451,89 @@ bool iPad()
     // Dispose of any resources that can be recreated.
 }
 
+- (void)generateBoardMesh
+{
+    TexturedVertex a,b,c,d;
+
+    const float s = 10;
+
+    a.position = vec3f( -s, -s, 0 );
+    a.normal = vec3f( 0, 0, 1 );
+    a.texCoords = vec2f( 0, 0 );
+
+    b.position = vec3f( -s, s, 0 );
+    b.normal = vec3f( 0, 0, 1 );
+    b.texCoords = vec2f( 0, 1 );
+
+    c.position = vec3f( s, s, 0 );
+    c.normal = vec3f( 0, 0, 1 );
+    c.texCoords = vec2f( 1, 1 );
+
+    d.position = vec3f( s, -s, 0 );
+    d.normal = vec3f( 0, 0, 1 );
+    d.texCoords = vec2f( 1, 0 );
+
+    _boardMesh.AddTriangle( a, c, b );
+    _boardMesh.AddTriangle( a, c, d );
+}
+
 - (void)setupGL
 {
     [EAGLContext setCurrentContext:self.context];
-    
-    _boardProgram = [self loadShader:@"BoardShader"];
-    _stoneProgram = [self loadShader:@"StoneShader"];
-    
+        
     glEnable( GL_DEPTH_TEST );
+
+    // stone shader, textures, VBs/IBs etc.
+    {    
+        _stoneProgram = [self loadShader:@"StoneShader"];
+
+        void * vertexData = _stoneMesh.GetVertexBuffer();
+        
+        glGenBuffers( 1, &_stoneVertexBuffer );
+        glBindBuffer( GL_ARRAY_BUFFER, _stoneVertexBuffer );
+        glBufferData( GL_ARRAY_BUFFER, sizeof(Vertex) * _stoneMesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
+        
+        glEnableVertexAttribArray( GLKVertexAttribPosition );
+        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, 32, 0 );
+        glEnableVertexAttribArray( GLKVertexAttribNormal );
+        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, 32, (void*)16 );
+        
+        glGenBuffers( 1, &_stoneIndexBuffer );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _stoneIndexBuffer );
+        glBufferData( GL_ELEMENT_ARRAY_BUFFER, _stoneMesh.GetNumIndices()*sizeof(GLushort), _stoneMesh.GetIndexBuffer(), GL_STATIC_DRAW );
+
+        _stoneUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _stoneProgram, "normalMatrix" );
+        _stoneUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _stoneProgram, "modelViewProjectionMatrix" );
+    }
     
-    void * vertexData = _mesh.GetVertexBuffer();
-    
-    glGenBuffers( 1, &_vertexBuffer );
-    glBindBuffer( GL_ARRAY_BUFFER, _vertexBuffer );
-    glBufferData( GL_ARRAY_BUFFER, sizeof(Vertex) * _mesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
-    
-    glEnableVertexAttribArray( GLKVertexAttribPosition );
-    glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, 32, 0 );
-    glEnableVertexAttribArray( GLKVertexAttribNormal);
-    glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, 32, (void*)16 );
-    
-    glGenBuffers( 1, &_indexBuffer );
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indexBuffer );
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, _mesh.GetNumIndices()*sizeof(GLuint), _mesh.GetIndexBuffer(), GL_STATIC_DRAW );
-    
+    // board shader, textures, VBs/IBs etc.
+    {
+        _boardProgram = [self loadShader:@"BoardShader"];
+
+        void * vertexData = _boardMesh.GetVertexBuffer();
+        
+        assert( vertexData );
+        assert( _boardMesh.GetNumVertices() > 0 );
+        assert( _boardMesh.GetNumIndices() > 0 );
+
+        glGenBuffers( 1, &_boardVertexBuffer );
+
+        glBindBuffer( GL_ARRAY_BUFFER, _boardVertexBuffer );
+
+        glBufferData( GL_ARRAY_BUFFER, sizeof(TexturedVertex) * _boardMesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
+        
+        glGenBuffers( 1, &_boardIndexBuffer );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _boardIndexBuffer );
+        glBufferData( GL_ELEMENT_ARRAY_BUFFER, _boardMesh.GetNumIndices()*sizeof(GLushort), _boardMesh.GetIndexBuffer(), GL_STATIC_DRAW );
+        
+        _boardTexture = [self loadTexture:@"wood.png"];
+
+        _boardUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _boardProgram, "normalMatrix" );
+        _boardUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _boardProgram, "modelViewProjectionMatrix" );
+    }
+  
+    // configure opengl view
+
     self.preferredFramesPerSecond = 60;
 
     self.view.multipleTouchEnabled = YES;
@@ -488,8 +543,8 @@ bool iPad()
 {
     [EAGLContext setCurrentContext:self.context];
     
-    glDeleteBuffers( 1, &_indexBuffer );
-    glDeleteBuffers( 1, &_vertexBuffer );
+    glDeleteBuffers( 1, &_stoneIndexBuffer );
+    glDeleteBuffers( 1, &_stoneVertexBuffer );
     
     if ( _stoneProgram )
     {
@@ -497,18 +552,16 @@ bool iPad()
         _stoneProgram = 0;
     }
 
+    glDeleteBuffers( 1, &_boardIndexBuffer );
+    glDeleteBuffers( 1, &_boardVertexBuffer );
+
     if ( _boardProgram )
     {
         glDeleteProgram( _boardProgram );
         _boardProgram = 0;
     }
-}
 
-- (void)loadTextures
-{
-    _woodTexture = [self loadTexture:@"wood.png"];
-    
-//    NSLog( @"wood texture: %d", _woodTexture );
+    glDeleteTextures( 1, &_boardTexture );
 }
 
 - (GLuint)loadTexture:(NSString *)filename
@@ -551,12 +604,6 @@ bool iPad()
     free( textureData );
 
     return textureId;
-}
-
-
-- (void)freeTextures
-{
-    glDeleteTextures( 1, &_woodTexture );
 }
 
 - (BOOL)canBecomeFirstResponder
@@ -1042,7 +1089,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     
         // collision between stone and near plane
 
-        vec4f nearPlane( 0, 0, -1, -_smoothZoom * ( iPad() ? 0.5f : 1.0f ) );
+        vec4f nearPlane( 0, 0, -1, -_smoothZoom * ( ( !_zoomed && iPad() ) ? 0.8f : 1.0f ) );
         
         if ( StonePlaneCollision( stone.biconvex, nearPlane, stone.rigidBody, contact ) )
         {
@@ -1351,11 +1398,16 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     _swipedThisFrame = false;
 }
 
+- (float)getTargetZoom
+{
+    return iPad() ? ( _zoomed ? ZoomIn_iPad : ZoomOut_iPad ) : ( _zoomed ? ZoomIn_iPhone : ZoomOut_iPhone );
+}
+
 - (void)render
 {
     float aspect = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
     
-    const float targetZoom = iPad() ? ( _zoomed ? ZoomIn_iPad : ZoomOut_iPad ) : ( _zoomed ? ZoomIn_iPhone : ZoomOut_iPhone );
+    const float targetZoom = [self getTargetZoom];
     
     _smoothZoom += ( targetZoom - _smoothZoom ) * ( _zoomed ? ZoomInTightness : ZoomOutTightness );
     
@@ -1370,12 +1422,13 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     biconvexTransform.localToWorld.store( opengl_transform );
 
     GLKMatrix4 modelViewMatrix = GLKMatrix4MakeWithArray( opengl_transform );
-    
     modelViewMatrix = GLKMatrix4Multiply( baseModelViewMatrix, modelViewMatrix );
     
-    _normalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(modelViewMatrix), NULL );
+    _stoneNormalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(modelViewMatrix), NULL );
+    _stoneModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelViewMatrix );
     
-    _modelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelViewMatrix );
+    _boardNormalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(baseModelViewMatrix), NULL );
+    _boardModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
     
     _clipMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
 
@@ -1389,40 +1442,61 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     
     if ( _paused )
         return;
-    
+
     // render board
 
-    glUseProgram( _boardProgram );
+    {
+        glUseProgram( _boardProgram );
+                
+        glBindBuffer( GL_ARRAY_BUFFER, _boardVertexBuffer );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _boardIndexBuffer );
+        
+        glEnableVertexAttribArray( GLKVertexAttribPosition );
+        glEnableVertexAttribArray( GLKVertexAttribNormal );
+        glEnableVertexAttribArray( GLKVertexAttribTexCoord0 );
 
-    /*
-    GLfloat vertices[] = {-1, -1, 0, //bottom left corner
-                          -1,  1, 0, //top left corner
-                           1,  1, 0, //top right corner
-                           1, -1, 0}; // bottom right rocner
+        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), 0 );
+        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)16 );
+        glVertexAttribPointer( GLKVertexAttribTexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)32 );
 
-    GLubyte indices[] = {0,1,2, // first triangle (bottom left - top left - top right)
-                         0,2,3}; // second triangle (bottom left - top right - bottom right)
+        glUniformMatrix4fv( _boardUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _boardModelViewProjectionMatrix.m );
+        glUniformMatrix3fv( _boardUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _boardNormalMatrix.m );
 
-    glVertexPointer(3, GL_FLOAT, 0, vertices);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
-    */
+        glDrawElements( GL_TRIANGLES, _boardMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
 
-    // ...
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+
+        glDisableVertexAttribArray( GLKVertexAttribPosition );
+        glDisableVertexAttribArray( GLKVertexAttribNormal );
+        glDisableVertexAttribArray( GLKVertexAttribTexCoord0 );
+    }
 
     // render stone
 
-    glUseProgram( _stoneProgram );
-    
-    glUniformMatrix4fv( uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _modelViewProjectionMatrix.m );
-    glUniformMatrix3fv( uniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _normalMatrix.m );
-    
-    glBindBuffer( GL_ARRAY_BUFFER, _vertexBuffer );
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indexBuffer );
-    
-    glDrawElements( GL_TRIANGLES, _mesh.GetNumTriangles()*3, GL_UNSIGNED_INT, NULL );
+    {
+        glUseProgram( _stoneProgram );
+                
+        glBindBuffer( GL_ARRAY_BUFFER, _stoneVertexBuffer );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _stoneIndexBuffer );
+        
+        glEnableVertexAttribArray( GLKVertexAttribPosition );
+        glEnableVertexAttribArray( GLKVertexAttribNormal );
 
-    glUnbindBuffer( GL_ARRAY_BUFFER, 0 );
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0 );
+        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)16 );
+
+        glUniformMatrix4fv( _stoneUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _stoneModelViewProjectionMatrix.m );
+        glUniformMatrix3fv( _stoneUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _stoneNormalMatrix.m );
+
+        glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+
+        glDisableVertexAttribArray( GLKVertexAttribPosition );
+        glDisableVertexAttribArray( GLKVertexAttribNormal );
+    }
 
     _hasRendered = true;
 }
@@ -1502,6 +1576,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     // This needs to be done prior to linking.
     glBindAttribLocation( program, GLKVertexAttribPosition, "position" );
     glBindAttribLocation( program, GLKVertexAttribNormal, "normal" );
+    glBindAttribLocation( program, GLKVertexAttribTexCoord0, "texCoords" );
     
     // Link program.
     if (![self linkProgram:program])
@@ -1526,11 +1601,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
         
         return 0;
     }
-    
-    // Get uniform locations.
-    uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( program, "modelViewProjectionMatrix" );
-    uniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( program, "normalMatrix" );
-    
+        
     // Release vertex and fragment shaders.
     if ( vertShader )
     {

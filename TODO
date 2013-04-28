@@ -1,27 +1,23 @@
 DONE:
 
-    Research how to 
-
-    Load separate shaders for board and stone
-
-    Switch between shaders ready for rendering
-
-    Sketch out code to render the quad using vert buffer
-
 TODO:
 
-    Learn how to feed in texture coordinates via vertex buffer
+    -----------------------------------------------------------------
 
-    Tune the board quad dimensions and texture density for the iPad
+    Implement simple drop-shadow projected onto board
 
-    Tune separately for the iPhone
+    Blur the shadow
 
-    Generate a mipmap from the texture and turn on trilinear filtering
-    (need to recover VirtualGo.cpp and copy the code from there)
+    Make the shadow blur out and fade out as the stone moves away
 
     -----------------------------------------------------------------
 
     Render go board lines
+
+    -----------------------------------------------------------------
+
+    Generate a mipmap from the texture and turn on trilinear filtering
+    (need to recover VirtualGo.cpp and copy the code from there)
 
     -----------------------------------------------------------------
 
@@ -35,14 +31,6 @@ TODO:
     to confirm the stone placement
 
     Ideally, this would also snap to nearest grid (add grid lines...)
-
-    -----------------------------------------------------------------
-
-    Implement simple drop-shadow projected onto board
-
-    Blur the shadow
-
-    Make the shadow blur out and fade out as the stone moves away
 
     -----------------------------------------------------------------
 

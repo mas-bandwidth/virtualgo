@@ -1,4 +1,40 @@
 
+Added go board background texture (29/4/2013):
+----------------------------------------------
+
+    Load separate shaders for board and stone
+
+    Switch between shaders ready for rendering
+
+    Sketch out code to render the quad using vert buffer
+
+    Learn how to feed in texture coordinates via vertex buffer
+
+    Why is the stone still dropped from height? It should be spawned
+    at position (0,0,0). I cannot see what is causing this?!
+
+    Fixed. The stone was not being dropped. The smooth zoom
+    was initialized to 0 which meant that it "pulled back" away
+    from the stone on startup, making it look like the stone
+    was falling.
+
+    Switch to static vertex buffer for board
+
+    Get the board texture rendered on the quad
+
+    Tune the board quad dimensions and texture density
+
+    Debug why weird stuff happens with uniform normal matrix on
+    the go stone when I have multiple shader programs.
+
+    Fixed. Uniforms were not being properly split across
+    different programs, eg. the uniform for the stone shader
+    was discarded when I loaded board shader.
+
+    Fixed by having a separate array of uniforms for the stone
+    and board shaders.
+
+
 Small impulse applied when you touch the stone (28/4/2013):
 -----------------------------------------------------------
 

@@ -11,6 +11,7 @@
 		F203E5841720C6650040ECA8 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = F203E5801720C6650040ECA8 /* README.md */; };
 		F203E5851720C6650040ECA8 /* release_notes.md in Resources */ = {isa = PBXBuildFile; fileRef = F203E5811720C6650040ECA8 /* release_notes.md */; };
 		F203E5871720C9260040ECA8 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F203E5861720C9260040ECA8 /* libz.dylib */; };
+		F2502FD3172D8F96002BC84D /* wood.png in Resources */ = {isa = PBXBuildFile; fileRef = F2E9E24E172B52C900F9C494 /* wood.png */; };
 		F26653EF171A205400CFB131 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F26653EE171A205400CFB131 /* UIKit.framework */; };
 		F26653F1171A205400CFB131 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F26653F0171A205400CFB131 /* Foundation.framework */; };
 		F26653F3171A205400CFB131 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F26653F2171A205400CFB131 /* CoreGraphics.framework */; };
@@ -37,7 +38,6 @@
 		F2D6AD801720557300930D69 /* Default-Portrait~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD7F1720557300930D69 /* Default-Portrait~ipad.png */; };
 		F2D6AD821720557A00930D69 /* Default-Landscape~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */; };
 		F2D6AD841720557E00930D69 /* Default-Landscape@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */; };
-		F2E9E24F172B52C900F9C494 /* wood.png in Resources */ = {isa = PBXBuildFile; fileRef = F2E9E24E172B52C900F9C494 /* wood.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -288,6 +288,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F2502FD3172D8F96002BC84D /* wood.png in Resources */,
 				F2A3914E172CFACC00A6A74D /* BoardShader.fragment in Resources */,
 				F2A3914F172CFACC00A6A74D /* StoneShader.fragment in Resources */,
 				F2A39150172CFACC00A6A74D /* BoardShader.vertex in Resources */,
@@ -308,7 +309,6 @@
 				F2D6AD841720557E00930D69 /* Default-Landscape@2x~ipad.png in Resources */,
 				F203E5841720C6650040ECA8 /* README.md in Resources */,
 				F203E5851720C6650040ECA8 /* release_notes.md in Resources */,
-				F2E9E24F172B52C900F9C494 /* wood.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -400,7 +400,7 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -408,6 +408,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				STRIP_INSTALLED_PRODUCT = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -433,6 +434,7 @@
 		F2665430171A205500CFB131 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Virtual Go/Virtual Go-Prefix.pch";
 				INFOPLIST_FILE = "Virtual Go/Virtual Go-Info.plist";
@@ -441,6 +443,7 @@
 					"\"$(SRCROOT)/Virtual Go/testflight\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

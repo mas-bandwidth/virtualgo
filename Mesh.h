@@ -14,14 +14,21 @@ struct Vertex
     vec3f normal;
 };
 
-class Mesh
+struct TexturedVertex
+{
+    vec3f position;
+    vec3f normal;
+    vec2f texCoords;
+};
+
+template <typename vertex_t, typename index_t = uint16_t> class Mesh
 {
 public:
 
     Mesh( int numBuckets = 2048 )
     {
         this->numBuckets = numBuckets;
-        buckets = new std::list<int>[numBuckets];
+        buckets = new std::list<index_t>[numBuckets];
     }
 
     ~Mesh()
@@ -38,7 +45,7 @@ public:
         vertexBuffer.clear();
     }
 
-    void AddTriangle( const Vertex & a, const Vertex & b, const Vertex & c )
+    void AddTriangle( const vertex_t & a, const vertex_t & b, const vertex_t & c )
     {
         indexBuffer.push_back( AddVertex( a ) );
         indexBuffer.push_back( AddVertex( b ) );
@@ -49,9 +56,9 @@ public:
     int GetNumVertices() const { return vertexBuffer.size(); }
     int GetNumTriangles() const { return indexBuffer.size() / 3; }
 
-    Vertex * GetVertexBuffer() { assert( vertexBuffer.size() ); return &vertexBuffer[0]; }
+    vertex_t * GetVertexBuffer() { assert( vertexBuffer.size() ); return &vertexBuffer[0]; }
 
-    int * GetIndexBuffer() { assert( indexBuffer.size() ); return &indexBuffer[0]; }
+    index_t * GetIndexBuffer() { assert( indexBuffer.size() ); return &indexBuffer[0]; }
 
     int GetLargestBucketSize() const
     {
@@ -89,7 +96,7 @@ protected:
         return hash( (const uint8_t*) &data[0], 12 ) % numBuckets;
     }
 
-    int AddVertex( const Vertex & vertex, float grid = 0.1f, float epsilon = 0.01f )
+    int AddVertex( const vertex_t & vertex, float grid = 0.1f, float epsilon = 0.01f )
     {
         const float epsilonSquared = epsilon * epsilon;
         
@@ -101,14 +108,14 @@ protected:
 
         int bucketIndex = GetGridCellBucket( x, y, z );
 
-        std::list<int> & bucket = buckets[bucketIndex];
+        std::list<index_t> & bucket = buckets[bucketIndex];
 
         int index = -1;
 
-        for ( std::list<int>::iterator itor = bucket.begin(); itor != bucket.end(); ++itor )
+        for ( typename std::list<index_t>::iterator itor = bucket.begin(); itor != bucket.end(); ++itor )
         {
-            const int i = *itor;
-            const Vertex & v = vertexBuffer[i];
+            const index_t i = *itor;
+            const vertex_t & v = vertexBuffer[i];
             vec3f dp = v.position - vertex.position;
             vec3f dn = v.normal - vertex.normal;
             if ( length_squared( dp ) < epsilonSquared &&
@@ -162,22 +169,18 @@ protected:
 
 private:
 
-    // todo: how to make sure vertex/index buffers are aligned 16 bytes?!
-    
     // todo: provide a way to export this data to some basic mesh format
-    // then I can run nvtristrip over it and get something more efficient
+    // then I can run nvtristrip over it and get something more efficient?
     
-    // todo: should almost certainly go for 16 bit index buffers. don't need meshes > 64k verts!
+    std::vector<vertex_t> vertexBuffer;
     
-    std::vector<Vertex> vertexBuffer;
-    
-    std::vector<int> indexBuffer;
+    std::vector<index_t> indexBuffer;
 
     int numBuckets;
-    std::list<int> * buckets;
+    std::list<index_t> * buckets;
 };
 
-void SubdivideBiconvexMesh( Mesh & mesh,
+void SubdivideBiconvexMesh( Mesh<Vertex> & mesh,
                             const Biconvex & biconvex, 
                             bool i, bool j, bool k,
                             vec3f a, vec3f b, vec3f c,
@@ -280,7 +283,7 @@ void SubdivideBiconvexMesh( Mesh & mesh,
     }
 }
 
-void GenerateBiconvexMesh( Mesh & mesh, const Biconvex & biconvex, int subdivisions = 5, int numTriangles = 5, float epsilon = 0.001f )
+void GenerateBiconvexMesh( Mesh<Vertex> & mesh, const Biconvex & biconvex, int subdivisions = 5, int numTriangles = 5, float epsilon = 0.001f )
 {
     const float bevelCircleRadius = biconvex.GetBevelCircleRadius();
 

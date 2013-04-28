@@ -8,6 +8,7 @@
 
 attribute vec4 position;
 attribute vec3 normal;
+attribute vec2 texCoords;
 
 varying lowp vec4 colorVarying;
 
@@ -16,12 +17,12 @@ uniform mat3 normalMatrix;
 
 void main()
 {
-    vec3 eyeNormal = normalize( normalMatrix * normal );
+    vec3 eyeNormal = normalMatrix * normal;
     vec3 lightPosition = vec3( 0.0, 0.0, 1.0 );
-    vec4 diffuseColor = vec4( 0.8, 0.8, 0.8, 1.0 );
-    vec4 ambientColor = vec4( 0.2, 0.2, 0.2, 1.0 );
+    vec4 diffuseColor = vec4( 0.5, 0.5, 0.5, 1.0 );
+    vec4 ambientColor = vec4( 0.5, 0.5, 0.5, 1.0 );
     
-    float nDotVP = max( 0.0, dot( eyeNormal, normalize( lightPosition ) ) );
+    float nDotVP = max( 0.0, dot( eyeNormal, lightPosition ) );
                  
     colorVarying = ambientColor + diffuseColor * nDotVP;
     
