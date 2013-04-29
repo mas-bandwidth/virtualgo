@@ -1,3 +1,25 @@
+Go board shadow working on board again (30/4/2013):
+---------------------------------------------------
+
+    There seems to be something wrong with the shadow matrix
+
+    I have to pass in an inverted d for plane
+
+    This makes me think that maybe it is assuming left handed?
+
+    Project go stone shadow onto board
+
+    Instead of doing scissoring I used a depth buffer hack
+    to clip the shadow so it only shows up over the go board.
+
+    Maybe the shadow matrix is correct but the right side has 
+    incorrect winding?
+
+    Nope. This theory is incorrect!
+
+    Zoom in a bit less on iPad. It didn't work with the texture.
+
+
 Projected board shadow onto ground (30/4/2013):
 -----------------------------------------------
 

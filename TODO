@@ -1,27 +1,19 @@
 DONE:
 
-    There seems to be something wrong with the shadow matrix
-
-    I have to pass in an inverted d for plane
-
-    This makes me think that maybe it is assuming left handed?
-
-    Project go stone shadow onto board
-
-    Instead of doing scissoring I used a depth buffer hack
-    to clip the shadow so it only shows up over the go board.
-
 TODO:
-
-    -----------------------------------------------------------------
-
-    Maybe the shadow matrix is correct but the right side has 
-    incorrect winding?
-
-    -----------------------------------------------------------------
 
     Pass over go stone side and corner cases and fix to work with
     right handed collision (do in Mac app)
+
+    Fix up shadows so they dynamically adjust depending on orientation
+    I really want the proper effect on the side when the stone spins
+    of it lighting up. Also would be really nice to see the reflections
+    on the go board change slightly based on orientation.
+
+    Once this is done adjust the shadows in the zoomed in mode.
+
+    Should be able to have nice divergent shadows when flat,
+    while having good shadows on the side.
 
     -----------------------------------------------------------------
 

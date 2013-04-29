@@ -322,7 +322,7 @@ enum CollisionPlanes
 
 @implementation ViewController
 
-const float ZoomIn_iPad = 16;                // nice close up view of stone
+const float ZoomIn_iPad = 20;                // nice close up view of stone
 const float ZoomOut_iPad = 45;               // tuned to 9x9 game on iPad 4  
 
 const float ZoomIn_iPhone = 15;              // nice view of stone. not too close!
