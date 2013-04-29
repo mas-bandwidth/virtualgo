@@ -376,7 +376,7 @@ bool iPad()
     _swipedThisFrame = false;
     _secondsSinceLastSwipe = 0;
 
-    _lightPosition = vec3f( 10, 10, 100 );
+    _lightPosition = vec3f(0,0,18);//vec3f( 10, 10, 100 );
 
     [self dropStone];
 }
@@ -466,20 +466,21 @@ bool iPad()
     TexturedVertex a,b,c,d;
 
     const float s = 10;
+    const float h = -0.01f;
 
-    a.position = vec3f( -s, -s, 0 );
+    a.position = vec3f( -s, -s, h );
     a.normal = vec3f( 0, 0, 1 );
     a.texCoords = vec2f( 0, 0 );
 
-    b.position = vec3f( -s, s, 0 );
+    b.position = vec3f( -s, s, h );
     b.normal = vec3f( 0, 0, 1 );
     b.texCoords = vec2f( 0, 1 );
 
-    c.position = vec3f( s, s, 0 );
+    c.position = vec3f( s, s, h );
     c.normal = vec3f( 0, 0, 1 );
     c.texCoords = vec2f( 1, 1 );
 
-    d.position = vec3f( s, -s, 0 );
+    d.position = vec3f( s, -s, h );
     d.normal = vec3f( 0, 0, 1 );
     d.texCoords = vec2f( 1, 0 );
 
@@ -1433,6 +1434,37 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     return iPad() ? ( _zoomed ? ZoomIn_iPad : ZoomOut_iPad ) : ( _zoomed ? ZoomIn_iPhone : ZoomOut_iPhone );
 }
 
+mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
+{
+    const float planeDotLight = dot( plane, light );
+
+    float data[16];
+
+    data[0] = planeDotLight - light.x() * plane.x();
+    data[4] = -light.x() * plane.y();
+    data[8] = -light.x() * plane.z();
+    data[12] = -light.x() * plane.w();
+
+    data[1] = -light.y() * plane.x();
+    data[5] = planeDotLight - light.y() * plane.y();
+    data[9] = -light.y() * plane.z();
+    data[13] = -light.y() * plane.w();
+
+    data[2] = -light.z() * plane.x();
+    data[6] = -light.z() * plane.y();
+    data[10] = planeDotLight - light.z() * plane.z();
+    data[14] = -light.z() * plane.w();
+
+    data[3] = -light.w() * plane.x();
+    data[7] = -light.w() * plane.y();
+    data[11] = -light.w() * plane.z();
+    data[15] = planeDotLight - light.w() * plane.w();
+
+    mat4f shadowMatrix;
+    shadowMatrix.load( data );
+    return shadowMatrix;
+}
+
 - (void)render
 {
     float aspect = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
@@ -1460,9 +1492,33 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     _boardNormalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(baseModelViewMatrix), NULL );
     _boardModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
     
-    // todo: project onto ground plane
-    _shadowNormalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(modelViewMatrix), NULL );
-    _shadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelViewMatrix );
+    {
+        // shadow matrix guff
+
+        // http://math.stackexchange.com/questions/320527/projecting-a-point-on-a-plane-through-a-matrix
+
+        GLKMatrix4 view = baseModelViewMatrix;
+        
+        GLKMatrix4 model = GLKMatrix4MakeWithArray( opengl_transform );
+        
+        /*
+        GLKMatrix4 shadow = GLKMatrix4Make( 1, 0, 0, 0,
+                                            0, 1, 0, 0,
+                                            0, 0, 0, 0,
+                                            0, 0, 0, 1 );
+         */
+        
+        mat4f shadow_matrix = MakeShadowMatrix( vec4f(0,0,1,0), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z(), 1 ) );
+        float shadow_data[16];
+        shadow_matrix.store( shadow_data );
+        GLKMatrix4 shadow = GLKMatrix4MakeWithArray( shadow_data );
+
+        GLKMatrix4 modelView = GLKMatrix4Multiply( view, GLKMatrix4Multiply( shadow, model ) );
+
+        _shadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelView );
+        
+        _shadowNormalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(modelViewMatrix), NULL );
+    }
 
     _clipMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
 

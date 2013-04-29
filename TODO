@@ -4,11 +4,51 @@ DONE:
 
     Fixed problems with backface culling
 
-TODO:
+    Render shadow with simple z=0 collapse
+
+    Make sure shadow renders with proper alpha 
+    and does not z-fight against the board quad.
 
     Render both stone and shadow
 
-    Work out how to project stone onto ground plane
+    Work out how to correctly project stone onto ground plane
+
+    Tune the light location so the result looks OK on the side
+
+TODO:
+
+    -----------------------------------------------------------------
+
+    Make the shadow fade out as it gets futher away from the
+    ground plane. eg. adjust the alpha channel towards zero?
+
+    -----------------------------------------------------------------
+
+    Render go board lines
+
+    -----------------------------------------------------------------
+
+    Implement a way to place the stone: one finger hold then tap
+    to confirm the stone placement
+
+    Ideally, this would also snap to nearest grid (add grid lines...)
+
+    -----------------------------------------------------------------
+
+    Implement a way to pick the stone up with two finger swipe
+    towards the stone, this is something Evan Cho naturally tried
+    to do, therefore it is intuitive and I should support it. 
+
+    -----------------------------------------------------------------
+
+
+
+
+
+
+
+
+
 
     -----------------------------------------------------------------
 
@@ -24,25 +64,8 @@ TODO:
 
     -----------------------------------------------------------------
 
-    Render go board lines
-
-    -----------------------------------------------------------------
-
     Generate a mipmap from the texture and turn on trilinear filtering
     (need to recover VirtualGo.cpp and copy the code from there)
-
-    -----------------------------------------------------------------
-
-    Implement a way to pick the stone up with two finger swipe
-    towards the stone, this is something Evan Cho naturally tried
-    to do, therefore it is intuitive and I should support it. 
-
-    -----------------------------------------------------------------
-
-    Implement a way to place the stone: one finger hold then tap
-    to confirm the stone placement
-
-    Ideally, this would also snap to nearest grid (add grid lines...)
 
     -----------------------------------------------------------------
 
