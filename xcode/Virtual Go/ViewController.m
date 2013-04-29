@@ -229,8 +229,9 @@ enum CollisionPlanes
     GLint _boardUniforms[NUM_UNIFORMS];
 
     GLuint _shadowProgram;
-    GLKMatrix4 _stoneShadowModelViewProjectionMatrix;
-    GLKMatrix4 _boardShadowModelViewProjectionMatrix;
+    GLKMatrix4 _stoneGroundShadowModelViewProjectionMatrix;
+    GLKMatrix4 _stoneBoardShadowModelViewProjectionMatrix;
+    GLKMatrix4 _boardGroundShadowModelViewProjectionMatrix;
     float _shadowAlpha;
     GLint _shadowUniforms[NUM_UNIFORMS];
 
@@ -1760,7 +1761,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     if ( _zoomed )
         _lightPosition = vec3f( 0, 0, iPad() ? 12 : 9 );
     else
-        _lightPosition = vec3f( 50, 50, 100 );
+        _lightPosition = vec3f( 30, 30, 100 );
 }
 
 - (void)updateShadow:(float)dt
@@ -1869,7 +1870,25 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
 
         GLKMatrix4 modelView = GLKMatrix4Multiply( view, GLKMatrix4Multiply( shadow, model ) );
 
-        _stoneShadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelView );
+        _stoneGroundShadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelView );
+    }
+
+    // stone shadow on board
+    {
+        GLKMatrix4 view = baseModelViewMatrix;
+        
+        GLKMatrix4 model = GLKMatrix4MakeWithArray( opengl_transform );
+        
+        // HACK: the fact that I have to minus here indicates
+        // something wrong in the shadow matrix derivation. perhaps it assumes left handed?
+        mat4f shadow_matrix = MakeShadowMatrix( vec4f(0,0,1,-_board.GetThickness()+0.1f), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z(), 1 ) );
+        float shadow_data[16];
+        shadow_matrix.store( shadow_data );
+        GLKMatrix4 shadow = GLKMatrix4MakeWithArray( shadow_data );
+
+        GLKMatrix4 modelView = GLKMatrix4Multiply( view, GLKMatrix4Multiply( shadow, model ) );
+
+        _stoneBoardShadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelView );
     }
 
     // board shadow on ground
@@ -1883,7 +1902,7 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
 
         GLKMatrix4 modelView = GLKMatrix4Multiply( view, shadow );
 
-        _boardShadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelView );
+        _boardGroundShadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelView );
     }
 
     _clipMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
@@ -2012,7 +2031,7 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
 
         float boardShadowAlpha = 1.0f;
         
-        glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _boardShadowModelViewProjectionMatrix.m );
+        glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _boardGroundShadowModelViewProjectionMatrix.m );
         glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&boardShadowAlpha );
 
         glEnable( GL_BLEND );
@@ -2043,7 +2062,7 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
         glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0 );
         glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)16 );
         
-        glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _stoneShadowModelViewProjectionMatrix.m );
+        glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _stoneGroundShadowModelViewProjectionMatrix.m );
         glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&_shadowAlpha );
 
         glEnable( GL_BLEND );
@@ -2059,7 +2078,47 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
         glDisableVertexAttribArray( GLKVertexAttribPosition );
         glDisableVertexAttribArray( GLKVertexAttribNormal );
     }
+
+    // render stone shadow on board
     
+    {
+        glUseProgram( _shadowProgram );
+        
+        glBindBuffer( GL_ARRAY_BUFFER, _stoneVertexBuffer );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _stoneIndexBuffer );
+        
+        glEnableVertexAttribArray( GLKVertexAttribPosition );
+        glEnableVertexAttribArray( GLKVertexAttribNormal );
+        
+        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0 );
+        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)16 );
+        
+        glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _stoneBoardShadowModelViewProjectionMatrix.m );
+        glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&_shadowAlpha );
+
+        glEnable( GL_BLEND );
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
+        // massive hack! will not work once we have multiple stone
+        // i attempted to use scissor but that didn't seem to have
+        // any effect. no drama, because we'll be switching to render
+        // to texture shortly and this won't have any problems.
+        glEnable( GL_DEPTH_TEST );
+        glDepthFunc( GL_GREATER );
+
+        glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+
+        glDepthFunc( GL_LESS );
+
+        glDisable( GL_BLEND );
+        
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+        
+        glDisableVertexAttribArray( GLKVertexAttribPosition );
+        glDisableVertexAttribArray( GLKVertexAttribNormal );
+    }
+
     // render stone
 
     {
