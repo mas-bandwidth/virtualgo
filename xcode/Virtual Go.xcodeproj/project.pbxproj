@@ -11,6 +11,11 @@
 		F203E5841720C6650040ECA8 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = F203E5801720C6650040ECA8 /* README.md */; };
 		F203E5851720C6650040ECA8 /* release_notes.md in Resources */ = {isa = PBXBuildFile; fileRef = F203E5811720C6650040ECA8 /* release_notes.md */; };
 		F203E5871720C9260040ECA8 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F203E5861720C9260040ECA8 /* libz.dylib */; };
+		F22E4846172E247800907BCD /* GridShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F22E4844172E247800907BCD /* GridShader.fragment */; };
+		F22E4847172E247800907BCD /* GridShader.vertex in Resources */ = {isa = PBXBuildFile; fileRef = F22E4845172E247800907BCD /* GridShader.vertex */; };
+		F22E4849172F02BC00907BCD /* floor.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F22E4848172F02BC00907BCD /* floor.jpg */; };
+		F22E484C172F07B000907BCD /* FloorShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F22E484A172F07B000907BCD /* FloorShader.fragment */; };
+		F22E484D172F07B000907BCD /* FloorShader.vertex in Resources */ = {isa = PBXBuildFile; fileRef = F22E484B172F07B000907BCD /* FloorShader.vertex */; };
 		F2502FD5172DCF0B002BC84D /* wood.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F2502FD4172DCF0B002BC84D /* wood.jpg */; };
 		F2502FD8172DD763002BC84D /* ShadowShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F2502FD6172DD763002BC84D /* ShadowShader.fragment */; };
 		F2502FD9172DD763002BC84D /* ShadowShader.vertex in Resources */ = {isa = PBXBuildFile; fileRef = F2502FD7172DD763002BC84D /* ShadowShader.vertex */; };
@@ -48,6 +53,11 @@
 		F203E5811720C6650040ECA8 /* release_notes.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = release_notes.md; sourceTree = "<group>"; };
 		F203E5821720C6650040ECA8 /* TestFlight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFlight.h; sourceTree = "<group>"; };
 		F203E5861720C9260040ECA8 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		F22E4844172E247800907BCD /* GridShader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = GridShader.fragment; path = "Virtual Go/shaders/GridShader.fragment"; sourceTree = "<group>"; };
+		F22E4845172E247800907BCD /* GridShader.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = GridShader.vertex; path = "Virtual Go/shaders/GridShader.vertex"; sourceTree = "<group>"; };
+		F22E4848172F02BC00907BCD /* floor.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = floor.jpg; path = "Virtual Go/textures/floor.jpg"; sourceTree = "<group>"; };
+		F22E484A172F07B000907BCD /* FloorShader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = FloorShader.fragment; path = "Virtual Go/shaders/FloorShader.fragment"; sourceTree = "<group>"; };
+		F22E484B172F07B000907BCD /* FloorShader.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = FloorShader.vertex; path = "Virtual Go/shaders/FloorShader.vertex"; sourceTree = "<group>"; };
 		F2502FD4172DCF0B002BC84D /* wood.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = wood.jpg; path = "Virtual Go/textures/wood.jpg"; sourceTree = "<group>"; };
 		F2502FD6172DD763002BC84D /* ShadowShader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = ShadowShader.fragment; path = "Virtual Go/shaders/ShadowShader.fragment"; sourceTree = "<group>"; };
 		F2502FD7172DD763002BC84D /* ShadowShader.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = ShadowShader.vertex; path = "Virtual Go/shaders/ShadowShader.vertex"; sourceTree = "<group>"; };
@@ -215,6 +225,10 @@
 		F2A3914D172CFA8F00A6A74D /* shaders */ = {
 			isa = PBXGroup;
 			children = (
+				F22E484A172F07B000907BCD /* FloorShader.fragment */,
+				F22E484B172F07B000907BCD /* FloorShader.vertex */,
+				F22E4844172E247800907BCD /* GridShader.fragment */,
+				F22E4845172E247800907BCD /* GridShader.vertex */,
 				F2A39145172CFA7D00A6A74D /* BoardShader.fragment */,
 				F2A39146172CFA7D00A6A74D /* StoneShader.fragment */,
 				F2A39147172CFA7D00A6A74D /* BoardShader.vertex */,
@@ -238,6 +252,7 @@
 		F2E9E24B172B4D5D00F9C494 /* textures */ = {
 			isa = PBXGroup;
 			children = (
+				F22E4848172F02BC00907BCD /* floor.jpg */,
 				F2502FD4172DCF0B002BC84D /* wood.jpg */,
 			);
 			name = textures;
@@ -296,6 +311,10 @@
 			files = (
 				F2A3914E172CFACC00A6A74D /* BoardShader.fragment in Resources */,
 				F2A3914F172CFACC00A6A74D /* StoneShader.fragment in Resources */,
+				F22E4846172E247800907BCD /* GridShader.fragment in Resources */,
+				F22E4847172E247800907BCD /* GridShader.vertex in Resources */,
+				F22E484C172F07B000907BCD /* FloorShader.fragment in Resources */,
+				F22E484D172F07B000907BCD /* FloorShader.vertex in Resources */,
 				F2A39150172CFACC00A6A74D /* BoardShader.vertex in Resources */,
 				F2A39151172CFACC00A6A74D /* StoneShader.vertex in Resources */,
 				F26653FD171A205400CFB131 /* InfoPlist.strings in Resources */,
@@ -317,6 +336,7 @@
 				F203E5841720C6650040ECA8 /* README.md in Resources */,
 				F203E5851720C6650040ECA8 /* release_notes.md in Resources */,
 				F2502FD5172DCF0B002BC84D /* wood.jpg in Resources */,
+				F22E4849172F02BC00907BCD /* floor.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

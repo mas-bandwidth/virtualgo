@@ -1,4 +1,46 @@
 
+Added floor rendering (30/4/2013):
+----------------------------------
+
+    Fixed z fighting on grid
+
+    Find suitable floor texture. It might tile. Kinda =)
+
+    Add floor shader
+
+    Generate floor mesh
+
+    Render floor at z=0 plane with board disabled
+
+    Adjust texture tiling so it looks reasonable zoomed OUT
+    (will not be visible zoomed in, until scroll is implemented)
+
+
+Added go board lines and 9x9 go board zoom out mode on iPad (30/4/2013):
+------------------------------------------------------------------------
+
+    Render go board lines first pass
+
+    Adjust go board on iPad version to fit in 9x9 board
+
+    Zoomed in should be *TRUE* on iPad initially, and should behave
+    including everything like lighting, exactly like the previous
+    version before I made the 9x9 board.
+
+    Then I can preserve the behavior that I like, while adding
+    a cool zoom out to get a real go board mode for people to
+    discover!!!
+
+    Need to retune shadow alpha fade-out in the zoomed out iPad
+    version. Shadows are not fading out fast enough.
+
+    Instanced actual go board 9x9. Use this to drive quad bounds
+    for the 9x9 board, and the grid.
+
+    Rotated go board texture 90 degrees so the grain is in the
+    correct direction -- top to bottom along the long axis!
+
+
 Added shadows (29/4/2013):
 --------------------------
 

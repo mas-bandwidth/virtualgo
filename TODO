@@ -4,7 +4,45 @@ TODO:
 
     -----------------------------------------------------------------
 
-    Render go board lines
+    Adjust collision to use go board instead of ground plane
+
+    Adjust go board and grid render to render at z = thickness
+
+    Adjust checkpoints to differentiate ground and board collision
+    cases: sliding, spinning, come to rest etc.
+
+    -----------------------------------------------------------------
+
+    Pass over go stone side and corner cases and fix to work with
+    right handed collision (do in Mac app)
+
+    -----------------------------------------------------------------
+
+    Project go stone shadow onto board
+
+    Set clip rect to keep go stone shadow projected onto board
+    from spilling over onto floor. This will have to be adjusted
+    to use stencil or something else if I ever allow the camera
+    to move from top-down.
+
+    Project board shadow onto floor
+
+    Detect when go stone is shadowed by board and darken it
+
+    -----------------------------------------------------------------
+
+    Really need to get textures for go board lines
+
+    This is required for anti-aliasing effect, otherwise
+    some lines look thicker than others top-down.
+
+    Textures are simple. Reuse original Virtual Go textures
+
+    -----------------------------------------------------------------
+
+    Add star points to 9x9 board
+
+    Recover star point textures from original Virtual Go
 
     -----------------------------------------------------------------
 
@@ -21,7 +59,19 @@ TODO:
 
     -----------------------------------------------------------------
 
+    Double tap zoom in should remember the specific point where the
+    zoom in was requested on the board, and zoom in centered around
+    that point.
 
+    -----------------------------------------------------------------
+
+    Adjust light source dynamically and interpolate between
+
+    This will allow shadows on the side orientations like I want
+    while still allowing divergent shadows while the device is
+    flat on the table like a board.
+
+    -----------------------------------------------------------------
 
 
 

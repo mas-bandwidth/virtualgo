@@ -31,19 +31,30 @@ struct BoardParams
         cellHeight = 2.37f;
         border = 1.5f;
         thickness = 0.5f;
+        lineWidth = 0.1 * 0.75f;        // it's really 0.1, but seems too thick?
     }
 
     float cellWidth;
     float cellHeight;
     float border;
     float thickness;
+    float lineWidth;
 };
 
 class Board
 {
 public:
 
-    Board( int size, const BoardParams & params = BoardParams() )
+    Board()
+    {
+        size = 0;
+        width = 0;
+        height = 0;
+        halfWidth = 0;
+        halfHeight = 0;
+    }
+
+    void Initialize( int size, const BoardParams & params = BoardParams() )
     {
         this->size = size;
         this->params = params;
@@ -98,6 +109,11 @@ public:
     float GetCellWidth() const
     {
         return params.cellWidth;
+    }
+
+    const BoardParams & GetParams() const
+    {
+        return params;
     }
 
 private:
