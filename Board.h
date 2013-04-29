@@ -16,7 +16,7 @@
         Board thickness             151.5mm
         Line spacing width-wise     22mm
         Line spacing length-wise    23.7mm
-        Line thickness              1mm
+        Line width                  1mm
         Star point marker diameter  4mm
         Border                      15mm
 
@@ -30,7 +30,7 @@ struct BoardParams
         cellWidth = 2.2f;
         cellHeight = 2.37f;
         border = 1.5f;
-        thickness = 0.5f;
+        thickness = 1.0f;
         lineWidth = 0.1 * 0.75f;        // it's really 0.1, but seems too thick?
     }
 
@@ -123,7 +123,7 @@ private:
     BoardParams params;
 
     float width;                            // width of board (along x-axis)
-    float height;                           // depth of board (along z-axis)
+    float height;                           // height of board (along y-axis)
 
     float halfWidth;
     float halfHeight;

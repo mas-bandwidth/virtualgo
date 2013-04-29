@@ -2,14 +2,10 @@ DONE:
 
 TODO:
 
-    -----------------------------------------------------------------
+    Project go stone shadow onto board
 
-    Adjust collision to use go board instead of ground plane
-
-    Adjust go board and grid render to render at z = thickness
-
-    Adjust checkpoints to differentiate ground and board collision
-    cases: sliding, spinning, come to rest etc.
+    Set clip rect to keep go stone shadow projected onto board
+    from spilling over onto floor.
 
     -----------------------------------------------------------------
 
@@ -18,16 +14,19 @@ TODO:
 
     -----------------------------------------------------------------
 
-    Project go stone shadow onto board
 
-    Set clip rect to keep go stone shadow projected onto board
-    from spilling over onto floor. This will have to be adjusted
-    to use stencil or something else if I ever allow the camera
-    to move from top-down.
 
-    Project board shadow onto floor
 
-    Detect when go stone is shadowed by board and darken it
+
+    ******** CHECKPOINT: SEND OUT NEW BUILD ********
+
+
+
+
+
+
+
+
 
     -----------------------------------------------------------------
 
@@ -44,7 +43,7 @@ TODO:
 
     Recover star point textures from original Virtual Go
 
-    -----------------------------------------------------------------
+    -----------------------------------------------------------------    
 
     Implement a way to place the stone: one finger hold then tap
     to confirm the stone placement
@@ -73,24 +72,15 @@ TODO:
 
     -----------------------------------------------------------------
 
-
-
-
-
-
-
+    If the go stone is shadowed by the go board it should be
+    darkened. Make this a linear interpolation, multiple rays?
 
     -----------------------------------------------------------------
 
-    Work out how to render the shadow to texture
 
-    Create a new shadow to pass over the shadow texture
-    and blur it out using a gaussian blur
 
-    Write a new shadow to blur back the shadow texture onto the board
 
-    Make the shadow blur out and fade out as the stone moves away
-    from the go board. This should give a sense of depth.
+
 
     -----------------------------------------------------------------
 

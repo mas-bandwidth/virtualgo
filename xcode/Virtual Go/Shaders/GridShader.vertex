@@ -17,7 +17,7 @@ uniform vec3 lightPosition;
 
 void main()
 {
-    colorVarying = vec4( 0, 0, 0, 0.6 );
+    colorVarying = vec4( 0, 0, 0, 0.75 );
     
     gl_Position = modelViewProjectionMatrix * position;
 }

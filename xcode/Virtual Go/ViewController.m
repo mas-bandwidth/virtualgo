@@ -39,6 +39,7 @@ enum Counters
 
     COUNTER_HitNearPlane,
 
+    COUNTER_AtRestBoard,
     COUNTER_AtRestGroundPlane,
     COUNTER_AtRestLeftPlane,
     COUNTER_AtRestRightPlane,
@@ -46,6 +47,7 @@ enum Counters
     COUNTER_AtRestBottomPlane,
     COUNTER_AtRestNearPlane,
 
+    COUNTER_SlidingBoard,
     COUNTER_SlidingGroundPlane,
     COUNTER_SlidingLeftPlane,
     COUNTER_SlidingRightPlane,
@@ -53,6 +55,7 @@ enum Counters
     COUNTER_SlidingBottomPlane,
     COUNTER_SlidingNearPlane,
 
+    COUNTER_SpinningBoard,
     COUNTER_SpinningGroundPlane,
     COUNTER_SpinningLeftPlane,
     COUNTER_SpinningRightPlane,
@@ -84,6 +87,7 @@ const char * CounterNames[] =
     
     "hit near plane",
 
+    "at rest board",
     "at rest ground plane",
     "at rest left plane",
     "at rest right plane",
@@ -91,6 +95,7 @@ const char * CounterNames[] =
     "at rest bottom plane",
     "at rest near plane",
     
+    "sliding board",
     "sliding ground plane",
     "sliding left plane",
     "sliding right plane",
@@ -98,6 +103,7 @@ const char * CounterNames[] =
     "sliding bottom plane",
     "sliding near plane",
 
+    "spinning board",
     "spinning ground plane",
     "spinning left plane",
     "spinning right plane",
@@ -151,6 +157,7 @@ struct DetectionTimer
 
 enum Conditions
 {
+    CONDITION_AtRestBoard,
     CONDITION_AtRestGroundPlane,
     CONDITION_AtRestLeftPlane,
     CONDITION_AtRestRightPlane,
@@ -158,6 +165,7 @@ enum Conditions
     CONDITION_AtRestBottomPlane,
     CONDITION_AtRestNearPlane,
 
+    CONDITION_SlidingBoard,
     CONDITION_SlidingGroundPlane,
     CONDITION_SlidingLeftPlane,
     CONDITION_SlidingRightPlane,
@@ -165,6 +173,7 @@ enum Conditions
     CONDITION_SlidingBottomPlane,
     CONDITION_SlidingNearPlane,
 
+    CONDITION_SpinningBoard,
     CONDITION_SpinningGroundPlane,
     CONDITION_SpinningLeftPlane,
     CONDITION_SpinningRightPlane,
@@ -185,6 +194,7 @@ enum Conditions
 
 enum CollisionPlanes
 {
+    COLLISION_Board,
     COLLISION_GroundPlane,
     COLLISION_LeftPlane,
     COLLISION_RightPlane,
@@ -219,8 +229,8 @@ enum CollisionPlanes
     GLint _boardUniforms[NUM_UNIFORMS];
 
     GLuint _shadowProgram;
-    GLKMatrix4 _shadowModelViewProjectionMatrix;
-    GLKMatrix3 _shadowNormalMatrix;
+    GLKMatrix4 _stoneShadowModelViewProjectionMatrix;
+    GLKMatrix4 _boardShadowModelViewProjectionMatrix;
     float _shadowAlpha;
     GLint _shadowUniforms[NUM_UNIFORMS];
 
@@ -380,7 +390,7 @@ bool iPad()
     [self setupGL];
   
     _paused = true;
-    _zoomed = true;
+    _zoomed = !iPad();
     _hasRendered = false;
     
     _smoothZoom = [self getTargetZoom];
@@ -521,8 +531,9 @@ bool iPad()
 
     const float w = _board.GetHalfWidth();
     const float h = _board.GetHalfHeight();
+    const float z = _board.GetThickness() - 0.03f;
 
-    const float z = -0.03f;
+    // primary surface
 
     a.position = vec3f( -w, -h, z );
     a.normal = vec3f( 0, 0, 1 );
@@ -538,6 +549,90 @@ bool iPad()
 
     d.position = vec3f( w, -h, z );
     d.normal = vec3f( 0, 0, 1 );
+    d.texCoords = vec2f( 1, 0 );
+
+    _boardMesh.AddTriangle( a, c, b );
+    _boardMesh.AddTriangle( a, d, c );
+
+    // left side
+
+    a.position = vec3f( -w, h, z );
+    a.normal = vec3f( -1, 0, 0 );
+    a.texCoords = vec2f( 0, 0 );
+
+    b.position = vec3f( -w, -h, z );
+    b.normal = vec3f( -1, 0, 0 );
+    b.texCoords = vec2f( 0, 1 );
+
+    c.position = vec3f( -w, -h, 0 );
+    c.normal = vec3f( -1, 0, 0 );
+    c.texCoords = vec2f( 1, 1 );
+
+    d.position = vec3f( -w, +h, 0 );
+    d.normal = vec3f( -1, 0, 0 );
+    d.texCoords = vec2f( 1, 0 );
+
+    _boardMesh.AddTriangle( a, c, b );
+    _boardMesh.AddTriangle( a, d, c );
+
+    // right side
+
+    a.position = vec3f( +w, -h, z );
+    a.normal = vec3f( 1, 0, 0 );
+    a.texCoords = vec2f( 0, 0 );
+
+    b.position = vec3f( +w, h, z );
+    b.normal = vec3f( 1, 0, 0 );
+    b.texCoords = vec2f( 0, 1 );
+
+    c.position = vec3f( +w, h, 0 );
+    c.normal = vec3f( 1, 0, 0 );
+    c.texCoords = vec2f( 1, 1 );
+
+    d.position = vec3f( +w, -h, 0 );
+    d.normal = vec3f( 1, 0, 0 );
+    d.texCoords = vec2f( 1, 0 );
+
+    _boardMesh.AddTriangle( a, c, b );
+    _boardMesh.AddTriangle( a, d, c );
+
+    // top side
+
+    a.position = vec3f( +w, h, z );
+    a.normal = vec3f( 0, 1, 0 );
+    a.texCoords = vec2f( 0, 0 );
+
+    b.position = vec3f( -w, h, z );
+    b.normal = vec3f( 0, 1, 0 );
+    b.texCoords = vec2f( 0, 1 );
+
+    c.position = vec3f( -w, h, 0 );
+    c.normal = vec3f( 0, 1, 0 );
+    c.texCoords = vec2f( 1, 1 );
+
+    d.position = vec3f( +w, h, 0 );
+    d.normal = vec3f( 0, 1, 0 );
+    d.texCoords = vec2f( 1, 0 );
+
+    _boardMesh.AddTriangle( a, c, b );
+    _boardMesh.AddTriangle( a, d, c );
+
+    // bottom side
+
+    a.position = vec3f( -w, -h, z );
+    a.normal = vec3f( 0, -1, 0 );
+    a.texCoords = vec2f( 0, 0 );
+
+    b.position = vec3f( +w, -h, z );
+    b.normal = vec3f( 0, -1, 0 );
+    b.texCoords = vec2f( 0, 1 );
+
+    c.position = vec3f( +w, -h, 0 );
+    c.normal = vec3f( 0, -1, 0 );
+    c.texCoords = vec2f( 1, 1 );
+
+    d.position = vec3f( -w, -h, 0 );
+    d.normal = vec3f( 0, -1, 0 );
     d.texCoords = vec2f( 1, 0 );
 
     _boardMesh.AddTriangle( a, c, b );
@@ -561,12 +656,12 @@ bool iPad()
     // horizontal lines
 
     {
-        const float z = -0.01f;
+        const float z = _board.GetThickness() - 0.01f;
 
         for ( int i = -n; i <= n; ++i )
         {
             const float x1 = -n*w - t/2;
-            const float x2 = +n*w + t/2;
+            const float x2 = +n*w;
             const float y = i * h;
 
             a.position = vec3f( x1, y - t/2, z );
@@ -589,7 +684,7 @@ bool iPad()
     // vertical lines
 
     {
-        const float z = -0.02f;
+        const float z = _board.GetThickness() - 0.02f;
 
         for ( int i = -n; i <= +n; ++i )
         {
@@ -620,6 +715,8 @@ bool iPad()
     [EAGLContext setCurrentContext:self.context];
         
     glEnable( GL_DEPTH_TEST );
+
+    glDepthFunc( GL_LESS );
 
     glEnable( GL_CULL_FACE );
 
@@ -1041,37 +1138,35 @@ bool iPad()
 {
 //    NSLog( @"touches ended" );
     
-    if ( !_selected )
+    UITouch * touch = [touches anyObject];
+    
+    if ( touch.tapCount == 1 )
     {
-        UITouch * touch = [touches anyObject];
         
-        if ( touch.tapCount == 1 )
-        {
-            
-            NSDictionary * touchLoc = [NSDictionary dictionaryWithObject:
-                                       [NSValue valueWithCGPoint:[touch locationInView:self.view]] forKey:@"location"];
-            
-            [self performSelector:@selector(handleSingleTap:) withObject:touchLoc afterDelay:0.3];
-            
-        }
-        else if ( touch.tapCount >= 2 )
-        {
+        NSDictionary * touchLoc = [NSDictionary dictionaryWithObject:
+                                   [NSValue valueWithCGPoint:[touch locationInView:self.view]] forKey:@"location"];
+        
+        [self performSelector:@selector(handleSingleTap:) withObject:touchLoc afterDelay:0.3];
+        
+    }
+    else if ( touch.tapCount >= 2 )
+    {
 //            NSLog( @"double tap" );
 
-            if ( iPad() )
-            {
-                if ( _zoomed )
-                    [self incrementCounter:COUNTER_ZoomedOut];
-                else
-                    [self incrementCounter:COUNTER_ZoomedIn];
-            
-                _zoomed = !_zoomed;
-            }
-
-            [NSObject cancelPreviousPerformRequestsWithTarget:self];
+        if ( iPad() )
+        {
+            if ( _zoomed )
+                [self incrementCounter:COUNTER_ZoomedOut];
+            else
+                [self incrementCounter:COUNTER_ZoomedIn];
+        
+            _zoomed = !_zoomed;
         }
+
+        [NSObject cancelPreviousPerformRequestsWithTarget:self];
     }
-    else
+
+    if ( _selected )
     {
         if ( [touches containsObject:_selectTouch] )
         {
@@ -1373,7 +1468,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
             _collisionPlanes |= COLLISION_BottomPlane;
         }
 
-        // collision between stone and board surface
+        // collision between stone and ground plane
         
         if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, contact ) )
         {
@@ -1382,7 +1477,17 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
             iteration_collided = true;
             _collisionPlanes |= COLLISION_GroundPlane;
         }
-                
+
+        // collision between stone and board
+
+        if ( StoneBoardCollision( stone.biconvex, _board, stone.rigidBody, contact, true ) )
+        {
+            ApplyCollisionImpulseWithFriction( contact, e, u );
+            stone.rigidBody.Update();
+            iteration_collided = true;
+            _collisionPlanes |= COLLISION_Board;
+        }
+
         // this is a *massive* hack to approximate rolling/spinning
         // friction and it is completely made up and not accurate at all!
 
@@ -1443,6 +1548,9 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     for ( int i = 0; i < COLLISION_NumValues; ++i )
         _secondsSinceCollision[i] += dt;
 
+    if ( _collisionPlanes == COLLISION_Board )
+        _secondsSinceCollision[COLLISION_Board] = 0;
+
     if ( _collisionPlanes == COLLISION_GroundPlane )
         _secondsSinceCollision[COLLISION_GroundPlane] = 0;
 
@@ -1461,6 +1569,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     if ( _collisionPlanes == COLLISION_NearPlane )
         _secondsSinceCollision[COLLISION_NearPlane] = 0;
 
+    const bool recentBoardCollision = _secondsSinceCollision[COLLISION_Board] < 0.1f;
     const bool recentGroundCollision = _secondsSinceCollision[COLLISION_GroundPlane] < 0.1f;
     const bool recentLeftCollision = _secondsSinceCollision[COLLISION_LeftPlane] < 0.1f;
     const bool recentRightCollision = _secondsSinceCollision[COLLISION_RightPlane] < 0.1f;
@@ -1468,10 +1577,15 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     const bool recentBottomCollision = _secondsSinceCollision[COLLISION_BottomPlane] < 0.1f;
     const bool recentNearCollision = _secondsSinceCollision[COLLISION_NearPlane] < 0.1f;
 
-    // detect at rest on each collision plane
+    // detect at rest on each collision plane and board
 
     const bool atRest = length( _stone.rigidBody.linearVelocity ) < 1.0f &&
                         length( _stone.rigidBody.angularVelocity ) < 0.5f;
+
+    if ( _detectionTimer[CONDITION_AtRestBoard].Update( dt, atRest && _collisionPlanes == COLLISION_Board ) )
+    {
+        [self incrementCounter:COUNTER_AtRestBoard];
+    }
 
     if ( _detectionTimer[CONDITION_AtRestGroundPlane].Update( dt, atRest && _collisionPlanes == COLLISION_GroundPlane ) )
     {
@@ -1510,6 +1624,11 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     const bool sliding = !atRest &&
                          length( _stone.rigidBody.linearVelocity ) < 10.0f &&
                          length( _stone.rigidBody.angularVelocity ) < 1.0f;
+
+    if ( _detectionTimer[CONDITION_SlidingBoard].Update( dt, sliding && _collisionPlanes == COLLISION_Board, SlideTime ) )
+    {
+        [self incrementCounter:COUNTER_SlidingBoard];
+    }
 
     if ( _detectionTimer[CONDITION_SlidingGroundPlane].Update( dt, sliding && _collisionPlanes == COLLISION_GroundPlane, SlideTime ) )
     {
@@ -1556,6 +1675,11 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
                           dot( rigidBodyTransform.GetUp(), up ) < 0.25f &&
                           upSpin > 1.0f && fabs( upSpin / totalSpin ) > 0.7f &&
                           _secondsSinceLastSwipe < 1.0f;
+
+    if ( _detectionTimer[CONDITION_SpinningBoard].Update( dt, spinning && recentBoardCollision, SpinTime ) )
+    {
+        [self incrementCounter:COUNTER_SpinningBoard];
+    }
 
     if ( _detectionTimer[CONDITION_SpinningGroundPlane].Update( dt, spinning && recentGroundCollision, SpinTime ) )
     {
@@ -1636,7 +1760,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     if ( _zoomed )
         _lightPosition = vec3f( 0, 0, iPad() ? 12 : 9 );
     else
-        _lightPosition = vec3f( 20, 20, 100 );
+        _lightPosition = vec3f( 50, 50, 100 );
 }
 
 - (void)updateShadow:(float)dt
@@ -1729,10 +1853,11 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
     _floorNormalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(baseModelViewMatrix), NULL );
     _floorModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
 
-    {
-        // shadow matrix guff
-        // http://math.stackexchange.com/questions/320527/projecting-a-point-on-a-plane-through-a-matrix
+    // shadow projection matrix derivation
+    // http://math.stackexchange.com/questions/320527/projecting-a-point-on-a-plane-through-a-matrix
 
+    // stone shadow on ground
+    {
         GLKMatrix4 view = baseModelViewMatrix;
         
         GLKMatrix4 model = GLKMatrix4MakeWithArray( opengl_transform );
@@ -1744,9 +1869,21 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
 
         GLKMatrix4 modelView = GLKMatrix4Multiply( view, GLKMatrix4Multiply( shadow, model ) );
 
-        _shadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelView );
-        
-        _shadowNormalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(modelViewMatrix), NULL );
+        _stoneShadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelView );
+    }
+
+    // board shadow on ground
+    {
+        GLKMatrix4 view = baseModelViewMatrix;
+
+        mat4f shadow_matrix = MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z(), 0 ) );
+        float shadow_data[16];
+        shadow_matrix.store( shadow_data );
+        GLKMatrix4 shadow = GLKMatrix4MakeWithArray( shadow_data );
+
+        GLKMatrix4 modelView = GLKMatrix4Multiply( view, shadow );
+
+        _boardShadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelView );
     }
 
     _clipMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
@@ -1794,7 +1931,6 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
         glDisableVertexAttribArray( GLKVertexAttribTexCoord0 );
     }
 
-/*
     // render board
 
     {
@@ -1858,9 +1994,42 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
         glDisableVertexAttribArray( GLKVertexAttribPosition );
         glDisableVertexAttribArray( GLKVertexAttribNormal );
     }
-*/
+
+    // render board shadow on ground
     
-    // render stone shadow
+    {
+        glUseProgram( _shadowProgram );
+                
+        glBindBuffer( GL_ARRAY_BUFFER, _boardVertexBuffer );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _boardIndexBuffer );
+        
+        glEnableVertexAttribArray( GLKVertexAttribPosition );
+        glEnableVertexAttribArray( GLKVertexAttribNormal );
+        glEnableVertexAttribArray( GLKVertexAttribTexCoord0 );
+
+        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), 0 );
+        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)16 );
+
+        float boardShadowAlpha = 1.0f;
+        
+        glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _boardShadowModelViewProjectionMatrix.m );
+        glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&boardShadowAlpha );
+
+        glEnable( GL_BLEND );
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+        
+        glDrawElements( GL_TRIANGLES, _boardMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+
+        glDisable( GL_BLEND );
+
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+
+        glDisableVertexAttribArray( GLKVertexAttribPosition );
+        glDisableVertexAttribArray( GLKVertexAttribNormal );
+    }
+
+    // render stone shadow on ground
     
     {
         glUseProgram( _shadowProgram );
@@ -1874,9 +2043,7 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
         glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0 );
         glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)16 );
         
-        glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _shadowModelViewProjectionMatrix.m );
-        glUniformMatrix3fv( _shadowUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _shadowNormalMatrix.m );
-        glUniform3fv( _shadowUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&_lightPosition );
+        glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _stoneShadowModelViewProjectionMatrix.m );
         glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&_shadowAlpha );
 
         glEnable( GL_BLEND );
