@@ -22,6 +22,7 @@ enum
     UNIFORM_MODELVIEWPROJECTION_MATRIX,
     UNIFORM_NORMAL_MATRIX,
     UNIFORM_LIGHT_POSITION,
+    UNIFORM_ALPHA,
     NUM_UNIFORMS
 };
 
@@ -219,6 +220,7 @@ enum CollisionPlanes
     GLuint _shadowProgram;
     GLKMatrix4 _shadowModelViewProjectionMatrix;
     GLKMatrix3 _shadowNormalMatrix;
+    float _shadowAlpha;
     GLint _shadowUniforms[NUM_UNIFORMS];
 
     vec3f _lightPosition;
@@ -376,7 +378,7 @@ bool iPad()
     _swipedThisFrame = false;
     _secondsSinceLastSwipe = 0;
 
-    _lightPosition = vec3f(0,0,18);//vec3f( 10, 10, 100 );
+    _lightPosition = vec3f( 0, 0, iPad() ? 18 : 9 );
 
     [self dropStone];
 }
@@ -555,6 +557,9 @@ bool iPad()
         _shadowUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _shadowProgram, "normalMatrix" );
         _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _shadowProgram, "modelViewProjectionMatrix" );
         _shadowUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _shadowProgram, "lightPosition" );
+        _shadowUniforms[UNIFORM_ALPHA] = glGetUniformLocation( _shadowProgram, "alpha" );
+
+        _shadowAlpha = 1.0f;
     }
   
     // configure opengl view
@@ -859,12 +864,15 @@ bool iPad()
         {
 //            NSLog( @"double tap" );
 
-            if ( _zoomed )
-                [self incrementCounter:COUNTER_ZoomedOut];
-            else
-                [self incrementCounter:COUNTER_ZoomedIn];
+            if ( iPad() )
+            {
+                if ( _zoomed )
+                    [self incrementCounter:COUNTER_ZoomedOut];
+                else
+                    [self incrementCounter:COUNTER_ZoomedIn];
             
-            _zoomed = !_zoomed;
+                _zoomed = !_zoomed;
+            }
 
             [NSObject cancelPreviousPerformRequestsWithTarget:self];
         }
@@ -1429,6 +1437,21 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     _swipedThisFrame = false;
 }
 
+- (void)updateShadow:(float)dt
+{
+    const float shadowFadeStart = _lightPosition.z() * 0.4f;
+    const float shadowFadeFinish = _lightPosition.z() * 0.85f;
+
+    const float z = _stone.rigidBody.position.z();
+
+    if ( z < shadowFadeStart )
+        _shadowAlpha = 1.0f;
+    else if ( z < shadowFadeFinish )
+        _shadowAlpha = 1.0f - ( z - shadowFadeStart ) / ( shadowFadeFinish - shadowFadeStart );
+    else
+        _shadowAlpha = 0.0f;
+}
+
 - (float)getTargetZoom
 {
     return iPad() ? ( _zoomed ? ZoomIn_iPad : ZoomOut_iPad ) : ( _zoomed ? ZoomIn_iPhone : ZoomOut_iPhone );
@@ -1580,6 +1603,7 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
         glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _shadowModelViewProjectionMatrix.m );
         glUniformMatrix3fv( _shadowUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _shadowNormalMatrix.m );
         glUniform3fv( _shadowUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&_lightPosition );
+        glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&_shadowAlpha );
 
         glEnable( GL_BLEND );
         glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -1640,6 +1664,8 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
     [self updatePhysics:dt];
 
     [self updateDetection:dt];
+
+    [self updateShadow:dt];
     
     [self render];
 }

@@ -1,26 +1,6 @@
 DONE:
 
-    Implement shadow shader
-
-    Fixed problems with backface culling
-
-    Render shadow with simple z=0 collapse
-
-    Make sure shadow renders with proper alpha 
-    and does not z-fight against the board quad.
-
-    Render both stone and shadow
-
-    Work out how to correctly project stone onto ground plane
-
-    Tune the light location so the result looks OK on the side
-
 TODO:
-
-    -----------------------------------------------------------------
-
-    Make the shadow fade out as it gets futher away from the
-    ground plane. eg. adjust the alpha channel towards zero?
 
     -----------------------------------------------------------------
 

@@ -1,4 +1,29 @@
 
+Added shadows (29/4/2013):
+--------------------------
+
+    Implement shadow shader
+
+    Fixed problems with backface culling
+
+    Render shadow with simple z=0 collapse
+
+    Make sure shadow renders with proper alpha 
+    and does not z-fight against the board quad.
+
+    Render both stone and shadow
+
+    Work out how to correctly project stone onto ground plane
+
+    Tune the light location so the result looks OK on the side
+
+    Tuned the shadow for iPhone
+
+    Seems that we *absolutely* need to fade the shadow alpha out
+    as the stone moves away from the board. It must be zero alpha
+    but the time the stone gets near the light point
+
+
 Added go board background texture (29/4/2013):
 ----------------------------------------------
 

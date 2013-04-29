@@ -15,10 +15,11 @@ varying lowp vec4 colorVarying;
 uniform mat4 modelViewProjectionMatrix;
 uniform mat3 normalMatrix;
 uniform vec3 lightPosition;
+uniform float alpha;
 
 void main()
 {
-    colorVarying = vec4( 0, 0, 0, 0.25 );
+    colorVarying = vec4( 0, 0, 0, 0.25 * alpha );
     
     gl_Position = modelViewProjectionMatrix * position;
 }
