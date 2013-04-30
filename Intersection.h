@@ -222,8 +222,8 @@ inline bool IntersectStoneBoard( const Board & board,
     vec3f biconvexUp = biconvexTransform.GetUp();
     vec3f biconvexCenter = biconvexTransform.GetPosition();
 
-//    const float w = board.GetWidth() / 2;
-//    const float h = board.GetHeight() / 2;
+    const float w = board.GetWidth() / 2;
+    const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
 
     if ( region == STONE_BOARD_REGION_Primary )
@@ -232,8 +232,6 @@ inline bool IntersectStoneBoard( const Board & board,
         axis[0].d = t;
         axis[0].normal = vec3f(0,0,1);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
-
-    /*
     }
     else if ( region == STONE_BOARD_REGION_LeftSide )
     {
@@ -241,7 +239,7 @@ inline bool IntersectStoneBoard( const Board & board,
 
         // primary
         axis[0].d = t;
-        axis[0].normal = vec3f(0,1,0);
+        axis[0].normal = vec3f(0,0,1);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
 
         // side
@@ -250,8 +248,8 @@ inline bool IntersectStoneBoard( const Board & board,
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[1].normal, axis[1].s1, axis[1].s2 );
 
         // edge
-        axis[2].normal = vec3f( -0.70710,+0.70710,0 );
-        axis[2].d = dot( vec3f( -w, t, 0 ), axis[2].normal );
+        axis[2].normal = vec3f( -0.70710,0,+0.70710 );
+        axis[2].d = dot( vec3f( -w, 0, t ), axis[2].normal );
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
     else if ( region == STONE_BOARD_REGION_RightSide )
@@ -260,7 +258,7 @@ inline bool IntersectStoneBoard( const Board & board,
 
         // primary
         axis[0].d = t;
-        axis[0].normal = vec3f(0,1,0);
+        axis[0].normal = vec3f(0,0,1);
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[0].normal, axis[0].s1, axis[0].s2 );
 
         // side
@@ -269,10 +267,11 @@ inline bool IntersectStoneBoard( const Board & board,
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[1].normal, axis[1].s1, axis[1].s2 );
 
         // edge
-        axis[2].normal = vec3f( +0.70710,+0.70710,0 );
-        axis[2].d = dot( vec3f( w, t, 0 ), axis[2].normal );
+        axis[2].normal = vec3f( +0.70710,0,+0.70710 );
+        axis[2].d = dot( vec3f( w, 0, t ), axis[2].normal );
         BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, axis[2].normal, axis[2].s1, axis[2].s2 );
     }
+    /*
     else if ( region == STONE_BOARD_REGION_TopSide )
     {
         numAxes = 3;
@@ -469,38 +468,35 @@ inline bool IntersectStoneBoard( const Board & board,
     }
     */
 
-        // not colliding if no axes defined
-        if ( numAxes == 0 )
+    // not colliding if no axes defined
+    if ( numAxes == 0 )
+        return false;
+
+    // not colliding if any axis separates the stone and the board
+    for ( int i = 0; i < numAxes; ++i )
+    {
+        if ( axis[i].s1 > axis[i].d )
             return false;
-
-        // not colliding if any axis separates the stone and the board
-        for ( int i = 0; i < numAxes; ++i )
-        {
-            if ( axis[i].s1 > axis[i].d )
-                return false;
-        }
-
-        // colliding: find axis with the least amount of penetration
-        float leastPenetrationDepth = FLT_MAX;
-        Axis * leastPenetrationAxis = NULL;
-        for ( int i = 0; i < numAxes; ++i )
-        {
-            const float depth = axis[i].d - axis[i].s1;
-            if ( depth < leastPenetrationDepth )
-            {
-                leastPenetrationDepth = depth;
-                leastPenetrationAxis = &axis[i];
-            }
-        }
-
-        assert( leastPenetrationAxis );
-        normal = leastPenetrationAxis->normal;
-        depth = leastPenetrationDepth;
-
-        return true;
     }
 
-    return false;
+    // colliding: find axis with the least amount of penetration
+    float leastPenetrationDepth = FLT_MAX;
+    Axis * leastPenetrationAxis = NULL;
+    for ( int i = 0; i < numAxes; ++i )
+    {
+        const float depth = axis[i].d - axis[i].s1;
+        if ( depth < leastPenetrationDepth )
+        {
+            leastPenetrationDepth = depth;
+            leastPenetrationAxis = &axis[i];
+        }
+    }
+
+    assert( leastPenetrationAxis );
+    normal = leastPenetrationAxis->normal;
+    depth = leastPenetrationDepth;
+
+    return true;
 }
 
 #endif
