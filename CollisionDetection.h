@@ -265,8 +265,6 @@ inline bool ClosestFeatureRightEdge( const Board & board,
     return y >= -h && y <= h;
 }
 
-#if 0
-
 inline bool ClosestFeatureTopSide( const Board & board, 
                                    const Biconvex & biconvex, 
                                    const RigidBodyTransform & biconvexTransform,
@@ -275,13 +273,11 @@ inline bool ClosestFeatureTopSide( const Board & board,
                                    vec3f & boardPoint,
                                    vec3f & boardNormal )
 {
-    // todo: convert right handed
-
     const float w = board.GetWidth() / 2;
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
 
-    vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,0,1,h) );
+    vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,1,0,h) );
 
     vec3f local_stonePoint;
     vec3f local_stoneNormal;
@@ -296,12 +292,12 @@ inline bool ClosestFeatureTopSide( const Board & board,
     stonePoint = TransformPoint( biconvexTransform.localToWorld, local_stonePoint );
     stoneNormal = TransformVector( biconvexTransform.localToWorld, local_stoneNormal );
     boardPoint = TransformPoint( biconvexTransform.localToWorld, local_boardPoint );
-    boardNormal = vec3f(0,0,1);
+    boardNormal = vec3f(0,1,0);
 
-    const float y = boardPoint.y();
     const float x = boardPoint.x();
+    const float z = boardPoint.z();
 
-    return y <= t && x >= -w && x <= w;
+    return z <= t && x >= -w && x <= w;
 }
 
 inline bool ClosestFeatureTopEdge( const Board & board, 
@@ -312,8 +308,6 @@ inline bool ClosestFeatureTopEdge( const Board & board,
                                    vec3f & boardPoint,
                                    vec3f & boardNormal )
 {
-    // todo: convert right handed
-
     vec3f biconvexPosition = biconvexTransform.GetPosition();
     vec3f biconvexUp = biconvexTransform.GetUp();
 
@@ -321,8 +315,8 @@ inline bool ClosestFeatureTopEdge( const Board & board,
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
 
-    const vec3f lineOrigin = vec3f( w, t, +h );
-    const vec3f lineDirection = vec3f(-1,0,0);
+    const vec3f lineOrigin = vec3f( -w, h, t );
+    const vec3f lineDirection = vec3f(1,0,0);
 
     GetNearestPoint_Biconvex_Line( biconvex,
                                    biconvexPosition,
@@ -336,10 +330,10 @@ inline bool ClosestFeatureTopEdge( const Board & board,
     const float y = boardPoint.y();
     const float z = boardPoint.z();
 
-    const float dz = fabs( z - h );
-    const float dy = fabs( y - t );
-    assert( dz < 0.001f );
+    const float dy = fabs( y - h );
+    const float dz = fabs( z - t );
     assert( dy < 0.001f );
+    assert( dz < 0.001f );
 
     vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
     vec3f local_normal;
@@ -361,13 +355,11 @@ inline bool ClosestFeatureBottomSide( const Board & board,
                                       vec3f & boardPoint,
                                       vec3f & boardNormal )
 {
-    // todo: convert right handed
-
     const float w = board.GetWidth() / 2;
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
 
-    vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,0,-1,h) );
+    vec4f plane = TransformPlane( biconvexTransform.worldToLocal, vec4f(0,-1,0,h) );
 
     vec3f local_stonePoint;
     vec3f local_stoneNormal;
@@ -382,12 +374,12 @@ inline bool ClosestFeatureBottomSide( const Board & board,
     stonePoint = TransformPoint( biconvexTransform.localToWorld, local_stonePoint );
     stoneNormal = TransformVector( biconvexTransform.localToWorld, local_stoneNormal );
     boardPoint = TransformPoint( biconvexTransform.localToWorld, local_boardPoint );
-    boardNormal = vec3f(0,0,-1);
+    boardNormal = vec3f(0,-1,0);
 
-    const float y = boardPoint.y();
     const float x = boardPoint.x();
+    const float z = boardPoint.z();
 
-    return y <= t && x >= -w && x <= w;
+    return z <= t && x >= -w && x <= w;
 }
 
 inline bool ClosestFeatureBottomEdge( const Board & board, 
@@ -398,8 +390,6 @@ inline bool ClosestFeatureBottomEdge( const Board & board,
                                       vec3f & boardPoint,
                                       vec3f & boardNormal )
 {
-    // todo: convert right handed
-
     vec3f biconvexPosition = biconvexTransform.GetPosition();
     vec3f biconvexUp = biconvexTransform.GetUp();
 
@@ -407,8 +397,8 @@ inline bool ClosestFeatureBottomEdge( const Board & board,
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
 
-    const vec3f lineOrigin = vec3f( w, t, -h );
-    const vec3f lineDirection = vec3f(-1,0,0);
+    const vec3f lineOrigin = vec3f( -w, -h, t );
+    const vec3f lineDirection = vec3f(1,0,0);
 
     GetNearestPoint_Biconvex_Line( biconvex,
                                    biconvexPosition,
@@ -422,10 +412,10 @@ inline bool ClosestFeatureBottomEdge( const Board & board,
     const float y = boardPoint.y();
     const float z = boardPoint.z();
 
-    const float dz = fabs( z - (-h) );
-    const float dy = fabs( y - t );
-    assert( dz < 0.001f );
+    const float dy = fabs( y - (-h) );
+    const float dz = fabs( z - t );
     assert( dy < 0.001f );
+    assert( dz < 0.001f );
 
     vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
     vec3f local_normal;
@@ -447,8 +437,6 @@ inline bool ClosestFeatureBottomLeftEdge( const Board & board,
                                           vec3f & boardPoint,
                                           vec3f & boardNormal )
 {
-    // todo: convert right handed
-
     vec3f biconvexPosition = biconvexTransform.GetPosition();
     vec3f biconvexUp = biconvexTransform.GetUp();
 
@@ -456,8 +444,8 @@ inline bool ClosestFeatureBottomLeftEdge( const Board & board,
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
 
-    const vec3f lineOrigin = vec3f( -w, t, -h );
-    const vec3f lineDirection = vec3f(0,-1,0);
+    const vec3f lineOrigin = vec3f( -w, -h, 0 );
+    const vec3f lineDirection = vec3f(0,0,1);
 
     GetNearestPoint_Biconvex_Line( biconvex,
                                    biconvexPosition,
@@ -472,9 +460,9 @@ inline bool ClosestFeatureBottomLeftEdge( const Board & board,
     const float z = boardPoint.z();
 
     const float dx = fabs( x - (-w) );
-    const float dz = fabs( z - (-h) );
+    const float dy = fabs( y - (-h) );
     assert( dx < 0.001f );
-    assert( dz < 0.001f );
+    assert( dy < 0.001f );
 
     vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
     vec3f local_normal;
@@ -485,7 +473,7 @@ inline bool ClosestFeatureBottomLeftEdge( const Board & board,
 
     boardNormal = -stoneNormal;
 
-    return y <= t;
+    return z <= t;
 }
 
 inline bool ClosestFeatureBottomRightEdge( const Board & board, 
@@ -496,8 +484,6 @@ inline bool ClosestFeatureBottomRightEdge( const Board & board,
                                            vec3f & boardPoint,
                                            vec3f & boardNormal )
 {
-    // todo: convert right handed
-
     vec3f biconvexPosition = biconvexTransform.GetPosition();
     vec3f biconvexUp = biconvexTransform.GetUp();
 
@@ -505,8 +491,8 @@ inline bool ClosestFeatureBottomRightEdge( const Board & board,
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
 
-    const vec3f lineOrigin = vec3f( w, t, -h );
-    const vec3f lineDirection = vec3f(0,-1,0);
+    const vec3f lineOrigin = vec3f( w, -h, t );
+    const vec3f lineDirection = vec3f(0,0,-1);
 
     GetNearestPoint_Biconvex_Line( biconvex,
                                    biconvexPosition,
@@ -521,9 +507,9 @@ inline bool ClosestFeatureBottomRightEdge( const Board & board,
     const float z = boardPoint.z();
 
     const float dx = fabs( x - w );
-    const float dz = fabs( z - (-h) );
+    const float dy = fabs( y - (-h) );
     assert( dx < 0.001f );
-    assert( dz < 0.001f );
+    assert( dy < 0.001f );
 
     vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
     vec3f local_normal;
@@ -534,7 +520,7 @@ inline bool ClosestFeatureBottomRightEdge( const Board & board,
 
     boardNormal = -stoneNormal;
 
-    return y <= t;
+    return z <= t;
 }
 
 inline bool ClosestFeatureTopLeftEdge( const Board & board, 
@@ -545,8 +531,6 @@ inline bool ClosestFeatureTopLeftEdge( const Board & board,
                                        vec3f & boardPoint,
                                        vec3f & boardNormal )
 {
-    // todo: convert right handed
-
     vec3f biconvexPosition = biconvexTransform.GetPosition();
     vec3f biconvexUp = biconvexTransform.GetUp();
 
@@ -554,8 +538,8 @@ inline bool ClosestFeatureTopLeftEdge( const Board & board,
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
 
-    const vec3f lineOrigin = vec3f( -w, t, h );
-    const vec3f lineDirection = vec3f(0,-1,0);
+    const vec3f lineOrigin = vec3f( -w, h, t );
+    const vec3f lineDirection = vec3f(0,0,-1);
 
     GetNearestPoint_Biconvex_Line( biconvex,
                                    biconvexPosition,
@@ -570,9 +554,9 @@ inline bool ClosestFeatureTopLeftEdge( const Board & board,
     const float z = boardPoint.z();
 
     const float dx = fabs( x - (-w) );
-    const float dz = fabs( z - h );
+    const float dy = fabs( y - h );
     assert( dx < 0.001f );
-    assert( dz < 0.001f );
+    assert( dy < 0.001f );
 
     vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
     vec3f local_normal;
@@ -583,7 +567,7 @@ inline bool ClosestFeatureTopLeftEdge( const Board & board,
 
     boardNormal = -stoneNormal;
 
-    return y <= t;
+    return z <= t;
 }
 
 inline bool ClosestFeatureTopRightEdge( const Board & board, 
@@ -594,8 +578,6 @@ inline bool ClosestFeatureTopRightEdge( const Board & board,
                                         vec3f & boardPoint,
                                         vec3f & boardNormal )
 {
-    // todo: convert right handed
-
     vec3f biconvexPosition = biconvexTransform.GetPosition();
     vec3f biconvexUp = biconvexTransform.GetUp();
 
@@ -603,8 +585,8 @@ inline bool ClosestFeatureTopRightEdge( const Board & board,
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
 
-    const vec3f lineOrigin = vec3f( w, t, h );
-    const vec3f lineDirection = vec3f(0,-1,0);
+    const vec3f lineOrigin = vec3f( w, h, t );
+    const vec3f lineDirection = vec3f(0,0,-1);
 
     GetNearestPoint_Biconvex_Line( biconvex,
                                    biconvexPosition,
@@ -619,9 +601,9 @@ inline bool ClosestFeatureTopRightEdge( const Board & board,
     const float z = boardPoint.z();
 
     const float dx = fabs( x - w );
-    const float dz = fabs( z - h );
+    const float dy = fabs( y - h );
     assert( dx < 0.001f );
-    assert( dz < 0.001f );
+    assert( dy < 0.001f );
 
     vec3f local_point = transformPoint( biconvexTransform.worldToLocal, stonePoint );
     vec3f local_normal;
@@ -632,7 +614,7 @@ inline bool ClosestFeatureTopRightEdge( const Board & board,
 
     boardNormal = -stoneNormal;
 
-    return y <= t;
+    return z <= t;
 }
 
 inline void ClosestFeatureCorner( const Board & board, 
@@ -644,8 +626,6 @@ inline void ClosestFeatureCorner( const Board & board,
                                   vec3f & boardPoint,
                                   vec3f & boardNormal )
 {
-    // todo: convert right handed
-
     vec3f local_corner_point = transformPoint( biconvexTransform.worldToLocal, cornerPoint );
 
     vec3f local_biconvex_point = 
@@ -660,8 +640,6 @@ inline void ClosestFeatureCorner( const Board & board,
     boardNormal = -stoneNormal;
     boardPoint = cornerPoint;
 }
-
-#endif
 
 // -------------------------------------------------------------------------------------------
 
@@ -708,7 +686,6 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
 
         ClosestFeatureRightEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
     }
-    /*
     else if ( region == STONE_BOARD_REGION_TopSide )
     {
         if ( ClosestFeaturePrimarySurface( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
@@ -749,7 +726,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         if ( ClosestFeatureBottomLeftEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        ClosestFeatureCorner( board, biconvex, biconvexTransform, vec3f(-w,t,-h), stonePoint, stoneNormal, boardPoint, boardNormal );
+        ClosestFeatureCorner( board, biconvex, biconvexTransform, vec3f(-w,-h,t), stonePoint, stoneNormal, boardPoint, boardNormal );
     }
     else if ( region == STONE_BOARD_REGION_BottomRightCorner )
     {
@@ -771,7 +748,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         if ( ClosestFeatureBottomRightEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        ClosestFeatureCorner( board, biconvex, biconvexTransform, vec3f(w,t,-h), stonePoint, stoneNormal, boardPoint, boardNormal );
+        ClosestFeatureCorner( board, biconvex, biconvexTransform, vec3f(w,-h,t), stonePoint, stoneNormal, boardPoint, boardNormal );
     }
     else if ( region == STONE_BOARD_REGION_TopLeftCorner )
     {
@@ -793,7 +770,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         if ( ClosestFeatureTopLeftEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        ClosestFeatureCorner( board, biconvex, biconvexTransform, vec3f(-w,t,h), stonePoint, stoneNormal, boardPoint, boardNormal );
+        ClosestFeatureCorner( board, biconvex, biconvexTransform, vec3f(-w,h,t), stonePoint, stoneNormal, boardPoint, boardNormal );
     }
     else if ( region == STONE_BOARD_REGION_TopRightCorner )
     {
@@ -815,9 +792,8 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         if ( ClosestFeatureTopRightEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        ClosestFeatureCorner( board, biconvex, biconvexTransform, vec3f(w,t,h), stonePoint, stoneNormal, boardPoint, boardNormal );
+        ClosestFeatureCorner( board, biconvex, biconvexTransform, vec3f(w,h,t), stonePoint, stoneNormal, boardPoint, boardNormal );
     }
-    */
 }
 
 // -----------------------------------------------------------------------

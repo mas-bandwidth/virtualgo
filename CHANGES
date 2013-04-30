@@ -1,3 +1,21 @@
+Go side and corner collision cases working again (30/4/2013):
+-------------------------------------------------------------
+
+    Left and right side cases look good
+
+    Top case looks good
+
+    Fixed bottom case issue
+
+    Bottom left corner case
+
+    Bottom right corner case
+
+    Top left corner case
+
+    Top right corner case
+
+
 Go board shadow working on board again (30/4/2013):
 ---------------------------------------------------
 

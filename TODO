@@ -2,8 +2,23 @@ DONE:
 
 TODO:
 
-    Pass over go stone side and corner cases and fix to work with
-    right handed collision (do in Mac app)
+    Test on iPhone
+
+    ******** CHECKPOINT: SEND OUT NEW BUILD ********
+
+
+
+
+
+
+
+
+    -----------------------------------------------------------------
+
+    When dragging stone, always push out along the vertical axis
+    as this will avoid pops going over board edges.
+
+    -----------------------------------------------------------------
 
     Fix up shadows so they dynamically adjust depending on orientation
     I really want the proper effect on the side when the stone spins
@@ -15,21 +30,9 @@ TODO:
     Should be able to have nice divergent shadows when flat,
     while having good shadows on the side.
 
-    -----------------------------------------------------------------
+    Tune on iPad in zoomed out/in
 
-
-
-
-
-    ******** CHECKPOINT: SEND OUT NEW BUILD ********
-
-
-
-
-
-
-
-
+    Tune on iPhone zoomed in
 
     -----------------------------------------------------------------
 
@@ -67,19 +70,14 @@ TODO:
 
     -----------------------------------------------------------------
 
-    Adjust light source dynamically and interpolate between
+    Capture go stone diffuse textures
 
-    This will allow shadows on the side orientations like I want
-    while still allowing divergent shadows while the device is
-    flat on the table like a board.
+    Implement some way to swipe select between go stone textures
 
-    -----------------------------------------------------------------
-
-    If the go stone is shadowed by the go board it should be
-    darkened. Make this a linear interpolation, multiple rays?
+    Perhaps double swipe up/down -- I'd like to let the user
+    mix and match go stones with different go boards.
 
     -----------------------------------------------------------------
-
 
 
 
@@ -103,16 +101,6 @@ TODO:
     Stone hitting metal for the sides of the frustum
 
     Stone hitting glass for the front screen
-
-    -----------------------------------------------------------------
-
-    Capture go stone diffuse textures
-
-    Implement some way to swipe select between go stone textures
-
-    Perhaps double swipe up/down -- I'd like to let the user
-    mix and match go stones with different go boards, and perhaps
-    save them off as presets.
 
     -----------------------------------------------------------------
 

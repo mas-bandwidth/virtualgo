@@ -325,7 +325,7 @@ enum CollisionPlanes
 const float ZoomIn_iPad = 25;                // nice close up view of stone
 const float ZoomOut_iPad = 48;               // tuned to 9x9 game on iPad 4  
 
-const float ZoomIn_iPhone = 15;              // nice view of stone. not too close!
+const float ZoomIn_iPhone = 17;              // nice view of stone. not too close!
 const float ZoomOut_iPhone = 50;             // not really supported (too small!)
 
 const float ZoomInTightness = 0.25f;
@@ -2081,6 +2081,7 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
 
     // render stone shadow on board
     
+    if ( _stone.rigidBody.position.z() >= _board.GetThickness() )
     {
         glUseProgram( _shadowProgram );
         
