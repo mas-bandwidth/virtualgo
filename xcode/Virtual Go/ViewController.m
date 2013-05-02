@@ -756,7 +756,7 @@ bool iPad()
     const float r = params.starPointRadius * 2;
     const float z = _board.GetThickness() - 0.01f;
 
-    const int numStarPoints = 4;
+    const int numStarPoints = 5;
 
     // todo: generalize this and move into Board.h function -- "GetStarPoints"
 
@@ -766,8 +766,9 @@ bool iPad()
     pointPosition[1] = _board.GetPointPosition( 7, 3 );
     pointPosition[2] = _board.GetPointPosition( 3, 7 );
     pointPosition[3] = _board.GetPointPosition( 7, 7 );
+    pointPosition[4] = _board.GetPointPosition( 5, 5 );
 
-    for ( int i = 0; i < 4; ++i )
+    for ( int i = 0; i < numStarPoints; ++i )
     {
         float x = pointPosition[i].x();
         float y = pointPosition[i].y();
@@ -1123,7 +1124,7 @@ bool iPad()
             _firstPlacementTimestamp = [touch timestamp];
         }
 
-        if ( _firstPlacementTouch != nil && touch != _firstPlacementTouch )
+        if ( _firstPlacementTouch != nil && touch != _firstPlacementTouch && !_selected )
         {
             CGPoint selectPoint = [touch locationInView:self.view];
             
@@ -1152,15 +1153,9 @@ bool iPad()
                     const float place_dt = [touch timestamp] - _firstPlacementTimestamp;
 
                     if ( place_dt < PlaceStoneHardThreshold )
-                    {
-                        NSLog( @"placed stone hard" );
                         [self incrementCounter:COUNTER_PlacedStoneHard];
-                    }
                     else
-                    {
-                        NSLog( @"placed stone" );
                         [self incrementCounter:COUNTER_PlacedStone];
-                    }
 
                     _stone.rigidBody.position = rayStart + rayDirection * t;
                     _stone.rigidBody.orientation = quat4f( 0, 0, 0, 1 );

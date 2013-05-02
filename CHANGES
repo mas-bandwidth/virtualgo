@@ -1,4 +1,20 @@
 
+Fixed the case where you accidentally place a stone while dragging (2/5/2014):
+------------------------------------------------------------------------------
+
+    When you are dragging a stone around with one finger 
+    placement of a stone is disabled.
+
+    Previously, was too easy to accidentally touch the board
+    while dragging a stone and place a new stone down!
+    
+
+Added missing star point on tengen (2/5/2014):
+----------------------------------------------
+
+    Goddamnit was missing star point in center!
+
+    
 Implement locked mode (2/5/2013):
 ---------------------------------
 
