@@ -1,3 +1,48 @@
+
+Added star points to the board (31/4/2013):
+-------------------------------------------
+
+    Add star points to 9x9 board
+
+    Enable trilinear filtering. Was not enabled (!!!)
+    
+
+Enhanced go board grid rendering (31/4/2013):
+---------------------------------------------
+
+    Recover star point and line textures from original Virtual Go
+
+    Render lines as textures
+
+    Looks much better now, especially zoomed in!
+
+
+Fix pops when dragging stone over board edges/corners (31/4/2013):
+------------------------------------------------------------------
+
+    When dragging stone, always push out along the vertical axis
+    as this will avoid pops going over board edges.
+
+    It also feels pretty nice! :)
+
+    Except, if you drag a stone from the ground onto the board,
+    then drag it over the ground, it snaps back to ground.
+
+    To fix, I check the intersection of the stone vs. the ray
+    during drag, and if it moves closer to the camera, I hold
+    that depth as the plan of interaction.
+
+    Now the stone moves UP onto the board plane when pushed out
+
+
+Enhanced go board shadows on floor (31/4/2013):
+-----------------------------------------------
+
+    Need better shadows for the go board. 
+
+    Halved the z height of the light source for the board case
+
+
 Go side and corner collision cases working again (30/4/2013):
 -------------------------------------------------------------
 

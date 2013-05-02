@@ -11,7 +11,7 @@ attribute vec3 normal;
 attribute vec2 texCoords;
  
 varying lowp vec4 colorVarying;
-varying vec2 texCoordsVarying;
+varying lowp vec2 texCoordsVarying;
 
 uniform mat4 modelViewProjectionMatrix;
 uniform mat3 normalMatrix;

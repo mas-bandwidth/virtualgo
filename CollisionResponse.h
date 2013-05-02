@@ -12,7 +12,7 @@ void ApplyLinearCollisionImpulse( StaticContact & contact, float e )
     contact.rigidBody->linearMomentum += j * contact.normal;
 }
 
-void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float u, float epsilon = 0.001f )
+void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float u, float epsilon = 0.1f )
 {
 	RigidBody & rigidBody = *contact.rigidBody;
 

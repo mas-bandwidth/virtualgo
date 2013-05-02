@@ -28,7 +28,9 @@ inline bool StoneBoardCollision( const Biconvex & biconvex,
                                  const Board & board, 
                                  RigidBody & rigidBody,
                                  StaticContact & contact,
-                                 bool pushOut = false );
+                                 bool pushOut = false,
+                                 bool hasPreferredDirection = false,
+                                 const vec3f & preferredDirection = vec3f(0,0,1) );
 
 inline bool StonePlaneCollision( const Biconvex & biconvex,
                                  vec4f plane,
@@ -802,13 +804,16 @@ bool StoneBoardCollision( const Biconvex & biconvex,
                           const Board & board, 
                           RigidBody & rigidBody,
                           StaticContact & contact,
-                          bool pushOut )
+                          bool pushOut,
+                          bool hasPreferredDirection,
+                          const vec3f & preferredDirection )
 {
     // detect collision with the board
 
     float depth;
     vec3f normal;
-    if ( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( rigidBody.position, rigidBody.orientation ), normal, depth ) )
+    if ( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( rigidBody.position, rigidBody.orientation ), 
+                               normal, depth, hasPreferredDirection, preferredDirection ) )
         return false;
 
     // project the stone out of the board

@@ -235,13 +235,23 @@ enum CollisionPlanes
     float _shadowAlpha;
     GLint _shadowUniforms[NUM_UNIFORMS];
 
-    Mesh<Vertex> _gridMesh;
+    Mesh<TexturedVertex> _gridMesh;
     GLuint _gridProgram;
     GLuint _gridVertexBuffer;
     GLuint _gridIndexBuffer;
     GLKMatrix4 _gridModelViewProjectionMatrix;
     GLKMatrix3 _gridNormalMatrix;
     GLint _gridUniforms[NUM_UNIFORMS];
+    GLuint _lineTexture;
+
+    Mesh<TexturedVertex> _pointMesh;
+    GLuint _pointProgram;
+    GLuint _pointVertexBuffer;
+    GLuint _pointIndexBuffer;
+    GLKMatrix4 _pointModelViewProjectionMatrix;
+    GLKMatrix3 _pointNormalMatrix;
+    GLint _pointUniforms[NUM_UNIFORMS];
+    GLuint _pointTexture;
 
     Mesh<TexturedVertex> _floorMesh;
     GLuint _floorProgram;
@@ -387,6 +397,7 @@ bool iPad()
     [self generateFloorMesh];
     [self generateBoardMesh];
     [self generateGridMesh];
+    [self generatePointMesh];
 
     [self setupGL];
   
@@ -642,15 +653,13 @@ bool iPad()
 
 - (void)generateGridMesh
 {
-    Vertex a,b,c,d;
+    TexturedVertex a,b,c,d;
 
     const BoardParams & params = _board.GetParams();
 
-    // todo: incorporate board height
-
     const float w = params.cellWidth;
     const float h = params.cellHeight;
-    const float t = params.lineWidth;
+    const float t = params.lineWidth * 2;       // IMPORTANT: texture is only 50% of height due to AA
 
     const int n = ( _board.GetSize() - 1 ) / 2;
 
@@ -661,21 +670,25 @@ bool iPad()
 
         for ( int i = -n; i <= n; ++i )
         {
-            const float x1 = -n*w - t/2;
+            const float x1 = -n*w;
             const float x2 = +n*w;
             const float y = i * h;
 
             a.position = vec3f( x1, y - t/2, z );
             a.normal = vec3f( 0, 0, 1 );
+            a.texCoords = vec2f(0,0);
 
             b.position = vec3f( x1, y + t/2, z );
             b.normal = vec3f( 0, 0, 1 );
+            b.texCoords = vec2f(0,1);
 
             c.position = vec3f( x2, y + t/2, z );
             c.normal = vec3f( 0, 0, 1 );
+            c.texCoords = vec2f(1,1);
 
             d.position = vec3f( x2, y - t/2, z );
             d.normal = vec3f( 0, 0, 1 );
+            d.texCoords = vec2f(1,0);
 
             _gridMesh.AddTriangle( a, c, b );
             _gridMesh.AddTriangle( a, d, c );
@@ -689,25 +702,80 @@ bool iPad()
 
         for ( int i = -n; i <= +n; ++i )
         {
-            const float y1 = -n*h - t/2;
-            const float y2 = +n*h + t/2;
+            const float y1 = -n*h;
+            const float y2 = +n*h;
             const float x = i * w;
 
             a.position = vec3f( x - t/2, y1, z );
             a.normal = vec3f( 0, 0, 1 );
+            a.texCoords = vec2f( 0, 0 );
 
             b.position = vec3f( x + t/2, y1, z );
             b.normal = vec3f( 0, 0, 1 );
+            b.texCoords = vec2f( 0, 1 );
 
             c.position = vec3f( x + t/2, y2, z );
             c.normal = vec3f( 0, 0, 1 );
+            c.texCoords = vec2f( 1, 1 );
 
             d.position = vec3f( x - t/2, y2, z );
             d.normal = vec3f( 0, 0, 1 );
+            d.texCoords = vec2f( 1, 0 );
 
             _gridMesh.AddTriangle( a, b, c );
             _gridMesh.AddTriangle( a, c, d );
         }
+    }
+}
+
+- (void)generatePointMesh
+{
+    TexturedVertex a,b,c,d;
+
+    const BoardParams & params = _board.GetParams();
+
+    const float r = params.starPointRadius * 2;
+    const float z = _board.GetThickness() - 0.01f;
+
+    const int numStarPoints = 4;
+
+    // todo: generalize this and move into Board.h function -- "GetStarPoints"
+
+    vec3f pointPosition[numStarPoints];
+
+    pointPosition[0] = _board.GetPointPosition( 3, 3 );
+    pointPosition[1] = _board.GetPointPosition( 7, 3 );
+    pointPosition[2] = _board.GetPointPosition( 3, 7 );
+    pointPosition[3] = _board.GetPointPosition( 7, 7 );
+
+    for ( int i = 0; i < 4; ++i )
+    {
+        float x = pointPosition[i].x();
+        float y = pointPosition[i].y();
+
+        const float x1 = x - r;
+        const float x2 = x + r;
+        const float y1 = y + r;
+        const float y2 = y - r;
+
+        a.position = vec3f( x1, y1, z );
+        a.normal = vec3f( 0, 0, 1 );
+        a.texCoords = vec2f(0,0);
+
+        b.position = vec3f( x2, y1, z );
+        b.normal = vec3f( 0, 0, 1 );
+        b.texCoords = vec2f(0,1);
+
+        c.position = vec3f( x2, y2, z );
+        c.normal = vec3f( 0, 0, 1 );
+        c.texCoords = vec2f(1,1);
+
+        d.position = vec3f( x1, y2, z );
+        d.normal = vec3f( 0, 0, 1 );
+        d.texCoords = vec2f(1,0);
+
+        _pointMesh.AddTriangle( a, c, b );
+        _pointMesh.AddTriangle( a, d, c );
     }
 }
 
@@ -796,11 +864,9 @@ bool iPad()
         assert( _gridMesh.GetNumIndices() > 0 );
 
         glGenBuffers( 1, &_gridVertexBuffer );
-
         glBindBuffer( GL_ARRAY_BUFFER, _gridVertexBuffer );
-
         glBufferData( GL_ARRAY_BUFFER, sizeof(TexturedVertex) * _gridMesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
-        
+    
         glGenBuffers( 1, &_gridIndexBuffer );
         glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _gridIndexBuffer );
         glBufferData( GL_ELEMENT_ARRAY_BUFFER, _gridMesh.GetNumIndices()*sizeof(GLushort), _gridMesh.GetIndexBuffer(), GL_STATIC_DRAW );
@@ -808,6 +874,33 @@ bool iPad()
         _gridUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _gridProgram, "normalMatrix" );
         _gridUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _gridProgram, "modelViewProjectionMatrix" );
         _gridUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _gridProgram, "lightPosition" );
+
+        _lineTexture = [self loadTexture:@"line.jpg"];
+    }
+
+    // star points
+    {
+        _pointProgram = [self loadShader:@"PointShader"];
+
+        void * vertexData = _pointMesh.GetVertexBuffer();
+        
+        assert( vertexData );
+        assert( _pointMesh.GetNumVertices() > 0 );
+        assert( _pointMesh.GetNumIndices() > 0 );
+
+        glGenBuffers( 1, &_pointVertexBuffer );
+        glBindBuffer( GL_ARRAY_BUFFER, _pointVertexBuffer );
+        glBufferData( GL_ARRAY_BUFFER, sizeof(TexturedVertex) * _pointMesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
+    
+        glGenBuffers( 1, &_pointIndexBuffer );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _pointIndexBuffer );
+        glBufferData( GL_ELEMENT_ARRAY_BUFFER, _pointMesh.GetNumIndices()*sizeof(GLushort), _pointMesh.GetIndexBuffer(), GL_STATIC_DRAW );
+        
+        _pointUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _pointProgram, "normalMatrix" );
+        _pointUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _pointProgram, "modelViewProjectionMatrix" );
+        _pointUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _pointProgram, "lightPosition" );
+
+        _pointTexture = [self loadTexture:@"point.jpg"];
     }
 
     // floor shader, textures, VBs/IBs etc.
@@ -880,6 +973,16 @@ bool iPad()
         _gridProgram = 0;
     }
 
+    glDeleteTextures( 1, &_lineTexture );
+
+    if ( _pointProgram )
+    {
+        glDeleteProgram( _pointProgram );
+        _pointProgram = 0;
+    }
+
+    glDeleteTextures( 1, &_pointTexture );
+
     glDeleteBuffers( 1, &_floorIndexBuffer );
     glDeleteBuffers( 1, &_floorVertexBuffer );
 
@@ -923,8 +1026,7 @@ bool iPad()
     glGenerateMipmap( GL_TEXTURE_2D );
 
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-
+    
     GLfloat maxAnisotropy;
     glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy );
@@ -1076,6 +1178,26 @@ bool iPad()
             
             GetPickRay( inverseClipMatrix, point.x(), point.y(), rayStart, rayDirection );
             
+            // IMPORTANT: first update intersect depth. this way stones can lift
+            // from the ground to the board and then not snap back to ground when dragged
+            // off the board (looks bad)
+
+            RigidBodyTransform transform( _stone.rigidBody.position, _stone.rigidBody.orientation );
+            vec3f intersectionPoint, intersectionNormal;
+            if ( IntersectRayStone( _stone.biconvex, transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+            {
+                if ( intersectionPoint.z() > _selectDepth )
+                {
+                    _selectPoint = selectPoint;
+                    _selectDepth = intersectionPoint.z();
+                    _selectOffset = _stone.rigidBody.position - intersectionPoint;
+                    _selectIntersectionPoint = intersectionPoint;
+                }
+            }
+
+            // next, intersect with the plane at select depth and move the stone
+            // such that it is offset from the intersection point with this plane
+
             float t = 0;
             if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), _selectDepth, t ) )
             {
@@ -1481,7 +1603,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
         // collision between stone and board
 
-        if ( StoneBoardCollision( stone.biconvex, _board, stone.rigidBody, contact, true ) )
+        if ( StoneBoardCollision( stone.biconvex, _board, stone.rigidBody, contact, true, _selected ) )
         {
             ApplyCollisionImpulseWithFriction( contact, e, u );
             stone.rigidBody.Update();
@@ -1851,6 +1973,10 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
     _gridNormalMatrix = _boardNormalMatrix;
     _gridModelViewProjectionMatrix = _boardModelViewProjectionMatrix;
 
+    // todo: clean this up -- many objects are specified in world space. need just one matrix
+    _pointNormalMatrix = _boardNormalMatrix;
+    _pointModelViewProjectionMatrix = _boardModelViewProjectionMatrix;
+
     _floorNormalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(baseModelViewMatrix), NULL );
     _floorModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
 
@@ -1895,7 +2021,7 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
     {
         GLKMatrix4 view = baseModelViewMatrix;
 
-        mat4f shadow_matrix = MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z(), 0 ) );
+        mat4f shadow_matrix = MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z() * 0.5f, 0 ) );
         float shadow_data[16];
         shadow_matrix.store( shadow_data );
         GLKMatrix4 shadow = GLKMatrix4MakeWithArray( shadow_data );
@@ -1987,24 +2113,32 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
     {
         glUseProgram( _gridProgram );
         
+        glBindTexture( GL_TEXTURE_2D, _lineTexture );
+
         glBindBuffer( GL_ARRAY_BUFFER, _gridVertexBuffer );
         glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _gridIndexBuffer );
         
         glEnableVertexAttribArray( GLKVertexAttribPosition );
         glEnableVertexAttribArray( GLKVertexAttribNormal );
-        
-        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0 );
-        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)16 );
+        glEnableVertexAttribArray( GLKVertexAttribTexCoord0 );
+
+        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), 0 );
+        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)16 );
+        glVertexAttribPointer( GLKVertexAttribTexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)32 );
         
         glUniformMatrix4fv( _gridUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _gridModelViewProjectionMatrix.m );
         glUniformMatrix3fv( _gridUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _gridNormalMatrix.m );
         glUniform3fv( _gridUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&_lightPosition );
         
         glEnable( GL_BLEND );
-        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+        glBlendFunc( GL_ZERO, GL_SRC_COLOR );
+
+        glDisable( GL_DEPTH_TEST );
 
         glDrawElements( GL_TRIANGLES, _gridMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
         
+        glEnable( GL_DEPTH_TEST );
+
         glDisable( GL_BLEND );
 
         glBindBuffer( GL_ARRAY_BUFFER, 0 );
@@ -2012,6 +2146,48 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
         
         glDisableVertexAttribArray( GLKVertexAttribPosition );
         glDisableVertexAttribArray( GLKVertexAttribNormal );
+        glDisableVertexAttribArray( GLKVertexAttribTexCoord0 );
+    }
+
+    // render star points
+    
+    {
+        glUseProgram( _pointProgram );
+        
+        glBindTexture( GL_TEXTURE_2D, _pointTexture );
+
+        glBindBuffer( GL_ARRAY_BUFFER, _pointVertexBuffer );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _pointIndexBuffer );
+        
+        glEnableVertexAttribArray( GLKVertexAttribPosition );
+        glEnableVertexAttribArray( GLKVertexAttribNormal );
+        glEnableVertexAttribArray( GLKVertexAttribTexCoord0 );
+
+        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), 0 );
+        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)16 );
+        glVertexAttribPointer( GLKVertexAttribTexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)32 );
+        
+        glUniformMatrix4fv( _pointUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _pointModelViewProjectionMatrix.m );
+        glUniformMatrix3fv( _pointUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _pointNormalMatrix.m );
+        glUniform3fv( _pointUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&_lightPosition );
+        
+        glEnable( GL_BLEND );
+        glBlendFunc( GL_ZERO, GL_SRC_COLOR );
+
+        glDisable( GL_DEPTH_TEST );
+
+        glDrawElements( GL_TRIANGLES, _pointMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+        
+        glEnable( GL_DEPTH_TEST );
+
+        glDisable( GL_BLEND );
+
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+        
+        glDisableVertexAttribArray( GLKVertexAttribPosition );
+        glDisableVertexAttribArray( GLKVertexAttribNormal );
+        glDisableVertexAttribArray( GLKVertexAttribTexCoord0 );
     }
 
     // render board shadow on ground
@@ -2024,7 +2200,6 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
         
         glEnableVertexAttribArray( GLKVertexAttribPosition );
         glEnableVertexAttribArray( GLKVertexAttribNormal );
-        glEnableVertexAttribArray( GLKVertexAttribTexCoord0 );
 
         glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), 0 );
         glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)16 );

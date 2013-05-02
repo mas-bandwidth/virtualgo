@@ -203,6 +203,8 @@ inline bool IntersectStoneBoard( const Board & board,
                                  const RigidBodyTransform & biconvexTransform,
                                  vec3f & normal,
                                  float & depth,
+                                 bool hasPreferredDirection = false,
+                                 const vec3f & preferredDirection = vec3f(0,0,1),
                                  float epsilon = 0.0001f )
 {
     const float boundingSphereRadius = biconvex.GetBoundingSphereRadius();
@@ -477,22 +479,42 @@ inline bool IntersectStoneBoard( const Board & board,
             return false;
     }
 
-    // colliding: find axis with the least amount of penetration
-    float leastPenetrationDepth = FLT_MAX;
-    Axis * leastPenetrationAxis = NULL;
-    for ( int i = 0; i < numAxes; ++i )
+    Axis * selectedAxis = NULL;
+    float penetrationDepth = 0;
+
+    if ( !hasPreferredDirection )
     {
-        const float depth = axis[i].d - axis[i].s1;
-        if ( depth < leastPenetrationDepth )
+        // colliding: find axis with the least amount of penetration
+        penetrationDepth = FLT_MAX;
+        for ( int i = 0; i < numAxes; ++i )
         {
-            leastPenetrationDepth = depth;
-            leastPenetrationAxis = &axis[i];
+            const float depth = axis[i].d - axis[i].s1;
+            if ( depth < penetrationDepth )
+            {
+                penetrationDepth = depth;
+                selectedAxis = &axis[i];
+            }
+        }
+    }
+    else
+    {
+        // push out along axis most in line with preferred direction
+        float preferredDot = -FLT_MAX;
+        for ( int i = 0; i < numAxes; ++i )
+        {
+            const float currentDot = dot( axis[i].normal, preferredDirection );
+            if ( currentDot >= preferredDot )
+            {
+                preferredDot = currentDot;
+                selectedAxis = &axis[i];
+                penetrationDepth = axis[i].d - axis[i].s1;
+            }
         }
     }
 
-    assert( leastPenetrationAxis );
-    normal = leastPenetrationAxis->normal;
-    depth = leastPenetrationDepth;
+    assert( selectedAxis );
+    normal = selectedAxis->normal;
+    depth = penetrationDepth;
 
     return true;
 }

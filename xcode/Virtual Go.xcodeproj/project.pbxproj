@@ -45,6 +45,10 @@
 		F2D6AD801720557300930D69 /* Default-Portrait~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD7F1720557300930D69 /* Default-Portrait~ipad.png */; };
 		F2D6AD821720557A00930D69 /* Default-Landscape~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */; };
 		F2D6AD841720557E00930D69 /* Default-Landscape@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */; };
+		F2F71CFE1731BC5D0051C50F /* line.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F2F71CFC1731BC5D0051C50F /* line.jpg */; };
+		F2F71CFF1731BC5D0051C50F /* point.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F2F71CFD1731BC5D0051C50F /* point.jpg */; };
+		F2F71D021731D1A10051C50F /* PointShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F2F71D001731D1A10051C50F /* PointShader.fragment */; };
+		F2F71D031731D1A10051C50F /* PointShader.vertex in Resources */ = {isa = PBXBuildFile; fileRef = F2F71D011731D1A10051C50F /* PointShader.vertex */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -104,6 +108,10 @@
 		F2D6AD7F1720557300930D69 /* Default-Portrait~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Portrait~ipad.png"; sourceTree = "<group>"; };
 		F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape~ipad.png"; sourceTree = "<group>"; };
 		F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape@2x~ipad.png"; sourceTree = "<group>"; };
+		F2F71CFC1731BC5D0051C50F /* line.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = line.jpg; path = "Virtual Go/textures/line.jpg"; sourceTree = "<group>"; };
+		F2F71CFD1731BC5D0051C50F /* point.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = point.jpg; path = "Virtual Go/textures/point.jpg"; sourceTree = "<group>"; };
+		F2F71D001731D1A10051C50F /* PointShader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = PointShader.fragment; path = "Virtual Go/shaders/PointShader.fragment"; sourceTree = "<group>"; };
+		F2F71D011731D1A10051C50F /* PointShader.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = PointShader.vertex; path = "Virtual Go/shaders/PointShader.vertex"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -225,13 +233,15 @@
 		F2A3914D172CFA8F00A6A74D /* shaders */ = {
 			isa = PBXGroup;
 			children = (
-				F22E484A172F07B000907BCD /* FloorShader.fragment */,
-				F22E484B172F07B000907BCD /* FloorShader.vertex */,
+				F2F71D001731D1A10051C50F /* PointShader.fragment */,
+				F2F71D011731D1A10051C50F /* PointShader.vertex */,
 				F22E4844172E247800907BCD /* GridShader.fragment */,
 				F22E4845172E247800907BCD /* GridShader.vertex */,
+				F22E484A172F07B000907BCD /* FloorShader.fragment */,
+				F22E484B172F07B000907BCD /* FloorShader.vertex */,
 				F2A39145172CFA7D00A6A74D /* BoardShader.fragment */,
-				F2A39146172CFA7D00A6A74D /* StoneShader.fragment */,
 				F2A39147172CFA7D00A6A74D /* BoardShader.vertex */,
+				F2A39146172CFA7D00A6A74D /* StoneShader.fragment */,
 				F2A39148172CFA7D00A6A74D /* StoneShader.vertex */,
 				F2502FD6172DD763002BC84D /* ShadowShader.fragment */,
 				F2502FD7172DD763002BC84D /* ShadowShader.vertex */,
@@ -252,6 +262,8 @@
 		F2E9E24B172B4D5D00F9C494 /* textures */ = {
 			isa = PBXGroup;
 			children = (
+				F2F71CFC1731BC5D0051C50F /* line.jpg */,
+				F2F71CFD1731BC5D0051C50F /* point.jpg */,
 				F22E4848172F02BC00907BCD /* floor.jpg */,
 				F2502FD4172DCF0B002BC84D /* wood.jpg */,
 			);
@@ -310,6 +322,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				F2A3914E172CFACC00A6A74D /* BoardShader.fragment in Resources */,
+				F2F71D021731D1A10051C50F /* PointShader.fragment in Resources */,
+				F2F71D031731D1A10051C50F /* PointShader.vertex in Resources */,
 				F2A3914F172CFACC00A6A74D /* StoneShader.fragment in Resources */,
 				F22E4846172E247800907BCD /* GridShader.fragment in Resources */,
 				F22E4847172E247800907BCD /* GridShader.vertex in Resources */,
@@ -337,6 +351,8 @@
 				F203E5851720C6650040ECA8 /* release_notes.md in Resources */,
 				F2502FD5172DCF0B002BC84D /* wood.jpg in Resources */,
 				F22E4849172F02BC00907BCD /* floor.jpg in Resources */,
+				F2F71CFE1731BC5D0051C50F /* line.jpg in Resources */,
+				F2F71CFF1731BC5D0051C50F /* point.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

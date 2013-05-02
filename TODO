@@ -2,11 +2,18 @@ DONE:
 
 TODO:
 
-    Test on iPhone
+    -----------------------------------------------------------------
 
-    ******** CHECKPOINT: SEND OUT NEW BUILD ********
+    Implement a way to place the stone: one finger hold then tap
+    to confirm the stone placement
 
+    -----------------------------------------------------------------
 
+    Implement a way to pick the stone up with two finger swipe
+    towards the stone, this is something Evan Cho naturally tried
+    to do, therefore it is intuitive and I should support it. 
+
+    -----------------------------------------------------------------
 
 
 
@@ -15,8 +22,35 @@ TODO:
 
     -----------------------------------------------------------------
 
-    When dragging stone, always push out along the vertical axis
-    as this will avoid pops going over board edges.
+    Implement locked mode. Icon in bottom left of screen with a lock
+    off by default. Pressing the icon toggles it.
+
+    In locked mode if a stones logically attach to a grid point
+    when placed, and maintain relation to this point via constraint.
+
+    In locked mode, any stones on the ground or off the side of the
+    board must disappear after coming to rest, because they have
+    no position to lock to.
+
+    In locked mode the stones do not clip to the side view
+    frustum planes. Stones are free to move outside the view.
+
+    If a stone is outside view for > 1 secs, remove it.
+
+    -----------------------------------------------------------------
+
+
+
+
+    -----------------------------------------------------------------
+
+    Board grid corners need special treatment, a corner texture to
+    fix up the gap (otherwise it does not get AA properly...!)
+
+    -----------------------------------------------------------------
+
+    Soften the edges of the go board by baking in some rounding,
+    irregularity etc. They look super harsh and sharp right now!
 
     -----------------------------------------------------------------
 
@@ -36,6 +70,35 @@ TODO:
 
     -----------------------------------------------------------------
 
+
+
+
+
+
+
+
+    -----------------------------------------------------------------
+
+    Double tap zoom in should remember the specific point where the
+    zoom in was requested on the board, and zoom in centered around
+    that point.
+
+    -----------------------------------------------------------------
+
+    Instead of zooming in, maybe a second zoomed in view of the board
+    can show while you are holding a touch past a certain point!!!
+
+    This would also help fix the problem of not feeling confident
+    about where you are placing the stone. 
+
+    This should only show after an extended hold. It would be
+    annoying if it would flick on and off.
+
+    Would definitely help fix the FAT FINGERS feeling on ipad,
+    if you can see under your finger, this is no longer an issue.
+
+    -----------------------------------------------------------------
+
     Really need to get textures for go board lines
 
     This is required for anti-aliasing effect, otherwise
@@ -45,28 +108,14 @@ TODO:
 
     -----------------------------------------------------------------
 
-    Add star points to 9x9 board
 
-    Recover star point textures from original Virtual Go
 
-    -----------------------------------------------------------------    
 
-    Implement a way to place the stone: one finger hold then tap
-    to confirm the stone placement
 
-    Ideally, this would also snap to nearest grid (add grid lines...)
 
-    -----------------------------------------------------------------
 
-    Implement a way to pick the stone up with two finger swipe
-    towards the stone, this is something Evan Cho naturally tried
-    to do, therefore it is intuitive and I should support it. 
 
-    -----------------------------------------------------------------
 
-    Double tap zoom in should remember the specific point where the
-    zoom in was requested on the board, and zoom in centered around
-    that point.
 
     -----------------------------------------------------------------
 
@@ -82,11 +131,6 @@ TODO:
 
 
 
-
-    -----------------------------------------------------------------
-
-    Generate a mipmap from the texture and turn on trilinear filtering
-    (need to recover VirtualGo.cpp and copy the code from there)
 
     -----------------------------------------------------------------
 
@@ -130,6 +174,8 @@ TODO:
 
     Blow into the microphone moves the stone up (iphone only)
 
+    http://mobileorchard.com/tutorial-detecting-when-a-user-blows-into-the-mic/
+    
     -----------------------------------------------------------------
 
     Prefer spin direction the stone is already spinning around on swipe
@@ -164,14 +210,6 @@ TODO:
     Ideally sound effects for both phase, click - pah. 
 
     -----------------------------------------------------------------
-
-    Implement board render texture
-
-    Implement board render with grid lines
-
-    Implement better lighting
-
-    Implement simple shadow (projection)
 
     Implement iterative solver for simultaneous constraints (eg. corners)
 
@@ -224,33 +262,6 @@ TODO:
 
     --------------------------------------------------------
 
-    Need some way to adjust brightness because they grey
-    board is likely to be difficult to see without turning
-    the lights off on a projector
-
-    --------------------------------------------------------
-
-    For the proper demo of the board provide best camera
-    angles (as minimal as possible) that support common
-    views for playing.
-
-    Basically, a top down view, a side-on view, and a zoom
-    view which supports scrolling at an ideal distance back.
-
-    This should be separate from the collision demo.
-
-    --------------------------------------------------------
-
-    When sliding the stone diagonal should not be faster
-    than left/right/up/down
-    
-    --------------------------------------------------------
-
-    Really need to add a blurry shadow to the go stone on
-    the board. This will complete the visual look!
-
-    --------------------------------------------------------
-
     If you through the go stone at the corner (and edge?)
     in some cases it's possible to get the stone to "bounce back"
     as if it hit some invisible wall.
@@ -260,24 +271,3 @@ TODO:
     Or some error in the nearest point?
 
     --------------------------------------------------------
-
-    Finish the article series
-
-    Back port to talk slides
-
-    --------------------------------------------------------
-
-    Get polarized lense filters to remove stone highlight
-
-    Rent a better camera
-
-    Capture all go stone textures top and bottom
-
-    Capture board texture kaya including sides
-
-    Create Texture.h to manage sets of textures easily
-
-    Switch to DDS files with offline mipmap generation
-
-    --------------------------------------------------------
-    

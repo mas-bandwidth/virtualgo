@@ -31,7 +31,8 @@ struct BoardParams
         cellHeight = 2.37f;
         border = 1.5f;
         thickness = 1.0f;
-        lineWidth = 0.1 * 0.75f;        // it's really 0.1, but seems too thick?
+        lineWidth = 0.1;
+        starPointRadius = 0.2f;
     }
 
     float cellWidth;
@@ -39,6 +40,7 @@ struct BoardParams
     float border;
     float thickness;
     float lineWidth;
+    float starPointRadius;
 };
 
 class Board
@@ -109,6 +111,17 @@ public:
     float GetCellWidth() const
     {
         return params.cellWidth;
+    }
+
+    vec3f GetPointPosition( int row, int column )
+    {
+        const float w = params.cellWidth;
+        const float h = params.cellHeight;
+        const float z = params.thickness;
+
+        const int n = ( GetSize() - 1 ) / 2;
+
+        return vec3f( ( -n + column - 1 ) * w, ( -n + row - 1 ) * h, z );
     }
 
     const BoardParams & GetParams() const
