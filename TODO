@@ -4,11 +4,6 @@ TODO:
 
     -----------------------------------------------------------------
 
-    Implement a way to place the stone: one finger hold then tap
-    to confirm the stone placement
-
-    -----------------------------------------------------------------
-
     Implement a way to pick the stone up with two finger swipe
     towards the stone, this is something Evan Cho naturally tried
     to do, therefore it is intuitive and I should support it. 

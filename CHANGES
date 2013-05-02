@@ -1,4 +1,15 @@
 
+Implement stone placement (31/4/2013):
+--------------------------------------
+
+    Implement a way to place the stone: one finger hold then tap
+    to confirm the stone placement
+
+    Hacked up the select mode to kick in on the first finger
+    post-placement, so you can apply small adjustments and a 
+    bit of english post-placement.
+
+
 Added star points to the board (31/4/2013):
 -------------------------------------------
 

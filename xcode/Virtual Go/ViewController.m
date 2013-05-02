@@ -28,6 +28,8 @@ enum
 
 enum Counters
 {
+    COUNTER_PlacedStone,
+
     COUNTER_ZoomedIn,
     COUNTER_ZoomedOut,
     COUNTER_AppliedImpulse,
@@ -76,6 +78,8 @@ enum Counters
 
 const char * CounterNames[] = 
 {
+    "placed stane",
+
     "zoomed in",
     "zoomed out",
     "applied impulse",
@@ -284,6 +288,9 @@ enum CollisionPlanes
     float _holdTime;
     CGPoint _holdPoint;
 
+    UITouch * _firstPlacementTouch;
+    UITouch * _secondPlacementTouch;
+
     bool _selected;
     UITouch * _selectTouch;
     CGPoint _selectPoint;
@@ -414,6 +421,9 @@ bool iPad()
     _swipeStarted = false;
     _holdStarted = false;
     _selected = false;
+
+    _firstPlacementTouch = nil;
+    _secondPlacementTouch = nil;
 
     _collisionPlanes = 0;
 
@@ -1096,6 +1106,70 @@ bool iPad()
     
     UITouch * touch = [touches anyObject];
 
+    if ( [touches count] == 1 )
+    {
+        if ( _firstPlacementTouch == nil )
+        {
+            NSLog( @"first placement touch" );
+            _firstPlacementTouch = touch;
+        }
+
+        if ( _firstPlacementTouch != nil && touch != _firstPlacementTouch && _secondPlacementTouch == nil )
+        {
+            NSLog( @"confirm place stone" );
+
+            _secondPlacementTouch = touch;
+
+            CGPoint selectPoint = [_firstPlacementTouch locationInView:self.view];
+            
+            // IMPORTANT: convert points to pixels!
+            const float contentScaleFactor = [self.view contentScaleFactor];
+            vec3f point( selectPoint.x, selectPoint.y, 0 );
+            point *= contentScaleFactor;
+            
+            vec3f rayStart, rayDirection;
+            
+            mat4f inverseClipMatrix;
+            inverseClipMatrix.load( _inverseClipMatrix.m );
+            
+            GetPickRay( inverseClipMatrix, point.x(), point.y(), rayStart, rayDirection );
+            
+            // next, intersect with the plane at select depth and move the stone
+            // such that it is offset from the intersection point with this plane
+            
+            float t = 0;
+            if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), 0, t ) )
+            {
+                [self incrementCounter:COUNTER_PlacedStone];
+
+                _stone.rigidBody.position = rayStart + rayDirection * t;
+                _stone.rigidBody.orientation = quat4f( 0, 0, 0, 1 );
+                _stone.rigidBody.linearMomentum = vec3f(0,0,0);
+                _stone.rigidBody.angularMomentum = vec3f(0,0,0);
+                _stone.rigidBody.Update();
+
+                // IMPORTANT: go into select mode post placement so you can immediately drag the stone
+    
+                RigidBodyTransform transform( _stone.rigidBody.position, _stone.rigidBody.orientation );
+                
+                vec3f intersectionPoint, intersectionNormal;
+                
+                if ( IntersectRayStone( _stone.biconvex, transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+                {
+                    _selected = true;
+                    _selectTouch = _firstPlacementTouch;;
+                    _selectPoint = selectPoint;
+                    _selectDepth = intersectionPoint.z();
+                    _selectOffset = _stone.rigidBody.position - intersectionPoint;
+                    _selectIntersectionPoint = intersectionPoint;
+                    _selectTimestamp = [_firstPlacementTouch timestamp];
+                    _selectPrevIntersectionPoint = _selectIntersectionPoint;
+                    _selectPrevTimestamp = _selectTimestamp;
+                }
+            }
+        }
+    }
+    
     if ( !_selected )
     {
         CGPoint selectPoint = [touch locationInView:self.view];
@@ -1261,6 +1335,12 @@ bool iPad()
 {
 //    NSLog( @"touches ended" );
     
+    if ( _firstPlacementTouch != nil && [touches containsObject:_firstPlacementTouch] )
+    {
+        _firstPlacementTouch = nil;
+        _secondPlacementTouch = nil;
+    }
+    
     UITouch * touch = [touches anyObject];
     
     if ( touch.tapCount == 1 )
@@ -1276,7 +1356,7 @@ bool iPad()
     {
 //            NSLog( @"double tap" );
 
-        if ( iPad() )
+        if ( iPad() && _firstPlacementTouch == nil )
         {
             if ( _zoomed )
                 [self incrementCounter:COUNTER_ZoomedOut];
@@ -1390,6 +1470,9 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 {
     _holdStarted = false;
     _swipeStarted = false;
+    _selected = false;
+    _firstPlacementTouch = nil;
+    _secondPlacementTouch = nil;
 }
 
 - (void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event
