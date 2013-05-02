@@ -1,5 +1,41 @@
 
-Implement stone placement (31/4/2013):
+Implement locked mode (2/5/2013):
+---------------------------------
+
+    Gravity is always down
+
+    Spin is disabled
+
+    Flicking is disabled on the board surface
+
+    You can drag a stone off the board and flick it offscreen
+
+    Disabled placement of a stone off the board. 
+
+    Was way too easy to accidentally touch the screen with the palm
+    of your hand and generate a second touch that placed a stone
+    on the floor. Uh. Not what I want.
+
+    BUG: Sometimes the stone drifts upwards on the board when it should
+    be at rest. I have no idea why this suddenly started happening =p
+
+
+Changed stone placement to second touch (1/5/2013):
+----------------------------------------------------
+
+    Switched stone placement. Stone goes to second touch.
+
+    This is required because when placing a real go stone the middle
+    finger is touching and can push and slide the stone post placement
+
+    With the previous scheme the index finger had the stone under,
+    this was wrong!
+
+    Extended so that you can hold a thumb off board, then tap multiple
+    stones on the board quickly with single presses. NICE
+
+
+Implement stone placement (1/5/2013):
 --------------------------------------
 
     Implement a way to place the stone: one finger hold then tap
@@ -10,7 +46,7 @@ Implement stone placement (31/4/2013):
     bit of english post-placement.
 
 
-Added star points to the board (31/4/2013):
+Added star points to the board (1/5/2013):
 -------------------------------------------
 
     Add star points to 9x9 board
@@ -18,7 +54,7 @@ Added star points to the board (31/4/2013):
     Enable trilinear filtering. Was not enabled (!!!)
     
 
-Enhanced go board grid rendering (31/4/2013):
+Enhanced go board grid rendering (1/5/2013):
 ---------------------------------------------
 
     Recover star point and line textures from original Virtual Go
@@ -28,7 +64,7 @@ Enhanced go board grid rendering (31/4/2013):
     Looks much better now, especially zoomed in!
 
 
-Fix pops when dragging stone over board edges/corners (31/4/2013):
+Fix pops when dragging stone over board edges/corners (1/5/2013):
 ------------------------------------------------------------------
 
     When dragging stone, always push out along the vertical axis
@@ -46,7 +82,7 @@ Fix pops when dragging stone over board edges/corners (31/4/2013):
     Now the stone moves UP onto the board plane when pushed out
 
 
-Enhanced go board shadows on floor (31/4/2013):
+Enhanced go board shadows on floor (1/5/2013):
 -----------------------------------------------
 
     Need better shadows for the go board. 

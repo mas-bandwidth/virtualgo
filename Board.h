@@ -113,6 +113,12 @@ public:
         return params.cellWidth;
     }
 
+    void GetBounds( float & bx, float & by )
+    {
+        bx = halfWidth;
+        by = halfHeight;
+    }
+
     vec3f GetPointPosition( int row, int column )
     {
         const float w = params.cellWidth;

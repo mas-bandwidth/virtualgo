@@ -4,36 +4,45 @@ TODO:
 
     -----------------------------------------------------------------
 
+    Seems to be some sort of drift of the stone on the board?
+
+    Why is this happening?
+
+    -----------------------------------------------------------------
+
+    Implement zoom in to point of double tap
+
+    -----------------------------------------------------------------
+
+    Red square in bottom left of screen. 
+
+    If pressed it toggles locked mode. 
+
+    Locked by default.
+
+    -----------------------------------------------------------------
+
+    In locked mode if a stones logically attach to a grid point
+    when placed, and maintain relation to this point via constraint.
+
+    -----------------------------------------------------------------
+
+    In locked mode stones that fall off the board fadeout and 
+    disappear after n seconds
+
+    -----------------------------------------------------------------
+
+
+
+
+
+    -----------------------------------------------------------------
+
     Implement a way to pick the stone up with two finger swipe
     towards the stone, this is something Evan Cho naturally tried
     to do, therefore it is intuitive and I should support it. 
 
     -----------------------------------------------------------------
-
-
-
-
-
-
-    -----------------------------------------------------------------
-
-    Implement locked mode. Icon in bottom left of screen with a lock
-    off by default. Pressing the icon toggles it.
-
-    In locked mode if a stones logically attach to a grid point
-    when placed, and maintain relation to this point via constraint.
-
-    In locked mode, any stones on the ground or off the side of the
-    board must disappear after coming to rest, because they have
-    no position to lock to.
-
-    In locked mode the stones do not clip to the side view
-    frustum planes. Stones are free to move outside the view.
-
-    If a stone is outside view for > 1 secs, remove it.
-
-    -----------------------------------------------------------------
-
 
 
 
