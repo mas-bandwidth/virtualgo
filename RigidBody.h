@@ -23,9 +23,13 @@ struct RigidBody
     vec3f inertia;
     mat4f inertiaTensor;
     mat4f inverseInertiaTensor;
+    bool active;
+    float deactivateTimer;
 
     RigidBody()
     {
+        active = true;
+        deactivateTimer = 0.0f;
         position = vec3f(0,0,0);
         orientation = quat4f::identity();
         linearMomentum = vec3f(0,0,0);
@@ -41,19 +45,29 @@ struct RigidBody
 
     void Update()
     {
-        const float MaxAngularMomentum = 10;
-        float x = clamp( angularMomentum.x(), -MaxAngularMomentum, MaxAngularMomentum );
-        float y = clamp( angularMomentum.y(), -MaxAngularMomentum, MaxAngularMomentum );
-        float z = clamp( angularMomentum.z(), -MaxAngularMomentum, MaxAngularMomentum );
-        angularMomentum = vec3f( x,y,z );
+        if ( active )
+        {
+            const float MaxAngularMomentum = 10;
+            float x = clamp( angularMomentum.x(), -MaxAngularMomentum, MaxAngularMomentum );
+            float y = clamp( angularMomentum.y(), -MaxAngularMomentum, MaxAngularMomentum );
+            float z = clamp( angularMomentum.z(), -MaxAngularMomentum, MaxAngularMomentum );
+            angularMomentum = vec3f( x,y,z );
 
-        mat4f rotation;
-        orientation.toMatrix( rotation );
-        mat4f transposeRotation = transpose( rotation );
-        mat4f i = rotation * inverseInertiaTensor * transposeRotation;
+            mat4f rotation;
+            orientation.toMatrix( rotation );
+            mat4f transposeRotation = transpose( rotation );
+            mat4f i = rotation * inverseInertiaTensor * transposeRotation;
 
-        linearVelocity = linearMomentum * inverseMass;
-        angularVelocity = transformVector( i, angularMomentum );
+            linearVelocity = linearMomentum * inverseMass;
+            angularVelocity = transformVector( i, angularMomentum );
+        }
+        else
+        {
+            linearMomentum = vec3f( 0,0,0 );
+            linearVelocity = vec3f( 0,0,0 );
+            angularMomentum = vec3f( 0,0,0 );
+            angularVelocity = vec3f( 0,0,0 );
+        }
     }
 
     vec3f GetVelocityAtWorldPoint( vec3f point ) const
@@ -96,11 +110,39 @@ struct RigidBody
         return linearKE + angularKE;
     }
 
+    void Activate()
+    {
+        if ( !active )
+            active = true;
+    }
+
+    void Deactivate()
+    {
+        if ( active )
+        {
+            active = false;
+            deactivateTimer = 0;
+            linearMomentum = vec3f(0,0,0);
+            linearVelocity = vec3f(0,0,0);
+            angularMomentum = vec3f(0,0,0);
+            angularVelocity = vec3f(0,0,0);
+        }
+    }
+
+    void ApplyImpulse( const vec3f & impulse )
+    {
+        Activate();
+        linearMomentum += impulse;
+        Update();
+    }
+
     void ApplyImpulseAtWorldPoint( const vec3f & point, const vec3f & impulse )
     {
+        Activate();
         vec3f r = point - position;
         linearMomentum += impulse;
         angularMomentum += cross( r, impulse );
+        Update();
     }
 };
 

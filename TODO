@@ -2,33 +2,20 @@ DONE:
 
 TODO:
 
-    -----------------------------------------------------------------
+    Need a way to toggle locked mode on/off for Sanfran (and testers!)
 
-    Seems to be some sort of drift of the stone on the board?
+    Ideally, a little square in the bottom left that can be pressed
+    to toggle on/off.
 
-    Why is this happening?
 
-    -----------------------------------------------------------------
 
-    Implement zoom in to point of double tap
-
-    -----------------------------------------------------------------
-
-    Red square in bottom left of screen. 
-
-    If pressed it toggles locked mode. 
-
-    Locked by default.
 
     -----------------------------------------------------------------
 
     In locked mode if a stones logically attach to a grid point
     when placed, and maintain relation to this point via constraint.
 
-    -----------------------------------------------------------------
-
-    In locked mode stones that fall off the board fadeout and 
-    disappear after n seconds
+    When a stone is moved, it should attach to a grid point
 
     -----------------------------------------------------------------
 
@@ -43,6 +30,18 @@ TODO:
     to do, therefore it is intuitive and I should support it. 
 
     -----------------------------------------------------------------
+
+    In locked mode stones that fall off the board fadeout and 
+    disappear after n seconds
+
+    -----------------------------------------------------------------
+
+    Implement zoom in to point of double tap
+
+    Clamp zoom in point to the board surface
+
+    -----------------------------------------------------------------
+
 
 
 
@@ -83,12 +82,6 @@ TODO:
 
     -----------------------------------------------------------------
 
-    Double tap zoom in should remember the specific point where the
-    zoom in was requested on the board, and zoom in centered around
-    that point.
-
-    -----------------------------------------------------------------
-
     Instead of zooming in, maybe a second zoomed in view of the board
     can show while you are holding a touch past a certain point!!!
 
@@ -102,17 +95,6 @@ TODO:
     if you can see under your finger, this is no longer an issue.
 
     -----------------------------------------------------------------
-
-    Really need to get textures for go board lines
-
-    This is required for anti-aliasing effect, otherwise
-    some lines look thicker than others top-down.
-
-    Textures are simple. Reuse original Virtual Go textures
-
-    -----------------------------------------------------------------
-
-
 
 
 

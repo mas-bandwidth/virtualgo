@@ -1,4 +1,37 @@
 
+Work in progress to support multiple stones (2/5/2014):
+-------------------------------------------------------
+
+    Make sure unlocked mode still works with at rest
+
+    Add support for multiple stones
+
+    Lots of difficulties with selection, drag, flick stones.
+
+    Also, shadows have lots of artifacts, eg. z-fighting
+    (needs render to texture shadows to fix properly)
+
+    Physics simulation bogs down with multiple stones, need to optimize!
+
+    Luckily, renderer seems fine...
+
+    Profiler suggests using VAO for stones. Makes sense.
+
+    It's a little bit too soon to go with multiple stones.
+
+    Leave the code general, so I can experiment with it, but turn
+    it off, because it needs so much wore before I can get a build
+    out with multiple stone support enabled.
+
+
+Added at rest detection for stone rigid body (2/5/2014):
+--------------------------------------------------------
+
+    Fixes the position drift for the stone on the board
+
+    But I should still work out what that was. Friction maybe?
+
+
 Fixed the case where you accidentally place a stone while dragging (2/5/2014):
 ------------------------------------------------------------------------------
 
