@@ -12,19 +12,62 @@
     and rotation inverse for quick lookup.
 */
 
+inline void AngularVelocityToSpin( const quat4f & orientation, vec3f angularVelocity, quat4f & spin )
+{
+    spin = 0.5f * quat4f( 0, angularVelocity.x(), angularVelocity.y(), angularVelocity.z() ) * orientation;
+}
+
+struct RigidBodyTransform
+{
+    mat4f localToWorld;
+    mat4f worldToLocal;
+    
+    void Initialize( const vec3f & position, const mat4f & rotation = mat4f::identity() )
+    {
+        localToWorld = rotation;
+        localToWorld.value.w = simd4f_create( position.x(), position.y(), position.z(), 1 );
+        RigidBodyInverse( localToWorld, worldToLocal );
+    }
+    
+    void Initialize( const vec3f & position, const quat4f & rotation )
+    {
+        rotation.toMatrix( localToWorld );
+        localToWorld.value.w = simd4f_create( position.x(), position.y(), position.z(), 1 );
+        RigidBodyInverse( localToWorld, worldToLocal );
+    }
+    
+    vec3f GetUp() const
+    {
+        return transformVector( localToWorld, vec3f(0,0,1) );
+    }
+    
+    vec3f GetPosition() const
+    {
+        return localToWorld.value.w;
+    }
+};
+
 struct RigidBody
 {
-    vec3f position;
-    quat4f orientation;
-    vec3f linearMomentum, angularMomentum;
-    vec3f linearVelocity, angularVelocity;          // IMPORTANT: these are secondary quantities calculated from momentum
-    float mass;
-    float inverseMass;
-    vec3f inertia;
     mat4f inertiaTensor;
     mat4f inverseInertiaTensor;
-    bool active;
+    mat4f inertiaTensorWorld;
+    mat4f inverseInertiaTensorWorld;
+
+    mat4f rotation, transposeRotation;              // IMPORTANT: these are secondary quantities calculated from orientation
+
+    quat4f orientation;
+
+    vec3f inertia;
+    vec3f position;
+    vec3f linearMomentum, angularMomentum;
+    vec3f linearVelocity, angularVelocity;          // IMPORTANT: these are secondary quantities calculated from momentum
+
+    float mass;
+    float inverseMass;
     float deactivateTimer;
+
+    bool active;
 
     RigidBody()
     {
@@ -34,32 +77,43 @@ struct RigidBody
         orientation = quat4f::identity();
         linearMomentum = vec3f(0,0,0);
         angularMomentum = vec3f(0,0,0);
-        linearVelocity = vec3f(0,0,0);
-        angularVelocity = vec3f(0,0,0);
         mass = 1.0f;
         inverseMass = 1.0f / mass;
         inertia = vec3f(1,1,1);
         inertiaTensor = mat4f::identity();
         inverseInertiaTensor = mat4f::identity();
+
+        UpdateOrientation();
+        UpdateMomentum();
     }
 
-    void Update()
+    void UpdateOrientation()
+    {
+        orientation.toMatrix( rotation );
+        transposeRotation = transpose( rotation );
+        inertiaTensorWorld = rotation * inertiaTensor * transposeRotation;
+        inverseInertiaTensorWorld = rotation * inverseInertiaTensor * transposeRotation;
+    }
+
+    void GetTransform( RigidBodyTransform & transform ) const
+    {
+        transform.Initialize( position, rotation );         // todo: can do it faster. we already have the transpose
+    }
+
+    void UpdateMomentum()
     {
         if ( active )
         {
             const float MaxAngularMomentum = 10;
+
             float x = clamp( angularMomentum.x(), -MaxAngularMomentum, MaxAngularMomentum );
             float y = clamp( angularMomentum.y(), -MaxAngularMomentum, MaxAngularMomentum );
             float z = clamp( angularMomentum.z(), -MaxAngularMomentum, MaxAngularMomentum );
+
             angularMomentum = vec3f( x,y,z );
 
-            mat4f rotation;
-            orientation.toMatrix( rotation );
-            mat4f transposeRotation = transpose( rotation );
-            mat4f i = rotation * inverseInertiaTensor * transposeRotation;
-
             linearVelocity = linearMomentum * inverseMass;
-            angularVelocity = transformVector( i, angularMomentum );
+            angularVelocity = transformVector( inverseInertiaTensorWorld, angularMomentum );
         }
         else
         {
@@ -70,16 +124,10 @@ struct RigidBody
         }
     }
 
-    vec3f GetVelocityAtWorldPoint( vec3f point ) const
+    void GetVelocityAtWorldPoint( vec3f point, vec3f & velocity ) const
     {
-        mat4f rotation;
-        orientation.toMatrix( rotation );
-        mat4f transposeRotation = transpose( rotation );
-        mat4f i = rotation * inverseInertiaTensor * transposeRotation;
-
-        // IMPORTANT: angular momentum may have been updated without updating angular velocity
-        vec3f angularVelocity = transformVector( i, angularMomentum );
-        return linearVelocity + cross( angularVelocity, point - position );
+        vec3f angularVelocity = transformVector( inverseInertiaTensorWorld, angularMomentum );
+        velocity = linearVelocity + cross( angularVelocity, point - position );
     }
 
     float GetKineticEnergy() const
@@ -89,9 +137,6 @@ struct RigidBody
 
         const float linearKE = length_squared( linearMomentum ) / ( 2 * mass );
 
-        mat4f rotation;
-        orientation.toMatrix( rotation );
-        mat4f transposeRotation = transpose( rotation );
         vec3f angularMomentumLocal = transformVector( transposeRotation, angularMomentum );
         vec3f angularVelocityLocal = transformVector( inverseInertiaTensor, angularMomentumLocal );
 
@@ -133,7 +178,7 @@ struct RigidBody
     {
         Activate();
         linearMomentum += impulse;
-        Update();
+        UpdateMomentum();                   // todo: can this be avoided?
     }
 
     void ApplyImpulseAtWorldPoint( const vec3f & point, const vec3f & impulse )
@@ -142,44 +187,7 @@ struct RigidBody
         vec3f r = point - position;
         linearMomentum += impulse;
         angularMomentum += cross( r, impulse );
-        Update();
-    }
-};
-
-inline quat4f AngularVelocityToSpin( const quat4f & orientation, vec3f angularVelocity )
-{
-    return 0.5f * quat4f( 0, angularVelocity.x(), angularVelocity.y(), angularVelocity.z() ) * orientation;
-}
-
-struct RigidBodyTransform
-{
-    mat4f localToWorld;
-    mat4f worldToLocal;
-
-    RigidBodyTransform( vec3f position, mat4f rotation = mat4f::identity() )
-    {
-        localToWorld = rotation;
-        localToWorld.value.w = simd4f_create( position.x(), position.y(), position.z(), 1 );
-        worldToLocal = RigidBodyInverse( localToWorld );
-    }
-
-    RigidBodyTransform( vec3f position, quat4f rotation )
-    {
-        rotation.toMatrix( localToWorld );
-        localToWorld.value.w = simd4f_create( position.x(), position.y(), position.z(), 1 );
-        worldToLocal = RigidBodyInverse( localToWorld );
-    }
-
-    vec3f GetUp() const
-    {
-        // get on up
-        return transformVector( localToWorld, vec3f(0,0,1) );
-    }
-
-    vec3f GetPosition() const
-    {
-        // stay on the scene
-        return localToWorld.value.w;
+        UpdateMomentum();                   // todo: can this be avoided?
     }
 };
 

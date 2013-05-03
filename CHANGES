@@ -1,4 +1,62 @@
 
+Some basic optimizations to support lots of stones (3/5/2014):
+--------------------------------------------------------------
+
+    INITIAL PROFILE:
+
+        15.4% - RigidBodyTransform::RigidBodyTransform
+        10.0% - quat4f::toMatrix
+         9.9% - StonePlaneCollision
+         6.9% - ApplyCollisionImpulseWithFriction
+         4.5% - RigidBody::Update
+         4.0% - RigidBody::GetVelocityAtWorldPoint
+         3.7% - RigidBody::GetKineticEnergy
+         1.5% - ClosestFeaturesBiconvexPlane_LocalSpace
+         1.0% - IntersectStoneBoard
+
+    AFTER TRIVIAL OPTIMIZATIONS:
+
+        18.9% - RigidBodyTransform::RigidBodyTransform
+        13.0% - StonePlaneCollision
+        12.0% - ApplyCollisionImpulseWithFriction
+         9.2% - quat4f::toMatrix
+         6.5% - RigidBody::GetVelocityAtWorldPoint
+         2.6% - ClosestFeaturesBiconvexPlane_LocalSpace
+         2.0% - RigidBody::Update
+         0.9% - IntersectStoneBoard
+
+    IDEA #1: Cache the rotation matrix and its transpose
+    during integration. Rotation matrix only changes
+    at this point. Don't recalculate during the frame!
+
+        22.6% - StonePlaneCollision
+         8.2% - ApplyCollisionImpulseWithFriction
+         3.4% - StoneBoardCollision
+         3.2% - RigidBody::GetVelocityAtWorldPoint
+         2.8% - RigidBody::UpdateOrientation
+         1.6% - IntersectStoneBoard
+
+    Idea #2: Add an early out check for the stone vs. plane
+    Calculating the support is a reasonable amount of work.
+    It can be avoided by checking if the stone is further
+    away from the plane than the bounding sphere first.
+
+        11.2% - ApplyCollisionImpulseWithFriction
+        10.9% - StonePlaneCollision
+         5.3% - GetVelocityAtWorldPoint
+         4.1% - StoneBoardCollision
+         3.8% - ClosestFeaturesBiconvexPlane_LocalSpace
+         3.3% - RigidBody::UpdateOrientation
+         2.5% - IntersectStoneBoard
+         1.1% - quat4f::toMatrix
+
+    Idea #3: Maybe the vectorial library is not properly
+    using the neon intrinsics! eg. it is falling back to
+    scalar float operations. This could explain slowness!
+
+        WRONG. Vectorial is confirmed running in NEON mode.
+
+
 Work in progress to support multiple stones (2/5/2014):
 -------------------------------------------------------
 

@@ -808,11 +808,14 @@ bool StoneBoardCollision( const Biconvex & biconvex,
                           bool hasPreferredDirection,
                           const vec3f & preferredDirection )
 {
+    RigidBodyTransform transform;
+    rigidBody.GetTransform( transform );
+
     // detect collision with the board
 
     float depth;
     vec3f normal;
-    if ( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( rigidBody.position, rigidBody.orientation ), 
+    if ( !IntersectStoneBoard( board, biconvex, transform,
                                normal, depth, hasPreferredDirection, preferredDirection ) )
         return false;
 
@@ -825,8 +828,7 @@ bool StoneBoardCollision( const Biconvex & biconvex,
 
     vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
 
-    ClosestFeaturesStoneBoard( board, biconvex, 
-                               RigidBodyTransform( rigidBody.position, rigidBody.orientation ), 
+    ClosestFeaturesStoneBoard( board, biconvex, transform,
                                stonePoint, stoneNormal, boardPoint, boardNormal );
 
     contact.rigidBody = &rigidBody;
@@ -842,17 +844,20 @@ bool StonePlaneCollision( const Biconvex & biconvex,
                           RigidBody & rigidBody,
                           StaticContact & contact )
 {
-    vec3f biconvexPosition = rigidBody.position;
-
-    RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
-
+    // IMPORTANT: early out test!
     vec3f planeNormal( plane.x(), plane.y(), plane.z() );
-    float planeD = plane.w();
+    const float planeD = plane.w();
+    if ( dot( rigidBody.position, planeNormal ) > planeD + biconvex.GetBoundingSphereRadius() )
+        return false;
+
+    RigidBodyTransform transform;
+    rigidBody.GetTransform( transform );
+
+    const vec3f & biconvexPosition = rigidBody.position;
 
     float s1,s2;
-    vec3f biconvexUp = biconvexTransform.GetUp();
-    vec3f biconvexCenter = biconvexTransform.GetPosition();
-    BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, planeNormal, s1, s2 );
+    vec3f biconvexUp = transform.GetUp();
+    BiconvexSupport_WorldSpace( biconvex, biconvexPosition, biconvexUp, planeNormal, s1, s2 );
     
     if ( s1 > planeD )
         return false;
@@ -861,7 +866,7 @@ bool StonePlaneCollision( const Biconvex & biconvex,
 
     rigidBody.position += planeNormal * depth;
 
-    vec4f local_plane = TransformPlane( biconvexTransform.worldToLocal, plane );
+    vec4f local_plane = TransformPlane( transform.worldToLocal, plane );
 
     vec3f local_stonePoint;
     vec3f local_stoneNormal;
@@ -875,7 +880,7 @@ bool StonePlaneCollision( const Biconvex & biconvex,
                                              local_floorPoint );
 
     contact.rigidBody = &rigidBody;
-    contact.point = TransformPoint( biconvexTransform.localToWorld, local_floorPoint );
+    contact.point = TransformPoint( transform.localToWorld, local_floorPoint );
     contact.normal = planeNormal;
     contact.depth = depth;
 

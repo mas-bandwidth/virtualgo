@@ -17,7 +17,7 @@
 #include "CollisionDetection.h"
 #include "CollisionResponse.h"
 
-//#define MULTIPLE_STONES 1
+#define MULTIPLE_STONES 1
 
 const float DeactivateTime = 0.1f;
 const float DeactivateLinearThresholdSquared = 0.1f * 0.1f;
@@ -84,8 +84,6 @@ enum Counters
     COUNTER_FlickedStone,
     COUNTER_TouchedStone,
 
-    COUNTER_HitNearPlane,
-
     COUNTER_AtRestBoard,
     COUNTER_AtRestGroundPlane,
     COUNTER_AtRestLeftPlane,
@@ -137,8 +135,6 @@ const char * CounterNames[] =
     "flicked stone",
     "touched stone",
     
-    "hit near plane",
-
     "at rest board",
     "at rest ground plane",
     "at rest left plane",
@@ -1078,6 +1074,7 @@ bool iPad()
 {
     [self incrementCounter:COUNTER_ToggleLocked];
     _locked = !_locked;
+    NSLog( @"toggle locked: %s", _locked ? "true" : "false " );
 }
 
 - (void)updateTouch:(float)dt
@@ -1100,34 +1097,28 @@ bool iPad()
         stone.rigidBody.Activate();
     
 #endif
+
+        _holdStarted = false;
+        _swipeStarted = false;
     }
-    else
+
+    if ( _holdStarted )
     {
-        if ( _holdStarted )
+        _holdTime += dt;
+
+        if ( _holdTime >= HoldDelay )
         {
-            const float prevTime = _holdTime;
-
-            _holdTime += dt;
-
-            if ( prevTime < HoldDelay && _holdTime >= HoldDelay )
-            {
-//                NSLog( @"hold" );
-            }
-
-            if ( _holdTime >= HoldDelay )
-            {
-                for ( int i = 0; i < _stones.size(); ++i )
-                    _stones[i].rigidBody.angularMomentum *= HoldDamping;
-            }
+            for ( int i = 0; i < _stones.size(); ++i )
+                _stones[i].rigidBody.angularMomentum *= HoldDamping;
         }
+    }
 
-        if ( _swipeStarted )
-        {
-            _swipeTime += dt;
+    if ( _swipeStarted )
+    {
+        _swipeTime += dt;
 
-            if ( _swipeTime > MaxSwipeTime )
-                _swipeStarted = false;
-        }
+        if ( _swipeTime > MaxSwipeTime )
+            _swipeStarted = false;
     }
 }
 
@@ -1361,7 +1352,7 @@ bool iPad()
 
             if ( length( delta ) > HoldMoveThreshold )
             {
-                //NSLog( @"hold moved" );
+                NSLog( @"hold moved" );
                 _holdStarted = false;
             }
         }
@@ -1733,22 +1724,22 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
             #endif
                 stone.rigidBody.linearMomentum += gravity * stone.rigidBody.mass * iteration_dt;
 
-            stone.rigidBody.Update();
+            stone.rigidBody.UpdateMomentum();
 
             if ( !_selected )
                 stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
 
-            const int rotation_substeps = 10;
+            const int rotation_substeps = 1;
             const float rotation_substep_dt = iteration_dt / rotation_substeps;
             for ( int j = 0; j < rotation_substeps; ++j )
             {
-                quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
+                quat4f spin;
+                AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity, spin );
                 stone.rigidBody.orientation += spin * rotation_substep_dt;
                 stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
             }        
             
-            // if just dropped let it first fall through the near plane
-            // then it can start colliding with the frustum planes
+            stone.rigidBody.UpdateOrientation();
 
             StaticContact contact;
 
@@ -1766,9 +1757,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
                 if ( StonePlaneCollision( stone.biconvex, nearPlane, stone.rigidBody, contact ) )
                 {
                     ApplyCollisionImpulseWithFriction( contact, e, u );
-                    stone.rigidBody.Update();
                     iteration_collided = true;
-                    [self incrementCounter:COUNTER_HitNearPlane];
                     _collisionPlanes |= COLLISION_NearPlane;
                 }
 
@@ -1777,7 +1766,6 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
                 if ( StonePlaneCollision( stone.biconvex, frustum.left, stone.rigidBody, contact ) )
                 {
                     ApplyCollisionImpulseWithFriction( contact, e, u );
-                    stone.rigidBody.Update();
                     iteration_collided = true;
                     _collisionPlanes |= COLLISION_LeftPlane;
                 }
@@ -1787,7 +1775,6 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
                 if ( StonePlaneCollision( stone.biconvex, frustum.right, stone.rigidBody, contact ) )
                 {
                     ApplyCollisionImpulseWithFriction( contact, e, u );
-                    stone.rigidBody.Update();
                     iteration_collided = true;
                     _collisionPlanes |= COLLISION_RightPlane;
                 }
@@ -1797,7 +1784,6 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
                 if ( StonePlaneCollision( stone.biconvex, frustum.top, stone.rigidBody, contact ) )
                 {
                     ApplyCollisionImpulseWithFriction( contact, e, u );
-                    stone.rigidBody.Update();
                     iteration_collided = true;
                     _collisionPlanes |= COLLISION_TopPlane;
                 }
@@ -1807,7 +1793,6 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
                 if ( StonePlaneCollision( stone.biconvex, frustum.bottom, stone.rigidBody, contact ) )
                 {
                     ApplyCollisionImpulseWithFriction( contact, e, u );
-                    stone.rigidBody.Update();
                     iteration_collided = true;
                     _collisionPlanes |= COLLISION_BottomPlane;
                 }
@@ -1818,7 +1803,6 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
             if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, contact ) )
             {
                 ApplyCollisionImpulseWithFriction( contact, e, u );
-                stone.rigidBody.Update();
                 iteration_collided = true;
                 _collisionPlanes |= COLLISION_GroundPlane;
             }
@@ -1828,7 +1812,6 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
             if ( StoneBoardCollision( stone.biconvex, _board, stone.rigidBody, contact, true, _selected ) )
             {
                 ApplyCollisionImpulseWithFriction( contact, e, u );
-                stone.rigidBody.Update();
                 iteration_collided = true;
                 _collisionPlanes |= COLLISION_Board;
             }
@@ -1874,8 +1857,6 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
             stone.rigidBody.linearMomentum *= linear_factor;
             stone.rigidBody.angularMomentum *= angular_factor;
-            
-            stone.rigidBody.Update();
         }
 
         // deactivate stones at rest
@@ -2444,7 +2425,8 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
             
             GLKMatrix4 view = baseModelViewMatrix;
             
-            RigidBodyTransform biconvexTransform( stone.rigidBody.position, stone.rigidBody.orientation );
+            RigidBodyTransform biconvexTransform;
+            stone.rigidBody.GetTransform( biconvexTransform );
             float opengl_transform[16];
             biconvexTransform.localToWorld.store( opengl_transform );
 
@@ -2511,7 +2493,8 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
 
             GLKMatrix4 view = baseModelViewMatrix;
             
-            RigidBodyTransform biconvexTransform( stone.rigidBody.position, stone.rigidBody.orientation );
+            RigidBodyTransform biconvexTransform;
+            stone.rigidBody.GetTransform( biconvexTransform );
             float opengl_transform[16];
             biconvexTransform.localToWorld.store( opengl_transform );
 
@@ -2564,7 +2547,8 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
         {
             Stone & stone = _stones[i];
             
-            RigidBodyTransform biconvexTransform( stone.rigidBody.position, stone.rigidBody.orientation );
+            RigidBodyTransform biconvexTransform;
+            stone.rigidBody.GetTransform( biconvexTransform );
             float opengl_transform[16];
             biconvexTransform.localToWorld.store( opengl_transform );
 
@@ -2587,6 +2571,9 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
         glDisableVertexAttribArray( GLKVertexAttribPosition );
         glDisableVertexAttribArray( GLKVertexAttribNormal );
     }
+
+    const GLenum discards[]  = { GL_DEPTH_ATTACHMENT };
+    glDiscardFramebufferEXT( GL_FRAMEBUFFER, 1, discards );
     
     _hasRendered = true;
 }

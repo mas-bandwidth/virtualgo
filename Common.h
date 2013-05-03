@@ -277,16 +277,16 @@ inline vec3f TransformVector( mat4f matrix, vec3f normal )
     return transformVector( matrix, normal );
 }
 
-inline mat4f RigidBodyInverse( const mat4f & matrix )
+inline void RigidBodyInverse( const mat4f & matrix, mat4f & inverse )
 {
     /*
         How to invert a rigid body matrix
         http://graphics.stanford.edu/courses/cs248-98-fall/Final/q4.html
     */
 
-    mat4f inverse = matrix;
-    
-    vec4f translation = matrix.value.w;
+    inverse = matrix;
+
+    const vec4f & translation = matrix.value.w;
 
     inverse.value.w = simd4f_create(0,0,0,1);
     simd4x4f_transpose_inplace( &inverse.value );
@@ -295,8 +295,6 @@ inline mat4f RigidBodyInverse( const mat4f & matrix )
                                      -dot( matrix.value.y, translation ),
                                      -dot( matrix.value.z, translation ),
                                      1.0f );
-
-    return inverse;
 }
 
 inline vec4f TransformPlane( mat4f matrix, vec4f plane )

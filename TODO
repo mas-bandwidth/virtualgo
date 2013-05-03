@@ -2,13 +2,20 @@ DONE:
 
 TODO:
 
-    Need a way to toggle locked mode on/off for Sanfran (and testers!)
+    -----------------------------------------------------------------
 
-    Ideally, a little square in the bottom left that can be pressed
-    to toggle on/off.
+    Idea the UI element can be frosted glass resting on the floor
 
+    This would look AWESOME
 
+    -----------------------------------------------------------------
 
+    Add a square UI element that can be pressed to toggle locked mode
+
+    To do this need:
+
+    - ortho projection matrix
+    - shader for UI elements (textured, with alpha)
 
     -----------------------------------------------------------------
 
