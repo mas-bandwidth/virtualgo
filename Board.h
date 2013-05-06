@@ -121,6 +121,11 @@ public:
 
     vec3f GetPointPosition( int row, int column )
     {
+        assert( row >= 1 );
+        assert( column >= 1 );
+        assert( row <= size );
+        assert( column <= size );
+
         const float w = params.cellWidth;
         const float h = params.cellHeight;
         const float z = params.thickness;

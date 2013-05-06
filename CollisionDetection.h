@@ -33,13 +33,13 @@ inline bool StoneBoardCollision( const Biconvex & biconvex,
                                  const vec3f & preferredDirection = vec3f(0,0,1) );
 
 inline bool StonePlaneCollision( const Biconvex & biconvex,
-                                 vec4f plane,
+                                 const vec4f & plane,
                                  RigidBody & rigidBody,
                                  StaticContact & contact );
 
 // --------------------------------------------------------------------------
 
-inline void ClosestFeaturesBiconvexPlane_LocalSpace( vec3f planeNormal,
+inline void ClosestFeaturesBiconvexPlane_LocalSpace( const vec3f & planeNormal,
                                                      float planeDistance,
                                                      const Biconvex & biconvex,
                                                      vec3f & biconvexPoint,
@@ -140,15 +140,14 @@ inline bool ClosestFeatureLeftSide( const Board & board,
 
 inline bool ClosestFeatureLeftEdge( const Board & board, 
                                     const Biconvex & biconvex, 
+                                    const vec3f & biconvexPosition,
+                                    const vec3f & biconvexUp,
                                     const RigidBodyTransform & biconvexTransform,
                                     vec3f & stonePoint,
                                     vec3f & stoneNormal,
                                     vec3f & boardPoint,
                                     vec3f & boardNormal )
 {
-    vec3f biconvexPosition = biconvexTransform.GetPosition();
-    vec3f biconvexUp = biconvexTransform.GetUp();
-
     const float w = board.GetWidth() / 2;
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
@@ -222,15 +221,14 @@ inline bool ClosestFeatureRightSide( const Board & board,
 
 inline bool ClosestFeatureRightEdge( const Board & board, 
                                      const Biconvex & biconvex, 
+                                     const vec3f & biconvexPosition,
+                                     const vec3f & biconvexUp,
                                      const RigidBodyTransform & biconvexTransform,
                                      vec3f & stonePoint,
                                      vec3f & stoneNormal,
                                      vec3f & boardPoint,
                                      vec3f & boardNormal )
 {
-    vec3f biconvexPosition = biconvexTransform.GetPosition();
-    vec3f biconvexUp = biconvexTransform.GetUp();
-
     const float w = board.GetWidth() / 2;
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
@@ -304,15 +302,14 @@ inline bool ClosestFeatureTopSide( const Board & board,
 
 inline bool ClosestFeatureTopEdge( const Board & board, 
                                    const Biconvex & biconvex, 
+                                   const vec3f & biconvexPosition,
+                                   const vec3f & biconvexUp,
                                    const RigidBodyTransform & biconvexTransform,
                                    vec3f & stonePoint,
                                    vec3f & stoneNormal,
                                    vec3f & boardPoint,
                                    vec3f & boardNormal )
 {
-    vec3f biconvexPosition = biconvexTransform.GetPosition();
-    vec3f biconvexUp = biconvexTransform.GetUp();
-
     const float w = board.GetWidth() / 2;
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
@@ -386,15 +383,14 @@ inline bool ClosestFeatureBottomSide( const Board & board,
 
 inline bool ClosestFeatureBottomEdge( const Board & board, 
                                       const Biconvex & biconvex, 
+                                      const vec3f & biconvexPosition,
+                                      const vec3f & biconvexUp,
                                       const RigidBodyTransform & biconvexTransform,
                                       vec3f & stonePoint,
                                       vec3f & stoneNormal,
                                       vec3f & boardPoint,
                                       vec3f & boardNormal )
 {
-    vec3f biconvexPosition = biconvexTransform.GetPosition();
-    vec3f biconvexUp = biconvexTransform.GetUp();
-
     const float w = board.GetWidth() / 2;
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
@@ -433,15 +429,14 @@ inline bool ClosestFeatureBottomEdge( const Board & board,
 
 inline bool ClosestFeatureBottomLeftEdge( const Board & board, 
                                           const Biconvex & biconvex, 
+                                          const vec3f & biconvexPosition,
+                                          const vec3f & biconvexUp,
                                           const RigidBodyTransform & biconvexTransform,
                                           vec3f & stonePoint,
                                           vec3f & stoneNormal,
                                           vec3f & boardPoint,
                                           vec3f & boardNormal )
 {
-    vec3f biconvexPosition = biconvexTransform.GetPosition();
-    vec3f biconvexUp = biconvexTransform.GetUp();
-
     const float w = board.GetWidth() / 2;
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
@@ -480,15 +475,14 @@ inline bool ClosestFeatureBottomLeftEdge( const Board & board,
 
 inline bool ClosestFeatureBottomRightEdge( const Board & board, 
                                            const Biconvex & biconvex, 
+                                           const vec3f & biconvexPosition,
+                                           const vec3f & biconvexUp,
                                            const RigidBodyTransform & biconvexTransform,
                                            vec3f & stonePoint,
                                            vec3f & stoneNormal,
                                            vec3f & boardPoint,
                                            vec3f & boardNormal )
 {
-    vec3f biconvexPosition = biconvexTransform.GetPosition();
-    vec3f biconvexUp = biconvexTransform.GetUp();
-
     const float w = board.GetWidth() / 2;
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
@@ -527,15 +521,14 @@ inline bool ClosestFeatureBottomRightEdge( const Board & board,
 
 inline bool ClosestFeatureTopLeftEdge( const Board & board, 
                                        const Biconvex & biconvex, 
+                                       const vec3f & biconvexPosition,
+                                       const vec3f & biconvexUp,
                                        const RigidBodyTransform & biconvexTransform,
                                        vec3f & stonePoint,
                                        vec3f & stoneNormal,
                                        vec3f & boardPoint,
                                        vec3f & boardNormal )
 {
-    vec3f biconvexPosition = biconvexTransform.GetPosition();
-    vec3f biconvexUp = biconvexTransform.GetUp();
-
     const float w = board.GetWidth() / 2;
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
@@ -574,15 +567,14 @@ inline bool ClosestFeatureTopLeftEdge( const Board & board,
 
 inline bool ClosestFeatureTopRightEdge( const Board & board, 
                                         const Biconvex & biconvex, 
+                                        const vec3f & biconvexPosition,
+                                        const vec3f & biconvexUp,
                                         const RigidBodyTransform & biconvexTransform,
                                         vec3f & stonePoint,
                                         vec3f & stoneNormal,
                                         vec3f & boardPoint,
                                         vec3f & boardNormal )
 {
-    vec3f biconvexPosition = biconvexTransform.GetPosition();
-    vec3f biconvexUp = biconvexTransform.GetUp();
-
     const float w = board.GetWidth() / 2;
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
@@ -647,14 +639,13 @@ inline void ClosestFeatureCorner( const Board & board,
 
 inline void ClosestFeaturesStoneBoard( const Board & board, 
                                        const Biconvex & biconvex, 
+                                       const vec3f & biconvexPosition,
                                        const RigidBodyTransform & biconvexTransform,
                                        vec3f & stonePoint,
                                        vec3f & stoneNormal,
                                        vec3f & boardPoint,
                                        vec3f & boardNormal )
 {
-    vec3f biconvexPosition = biconvexTransform.GetPosition();
-
     const float boundingSphereRadius = biconvex.GetWidth() * 0.5f;
 
     bool broadPhaseReject;
@@ -664,6 +655,9 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
     const float h = board.GetHeight() / 2;
     const float t = board.GetThickness();
 
+    vec3f biconvexUp;
+    biconvexTransform.GetUp( biconvexUp );
+    
     if ( region == STONE_BOARD_REGION_Primary )
     {
         ClosestFeaturePrimarySurface( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
@@ -676,7 +670,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         if ( ClosestFeatureLeftSide( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        ClosestFeatureLeftEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
+        ClosestFeatureLeftEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
     }
     else if ( region == STONE_BOARD_REGION_RightSide )
     {
@@ -686,7 +680,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         if ( ClosestFeatureRightSide( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        ClosestFeatureRightEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
+        ClosestFeatureRightEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
     }
     else if ( region == STONE_BOARD_REGION_TopSide )
     {
@@ -696,7 +690,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         if ( ClosestFeatureTopSide( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        ClosestFeatureTopEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
+        ClosestFeatureTopEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
     }
     else if ( region == STONE_BOARD_REGION_BottomSide )
     {
@@ -706,7 +700,7 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         if ( ClosestFeatureBottomSide( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        ClosestFeatureBottomEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
+        ClosestFeatureBottomEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal );
     }
     else if ( region == STONE_BOARD_REGION_BottomLeftCorner )
     {
@@ -719,13 +713,13 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         if ( ClosestFeatureBottomSide( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        if ( ClosestFeatureLeftEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+        if ( ClosestFeatureLeftEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        if ( ClosestFeatureBottomEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+        if ( ClosestFeatureBottomEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        if ( ClosestFeatureBottomLeftEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+        if ( ClosestFeatureBottomLeftEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
         ClosestFeatureCorner( board, biconvex, biconvexTransform, vec3f(-w,-h,t), stonePoint, stoneNormal, boardPoint, boardNormal );
@@ -741,13 +735,13 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         if ( ClosestFeatureBottomSide( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        if ( ClosestFeatureRightEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+        if ( ClosestFeatureRightEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        if ( ClosestFeatureBottomEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+        if ( ClosestFeatureBottomEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        if ( ClosestFeatureBottomRightEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+        if ( ClosestFeatureBottomRightEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
         ClosestFeatureCorner( board, biconvex, biconvexTransform, vec3f(w,-h,t), stonePoint, stoneNormal, boardPoint, boardNormal );
@@ -763,13 +757,13 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         if ( ClosestFeatureTopSide( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        if ( ClosestFeatureLeftEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+        if ( ClosestFeatureLeftEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        if ( ClosestFeatureTopEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+        if ( ClosestFeatureTopEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        if ( ClosestFeatureTopLeftEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+        if ( ClosestFeatureTopLeftEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
         ClosestFeatureCorner( board, biconvex, biconvexTransform, vec3f(-w,h,t), stonePoint, stoneNormal, boardPoint, boardNormal );
@@ -785,13 +779,13 @@ inline void ClosestFeaturesStoneBoard( const Board & board,
         if ( ClosestFeatureTopSide( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        if ( ClosestFeatureRightEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+        if ( ClosestFeatureRightEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        if ( ClosestFeatureTopEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+        if ( ClosestFeatureTopEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
-        if ( ClosestFeatureTopRightEdge( board, biconvex, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
+        if ( ClosestFeatureTopRightEdge( board, biconvex, biconvexPosition, biconvexUp, biconvexTransform, stonePoint, stoneNormal, boardPoint, boardNormal ) )
             return;
 
         ClosestFeatureCorner( board, biconvex, biconvexTransform, vec3f(w,h,t), stonePoint, stoneNormal, boardPoint, boardNormal );
@@ -808,8 +802,7 @@ bool StoneBoardCollision( const Biconvex & biconvex,
                           bool hasPreferredDirection,
                           const vec3f & preferredDirection )
 {
-    RigidBodyTransform transform;
-    rigidBody.GetTransform( transform );
+    const RigidBodyTransform & transform = rigidBody.transform;
 
     // detect collision with the board
 
@@ -828,7 +821,7 @@ bool StoneBoardCollision( const Biconvex & biconvex,
 
     vec3f stonePoint, stoneNormal, boardPoint, boardNormal;
 
-    ClosestFeaturesStoneBoard( board, biconvex, transform,
+    ClosestFeaturesStoneBoard( board, biconvex, rigidBody.position, transform,
                                stonePoint, stoneNormal, boardPoint, boardNormal );
 
     contact.rigidBody = &rigidBody;
@@ -840,23 +833,22 @@ bool StoneBoardCollision( const Biconvex & biconvex,
 }
 
 bool StonePlaneCollision( const Biconvex & biconvex,
-                          vec4f plane,
+                          const vec4f & plane,
                           RigidBody & rigidBody,
                           StaticContact & contact )
 {
-    // IMPORTANT: early out test!
-    vec3f planeNormal( plane.x(), plane.y(), plane.z() );
+    vec3f planeNormal( plane.value );
     const float planeD = plane.w();
     if ( dot( rigidBody.position, planeNormal ) > planeD + biconvex.GetBoundingSphereRadius() )
         return false;
 
-    RigidBodyTransform transform;
-    rigidBody.GetTransform( transform );
-
+    const RigidBodyTransform & transform = rigidBody.transform;
+    
     const vec3f & biconvexPosition = rigidBody.position;
 
     float s1,s2;
-    vec3f biconvexUp = transform.GetUp();
+    vec3f biconvexUp;
+    transform.GetUp( biconvexUp );
     BiconvexSupport_WorldSpace( biconvex, biconvexPosition, biconvexUp, planeNormal, s1, s2 );
     
     if ( s1 > planeD )
@@ -872,7 +864,7 @@ bool StonePlaneCollision( const Biconvex & biconvex,
     vec3f local_stoneNormal;
     vec3f local_floorPoint;
 
-    ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( local_plane.x(), local_plane.y(), local_plane.z() ), 
+    ClosestFeaturesBiconvexPlane_LocalSpace( vec3f( local_plane.value ),
                                              local_plane.w(), 
                                              biconvex, 
                                              local_stonePoint,

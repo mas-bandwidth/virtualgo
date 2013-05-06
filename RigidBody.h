@@ -5,63 +5,27 @@
     Rigid body class and support functions.
     We need a nice way to cache the local -> world,
     world -> local and position for a given rigid body.
-
-    The rigid body transform class lets us do this,
-    it's fundamentally a 4x4 rigid body transform matrix
-    but with the inverse cached, as well as position, rotation
-    and rotation inverse for quick lookup.
 */
-
-inline void AngularVelocityToSpin( const quat4f & orientation, vec3f angularVelocity, quat4f & spin )
-{
-    spin = 0.5f * quat4f( 0, angularVelocity.x(), angularVelocity.y(), angularVelocity.z() ) * orientation;
-}
-
-struct RigidBodyTransform
-{
-    mat4f localToWorld;
-    mat4f worldToLocal;
-    
-    void Initialize( const vec3f & position, const mat4f & rotation = mat4f::identity() )
-    {
-        localToWorld = rotation;
-        localToWorld.value.w = simd4f_create( position.x(), position.y(), position.z(), 1 );
-        RigidBodyInverse( localToWorld, worldToLocal );
-    }
-    
-    void Initialize( const vec3f & position, const quat4f & rotation )
-    {
-        rotation.toMatrix( localToWorld );
-        localToWorld.value.w = simd4f_create( position.x(), position.y(), position.z(), 1 );
-        RigidBodyInverse( localToWorld, worldToLocal );
-    }
-    
-    vec3f GetUp() const
-    {
-        return transformVector( localToWorld, vec3f(0,0,1) );
-    }
-    
-    vec3f GetPosition() const
-    {
-        return localToWorld.value.w;
-    }
-};
 
 struct RigidBody
 {
     mat4f inertiaTensor;
     mat4f inverseInertiaTensor;
+
+    // IMPORTANT: these are secondary quantities calculated in "UpdateTransform"
+    RigidBodyTransform transform;
+    mat4f rotation, transposeRotation;
     mat4f inertiaTensorWorld;
     mat4f inverseInertiaTensorWorld;
-
-    mat4f rotation, transposeRotation;              // IMPORTANT: these are secondary quantities calculated from orientation
 
     quat4f orientation;
 
     vec3f inertia;
     vec3f position;
     vec3f linearMomentum, angularMomentum;
-    vec3f linearVelocity, angularVelocity;          // IMPORTANT: these are secondary quantities calculated from momentum
+
+    // IMPORTANT: these are secondary quantities calculated in "UpdateMomentum"
+    vec3f linearVelocity, angularVelocity;
 
     float mass;
     float inverseMass;
@@ -83,21 +47,19 @@ struct RigidBody
         inertiaTensor = mat4f::identity();
         inverseInertiaTensor = mat4f::identity();
 
-        UpdateOrientation();
+        UpdateTransform();
         UpdateMomentum();
     }
 
-    void UpdateOrientation()
+    void UpdateTransform()
     {
         orientation.toMatrix( rotation );
         transposeRotation = transpose( rotation );
+
         inertiaTensorWorld = rotation * inertiaTensor * transposeRotation;
         inverseInertiaTensorWorld = rotation * inverseInertiaTensor * transposeRotation;
-    }
 
-    void GetTransform( RigidBodyTransform & transform ) const
-    {
-        transform.Initialize( position, rotation );         // todo: can do it faster. we already have the transpose
+        transform.Initialize( position, rotation, transposeRotation );
     }
 
     void UpdateMomentum()
@@ -105,6 +67,9 @@ struct RigidBody
         if ( active )
         {
             const float MaxAngularMomentum = 10;
+
+            // todo: I'd like to clamp at maximum angular VELOCITY not momentum
+            // i only care how fast it is rotating, not how much mass it has
 
             float x = clamp( angularMomentum.x(), -MaxAngularMomentum, MaxAngularMomentum );
             float y = clamp( angularMomentum.y(), -MaxAngularMomentum, MaxAngularMomentum );
@@ -124,7 +89,7 @@ struct RigidBody
         }
     }
 
-    void GetVelocityAtWorldPoint( vec3f point, vec3f & velocity ) const
+    void GetVelocityAtWorldPoint( const vec3f & point, vec3f & velocity ) const
     {
         vec3f angularVelocity = transformVector( inverseInertiaTensorWorld, angularMomentum );
         velocity = linearVelocity + cross( angularVelocity, point - position );

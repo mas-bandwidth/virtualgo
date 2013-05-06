@@ -8,7 +8,6 @@
 #include "Stone.h"
 #include "Platform.h"
 #include "Biconvex.h"
-#include "RigidBody.h"
 #include "CollisionDetection.h"
 #include "CollisionResponse.h"
 #include "Intersection.h"

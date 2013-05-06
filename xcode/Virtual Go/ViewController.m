@@ -18,6 +18,9 @@
 #include "CollisionResponse.h"
 
 #define MULTIPLE_STONES 1
+#define LOCKED 1
+
+const int BoardSize = 9;
 
 const float DeactivateTime = 0.1f;
 const float DeactivateLinearThresholdSquared = 0.1f * 0.1f;
@@ -405,7 +408,7 @@ bool iPad()
     view.context = self.context;
     view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
     
-    _board.Initialize( 9 );
+    _board.Initialize( BoardSize );
 
     Stone stone;
     stone.Initialize( STONE_SIZE_40 );
@@ -445,6 +448,23 @@ bool iPad()
 
     [self updateLights];
 
+#if MULTIPLE_STONES
+
+    for ( int i = 1; i <= BoardSize; ++i )
+    {
+        for ( int j = 1; j <= BoardSize; ++j )
+        {
+            stone.rigidBody.position = _board.GetPointPosition( i, j ) + vec3f( 0, 0, stone.biconvex.GetHeight() / 2 );
+            stone.rigidBody.orientation = quat4f(1,0,0,0);
+            stone.rigidBody.linearMomentum = vec3f(0,0,0);
+            stone.rigidBody.angularMomentum = vec3f(0,0,0);
+            stone.rigidBody.Activate();
+            _stones.push_back( stone );
+        }
+    }
+
+#else
+
     // IMPORTANT: place initial stone
     stone.rigidBody.position = vec3f( 0, 0, _board.GetThickness() + stone.biconvex.GetHeight()/2 );
     stone.rigidBody.orientation = quat4f(1,0,0,0);
@@ -452,6 +472,8 @@ bool iPad()
     stone.rigidBody.angularMomentum = vec3f(0,0,0);
     stone.rigidBody.Activate();
     _stones.push_back( stone );
+
+#endif
 }
 
 - (void)dealloc
@@ -1189,7 +1211,8 @@ bool iPad()
 
                     // IMPORTANT: go into select mode post placement so you can immediately drag the stone
         
-                    RigidBodyTransform transform( stone.rigidBody.position, stone.rigidBody.orientation );
+                    RigidBodyTransform transform;
+                    stone.rigidBody.GetTransform( transform );
                     
                     vec3f intersectionPoint, intersectionNormal;
                     
@@ -1232,7 +1255,8 @@ bool iPad()
         
         GetPickRay( inverseClipMatrix, point.x(), point.y(), rayStart, rayDirection );
         
-        RigidBodyTransform transform( stone.rigidBody.position, stone.rigidBody.orientation );
+        RigidBodyTransform transform;
+        stone.rigidBody.GetTransform( transform );
 
         vec3f intersectionPoint, intersectionNormal;
 
@@ -1308,7 +1332,8 @@ bool iPad()
             // from the ground to the board and then not snap back to ground when dragged
             // off the board (looks bad)
 
-            RigidBodyTransform transform( stone.rigidBody.position, stone.rigidBody.orientation );
+            RigidBodyTransform transform;
+            stone.rigidBody.GetTransform( transform );
             vec3f intersectionPoint, intersectionNormal;
             if ( IntersectRayStone( stone.biconvex, transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
             {
@@ -1477,7 +1502,7 @@ bool iPad()
                 stone.rigidBody.linearVelocity /= speed;
                 stone.rigidBody.linearVelocity *= LockedDragSpeedMax;
                 stone.rigidBody.linearMomentum = stone.rigidBody.linearVelocity * stone.rigidBody.mass;
-                stone.rigidBody.Update();
+                stone.rigidBody.UpdateMomentum();
             }
 
             stone.rigidBody.Activate();
@@ -1557,6 +1582,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
 - (void)handleSwipe:(vec3f)delta atPoint:(vec3f)point
 {
+    #if !LOCKED
     if ( !_locked )
     {
 //      NSLog( @"swipe" );
@@ -1574,6 +1600,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
         _swipedThisFrame = true;
     }
+    #endif
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
@@ -1704,7 +1731,11 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     
     bool collided = false;
 
+    #if MULTIPLE_STONES
+    const int iterations = 1;
+    #else
     const int iterations = 10;
+    #endif
 
     const float iteration_dt = dt / iterations;
 
@@ -1739,7 +1770,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
                 stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
             }        
             
-            stone.rigidBody.UpdateOrientation();
+            stone.rigidBody.UpdateTransform();
 
             StaticContact contact;
 
@@ -1821,12 +1852,22 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
             if ( iteration_collided )
             {
-                float momentum = length( stone.rigidBody.angularMomentum );
+                #if LOCKED
+
+                    const float factor = DecayFactor( 0.9f, iteration_dt );
+                    stone.rigidBody.angularMomentum *= factor;
+
+                #else
+
+                    float momentum = length( stone.rigidBody.angularMomentum );
                 
-                if ( momentum > 0 )
-                {
+                    #if MULTIPLE_STONES
+                    const float factor_a = DecayFactor( 0.75f, iteration_dt );
+                    const float factor_b = DecayFactor( 0.99f, iteration_dt );
+                    #else
                     const float factor_a = 0.9925f;
                     const float factor_b = 0.9995f;
+                    #endif
                     
                     const float a = 0.0f;
                     const float b = 1.0f;
@@ -1847,13 +1888,19 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
                     }
 
                     collided = true;
-                }
+
+                #endif
             }
 
             // apply damping
 
+            #if MULTIPLE_STONES
             const float linear_factor = 0.99999f;
             const float angular_factor = 0.99999f;
+            #else
+            const float linear_factor = DecayFactor( 0.999f, iteration_dt );
+            const float angular_factor = DecayFactor( 0.999f, iteration_dt );
+            #endif
 
             stone.rigidBody.linearMomentum *= linear_factor;
             stone.rigidBody.angularMomentum *= angular_factor;
@@ -2016,7 +2063,8 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
         const vec3f up = - [self getDown];
 
-        RigidBodyTransform rigidBodyTransform( stone.rigidBody.position, stone.rigidBody.orientation );
+        RigidBodyTransform rigidBodyTransform;
+        stone.rigidBody.GetTransform( rigidBodyTransform );
         
         const float upSpin = fabs( dot( stone.rigidBody.angularVelocity, up ) );
         const float totalSpin = length( stone.rigidBody.angularVelocity );
@@ -2425,10 +2473,8 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
             
             GLKMatrix4 view = baseModelViewMatrix;
             
-            RigidBodyTransform biconvexTransform;
-            stone.rigidBody.GetTransform( biconvexTransform );
             float opengl_transform[16];
-            biconvexTransform.localToWorld.store( opengl_transform );
+            stone.rigidBody.transform.localToWorld.store( opengl_transform );
 
             GLKMatrix4 model = GLKMatrix4MakeWithArray( opengl_transform );
             
@@ -2493,10 +2539,8 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
 
             GLKMatrix4 view = baseModelViewMatrix;
             
-            RigidBodyTransform biconvexTransform;
-            stone.rigidBody.GetTransform( biconvexTransform );
             float opengl_transform[16];
-            biconvexTransform.localToWorld.store( opengl_transform );
+            stone.rigidBody.transform.localToWorld.store( opengl_transform );
 
             GLKMatrix4 model = GLKMatrix4MakeWithArray( opengl_transform );
             
@@ -2547,10 +2591,10 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
         {
             Stone & stone = _stones[i];
             
-            RigidBodyTransform biconvexTransform;
-            stone.rigidBody.GetTransform( biconvexTransform );
+            // todo: standardize all matrix math to use vectorial (portable)
+            // instead of using GLKMatrix4 bullshit (not portable)
             float opengl_transform[16];
-            biconvexTransform.localToWorld.store( opengl_transform );
+            stone.rigidBody.transform.localToWorld.store( opengl_transform );
 
             GLKMatrix4 modelViewMatrix = GLKMatrix4MakeWithArray( opengl_transform );
             modelViewMatrix = GLKMatrix4Multiply( baseModelViewMatrix, modelViewMatrix );

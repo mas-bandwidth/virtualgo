@@ -277,26 +277,6 @@ inline vec3f TransformVector( mat4f matrix, vec3f normal )
     return transformVector( matrix, normal );
 }
 
-inline void RigidBodyInverse( const mat4f & matrix, mat4f & inverse )
-{
-    /*
-        How to invert a rigid body matrix
-        http://graphics.stanford.edu/courses/cs248-98-fall/Final/q4.html
-    */
-
-    inverse = matrix;
-
-    const vec4f & translation = matrix.value.w;
-
-    inverse.value.w = simd4f_create(0,0,0,1);
-    simd4x4f_transpose_inplace( &inverse.value );
-
-    inverse.value.w = simd4f_create( -dot( matrix.value.x, translation ),
-                                     -dot( matrix.value.y, translation ),
-                                     -dot( matrix.value.z, translation ),
-                                     1.0f );
-}
-
 inline vec4f TransformPlane( mat4f matrix, vec4f plane )
 {
     // hack: slow version -- original code is commented out. it does not seem to be getting correct w coordinate?!
@@ -489,5 +469,43 @@ void CalculateFrustumPlanes( const mat4f & clipMatrix, Frustum & frustum )
                           back.z(),
                           back_d ) * 1.0f / back_length;
 }
+
+inline void AngularVelocityToSpin( const quat4f & orientation, vec3f angularVelocity, quat4f & spin )
+{
+    spin = 0.5f * quat4f( 0, angularVelocity.x(), angularVelocity.y(), angularVelocity.z() ) * orientation;
+}
+
+inline void RigidBodyInverse( const mat4f & matrix, const mat4f & transposeRotation, mat4f & inverse )
+{
+    // http://graphics.stanford.edu/courses/cs248-98-fall/Final/q4.html
+    inverse = transposeRotation;
+    const vec4f & translation = matrix.value.w;
+    inverse.value.w = simd4f_create( -dot( matrix.value.x, translation ),
+                                     -dot( matrix.value.y, translation ),
+                                     -dot( matrix.value.z, translation ),
+                                     1.0f );
+}
+
+struct RigidBodyTransform
+{    
+    mat4f localToWorld, worldToLocal;
+
+    void Initialize( const vec3f & position, const mat4f & rotation, const mat4f & inverseRotation )
+    {
+        localToWorld = rotation;
+        localToWorld.value.w = simd4f_create( position.x(), position.y(), position.z(), 1 );
+        RigidBodyInverse( localToWorld, inverseRotation, worldToLocal );
+    }
+
+    void GetUp( vec3f & up ) const
+    {
+        up = transformVector( localToWorld, vec3f(0,0,1) );
+    }
+
+    void GetPosition( vec3f & position ) const
+    {
+        position = localToWorld.value.w;
+    }
+};
 
 #endif

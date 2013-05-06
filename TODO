@@ -4,6 +4,86 @@ TODO:
 
     -----------------------------------------------------------------
 
+    Turn on locked mode and start tuning this. 
+
+    Why are the stones drifting even though gravity is down?!!!
+
+    Fix shadow z fighting for stones on board/ground etc.
+
+    I want pretty stone wobbling. Not overly damped.
+
+    Get stone id concept.
+
+    Implement stone selection and dragging with multiple stones
+
+    Implement stone id concept
+
+    Remove stones that go offscreen or which are off board for > n secs
+
+    -----------------------------------------------------------------
+
+
+
+
+
+
+
+
+    -----------------------------------------------------------------
+
+    There should be a concept of stone id
+
+    This way the same stone can have separate data off in different
+    arrays, avoiding fat stone data structure (eg. basic components)
+
+    This means that each stone should have an "is valid", or perhaps
+    there should be an stone manager with bools per-stone, eg.
+    iterate across stones, is this guy valid. OK stone data etc.
+
+    Should move most of the game code out of Objective C into C++
+
+    This will make it more portable, and more maintainable for me.
+
+    -----------------------------------------------------------------
+
+    Dynamic stones flying about, especially stones resting on the 
+    floor and in the corners is likely to be a performance problem.
+
+    Any stone which is not currently touching the board should be
+    removed. This will tend to keep the number of stones reasonable
+    in the case of atomic tesuji.
+
+    Any stones that go off the surface of the board should be culled
+
+    -----------------------------------------------------------------
+
+    In locked mode if a stones logically attach to a grid point
+    when placed, and maintain relation to this point via constraint.
+
+    When a stone is moved, it should attach to a grid point
+
+    -----------------------------------------------------------------
+
+    Implement black stones.
+
+    Alternate between placing black and white stones.
+
+    Need different mesh for black stone. It's slightly smaller
+
+    -----------------------------------------------------------------
+
+    Implement zoom in to point of double tap
+
+    Clamp zoom in point to the board surface
+
+    -----------------------------------------------------------------
+
+
+
+
+
+    -----------------------------------------------------------------
+
     Idea the UI element can be frosted glass resting on the floor
 
     This would look AWESOME
@@ -19,14 +99,6 @@ TODO:
 
     -----------------------------------------------------------------
 
-    In locked mode if a stones logically attach to a grid point
-    when placed, and maintain relation to this point via constraint.
-
-    When a stone is moved, it should attach to a grid point
-
-    -----------------------------------------------------------------
-
-
 
 
 
@@ -35,17 +107,6 @@ TODO:
     Implement a way to pick the stone up with two finger swipe
     towards the stone, this is something Evan Cho naturally tried
     to do, therefore it is intuitive and I should support it. 
-
-    -----------------------------------------------------------------
-
-    In locked mode stones that fall off the board fadeout and 
-    disappear after n seconds
-
-    -----------------------------------------------------------------
-
-    Implement zoom in to point of double tap
-
-    Clamp zoom in point to the board surface
 
     -----------------------------------------------------------------
 

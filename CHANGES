@@ -1,4 +1,15 @@
 
+Additional optimizations, reduce iterations (6/5/2014):
+-------------------------------------------------------
+
+    Split the simulation into two modes:
+
+        1. Multiple iterations for single stone
+        2. One iteration for multiple stones
+
+    This 
+
+
 Some basic optimizations to support lots of stones (3/5/2014):
 --------------------------------------------------------------
 
