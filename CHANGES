@@ -7,7 +7,18 @@ Additional optimizations, reduce iterations (6/5/2014):
         1. Multiple iterations for single stone
         2. One iteration for multiple stones
 
-    This 
+    This is appropriate because these iterations include
+    integration steps, collision detection etc. while in an
+    iterative solver, only the collision response is iterated
+    upon.
+
+    Therefore this is close to the "actual performance" I can
+    expect with this number of stones once iterative solver
+    is implemented.
+
+    Also, adjusted stones so that they have more damping
+    as lots of moving stones just looks really weird when
+    the board is covered with them.
 
 
 Some basic optimizations to support lots of stones (3/5/2014):

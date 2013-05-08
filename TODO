@@ -1,6 +1,81 @@
 DONE:
 
+    Fork the project "experimental"
+
+    Now I want to move as much out of the ViewController.m
+    and into Game.h and Game.cpp as possible.
+
+    This way the game code is portable and not specific to iOS
+
+    First I would like to move helper routines into separate header files
+
+    Moved telemetry enums and strings into Telemetry.h
+
+    Moved shadow matrix math into Render.h
+
+    Move accelerometer related functionality into Accelerometer.h 
+    with an interface that is pumped once per-frame with raw 
+    accelerometer data from the UI
+
+    Move all code that generates floor and board mesh etc. into
+    a new header file: MeshGeneration.h. This code is completely
+    portable so has no business being written in ObjC
+
 TODO:
+
+    Actually, it would be nice to reduce code size by adding
+    helper methods inside ViewController.m that generate the
+    vertex buffers given a mesh, options would include textured
+    mesh and non-textured mesh variants. This is done OFTEN
+    and the code is very cut&paste annoying.
+    
+    --------------------------------
+
+    Next I would like to consolidate all matrix math such that
+    it doesn't use GLKMatrix. This way the matrix math can be
+    portable using vectorial.
+
+    I'd like to move all the render matrix management into Render.h
+
+    This code can be independent of iOS specific OpenGL ES 2.0 code.
+
+    Eg. create a "Scene" object which manages matrices, perhaps
+    even manages push/pop matrix style stuff like OpenGL 1.0
+
+    I'd like to move the physics update into Physics.h
+
+    This would provide a wrapper around rigid body.
+
+    I'd also like at this point to make rigid body a bit more
+    protected. It has many data members which are in reality
+    secondary and should not be modified. It should probably
+    have some encapsulation at this point.
+
+    -----------------------------------
+
+    Next I want to add the concept of stone ids and the
+    logical board. Stone id can be a 32bit hash that increases
+    with each stone allocated, combined with an index into
+    the array.
+
+    This allows subsystems to simply use arrays to store data
+    and to compare vs. the stone handle to see if the data has
+    been invalidated (removed).
+
+    Once I have stone ids, I can have different managers with
+    stone ids so I'm not left with a big fat stone class, eg.
+    shadow related stone data can be in one place, matrices
+    in another and so on.
+
+
+
+
+
+
+
+
+
+
 
     -----------------------------------------------------------------
 

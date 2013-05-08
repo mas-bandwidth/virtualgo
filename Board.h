@@ -119,7 +119,7 @@ public:
         by = halfHeight;
     }
 
-    vec3f GetPointPosition( int row, int column )
+    vec3f GetPointPosition( int row, int column ) const
     {
         assert( row >= 1 );
         assert( column >= 1 );
@@ -135,6 +135,18 @@ public:
         return vec3f( ( -n + column - 1 ) * w, ( -n + row - 1 ) * h, z );
     }
 
+    void GetStarPoints( vec3f * pointPosition, int & numStarPoints ) const
+    {
+        // todo: generalize this such that it works with different board sizes
+        assert( size == 9 );
+        numStarPoints = 5;
+        pointPosition[0] = GetPointPosition( 3, 3 );
+        pointPosition[1] = GetPointPosition( 7, 3 );
+        pointPosition[2] = GetPointPosition( 3, 7 );
+        pointPosition[3] = GetPointPosition( 7, 7 );
+        pointPosition[4] = GetPointPosition( 5, 5 );
+    }
+
     const BoardParams & GetParams() const
     {
         return params;
@@ -142,10 +154,10 @@ public:
 
 private:
 
-    int size;
-
     BoardParams params;
 
+    int size;                               // size of board. eg size of 9 means 9x9 board
+    
     float width;                            // width of board (along x-axis)
     float height;                           // height of board (along y-axis)
 

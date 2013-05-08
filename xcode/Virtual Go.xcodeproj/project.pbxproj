@@ -108,6 +108,9 @@
 		F2D6AD7F1720557300930D69 /* Default-Portrait~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Portrait~ipad.png"; sourceTree = "<group>"; };
 		F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape~ipad.png"; sourceTree = "<group>"; };
 		F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape@2x~ipad.png"; sourceTree = "<group>"; };
+		F2E1532D173B00E800D1538E /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Config.h; path = ../../Config.h; sourceTree = "<group>"; };
+		F2E1532E173B00E800D1538E /* Game.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Game.h; path = ../../Game.h; sourceTree = "<group>"; };
+		F2E1532F173B00E800D1538E /* Telemetry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Telemetry.h; path = ../../Telemetry.h; sourceTree = "<group>"; };
 		F2F71CFC1731BC5D0051C50F /* line.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = line.jpg; path = "Virtual Go/textures/line.jpg"; sourceTree = "<group>"; };
 		F2F71CFD1731BC5D0051C50F /* point.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = point.jpg; path = "Virtual Go/textures/point.jpg"; sourceTree = "<group>"; };
 		F2F71D001731D1A10051C50F /* PointShader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = PointShader.fragment; path = "Virtual Go/shaders/PointShader.fragment"; sourceTree = "<group>"; };
@@ -180,21 +183,9 @@
 			children = (
 				F2665401171A205400CFB131 /* AppDelegate.h */,
 				F2665402171A205400CFB131 /* AppDelegate.m */,
-				F266540A171A205500CFB131 /* MainStoryboard_iPhone.storyboard */,
-				F266540D171A205500CFB131 /* MainStoryboard_iPad.storyboard */,
 				F2665414171A205500CFB131 /* ViewController.h */,
 				F2665415171A205500CFB131 /* ViewController.m */,
-				F2776EAD171B834800E73C61 /* Biconvex.h */,
-				F2776EAE171B834800E73C61 /* Board.h */,
-				F2776EAF171B834800E73C61 /* CollisionDetection.h */,
-				F2776EB0171B834800E73C61 /* CollisionResponse.h */,
-				F2776EB1171B834800E73C61 /* Common.h */,
-				F2776EB2171B834800E73C61 /* InertiaTensor.h */,
-				F2776EB3171B834800E73C61 /* Intersection.h */,
-				F2776EB4171B834800E73C61 /* Mesh.h */,
-				F2776EB5171B834800E73C61 /* Render.h */,
-				F2776EB6171B834800E73C61 /* RigidBody.h */,
-				F2776EB7171B834800E73C61 /* Stone.h */,
+				F2E1532C173B00BD00D1538E /* portable */,
 				F203E57E1720C6650040ECA8 /* testflight */,
 				F26653F9171A205400CFB131 /* Supporting Files */,
 			);
@@ -252,11 +243,42 @@
 		F2D6AD70172053A900930D69 /* resources */ = {
 			isa = PBXGroup;
 			children = (
+				F2E15330173B00FD00D1538E /* storyboards */,
 				F2A3914D172CFA8F00A6A74D /* shaders */,
 				F2A3913D172CE92000A6A74D /* icons */,
 				F2E9E24B172B4D5D00F9C494 /* textures */,
 			);
 			name = resources;
+			sourceTree = "<group>";
+		};
+		F2E1532C173B00BD00D1538E /* portable */ = {
+			isa = PBXGroup;
+			children = (
+				F2E1532D173B00E800D1538E /* Config.h */,
+				F2E1532E173B00E800D1538E /* Game.h */,
+				F2E1532F173B00E800D1538E /* Telemetry.h */,
+				F2776EAD171B834800E73C61 /* Biconvex.h */,
+				F2776EAE171B834800E73C61 /* Board.h */,
+				F2776EAF171B834800E73C61 /* CollisionDetection.h */,
+				F2776EB0171B834800E73C61 /* CollisionResponse.h */,
+				F2776EB1171B834800E73C61 /* Common.h */,
+				F2776EB2171B834800E73C61 /* InertiaTensor.h */,
+				F2776EB3171B834800E73C61 /* Intersection.h */,
+				F2776EB4171B834800E73C61 /* Mesh.h */,
+				F2776EB5171B834800E73C61 /* Render.h */,
+				F2776EB6171B834800E73C61 /* RigidBody.h */,
+				F2776EB7171B834800E73C61 /* Stone.h */,
+			);
+			name = portable;
+			sourceTree = "<group>";
+		};
+		F2E15330173B00FD00D1538E /* storyboards */ = {
+			isa = PBXGroup;
+			children = (
+				F266540A171A205500CFB131 /* MainStoryboard_iPhone.storyboard */,
+				F266540D171A205500CFB131 /* MainStoryboard_iPad.storyboard */,
+			);
+			name = storyboards;
 			sourceTree = "<group>";
 		};
 		F2E9E24B172B4D5D00F9C494 /* textures */ = {
@@ -386,6 +408,7 @@
 				F266540B171A205500CFB131 /* en */,
 			);
 			name = MainStoryboard_iPhone.storyboard;
+			path = "Virtual Go";
 			sourceTree = "<group>";
 		};
 		F266540D171A205500CFB131 /* MainStoryboard_iPad.storyboard */ = {
@@ -394,6 +417,7 @@
 				F266540E171A205500CFB131 /* en */,
 			);
 			name = MainStoryboard_iPad.storyboard;
+			path = "Virtual Go";
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

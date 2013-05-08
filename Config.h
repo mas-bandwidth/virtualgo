@@ -1,16 +1,57 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define LETTERBOX
-#define WIDESCREEN
-#define SHADOWS
-//#define MULTISAMPLING
-//#define MULTITHREADED
-#define THREAD_STACK_SIZE 8 * 1024 * 1024
+#define OPENGL_ES2 1
+#define MULTIPLE_STONES 1
+#define LOCKED 1
 
 //#define USE_SECONDARY_DISPLAY_IF_EXISTS
 //#define DEBUG_SHADOW_VOLUMES
 //#define FRUSTUM_CULLING
 //#define DISCOVER_KEY_CODES
+
+const int BoardSize = 9;
+
+const int MaxStarPoints = 9;
+
+const float DeactivateTime = 0.1f;
+const float DeactivateLinearThresholdSquared = 0.1f * 0.1f;
+const float DeactivateAngularThresholdSquared = 0.05f * 0.05f;
+
+const float LockedDragSpeedMax = 10.0f;
+const float FlickSpeedThreshold = 20.0f;
+
+const float PlaceStoneHardThreshold = 0.075f;
+
+const float ZoomIn_iPad = 25;                // nice close up view of stone
+const float ZoomOut_iPad = 48;               // tuned to 9x9 game on iPad 4  
+
+const float ZoomIn_iPhone = 17;              // nice view of stone. not too close!
+const float ZoomOut_iPhone = 50;             // not really supported (too small!)
+
+const float ZoomInTightness = 0.25f;
+const float ZoomOutTightness = 0.15f;
+
+const float AccelerometerFrequency = 20;
+const float AccelerometerTightness = 0.1f;
+
+const float JerkThreshold = 0.1f;
+const float JerkScale = 0.5f;
+
+const float LaunchThreshold = 0.5f;
+const float LaunchMomentum = 8;
+
+const float MinimumSwipeLength = 50;            // points
+const float SwipeLengthPerSecond = 250;         // points
+const float MaxSwipeTime = 1.0f;                // seconds
+const float SwipeMomentum = 10.0f;
+
+const float HoldDelay = 0.05f;                  // seconds
+const float HoldDamping = 0.75f;                
+const float HoldMoveThreshold = 40;             // points
+
+const float SelectDamping = 0.75f;
+
+const float TouchImpulse = 4.0f;
 
 #endif

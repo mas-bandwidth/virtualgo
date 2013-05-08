@@ -9,251 +9,17 @@
 #import "ViewController.h"
 #import "testflight/TestFlight.h"
 
+#include "../../Config.h"
 #include "Common.h"
 #include "Biconvex.h"
-#include "Mesh.h"
 #include "Stone.h"
 #include "Board.h"
 #include "CollisionDetection.h"
 #include "CollisionResponse.h"
-
-#define MULTIPLE_STONES 1
-#define LOCKED 1
-
-const int BoardSize = 9;
-
-const float DeactivateTime = 0.1f;
-const float DeactivateLinearThresholdSquared = 0.1f * 0.1f;
-const float DeactivateAngularThresholdSquared = 0.05f * 0.05f;
-
-const float LockedDragSpeedMax = 10.0f;
-const float FlickSpeedThreshold = 20.0f;
-
-const float PlaceStoneHardThreshold = 0.075f;
-
-const float ZoomIn_iPad = 25;                // nice close up view of stone
-const float ZoomOut_iPad = 48;               // tuned to 9x9 game on iPad 4  
-
-const float ZoomIn_iPhone = 17;              // nice view of stone. not too close!
-const float ZoomOut_iPhone = 50;             // not really supported (too small!)
-
-const float ZoomInTightness = 0.25f;
-const float ZoomOutTightness = 0.15f;
-
-const float AccelerometerFrequency = 20;
-const float AccelerometerTightness = 0.1f;
-
-const float JerkThreshold = 0.1f;
-const float JerkScale = 0.5f;
-
-const float LaunchThreshold = 0.5f;
-const float LaunchMomentum = 8;
-
-const float MinimumSwipeLength = 50;            // points
-const float SwipeLengthPerSecond = 250;         // points
-const float MaxSwipeTime = 1.0f;                // seconds
-const float SwipeMomentum = 10.0f;
-
-const float HoldDelay = 0.05f;                  // seconds
-const float HoldDamping = 0.75f;                
-const float HoldMoveThreshold = 40;             // points
-
-const float SelectDamping = 0.75f;
-
-const float TouchImpulse = 4.0f;
-
-enum
-{
-    UNIFORM_MODELVIEWPROJECTION_MATRIX,
-    UNIFORM_NORMAL_MATRIX,
-    UNIFORM_LIGHT_POSITION,
-    UNIFORM_ALPHA,
-    NUM_UNIFORMS
-};
-
-enum Counters
-{
-    COUNTER_ToggleLocked,
-
-    COUNTER_PlacedStone,
-    COUNTER_PlacedStoneHard,
-
-    COUNTER_ZoomedIn,
-    COUNTER_ZoomedOut,
-    COUNTER_AppliedImpulse,
-    COUNTER_Swiped,
-    COUNTER_SelectedStone,
-    COUNTER_DraggedStone,
-    COUNTER_FlickedStone,
-    COUNTER_TouchedStone,
-
-    COUNTER_AtRestBoard,
-    COUNTER_AtRestGroundPlane,
-    COUNTER_AtRestLeftPlane,
-    COUNTER_AtRestRightPlane,
-    COUNTER_AtRestTopPlane,
-    COUNTER_AtRestBottomPlane,
-    COUNTER_AtRestNearPlane,
-
-    COUNTER_SlidingBoard,
-    COUNTER_SlidingGroundPlane,
-    COUNTER_SlidingLeftPlane,
-    COUNTER_SlidingRightPlane,
-    COUNTER_SlidingTopPlane,
-    COUNTER_SlidingBottomPlane,
-    COUNTER_SlidingNearPlane,
-
-    COUNTER_SpinningBoard,
-    COUNTER_SpinningGroundPlane,
-    COUNTER_SpinningLeftPlane,
-    COUNTER_SpinningRightPlane,
-    COUNTER_SpinningTopPlane,
-    COUNTER_SpinningBottomPlane,
-    COUNTER_SpinningNearPlane,
-
-    COUNTER_OrientationPerfectlyFlat,
-    COUNTER_OrientationNeutral,
-    COUNTER_OrientationLeft,
-    COUNTER_OrientationRight,
-    COUNTER_OrientationUp,
-    COUNTER_OrientationDown,
-    COUNTER_OrientationUpsideDown,
-
-    COUNTER_NumValues
-};
-
-const char * CounterNames[] = 
-{
-    "toggle locked",
-
-    "placed stone",
-    "placed stone hard",
-
-    "zoomed in",
-    "zoomed out",
-    "applied impulse",
-    "swiped",
-    "selected stone",
-    "dragged stone",
-    "flicked stone",
-    "touched stone",
-    
-    "at rest board",
-    "at rest ground plane",
-    "at rest left plane",
-    "at rest right plane",
-    "at rest top plane",
-    "at rest bottom plane",
-    "at rest near plane",
-    
-    "sliding board",
-    "sliding ground plane",
-    "sliding left plane",
-    "sliding right plane",
-    "sliding top plane",
-    "sliding bottom plane",
-    "sliding near plane",
-
-    "spinning board",
-    "spinning ground plane",
-    "spinning left plane",
-    "spinning right plane",
-    "spinning top plane",
-    "spinning bottom plane",
-    "spinning near plane",
-
-    "orientation perfectly flat",
-    "orientation neutral",
-    "orientation left",
-    "orientation right",
-    "orientation up",
-    "orientation down",
-    "orientation upside down"
-};
-
-struct DetectionTimer
-{
-    DetectionTimer()
-    {
-        time = 0;
-        detected = false;
-    }
-
-    bool Update( float dt, bool condition, float threshold = 0.25f )
-    {
-        if ( condition )
-        {
-            time += dt;
-            if ( time > threshold )
-            {
-                if ( !detected )
-                {
-                    detected = true;
-                    return true;
-                }
-            }
-        }
-        else
-        {
-            detected = false;
-            time = 0;
-        }
-
-        return false;
-    }
-
-    float time;
-    bool detected;
-};
-
-enum Conditions
-{
-    CONDITION_AtRestBoard,
-    CONDITION_AtRestGroundPlane,
-    CONDITION_AtRestLeftPlane,
-    CONDITION_AtRestRightPlane,
-    CONDITION_AtRestTopPlane,
-    CONDITION_AtRestBottomPlane,
-    CONDITION_AtRestNearPlane,
-
-    CONDITION_SlidingBoard,
-    CONDITION_SlidingGroundPlane,
-    CONDITION_SlidingLeftPlane,
-    CONDITION_SlidingRightPlane,
-    CONDITION_SlidingTopPlane,
-    CONDITION_SlidingBottomPlane,
-    CONDITION_SlidingNearPlane,
-
-    CONDITION_SpinningBoard,
-    CONDITION_SpinningGroundPlane,
-    CONDITION_SpinningLeftPlane,
-    CONDITION_SpinningRightPlane,
-    CONDITION_SpinningTopPlane,
-    CONDITION_SpinningBottomPlane,
-    CONDITION_SpinningNearPlane,
-
-    CONDITION_OrientationPerfectlyFlat,
-    CONDITION_OrientationNeutral,
-    CONDITION_OrientationLeft,
-    CONDITION_OrientationRight,
-    CONDITION_OrientationUp,
-    CONDITION_OrientationDown,
-    CONDITION_OrientationUpsideDown,
-
-    CONDITION_NumValues
-};
-
-enum CollisionPlanes
-{
-    COLLISION_Board,
-    COLLISION_GroundPlane,
-    COLLISION_LeftPlane,
-    COLLISION_RightPlane,
-    COLLISION_TopPlane,
-    COLLISION_BottomPlane,
-    COLLISION_NearPlane,
-    COLLISION_NumValues
-};
+#include "../../Telemetry.h"
+#include "../../Render.h"
+#include "../../Accelerometer.h"
+#include "../../MeshGenerators.h"
 
 @interface ViewController ()
 {    
@@ -316,10 +82,8 @@ enum CollisionPlanes
     bool _hasRendered;
 
     float _smoothZoom;
-    
-    vec3f _rawAcceleration;                 // raw data from the accelometer
-    vec3f _smoothedAcceleration;            // smoothed acceleration = gravity
-    vec3f _jerkAcceleration;                // jerk acceleration = short motions, above a threshold = bump the board
+
+    Accelerometer _accelerometer;    
 
     bool _swipeStarted;
     UITouch * _swipeTouch;
@@ -415,10 +179,10 @@ bool iPad()
     GenerateBiconvexMesh( _stoneMesh, stone.biconvex, 3 );
     _biconvex = stone.biconvex;
 
-    [self generateFloorMesh];
-    [self generateBoardMesh];
-    [self generateGridMesh];
-    [self generatePointMesh];
+    GenerateFloorMesh( _floorMesh );
+    GenerateBoardMesh( _boardMesh, _board );
+    GenerateGridMesh( _gridMesh, _board );
+    GenerateStarPointsMesh( _pointMesh, _board );
 
     [self setupGL];
   
@@ -429,10 +193,6 @@ bool iPad()
     
     _smoothZoom = [self getTargetZoom];
     
-    _rawAcceleration = vec3f(0,0,-1);
-    _smoothedAcceleration = vec3f(0,0,-1);
-    _jerkAcceleration = vec3f(0,0,0);
-
     _swipeStarted = false;
     _holdStarted = false;
     _selected = false;
@@ -554,279 +314,6 @@ bool iPad()
     }
 
     // Dispose of any resources that can be recreated.
-}
-
-- (void)generateFloorMesh
-{
-    TexturedVertex a,b,c,d;
-
-    const float w = 20;
-    const float h = 20;
-    const float uv = 1.5f;
-
-    const float z = -0.04f;
-
-    a.position = vec3f( -w, -h, z );
-    a.normal = vec3f( 0, 0, 1 );
-    a.texCoords = vec2f( 0, 0 );
-
-    b.position = vec3f( -w, h, z );
-    b.normal = vec3f( 0, 0, 1 );
-    b.texCoords = vec2f( 0, uv );
-
-    c.position = vec3f( w, h, z );
-    c.normal = vec3f( 0, 0, 1 );
-    c.texCoords = vec2f( uv, uv );
-
-    d.position = vec3f( w, -h, z );
-    d.normal = vec3f( 0, 0, 1 );
-    d.texCoords = vec2f( uv, 0 );
-
-    _floorMesh.AddTriangle( a, c, b );
-    _floorMesh.AddTriangle( a, d, c );
-}
-
-- (void)generateBoardMesh
-{
-    TexturedVertex a,b,c,d;
-
-    const float w = _board.GetHalfWidth();
-    const float h = _board.GetHalfHeight();
-    const float z = _board.GetThickness() - 0.03f;
-
-    // primary surface
-
-    a.position = vec3f( -w, -h, z );
-    a.normal = vec3f( 0, 0, 1 );
-    a.texCoords = vec2f( 0, 0 );
-
-    b.position = vec3f( -w, h, z );
-    b.normal = vec3f( 0, 0, 1 );
-    b.texCoords = vec2f( 0, 1 );
-
-    c.position = vec3f( w, h, z );
-    c.normal = vec3f( 0, 0, 1 );
-    c.texCoords = vec2f( 1, 1 );
-
-    d.position = vec3f( w, -h, z );
-    d.normal = vec3f( 0, 0, 1 );
-    d.texCoords = vec2f( 1, 0 );
-
-    _boardMesh.AddTriangle( a, c, b );
-    _boardMesh.AddTriangle( a, d, c );
-
-    // left side
-
-    a.position = vec3f( -w, h, z );
-    a.normal = vec3f( -1, 0, 0 );
-    a.texCoords = vec2f( 0, 0 );
-
-    b.position = vec3f( -w, -h, z );
-    b.normal = vec3f( -1, 0, 0 );
-    b.texCoords = vec2f( 0, 1 );
-
-    c.position = vec3f( -w, -h, 0 );
-    c.normal = vec3f( -1, 0, 0 );
-    c.texCoords = vec2f( 1, 1 );
-
-    d.position = vec3f( -w, +h, 0 );
-    d.normal = vec3f( -1, 0, 0 );
-    d.texCoords = vec2f( 1, 0 );
-
-    _boardMesh.AddTriangle( a, c, b );
-    _boardMesh.AddTriangle( a, d, c );
-
-    // right side
-
-    a.position = vec3f( +w, -h, z );
-    a.normal = vec3f( 1, 0, 0 );
-    a.texCoords = vec2f( 0, 0 );
-
-    b.position = vec3f( +w, h, z );
-    b.normal = vec3f( 1, 0, 0 );
-    b.texCoords = vec2f( 0, 1 );
-
-    c.position = vec3f( +w, h, 0 );
-    c.normal = vec3f( 1, 0, 0 );
-    c.texCoords = vec2f( 1, 1 );
-
-    d.position = vec3f( +w, -h, 0 );
-    d.normal = vec3f( 1, 0, 0 );
-    d.texCoords = vec2f( 1, 0 );
-
-    _boardMesh.AddTriangle( a, c, b );
-    _boardMesh.AddTriangle( a, d, c );
-
-    // top side
-
-    a.position = vec3f( +w, h, z );
-    a.normal = vec3f( 0, 1, 0 );
-    a.texCoords = vec2f( 0, 0 );
-
-    b.position = vec3f( -w, h, z );
-    b.normal = vec3f( 0, 1, 0 );
-    b.texCoords = vec2f( 0, 1 );
-
-    c.position = vec3f( -w, h, 0 );
-    c.normal = vec3f( 0, 1, 0 );
-    c.texCoords = vec2f( 1, 1 );
-
-    d.position = vec3f( +w, h, 0 );
-    d.normal = vec3f( 0, 1, 0 );
-    d.texCoords = vec2f( 1, 0 );
-
-    _boardMesh.AddTriangle( a, c, b );
-    _boardMesh.AddTriangle( a, d, c );
-
-    // bottom side
-
-    a.position = vec3f( -w, -h, z );
-    a.normal = vec3f( 0, -1, 0 );
-    a.texCoords = vec2f( 0, 0 );
-
-    b.position = vec3f( +w, -h, z );
-    b.normal = vec3f( 0, -1, 0 );
-    b.texCoords = vec2f( 0, 1 );
-
-    c.position = vec3f( +w, -h, 0 );
-    c.normal = vec3f( 0, -1, 0 );
-    c.texCoords = vec2f( 1, 1 );
-
-    d.position = vec3f( -w, -h, 0 );
-    d.normal = vec3f( 0, -1, 0 );
-    d.texCoords = vec2f( 1, 0 );
-
-    _boardMesh.AddTriangle( a, c, b );
-    _boardMesh.AddTriangle( a, d, c );
-}
-
-- (void)generateGridMesh
-{
-    TexturedVertex a,b,c,d;
-
-    const BoardParams & params = _board.GetParams();
-
-    const float w = params.cellWidth;
-    const float h = params.cellHeight;
-    const float t = params.lineWidth * 2;       // IMPORTANT: texture is only 50% of height due to AA
-
-    const int n = ( _board.GetSize() - 1 ) / 2;
-
-    // horizontal lines
-
-    {
-        const float z = _board.GetThickness() - 0.01f;
-
-        for ( int i = -n; i <= n; ++i )
-        {
-            const float x1 = -n*w;
-            const float x2 = +n*w;
-            const float y = i * h;
-
-            a.position = vec3f( x1, y - t/2, z );
-            a.normal = vec3f( 0, 0, 1 );
-            a.texCoords = vec2f(0,0);
-
-            b.position = vec3f( x1, y + t/2, z );
-            b.normal = vec3f( 0, 0, 1 );
-            b.texCoords = vec2f(0,1);
-
-            c.position = vec3f( x2, y + t/2, z );
-            c.normal = vec3f( 0, 0, 1 );
-            c.texCoords = vec2f(1,1);
-
-            d.position = vec3f( x2, y - t/2, z );
-            d.normal = vec3f( 0, 0, 1 );
-            d.texCoords = vec2f(1,0);
-
-            _gridMesh.AddTriangle( a, c, b );
-            _gridMesh.AddTriangle( a, d, c );
-        }
-    }
-
-    // vertical lines
-
-    {
-        const float z = _board.GetThickness() - 0.02f;
-
-        for ( int i = -n; i <= +n; ++i )
-        {
-            const float y1 = -n*h;
-            const float y2 = +n*h;
-            const float x = i * w;
-
-            a.position = vec3f( x - t/2, y1, z );
-            a.normal = vec3f( 0, 0, 1 );
-            a.texCoords = vec2f( 0, 0 );
-
-            b.position = vec3f( x + t/2, y1, z );
-            b.normal = vec3f( 0, 0, 1 );
-            b.texCoords = vec2f( 0, 1 );
-
-            c.position = vec3f( x + t/2, y2, z );
-            c.normal = vec3f( 0, 0, 1 );
-            c.texCoords = vec2f( 1, 1 );
-
-            d.position = vec3f( x - t/2, y2, z );
-            d.normal = vec3f( 0, 0, 1 );
-            d.texCoords = vec2f( 1, 0 );
-
-            _gridMesh.AddTriangle( a, b, c );
-            _gridMesh.AddTriangle( a, c, d );
-        }
-    }
-}
-
-- (void)generatePointMesh
-{
-    TexturedVertex a,b,c,d;
-
-    const BoardParams & params = _board.GetParams();
-
-    const float r = params.starPointRadius * 2;
-    const float z = _board.GetThickness() - 0.01f;
-
-    const int numStarPoints = 5;
-
-    // todo: generalize this and move into Board.h function -- "GetStarPoints"
-
-    vec3f pointPosition[numStarPoints];
-
-    pointPosition[0] = _board.GetPointPosition( 3, 3 );
-    pointPosition[1] = _board.GetPointPosition( 7, 3 );
-    pointPosition[2] = _board.GetPointPosition( 3, 7 );
-    pointPosition[3] = _board.GetPointPosition( 7, 7 );
-    pointPosition[4] = _board.GetPointPosition( 5, 5 );
-
-    for ( int i = 0; i < numStarPoints; ++i )
-    {
-        float x = pointPosition[i].x();
-        float y = pointPosition[i].y();
-
-        const float x1 = x - r;
-        const float x2 = x + r;
-        const float y1 = y + r;
-        const float y2 = y - r;
-
-        a.position = vec3f( x1, y1, z );
-        a.normal = vec3f( 0, 0, 1 );
-        a.texCoords = vec2f(0,0);
-
-        b.position = vec3f( x2, y1, z );
-        b.normal = vec3f( 0, 0, 1 );
-        b.texCoords = vec2f(0,1);
-
-        c.position = vec3f( x2, y2, z );
-        c.normal = vec3f( 0, 0, 1 );
-        c.texCoords = vec2f(1,1);
-
-        d.position = vec3f( x1, y2, z );
-        d.normal = vec3f( 0, 0, 1 );
-        d.texCoords = vec2f(1,0);
-
-        _pointMesh.AddTriangle( a, c, b );
-        _pointMesh.AddTriangle( a, d, c );
-    }
 }
 
 - (void)setupGL
@@ -1591,7 +1078,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
         {
             Stone & stone = _stones[i];
 
-            const vec3f up = -normalize( _smoothedAcceleration );
+            const vec3f & up = _accelerometer.GetUp();
             stone.rigidBody.angularMomentum += SwipeMomentum * up;
             stone.rigidBody.Activate();
         }
@@ -1631,9 +1118,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
 - (void)accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration
 {
-    _rawAcceleration = vec3f( acceleration.x, acceleration.y, acceleration.z );
-    _smoothedAcceleration += ( _rawAcceleration - _smoothedAcceleration ) * AccelerometerTightness;
-    _jerkAcceleration = _rawAcceleration - _smoothedAcceleration;
+    _accelerometer.Update( vec3f( acceleration.x, acceleration.y, acceleration.z ) );
 }
 
 - (void)deviceOrientationDidChange:(NSNotification *)notification
@@ -1649,7 +1134,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
 - (vec3f)getDown
 {
-    return _locked ? vec3f(0,0,-1) : normalize( _smoothedAcceleration );
+    return _locked ? vec3f(0,0,-1) : _accelerometer.GetDown();
 }
 
 - (vec3f)getGravity
@@ -1672,13 +1157,14 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
     
     // apply jerk acceleration to stones
 
-    const float jerk = length( _jerkAcceleration );
+    const vec3f & jerkAcceleration = _accelerometer.GetJerkAcceleration();
+    const float jerk = length( jerkAcceleration );
     if ( jerk > JerkThreshold )
     {
         for ( int i = 0; i < _stones.size(); ++i )
         {
             Stone & stone = _stones[i];
-            stone.rigidBody.ApplyImpulse( JerkScale * _jerkAcceleration * stone.rigidBody.mass );
+            stone.rigidBody.ApplyImpulse( JerkScale * jerkAcceleration * stone.rigidBody.mass );
         }
     }
 
@@ -1694,7 +1180,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
             // for pads, let the launch go up in the air only!
             // other launches feel wrong and cause nausea -- treat the tablet like the board
             
-            const float jerkUp = dot( _jerkAcceleration, up );
+            const float jerkUp = dot( jerkAcceleration, up );
             
             if ( jerkUp > LaunchThreshold )
             {
@@ -1717,7 +1203,7 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
                 for ( int i = 0; i < _stones.size(); ++i )
                 {
                     Stone & stone = _stones[i];
-                    stone.rigidBody.ApplyImpulse( _jerkAcceleration * LaunchMomentum );
+                    stone.rigidBody.ApplyImpulse( jerkAcceleration * LaunchMomentum );
                 }
 
                 [self incrementCounter:COUNTER_AppliedImpulse];
@@ -1729,8 +1215,6 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
     _collisionPlanes = 0;
     
-    bool collided = false;
-
     #if MULTIPLE_STONES
     const int iterations = 1;
     #else
@@ -2186,39 +1670,6 @@ float GetShadowAlpha( const Stone & stone )
     return iPad() ? ( _zoomed ? ZoomIn_iPad : ZoomOut_iPad ) : ( _zoomed ? ZoomIn_iPhone : ZoomOut_iPhone );
 }
 
-mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
-{
-    // http://math.stackexchange.com/questions/320527/projecting-a-point-on-a-plane-through-a-matrix
-
-    const float planeDotLight = dot( plane, light );
-
-    float data[16];
-
-    data[0] = planeDotLight - light.x() * plane.x();
-    data[4] = -light.x() * plane.y();
-    data[8] = -light.x() * plane.z();
-    data[12] = -light.x() * plane.w();
-
-    data[1] = -light.y() * plane.x();
-    data[5] = planeDotLight - light.y() * plane.y();
-    data[9] = -light.y() * plane.z();
-    data[13] = -light.y() * plane.w();
-
-    data[2] = -light.z() * plane.x();
-    data[6] = -light.z() * plane.y();
-    data[10] = planeDotLight - light.z() * plane.z();
-    data[14] = -light.z() * plane.w();
-
-    data[3] = -light.w() * plane.x();
-    data[7] = -light.w() * plane.y();
-    data[11] = -light.w() * plane.z();
-    data[15] = planeDotLight - light.w() * plane.w();
-
-    mat4f shadowMatrix;
-    shadowMatrix.load( data );
-    return shadowMatrix;
-}
-
 - (void)render
 {
     float aspect = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
@@ -2424,7 +1875,8 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
 
         GLKMatrix4 view = baseModelViewMatrix;
 
-        mat4f shadow_matrix = MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z() * 0.5f, 0 ) );
+        mat4f shadow_matrix;
+        MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z() * 0.5f, 0 ), shadow_matrix );
         float shadow_data[16];
         shadow_matrix.store( shadow_data );
         GLKMatrix4 shadow = GLKMatrix4MakeWithArray( shadow_data );
@@ -2478,7 +1930,8 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
 
             GLKMatrix4 model = GLKMatrix4MakeWithArray( opengl_transform );
             
-            mat4f shadow_matrix = MakeShadowMatrix( vec4f(0,0,1,0), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z(), 1 ) );
+            mat4f shadow_matrix;
+            MakeShadowMatrix( vec4f(0,0,1,0), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z(), 1 ), shadow_matrix );
             float shadow_data[16];
             shadow_matrix.store( shadow_data );
             GLKMatrix4 shadow = GLKMatrix4MakeWithArray( shadow_data );
@@ -2546,7 +1999,8 @@ mat4f MakeShadowMatrix( const vec4f & plane, const vec4f & light )
             
             // HACK: the fact that I have to minus here indicates
             // something wrong in the shadow matrix derivation. perhaps it assumes left handed?
-            mat4f shadow_matrix = MakeShadowMatrix( vec4f(0,0,1,-_board.GetThickness()+0.1f), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z(), 1 ) );
+            mat4f shadow_matrix;
+            MakeShadowMatrix( vec4f(0,0,1,-_board.GetThickness()+0.1f), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z(), 1 ), shadow_matrix );
             float shadow_data[16];
             shadow_matrix.store( shadow_data );
             GLKMatrix4 shadow = GLKMatrix4MakeWithArray( shadow_data );
