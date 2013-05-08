@@ -23,6 +23,8 @@ DONE:
 
 TODO:
 
+    Testing
+
     Actually, it would be nice to reduce code size by adding
     helper methods inside ViewController.m that generate the
     vertex buffers given a mesh, options would include textured
