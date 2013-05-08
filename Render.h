@@ -127,6 +127,61 @@ void MakeShadowMatrix( const vec4f & plane, const vec4f & light, mat4f & shadowM
         NUM_UNIFORMS
     };
 
+    void gluUnProject( GLfloat winx, GLfloat winy, GLfloat winz,
+                       const mat4f inverseClipMatrix,
+                       const GLint viewport[4],
+                       GLfloat *objx, GLfloat *objy, GLfloat *objz )
+    {
+        vec4f in( ( ( winx - viewport[0] ) / viewport[2] ) * 2 - 1,
+                  ( ( winy - viewport[1] ) / viewport[3] ) * 2 - 1,
+                  ( winz ) * 2 - 1,
+                  1.0f );
+
+        vec4f out = inverseClipMatrix * in;
+        
+        *objx = out.x() / out.w();
+        *objy = out.y() / out.w();
+        *objz = out.z() / out.w();
+    }
+
+    void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y, vec3f & rayStart, vec3f & rayDirection )
+    {
+        GLint viewport[4];
+        glGetIntegerv( GL_VIEWPORT, viewport );
+
+        const float displayHeight = viewport[3];
+
+        float x = screen_x;
+        float y = displayHeight - screen_y;
+
+        GLfloat x1,y1,z1;
+        GLfloat x2,y2,z2;
+
+        gluUnProject( x, y, 0, inverseClipMatrix, viewport, &x1, &y1, &z1 );
+        gluUnProject( x, y, 1, inverseClipMatrix, viewport, &x2, &y2, &z2 );
+
+        vec3f ray1( x1,y1,z1 );
+        vec3f ray2( x2,y2,z2 );
+
+        rayStart = ray1;
+        rayDirection = normalize( ray2 - ray1 );
+    }
+
+    float GetShadowAlpha( const Stone & stone )
+    {
+        const float ShadowFadeStart = 5.0f;
+        const float ShadowFadeFinish = 20.0f;
+
+        const float z = stone.rigidBody.position.z();
+
+        if ( z < ShadowFadeStart )
+            return 1.0f;
+        else if ( z < ShadowFadeFinish )
+            return 1.0f - ( z - ShadowFadeStart ) / ( ShadowFadeFinish - ShadowFadeStart );
+        else
+            return 0.0f;
+    }
+
 #else
 
     #include "Config.h"

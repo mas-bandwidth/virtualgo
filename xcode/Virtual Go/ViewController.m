@@ -312,8 +312,44 @@ bool iPad()
         }
         self.context = nil;
     }
+}
 
-    // Dispose of any resources that can be recreated.
+- (void) generateVBAndIBFromMesh:(Mesh<Vertex>&) mesh
+                                  vertexBuffer:(GLuint&) vb
+                                   indexBuffer:(GLuint&) ib
+{
+    void * vertexData = mesh.GetVertexBuffer();
+    
+    assert( vertexData );
+    assert( mesh.GetNumIndices() > 0 );
+    assert( mesh.GetNumVertices() > 0 );
+
+    glGenBuffers( 1, &vb );
+    glBindBuffer( GL_ARRAY_BUFFER, vb );
+    glBufferData( GL_ARRAY_BUFFER, sizeof(Vertex) * mesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
+    
+    glGenBuffers( 1, &ib );
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib );
+    glBufferData( GL_ELEMENT_ARRAY_BUFFER, mesh.GetNumIndices()*sizeof(GLushort), mesh.GetIndexBuffer(), GL_STATIC_DRAW );
+}
+
+- (void) generateVBAndIBFromTexturedMesh:(Mesh<TexturedVertex>&) mesh
+                                          vertexBuffer:(GLuint&) vb
+                                           indexBuffer:(GLuint&) ib
+{
+    void * vertexData = mesh.GetVertexBuffer();
+    
+    assert( vertexData );
+    assert( mesh.GetNumIndices() > 0 );
+    assert( mesh.GetNumVertices() > 0 );
+
+    glGenBuffers( 1, &vb );
+    glBindBuffer( GL_ARRAY_BUFFER, vb );
+    glBufferData( GL_ARRAY_BUFFER, sizeof(TexturedVertex) * mesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
+    
+    glGenBuffers( 1, &ib );
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib );
+    glBufferData( GL_ELEMENT_ARRAY_BUFFER, mesh.GetNumIndices()*sizeof(GLushort), mesh.GetIndexBuffer(), GL_STATIC_DRAW );
 }
 
 - (void)setupGL
@@ -330,20 +366,7 @@ bool iPad()
     {    
         _stoneProgram = [self loadShader:@"StoneShader"];
 
-        void * vertexData = _stoneMesh.GetVertexBuffer();
-        
-        glGenBuffers( 1, &_stoneVertexBuffer );
-        glBindBuffer( GL_ARRAY_BUFFER, _stoneVertexBuffer );
-        glBufferData( GL_ARRAY_BUFFER, sizeof(Vertex) * _stoneMesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
-        
-        glEnableVertexAttribArray( GLKVertexAttribPosition );
-        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, 32, 0 );
-        glEnableVertexAttribArray( GLKVertexAttribNormal );
-        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, 32, (void*)16 );
-        
-        glGenBuffers( 1, &_stoneIndexBuffer );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _stoneIndexBuffer );
-        glBufferData( GL_ELEMENT_ARRAY_BUFFER, _stoneMesh.GetNumIndices()*sizeof(GLushort), _stoneMesh.GetIndexBuffer(), GL_STATIC_DRAW );
+        [self generateVBAndIBFromMesh:_stoneMesh vertexBuffer:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
 
         _stoneUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _stoneProgram, "normalMatrix" );
         _stoneUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _stoneProgram, "modelViewProjectionMatrix" );
@@ -354,21 +377,7 @@ bool iPad()
     {
         _boardProgram = [self loadShader:@"BoardShader"];
 
-        void * vertexData = _boardMesh.GetVertexBuffer();
-        
-        assert( vertexData );
-        assert( _boardMesh.GetNumVertices() > 0 );
-        assert( _boardMesh.GetNumIndices() > 0 );
-
-        glGenBuffers( 1, &_boardVertexBuffer );
-
-        glBindBuffer( GL_ARRAY_BUFFER, _boardVertexBuffer );
-
-        glBufferData( GL_ARRAY_BUFFER, sizeof(TexturedVertex) * _boardMesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
-        
-        glGenBuffers( 1, &_boardIndexBuffer );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _boardIndexBuffer );
-        glBufferData( GL_ELEMENT_ARRAY_BUFFER, _boardMesh.GetNumIndices()*sizeof(GLushort), _boardMesh.GetIndexBuffer(), GL_STATIC_DRAW );
+        [self generateVBAndIBFromTexturedMesh:_boardMesh vertexBuffer:_boardVertexBuffer indexBuffer:_boardIndexBuffer];
         
         _boardTexture = [self loadTexture:@"wood.jpg"];
 
@@ -378,7 +387,6 @@ bool iPad()
     }
 
     // shadow shader, uniforms etc.
-
     {
         _shadowProgram = [self loadShader:@"ShadowShader"];
 
@@ -392,19 +400,7 @@ bool iPad()
     {
         _gridProgram = [self loadShader:@"GridShader"];
 
-        void * vertexData = _gridMesh.GetVertexBuffer();
-        
-        assert( vertexData );
-        assert( _gridMesh.GetNumVertices() > 0 );
-        assert( _gridMesh.GetNumIndices() > 0 );
-
-        glGenBuffers( 1, &_gridVertexBuffer );
-        glBindBuffer( GL_ARRAY_BUFFER, _gridVertexBuffer );
-        glBufferData( GL_ARRAY_BUFFER, sizeof(TexturedVertex) * _gridMesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
-    
-        glGenBuffers( 1, &_gridIndexBuffer );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _gridIndexBuffer );
-        glBufferData( GL_ELEMENT_ARRAY_BUFFER, _gridMesh.GetNumIndices()*sizeof(GLushort), _gridMesh.GetIndexBuffer(), GL_STATIC_DRAW );
+        [self generateVBAndIBFromTexturedMesh:_gridMesh vertexBuffer:_gridVertexBuffer indexBuffer:_gridIndexBuffer];
         
         _gridUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _gridProgram, "normalMatrix" );
         _gridUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _gridProgram, "modelViewProjectionMatrix" );
@@ -417,20 +413,8 @@ bool iPad()
     {
         _pointProgram = [self loadShader:@"PointShader"];
 
-        void * vertexData = _pointMesh.GetVertexBuffer();
-        
-        assert( vertexData );
-        assert( _pointMesh.GetNumVertices() > 0 );
-        assert( _pointMesh.GetNumIndices() > 0 );
+        [self generateVBAndIBFromTexturedMesh:_pointMesh vertexBuffer:_pointVertexBuffer indexBuffer:_pointIndexBuffer];
 
-        glGenBuffers( 1, &_pointVertexBuffer );
-        glBindBuffer( GL_ARRAY_BUFFER, _pointVertexBuffer );
-        glBufferData( GL_ARRAY_BUFFER, sizeof(TexturedVertex) * _pointMesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
-    
-        glGenBuffers( 1, &_pointIndexBuffer );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _pointIndexBuffer );
-        glBufferData( GL_ELEMENT_ARRAY_BUFFER, _pointMesh.GetNumIndices()*sizeof(GLushort), _pointMesh.GetIndexBuffer(), GL_STATIC_DRAW );
-        
         _pointUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _pointProgram, "normalMatrix" );
         _pointUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _pointProgram, "modelViewProjectionMatrix" );
         _pointUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _pointProgram, "lightPosition" );
@@ -442,21 +426,7 @@ bool iPad()
     {
         _floorProgram = [self loadShader:@"FloorShader"];
 
-        void * vertexData = _floorMesh.GetVertexBuffer();
-        
-        assert( vertexData );
-        assert( _floorMesh.GetNumVertices() > 0 );
-        assert( _floorMesh.GetNumIndices() > 0 );
-
-        glGenBuffers( 1, &_floorVertexBuffer );
-
-        glBindBuffer( GL_ARRAY_BUFFER, _floorVertexBuffer );
-
-        glBufferData( GL_ARRAY_BUFFER, sizeof(TexturedVertex) * _floorMesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
-        
-        glGenBuffers( 1, &_floorIndexBuffer );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _floorIndexBuffer );
-        glBufferData( GL_ELEMENT_ARRAY_BUFFER, _floorMesh.GetNumIndices()*sizeof(GLushort), _floorMesh.GetIndexBuffer(), GL_STATIC_DRAW );
+        [self generateVBAndIBFromTexturedMesh:_floorMesh vertexBuffer:_floorVertexBuffer indexBuffer:_floorIndexBuffer];
         
         _floorTexture = [self loadTexture:@"floor.jpg"];
 
@@ -472,66 +442,71 @@ bool iPad()
     self.view.multipleTouchEnabled = YES;
 }
 
+- (void)destroyBuffer:(GLuint&)buffer
+{
+    if ( buffer )
+    {
+        glDeleteBuffers( 1, &buffer );
+        buffer = 0;
+    }
+}
+
+- (void)destroyProgram:(GLuint&)program
+{
+    if ( program )
+    {
+        glDeleteBuffers( 1, &program );
+        program = 0;
+    }
+}
+
+- (void)destroyTexture:(GLuint&)texture
+{
+    if ( texture )
+    {
+        glDeleteTextures( 1, &texture );
+        texture = 0;
+    }
+}
+
 - (void)tearDownGL
 {
     [EAGLContext setCurrentContext:self.context];
+
+    [self destroyBuffer:_stoneIndexBuffer];
+    [self destroyBuffer:_stoneVertexBuffer];
+    [self destroyProgram:_stoneProgram];
+
+    [self destroyBuffer:_boardIndexBuffer];
+    [self destroyBuffer:_boardVertexBuffer];
+    [self destroyProgram:_boardProgram];
+    [self destroyTexture:_boardTexture];
+
+    [self destroyProgram:_shadowProgram];
     
-    glDeleteBuffers( 1, &_stoneIndexBuffer );
-    glDeleteBuffers( 1, &_stoneVertexBuffer );
+    // todo: lineTexture should become "grid texture"
+    // todo: can combine "point" texture and grid texture and render it all in one go, eg.
+    // divide grid texture into four squares. uv coords would need some management, but can work
     
-    if ( _stoneProgram )
-    {
-        glDeleteProgram( _stoneProgram );
-        _stoneProgram = 0;
-    }
+    [self destroyProgram:_gridProgram];
+    [self destroyTexture:_lineTexture];
+    
+    [self destroyProgram:_pointProgram];
+    [self destroyTexture:_pointTexture];
 
-    glDeleteBuffers( 1, &_boardIndexBuffer );
-    glDeleteBuffers( 1, &_boardVertexBuffer );
-
-    if ( _boardProgram )
-    {
-        glDeleteProgram( _boardProgram );
-        _boardProgram = 0;
-    }
-
-    glDeleteTextures( 1, &_boardTexture );
-
-    if ( _shadowProgram )
-    {
-        glDeleteProgram( _shadowProgram );
-        _shadowProgram = 0;
-    }
-
-    if ( _gridProgram )
-    {
-        glDeleteProgram( _gridProgram );
-        _gridProgram = 0;
-    }
-
-    glDeleteTextures( 1, &_lineTexture );
-
-    if ( _pointProgram )
-    {
-        glDeleteProgram( _pointProgram );
-        _pointProgram = 0;
-    }
-
-    glDeleteTextures( 1, &_pointTexture );
-
-    glDeleteBuffers( 1, &_floorIndexBuffer );
-    glDeleteBuffers( 1, &_floorVertexBuffer );
-
-    if ( _floorProgram )
-    {
-        glDeleteProgram( _floorProgram );
-        _floorProgram = 0;
-    }
-
-    glDeleteTextures( 1, &_floorTexture );
+    [self destroyBuffer:_floorIndexBuffer];
+    [self destroyBuffer:_floorVertexBuffer];
+    [self destroyProgram:_floorProgram];
+    [self destroyTexture:_floorTexture];
 }
 
 - (GLuint)loadTexture:(NSString *)filename
-{    
+{
+    // todo: really should generate texture mipchain using an offline tool
+    // then just load that already baked out texture here. this increases load time
+    // and will not scale when lots of textures need to be loaded for different boards
+    // and different sets of stones
+    
     CGImageRef textureImage = [UIImage imageNamed:filename].CGImage;
     if ( !textureImage )
     {
@@ -1025,46 +1000,6 @@ bool iPad()
 {
 //    NSLog( @"single tap" );
 //    [self dropStone];
-}
-
-void gluUnProject( GLfloat winx, GLfloat winy, GLfloat winz,
-                   const mat4f inverseClipMatrix,
-                   const GLint viewport[4],
-                   GLfloat *objx, GLfloat *objy, GLfloat *objz )
-{
-    vec4f in( ( ( winx - viewport[0] ) / viewport[2] ) * 2 - 1,
-              ( ( winy - viewport[1] ) / viewport[3] ) * 2 - 1,
-              ( winz ) * 2 - 1,
-              1.0f );
-
-    vec4f out = inverseClipMatrix * in;
-    
-    *objx = out.x() / out.w();
-    *objy = out.y() / out.w();
-    *objz = out.z() / out.w();
-}
-
-void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y, vec3f & rayStart, vec3f & rayDirection )
-{
-    GLint viewport[4];
-    glGetIntegerv( GL_VIEWPORT, viewport );
-
-    const float displayHeight = viewport[3];
-
-    float x = screen_x;
-    float y = displayHeight - screen_y;
-
-    GLfloat x1,y1,z1;
-    GLfloat x2,y2,z2;
-
-    gluUnProject( x, y, 0, inverseClipMatrix, viewport, &x1, &y1, &z1 );
-    gluUnProject( x, y, 1, inverseClipMatrix, viewport, &x2, &y2, &z2 );
-
-    vec3f ray1( x1,y1,z1 );
-    vec3f ray2( x2,y2,z2 );
-
-    rayStart = ray1;
-    rayDirection = normalize( ray2 - ray1 );
 }
 
 - (void)handleSwipe:(vec3f)delta atPoint:(vec3f)point
@@ -1648,21 +1583,6 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 - (void)updateLights
 {
     _lightPosition = vec3f( 30, 30, 100 );
-}
-
-float GetShadowAlpha( const Stone & stone )
-{
-    const float ShadowFadeStart = 5.0f;
-    const float ShadowFadeFinish = 20.0f;
-
-    const float z = stone.rigidBody.position.z();
-
-    if ( z < ShadowFadeStart )
-        return 1.0f;
-    else if ( z < ShadowFadeFinish )
-        return 1.0f - ( z - ShadowFadeStart ) / ( ShadowFadeFinish - ShadowFadeStart );
-    else
-        return 0.0f;
 }
 
 - (float)getTargetZoom

@@ -21,16 +21,23 @@ DONE:
     a new header file: MeshGeneration.h. This code is completely
     portable so has no business being written in ObjC
 
-TODO:
-
-    Testing
-
     Actually, it would be nice to reduce code size by adding
     helper methods inside ViewController.m that generate the
     vertex buffers given a mesh, options would include textured
     mesh and non-textured mesh variants. This is done OFTEN
     and the code is very cut&paste annoying.
-    
+
+    Also added methods to help clean up buffers, programs
+    and textures. Much less code to deal with now.
+
+TODO:
+
+    Move the "updateDetection" method into Telemetry.h
+
+    It will only be able to work with a single stone now
+    at most, and that will need to be passed in, but this
+    will remove a lot of state data from ViewController.m
+
     --------------------------------
 
     Next I would like to consolidate all matrix math such that
