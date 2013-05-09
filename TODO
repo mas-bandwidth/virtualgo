@@ -1,42 +1,20 @@
 DONE:
 
-    Fork the project "experimental"
-
-    Now I want to move as much out of the ViewController.m
-    and into Game.h and Game.cpp as possible.
-
-    This way the game code is portable and not specific to iOS
-
-    First I would like to move helper routines into separate header files
-
-    Moved telemetry enums and strings into Telemetry.h
-
-    Moved shadow matrix math into Render.h
-
-    Move accelerometer related functionality into Accelerometer.h 
-    with an interface that is pumped once per-frame with raw 
-    accelerometer data from the UI
-
-    Move all code that generates floor and board mesh etc. into
-    a new header file: MeshGeneration.h. This code is completely
-    portable so has no business being written in ObjC
-
-    Actually, it would be nice to reduce code size by adding
-    helper methods inside ViewController.m that generate the
-    vertex buffers given a mesh, options would include textured
-    mesh and non-textured mesh variants. This is done OFTEN
-    and the code is very cut&paste annoying.
-
-    Also added methods to help clean up buffers, programs
-    and textures. Much less code to deal with now.
-
 TODO:
 
-    Move the "updateDetection" method into Telemetry.h
+    Clean up render method. It's really fat and a lot of code
+    can be factored out and put into methods, eg. selectIBAndVB
 
-    It will only be able to work with a single stone now
-    at most, and that will need to be passed in, but this
-    will remove a lot of state data from ViewController.m
+    ----------------------
+
+    Add a function point which is called on the first
+    counter increment. This will allow integration with
+    testflight.
+
+    Put a wrapper around rigid body. It should not be
+    directly mutable, because many quantities are secondary.
+    Instead there should be methods for setting values, applying
+    impulses and so on.
 
     --------------------------------
 
@@ -50,10 +28,6 @@ TODO:
 
     Eg. create a "Scene" object which manages matrices, perhaps
     even manages push/pop matrix style stuff like OpenGL 1.0
-
-    I'd like to move the physics update into Physics.h
-
-    This would provide a wrapper around rigid body.
 
     I'd also like at this point to make rigid body a bit more
     protected. It has many data members which are in reality

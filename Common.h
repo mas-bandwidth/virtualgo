@@ -422,4 +422,9 @@ struct RigidBodyTransform
     }
 };
 
+struct Frustum
+{
+    vec4f left, right, front, back, top, bottom;
+};
+
 #endif

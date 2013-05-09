@@ -1,5 +1,49 @@
 
-Additional optimizations, reduce iterations (6/5/2014):
+Work in progress splitting out portable code from Obj-C (8/5/2013):
+-------------------------------------------------------------------
+
+    Fork the project "experimental"
+
+    Now I want to move as much out of the ViewController.m
+    and into Game.h and Game.cpp as possible.
+
+    This way the game code is portable and not specific to iOS
+
+    First I would like to move helper routines into separate header files
+
+    Moved telemetry enums and strings into Telemetry.h
+
+    Moved shadow matrix math into Render.h
+
+    Move accelerometer related functionality into Accelerometer.h 
+    with an interface that is pumped once per-frame with raw 
+    accelerometer data from the UI
+
+    Move all code that generates floor and board mesh etc. into
+    a new header file: MeshGeneration.h. This code is completely
+    portable so has no business being written in ObjC
+
+    Actually, it would be nice to reduce code size by adding
+    helper methods inside ViewController.m that generate the
+    vertex buffers given a mesh, options would include textured
+    mesh and non-textured mesh variants. This is done OFTEN
+    and the code is very cut&paste annoying.
+
+    Also added methods to help clean up buffers, programs
+    and textures. Much less code to deal with now.
+
+    Move the "updateDetection" method into Telemetry.h
+
+    It will only be able to work with a single stone now
+    at most, and that will need to be passed in, but this
+    will remove a lot of state data from ViewController.m
+
+    Make "updateDetection" work with single stone case
+
+    Move physics simulation into its own method in Physics.h
+
+
+Additional optimizations, reduce iterations (6/5/2013):
 -------------------------------------------------------
 
     Split the simulation into two modes:
@@ -21,7 +65,7 @@ Additional optimizations, reduce iterations (6/5/2014):
     the board is covered with them.
 
 
-Some basic optimizations to support lots of stones (3/5/2014):
+Some basic optimizations to support lots of stones (3/5/2013):
 --------------------------------------------------------------
 
     INITIAL PROFILE:
@@ -79,7 +123,7 @@ Some basic optimizations to support lots of stones (3/5/2014):
         WRONG. Vectorial is confirmed running in NEON mode.
 
 
-Work in progress to support multiple stones (2/5/2014):
+Work in progress to support multiple stones (2/5/2013):
 -------------------------------------------------------
 
     Make sure unlocked mode still works with at rest
@@ -104,7 +148,7 @@ Work in progress to support multiple stones (2/5/2014):
     out with multiple stone support enabled.
 
 
-Added at rest detection for stone rigid body (2/5/2014):
+Added at rest detection for stone rigid body (2/5/2013):
 --------------------------------------------------------
 
     Fixes the position drift for the stone on the board
@@ -122,7 +166,7 @@ Fixed the case where you accidentally place a stone while dragging (2/5/2014):
     while dragging a stone and place a new stone down!
     
 
-Added missing star point on tengen (2/5/2014):
+Added missing star point on tengen (2/5/2013):
 ----------------------------------------------
 
     Goddamnit was missing star point in center!

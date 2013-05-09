@@ -16,8 +16,9 @@
 #include "Board.h"
 #include "CollisionDetection.h"
 #include "CollisionResponse.h"
-#include "../../Telemetry.h"
 #include "../../Render.h"
+#include "../../Physics.h"
+#include "../../Telemetry.h"
 #include "../../Accelerometer.h"
 #include "../../MeshGenerators.h"
 
@@ -107,17 +108,8 @@
     double _selectPrevTimestamp;
     vec3f _selectIntersectionPoint;
     vec3f _selectPrevIntersectionPoint;
-        
-    uint64_t _counters[COUNTER_NumValues];
     
-    uint32_t _collisionPlanes;
-
-    double _secondsSinceCollision[COLLISION_NumValues];
-
-    bool _swipedThisFrame;
-    double _secondsSinceLastSwipe;
-    
-    DetectionTimer _detectionTimer[CONDITION_NumValues];
+    Telemetry _telemetry;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -199,13 +191,6 @@ bool iPad()
 
     _firstPlacementTouch = nil;
     
-    _collisionPlanes = 0;
-
-    memset( _secondsSinceCollision, 0, sizeof( _secondsSinceCollision ) );
-
-    _swipedThisFrame = false;
-    _secondsSinceLastSwipe = 0;
-
     [self updateLights];
 
 #if MULTIPLE_STONES
@@ -556,7 +541,7 @@ bool iPad()
 
 - (void)toggleLocked
 {
-    [self incrementCounter:COUNTER_ToggleLocked];
+    _telemetry.IncrementCounter( COUNTER_ToggleLocked );
     _locked = !_locked;
     NSLog( @"toggle locked: %s", _locked ? "true" : "false " );
 }
@@ -649,9 +634,9 @@ bool iPad()
                     const float place_dt = [touch timestamp] - _firstPlacementTimestamp;
 
                     if ( place_dt < PlaceStoneHardThreshold )
-                        [self incrementCounter:COUNTER_PlacedStoneHard];
+                        _telemetry.IncrementCounter( COUNTER_PlacedStoneHard );
                     else
-                        [self incrementCounter:COUNTER_PlacedStone];
+                        _telemetry.IncrementCounter( COUNTER_PlacedStone );
 
 #ifdef MULTIPLE_STONES
 
@@ -673,12 +658,9 @@ bool iPad()
 
                     // IMPORTANT: go into select mode post placement so you can immediately drag the stone
         
-                    RigidBodyTransform transform;
-                    stone.rigidBody.GetTransform( transform );
-                    
                     vec3f intersectionPoint, intersectionNormal;
                     
-                    if ( IntersectRayStone( stone.biconvex, transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+                    if ( IntersectRayStone( stone.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
                     {
                         _selected = true;
                         _selectTouch = touch;
@@ -717,16 +699,13 @@ bool iPad()
         
         GetPickRay( inverseClipMatrix, point.x(), point.y(), rayStart, rayDirection );
         
-        RigidBodyTransform transform;
-        stone.rigidBody.GetTransform( transform );
-
         vec3f intersectionPoint, intersectionNormal;
 
-        if ( IntersectRayStone( stone.biconvex, transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+        if ( IntersectRayStone( stone.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
         {
 //            NSLog( @"select" );
             
-            [self incrementCounter:COUNTER_SelectedStone];
+            _telemetry.IncrementCounter( COUNTER_SelectedStone );
 
             _selected = true;
             _selectTouch = touch;
@@ -794,10 +773,8 @@ bool iPad()
             // from the ground to the board and then not snap back to ground when dragged
             // off the board (looks bad)
 
-            RigidBodyTransform transform;
-            stone.rigidBody.GetTransform( transform );
             vec3f intersectionPoint, intersectionNormal;
-            if ( IntersectRayStone( stone.biconvex, transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+            if ( IntersectRayStone( stone.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
             {
                 if ( intersectionPoint.z() > _selectDepth )
                 {
@@ -928,9 +905,9 @@ bool iPad()
         if ( iPad() && _firstPlacementTouch == nil )
         {
             if ( _zoomed )
-                [self incrementCounter:COUNTER_ZoomedOut];
+                _telemetry.IncrementCounter( COUNTER_ZoomedOut );
             else
-                [self incrementCounter:COUNTER_ZoomedIn];
+                _telemetry.IncrementCounter( COUNTER_ZoomedIn );
         
             _zoomed = !_zoomed;
         }
@@ -972,15 +949,15 @@ bool iPad()
             if ( distance > 10 )
             {
                 if ( speed > FlickSpeedThreshold )
-                    [self incrementCounter:COUNTER_FlickedStone];    
+                    _telemetry.IncrementCounter( COUNTER_FlickedStone );
                 else
-                    [self incrementCounter:COUNTER_DraggedStone];
+                    _telemetry.IncrementCounter( COUNTER_DraggedStone );
             }
             else
             {
                 const float currentTimestamp = [touch timestamp];
                 if ( currentTimestamp - _selectTimestamp < 0.1f )
-                    [self incrementCounter:COUNTER_TouchedStone];
+                    _telemetry.IncrementCounter( COUNTER_TouchedStone );
             }
         }
     }
@@ -1018,9 +995,9 @@ bool iPad()
             stone.rigidBody.Activate();
         }
 
-        [self incrementCounter:COUNTER_Swiped];
+        _telemetry.IncrementCounter( COUNTER_Swiped );
 
-        _swipedThisFrame = true;
+        _telemetry.SetSwipedThisFrame();
     }
     #endif
 }
@@ -1059,12 +1036,6 @@ bool iPad()
 - (void)deviceOrientationDidChange:(NSNotification *)notification
 {
     // ...
-}
-
-- (void)incrementCounter:(Counters)counterIndex
-{
-    if ( ++_counters[counterIndex] == 1 )
-        [TestFlight passCheckpoint:[NSString stringWithUTF8String:CounterNames[counterIndex]]];
 }
 
 - (vec3f)getDown
@@ -1125,7 +1096,7 @@ bool iPad()
                     stone.rigidBody.ApplyImpulse( jerkUp * LaunchMomentum * up );
                 }
 
-                [self incrementCounter:COUNTER_AppliedImpulse];
+                _telemetry.IncrementCounter( COUNTER_AppliedImpulse );
             }
         }
         else
@@ -1141,444 +1112,15 @@ bool iPad()
                     stone.rigidBody.ApplyImpulse( jerkAcceleration * LaunchMomentum );
                 }
 
-                [self incrementCounter:COUNTER_AppliedImpulse];
+                _telemetry.IncrementCounter( COUNTER_AppliedImpulse );
             }
         }
     }
-    
-    // update stone physics
-
-    _collisionPlanes = 0;
-    
-    #if MULTIPLE_STONES
-    const int iterations = 1;
-    #else
-    const int iterations = 10;
-    #endif
-
-    const float iteration_dt = dt / iterations;
-
-    vec3f gravity = [self getGravity];
-
-    for ( int i = 0; i < iterations; ++i )
-    {
-        for ( int j = 0; j < _stones.size(); ++j )
-        {
-            Stone & stone = _stones[j];
-
-            if ( !stone.rigidBody.active )
-                continue;
-
-            #if !MULTIPLE_STONES            
-            if ( !_selected )
-            #endif
-                stone.rigidBody.linearMomentum += gravity * stone.rigidBody.mass * iteration_dt;
-
-            stone.rigidBody.UpdateMomentum();
-
-            if ( !_selected )
-                stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
-
-            const int rotation_substeps = 1;
-            const float rotation_substep_dt = iteration_dt / rotation_substeps;
-            for ( int j = 0; j < rotation_substeps; ++j )
-            {
-                quat4f spin;
-                AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity, spin );
-                stone.rigidBody.orientation += spin * rotation_substep_dt;
-                stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
-            }        
-            
-            stone.rigidBody.UpdateTransform();
-
-            StaticContact contact;
-
-            bool iteration_collided = false;
-            
-            const float e = 0.5f;
-            const float u = 0.5f;
-        
-            if ( !_locked )
-            {
-                // collision between stone and near plane
-
-                vec4f nearPlane( 0, 0, -1, -_smoothZoom );
-                
-                if ( StonePlaneCollision( stone.biconvex, nearPlane, stone.rigidBody, contact ) )
-                {
-                    ApplyCollisionImpulseWithFriction( contact, e, u );
-                    iteration_collided = true;
-                    _collisionPlanes |= COLLISION_NearPlane;
-                }
-
-                // collision between stone and left plane
-
-                if ( StonePlaneCollision( stone.biconvex, frustum.left, stone.rigidBody, contact ) )
-                {
-                    ApplyCollisionImpulseWithFriction( contact, e, u );
-                    iteration_collided = true;
-                    _collisionPlanes |= COLLISION_LeftPlane;
-                }
-
-                // collision between stone and right plane
-
-                if ( StonePlaneCollision( stone.biconvex, frustum.right, stone.rigidBody, contact ) )
-                {
-                    ApplyCollisionImpulseWithFriction( contact, e, u );
-                    iteration_collided = true;
-                    _collisionPlanes |= COLLISION_RightPlane;
-                }
-
-                // collision between stone and top plane
-
-                if ( StonePlaneCollision( stone.biconvex, frustum.top, stone.rigidBody, contact ) )
-                {
-                    ApplyCollisionImpulseWithFriction( contact, e, u );
-                    iteration_collided = true;
-                    _collisionPlanes |= COLLISION_TopPlane;
-                }
-
-                // collision between stone and bottom plane
-
-                if ( StonePlaneCollision( stone.biconvex, frustum.bottom, stone.rigidBody, contact ) )
-                {
-                    ApplyCollisionImpulseWithFriction( contact, e, u );
-                    iteration_collided = true;
-                    _collisionPlanes |= COLLISION_BottomPlane;
-                }
-            }
-
-            // collision between stone and ground plane
-            
-            if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, contact ) )
-            {
-                ApplyCollisionImpulseWithFriction( contact, e, u );
-                iteration_collided = true;
-                _collisionPlanes |= COLLISION_GroundPlane;
-            }
-
-            // collision between stone and board
-
-            if ( StoneBoardCollision( stone.biconvex, _board, stone.rigidBody, contact, true, _selected ) )
-            {
-                ApplyCollisionImpulseWithFriction( contact, e, u );
-                iteration_collided = true;
-                _collisionPlanes |= COLLISION_Board;
-            }
-
-            // this is a *massive* hack to approximate rolling/spinning
-            // friction and it is completely made up and not accurate at all!
-
-            if ( iteration_collided )
-            {
-                #if LOCKED
-
-                    const float factor = DecayFactor( 0.9f, iteration_dt );
-                    stone.rigidBody.angularMomentum *= factor;
-
-                #else
-
-                    float momentum = length( stone.rigidBody.angularMomentum );
-                
-                    #if MULTIPLE_STONES
-                    const float factor_a = DecayFactor( 0.75f, iteration_dt );
-                    const float factor_b = DecayFactor( 0.99f, iteration_dt );
-                    #else
-                    const float factor_a = 0.9925f;
-                    const float factor_b = 0.9995f;
-                    #endif
-                    
-                    const float a = 0.0f;
-                    const float b = 1.0f;
-                    
-                    if ( momentum >= b )
-                    {
-                        stone.rigidBody.angularMomentum *= factor_b;
-                    }
-                    else if ( momentum <= a )
-                    {
-                        stone.rigidBody.angularMomentum *= factor_a;
-                    }
-                    else
-                    {
-                        const float alpha = ( momentum - a ) / ( b - a );
-                        const float factor = factor_a * ( 1 - alpha ) + factor_b * alpha;
-                        stone.rigidBody.angularMomentum *= factor;
-                    }
-
-                    collided = true;
-
-                #endif
-            }
-
-            // apply damping
-
-            #if MULTIPLE_STONES
-            const float linear_factor = 0.99999f;
-            const float angular_factor = 0.99999f;
-            #else
-            const float linear_factor = DecayFactor( 0.999f, iteration_dt );
-            const float angular_factor = DecayFactor( 0.999f, iteration_dt );
-            #endif
-
-            stone.rigidBody.linearMomentum *= linear_factor;
-            stone.rigidBody.angularMomentum *= angular_factor;
-        }
-
-        // deactivate stones at rest
-
-        for ( int i = 0; i < _stones.size(); ++i )
-        {
-            Stone & stone = _stones[i];
-
-            if ( length_squared( stone.rigidBody.linearVelocity ) < DeactivateLinearThresholdSquared &&
-                 length_squared( stone.rigidBody.angularVelocity ) < DeactivateAngularThresholdSquared )
-            {
-                stone.rigidBody.deactivateTimer += dt;
-                if ( stone.rigidBody.deactivateTimer >= DeactivateTime )
-                    stone.rigidBody.Deactivate();
-            }
-            else
-                stone.rigidBody.deactivateTimer = 0;
-        }
-    }
-}
-
-- (void)updateDetection:(float)dt
-{
-#ifndef MULTIPLE_STONES
-
-    Stone & stone = _stones[0];
-
-    // update seconds since last swipe
-
-    if ( _swipedThisFrame )
-        _secondsSinceLastSwipe = 0;
-    else
-        _secondsSinceLastSwipe += dt;
-
-    // update seconds since collision
-
-    for ( int i = 0; i < COLLISION_NumValues; ++i )
-        _secondsSinceCollision[i] += dt;
-
-    if ( _collisionPlanes == COLLISION_Board )
-        _secondsSinceCollision[COLLISION_Board] = 0;
-
-    if ( _collisionPlanes == COLLISION_GroundPlane )
-        _secondsSinceCollision[COLLISION_GroundPlane] = 0;
-
-    if ( _collisionPlanes == COLLISION_LeftPlane )
-        _secondsSinceCollision[COLLISION_LeftPlane] = 0;
-
-    if ( _collisionPlanes == COLLISION_RightPlane )
-        _secondsSinceCollision[COLLISION_RightPlane] = 0;
-
-    if ( _collisionPlanes == COLLISION_TopPlane )
-        _secondsSinceCollision[COLLISION_TopPlane] = 0;
-
-    if ( _collisionPlanes == COLLISION_BottomPlane )
-        _secondsSinceCollision[COLLISION_BottomPlane] = 0;
-
-    if ( _collisionPlanes == COLLISION_NearPlane )
-        _secondsSinceCollision[COLLISION_NearPlane] = 0;
-
-    const bool recentBoardCollision = _secondsSinceCollision[COLLISION_Board] < 0.1f;
-    const bool recentGroundCollision = _secondsSinceCollision[COLLISION_GroundPlane] < 0.1f;
-    const bool recentLeftCollision = _secondsSinceCollision[COLLISION_LeftPlane] < 0.1f;
-    const bool recentRightCollision = _secondsSinceCollision[COLLISION_RightPlane] < 0.1f;
-    const bool recentTopCollision = _secondsSinceCollision[COLLISION_TopPlane] < 0.1f;
-    const bool recentBottomCollision = _secondsSinceCollision[COLLISION_BottomPlane] < 0.1f;
-    const bool recentNearCollision = _secondsSinceCollision[COLLISION_NearPlane] < 0.1f;
-
-    // detect at rest on each collision plane and board
-
-    const bool atRest = length( stone.rigidBody.linearVelocity ) < 1.0f &&
-                        length( stone.rigidBody.angularVelocity ) < 0.5f;
-
-    if ( _detectionTimer[CONDITION_AtRestBoard].Update( dt, atRest && _collisionPlanes == COLLISION_Board ) )
-    {
-        [self incrementCounter:COUNTER_AtRestBoard];
-    }
-
-    if ( _detectionTimer[CONDITION_AtRestGroundPlane].Update( dt, atRest && _collisionPlanes == COLLISION_GroundPlane ) )
-    {
-        [self incrementCounter:COUNTER_AtRestGroundPlane];
-    }
-
-    if ( _detectionTimer[CONDITION_AtRestLeftPlane].Update( dt, atRest && _collisionPlanes == COLLISION_LeftPlane ) )
-    {
-        [self incrementCounter:COUNTER_AtRestLeftPlane];
-    }
-
-    if ( _detectionTimer[CONDITION_AtRestRightPlane].Update( dt, atRest && _collisionPlanes == COLLISION_RightPlane ) )
-    {
-        [self incrementCounter:COUNTER_AtRestRightPlane];
-    }
-
-    if ( _detectionTimer[CONDITION_AtRestTopPlane].Update( dt, atRest && _collisionPlanes == COLLISION_TopPlane ) )
-    {
-        [self incrementCounter:COUNTER_AtRestTopPlane];
-    }
-
-    if ( _detectionTimer[CONDITION_AtRestBottomPlane].Update( dt, atRest && _collisionPlanes == COLLISION_BottomPlane ) )
-    {
-        [self incrementCounter:COUNTER_AtRestBottomPlane];
-    }
-
-    if ( _detectionTimer[CONDITION_AtRestNearPlane].Update( dt, atRest && _collisionPlanes == COLLISION_NearPlane ) )
-    {
-        [self incrementCounter:COUNTER_AtRestNearPlane];
-    }
-
-    // detect sliding on each collision plane
-
-    const float SlideTime = 0.5f;
-
-    const bool sliding = !atRest &&
-                         length( stone.rigidBody.linearVelocity ) < 10.0f &&
-                         length( stone.rigidBody.angularVelocity ) < 1.0f;
-
-    if ( _detectionTimer[CONDITION_SlidingBoard].Update( dt, sliding && _collisionPlanes == COLLISION_Board, SlideTime ) )
-    {
-        [self incrementCounter:COUNTER_SlidingBoard];
-    }
-
-    if ( _detectionTimer[CONDITION_SlidingGroundPlane].Update( dt, sliding && _collisionPlanes == COLLISION_GroundPlane, SlideTime ) )
-    {
-        [self incrementCounter:COUNTER_SlidingGroundPlane];
-    }
-
-    if ( _detectionTimer[CONDITION_SlidingLeftPlane].Update( dt, sliding && _collisionPlanes == COLLISION_LeftPlane, SlideTime ) )
-    {
-        [self incrementCounter:COUNTER_SlidingLeftPlane];
-    }
-
-    if ( _detectionTimer[CONDITION_SlidingRightPlane].Update( dt, sliding && _collisionPlanes == COLLISION_RightPlane, SlideTime ) )
-    {
-        [self incrementCounter:COUNTER_SlidingRightPlane];
-    }
-
-    if ( _detectionTimer[CONDITION_SlidingTopPlane].Update( dt, sliding && _collisionPlanes == COLLISION_TopPlane, SlideTime ) )
-    {
-        [self incrementCounter:COUNTER_SlidingTopPlane];
-    }
-
-    if ( _detectionTimer[CONDITION_SlidingBottomPlane].Update( dt, sliding && _collisionPlanes == COLLISION_BottomPlane, SlideTime ) )
-    {
-        [self incrementCounter:COUNTER_SlidingBottomPlane];
-    }
-
-    if ( _detectionTimer[CONDITION_SlidingNearPlane].Update( dt, sliding && _collisionPlanes == COLLISION_NearPlane, SlideTime ) )
-    {
-        [self incrementCounter:COUNTER_SlidingNearPlane];
-    }
-
-    // detect spinning on each collision plane
-
-    if ( !_locked )
-    {
-        const float SpinTime = 0.25f;
-
-        const vec3f up = - [self getDown];
-
-        RigidBodyTransform rigidBodyTransform;
-        stone.rigidBody.GetTransform( rigidBodyTransform );
-        
-        const float upSpin = fabs( dot( stone.rigidBody.angularVelocity, up ) );
-        const float totalSpin = length( stone.rigidBody.angularVelocity );
-
-        const bool spinning = length( stone.rigidBody.linearVelocity ) < 10.0 &&
-                              dot( rigidBodyTransform.GetUp(), up ) < 0.25f &&
-                              upSpin > 1.0f && fabs( upSpin / totalSpin ) > 0.7f &&
-                              _secondsSinceLastSwipe < 1.0f;
-
-        if ( _detectionTimer[CONDITION_SpinningBoard].Update( dt, spinning && recentBoardCollision, SpinTime ) )
-        {
-            [self incrementCounter:COUNTER_SpinningBoard];
-        }
-
-        if ( _detectionTimer[CONDITION_SpinningGroundPlane].Update( dt, spinning && recentGroundCollision, SpinTime ) )
-        {
-            [self incrementCounter:COUNTER_SpinningGroundPlane];
-        }
-
-        if ( _detectionTimer[CONDITION_SpinningLeftPlane].Update( dt, spinning && recentLeftCollision, SpinTime ) )
-        {
-            [self incrementCounter:COUNTER_SpinningLeftPlane];
-        }
-
-        if ( _detectionTimer[CONDITION_SpinningRightPlane].Update( dt, spinning && recentRightCollision, SpinTime ) )
-        {
-            [self incrementCounter:COUNTER_SpinningRightPlane];
-        }
-
-        if ( _detectionTimer[CONDITION_SpinningTopPlane].Update( dt, spinning && recentTopCollision, SpinTime ) )
-        {
-            [self incrementCounter:COUNTER_SpinningTopPlane];
-        }
-
-        if ( _detectionTimer[CONDITION_SpinningBottomPlane].Update( dt, spinning && recentBottomCollision, SpinTime ) )
-        {
-            [self incrementCounter:COUNTER_SpinningBottomPlane];
-        }
-
-        if ( _detectionTimer[CONDITION_SpinningNearPlane].Update( dt, spinning && recentNearCollision, SpinTime ) )
-        {
-            [self incrementCounter:COUNTER_SpinningNearPlane];
-        }
-    }
-
-    // update orientation detection
-
-    if ( !_locked )
-    {
-        const float OrientationTime = 1.0f;
-
-        const vec3f up = - [self getDown];
-
-        if ( _detectionTimer[CONDITION_OrientationPerfectlyFlat].Update( dt, dot( up, vec3f(0,0,1) ) > 0.99f, OrientationTime ) )
-        {
-            [self incrementCounter:COUNTER_OrientationPerfectlyFlat];
-        }
-        
-        if ( _detectionTimer[CONDITION_OrientationNeutral].Update( dt, dot( up, vec3f(0,0,1) ) > 0.75f, OrientationTime ) )
-        {
-            [self incrementCounter:COUNTER_OrientationNeutral];
-        }
-
-        if ( _detectionTimer[CONDITION_OrientationLeft].Update( dt, dot( up, vec3f(1,0,0) ) > 0.75f, OrientationTime ) )
-        {
-            [self incrementCounter:COUNTER_OrientationLeft];
-        }
-
-        if ( _detectionTimer[CONDITION_OrientationRight].Update( dt, dot( up, vec3f(-1,0,0) ) > 0.75f, OrientationTime ) )
-        {
-            [self incrementCounter:COUNTER_OrientationRight];
-        }
-
-        if ( _detectionTimer[CONDITION_OrientationUp].Update( dt, dot( up, vec3f(0,1,0) ) > 0.75f, OrientationTime ) )
-        {
-            [self incrementCounter:COUNTER_OrientationUp];
-        }
-        
-        if ( _detectionTimer[CONDITION_OrientationDown].Update( dt, dot( up, vec3f(0,-1,0) ) > 0.75f, OrientationTime ) )
-        {
-            [self incrementCounter:COUNTER_OrientationDown];
-        }
-
-        if ( _detectionTimer[CONDITION_OrientationUpsideDown].Update( dt, dot( up, vec3f(0,0,-1) ) > 0.75f, OrientationTime ) )
-        {
-            [self incrementCounter:COUNTER_OrientationUpsideDown];
-        }
-    }
-
-    // clear values this frame
-
-    _swipedThisFrame = false;
-
-#endif
-}
+ 
+    // update physics sim
+
+    UpdatePhysics( dt, _board, _stones, _telemetry, frustum, [self getGravity], _selected, _locked, _smoothZoom );
+ }
 
 - (void)updateLights
 {
@@ -2009,12 +1551,12 @@ bool iPad()
     [self updateTouch:dt];
 
     [self updatePhysics:dt];
-
-    [self updateDetection:dt];
-
+    
     [self updateLights];
 
     [self render];
+
+    _telemetry.Update( _board, _stones, dt, _locked, _accelerometer.GetUp() );
 }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect

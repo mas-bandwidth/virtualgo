@@ -1,11 +1,6 @@
 #ifndef RENDER_H
 #define RENDER_H
 
-struct Frustum
-{
-    vec4f left, right, front, back, top, bottom;
-};
-
 void CalculateFrustumPlanes( const mat4f & clipMatrix, Frustum & frustum )
 {
     float clipData[16];
