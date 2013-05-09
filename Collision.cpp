@@ -5,11 +5,13 @@
 
 #include "Common.h"
 #include "Render.h"
-#include "Stone.h"
+#include "StoneData.h"
+#include "StoneInstance.h"
 #include "Platform.h"
 #include "Biconvex.h"
 #include "CollisionDetection.h"
 #include "CollisionResponse.h"
+#include "MeshGenerators.h"
 #include "Intersection.h"
 
 using namespace platform;
@@ -66,9 +68,12 @@ enum StoneDropType
 
 StoneDropType stoneDropType = STONE_DROP_RandomNoSpin;
 
-Stone stone;
 StoneSize size = STONE_SIZE_34;
-Stone stoneSizes[STONE_SIZE_NumValues];
+
+StoneData stoneSizes[STONE_SIZE_NumValues];
+
+StoneData stoneData;
+StoneInstance stoneInstance;
 
 bool collided = false;
 StaticContact boardContact;
@@ -114,18 +119,15 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     if ( mode < LinearCollisionResponse )
         rigidBody.angularMomentum = vec3f(0,0,0);
 
-    rigidBody.Update();
+    rigidBody.UpdateMomentum();
+    rigidBody.UpdateTransform();
 }
 
 void SelectStoneSize( int newStoneSize )
 {
     size = (StoneSize) clamp( newStoneSize, 0, STONE_SIZE_NumValues - 1 );
-    stone.biconvex = stoneSizes[size].biconvex;
-    stone.rigidBody.mass = stoneSizes[size].rigidBody.mass;
-    stone.rigidBody.inverseMass = stoneSizes[size].rigidBody.inverseMass;
-    stone.rigidBody.inertia = stoneSizes[size].rigidBody.inertia;
-    stone.rigidBody.inertiaTensor = stoneSizes[size].rigidBody.inertiaTensor;
-    stone.rigidBody.inverseInertiaTensor = stoneSizes[size].rigidBody.inverseInertiaTensor;
+    stoneData = stoneSizes[size];
+    stoneInstance.Initialize( stoneSizes[size] );
 }
 
 void RestoreDefaults()
@@ -140,11 +142,12 @@ void RestoreDefaults()
 
     zoomLevel = 3;
 
-    stone.rigidBody.position = vec3f( 0, board.GetThickness() + stone.biconvex.GetHeight() / 2, 0 );
-    stone.rigidBody.orientation = quat4f(1,0,0,0);
-    stone.rigidBody.linearMomentum = vec3f(0,0,0);
-    stone.rigidBody.angularMomentum = vec3f(0,0,0);
-    stone.rigidBody.Update();
+    stoneInstance.rigidBody.position = vec3f( 0, board.GetThickness() + stoneData.biconvex.GetHeight() / 2, 0 );
+    stoneInstance.rigidBody.orientation = quat4f(1,0,0,0);
+    stoneInstance.rigidBody.linearMomentum = vec3f(0,0,0);
+    stoneInstance.rigidBody.angularMomentum = vec3f(0,0,0);
+    stoneInstance.rigidBody.UpdateMomentum();
+    stoneInstance.rigidBody.UpdateTransform();
 
     board = Board( DefaultBoardSize );
 
@@ -189,7 +192,7 @@ int main( int argc, char * argv[] )
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
         stoneSizes[i].Initialize( (StoneSize)i );
     
-    Mesh mesh[STONE_SIZE_NumValues];
+    Mesh<Vertex> mesh[STONE_SIZE_NumValues];
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
         GenerateBiconvexMesh( mesh[i], stoneSizes[i].biconvex );
 
@@ -353,7 +356,7 @@ int main( int argc, char * argv[] )
 
         if ( input.enter && !prevEnter )
         {
-            RandomStone( stone.biconvex, stone.rigidBody, mode );
+            RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
             dt = normal_dt;
             slowmo = false;
         }
@@ -361,9 +364,9 @@ int main( int argc, char * argv[] )
 
         if ( input.tab )
         {
-            scrollX += ( stone.rigidBody.position.x() - scrollX ) * 0.075f;
-            scrollY += ( stone.rigidBody.position.y() - scrollY ) * 0.075f;
-            scrollZ += ( stone.rigidBody.position.z() - scrollZ ) * 0.075f;
+            scrollX += ( stoneInstance.rigidBody.position.x() - scrollX ) * 0.075f;
+            scrollY += ( stoneInstance.rigidBody.position.y() - scrollY ) * 0.075f;
+            scrollZ += ( stoneInstance.rigidBody.position.z() - scrollZ ) * 0.075f;
         }
 
         if ( input.f1 )
@@ -386,25 +389,25 @@ int main( int argc, char * argv[] )
 
         if ( input.q )
         {
-            stone.rigidBody.angularMomentum += Spin * vec3f(1,0,0);
+            stoneInstance.rigidBody.angularMomentum += Spin * vec3f(1,0,0);
             appliedSpin = true;
         }
 
         if ( input.w )
         {
-            stone.rigidBody.angularMomentum += Spin * vec3f(0,0,1);
+            stoneInstance.rigidBody.angularMomentum += Spin * vec3f(0,0,1);
             appliedSpin = true;
         }
 
         if ( input.e )
         {
-            stone.rigidBody.angularMomentum += Spin * vec3f(0,1,0);
+            stoneInstance.rigidBody.angularMomentum += Spin * vec3f(0,1,0);
             appliedSpin = true;
         }
 
         if ( input.r )
         {
-            stone.rigidBody.angularMomentum *= 0.75f;
+            stoneInstance.rigidBody.angularMomentum *= 0.75f;
             appliedSpin = true;
         }
 
@@ -470,25 +473,25 @@ int main( int argc, char * argv[] )
 
             if ( input.left )
             {
-                stone.rigidBody.linearMomentum += Slide * vec3f(-1,0,0) * dt;
+                stoneInstance.rigidBody.linearMomentum += Slide * vec3f(-1,0,0) * dt;
                 sliding = true;
             }
 
             if ( input.right )
             {
-                stone.rigidBody.linearMomentum += Slide * vec3f(+1,0,0) * dt;
+                stoneInstance.rigidBody.linearMomentum += Slide * vec3f(+1,0,0) * dt;
                 sliding = true;
             }
 
             if ( input.up )
             {
-                stone.rigidBody.linearMomentum += Slide * vec3f(0,1,0) * dt;
+                stoneInstance.rigidBody.linearMomentum += Slide * vec3f(0,1,0) * dt;
                 sliding = true;
             }
 
             if ( input.down )
             {
-                stone.rigidBody.linearMomentum += Slide * vec3f(0,-1,0) * dt;
+                stoneInstance.rigidBody.linearMomentum += Slide * vec3f(0,-1,0) * dt;
                 sliding = true;
             }
 
@@ -538,7 +541,7 @@ int main( int argc, char * argv[] )
                 mode = Penetration;
                 dt = normal_dt;
                 slowmo = false;
-                RandomStone( stone.biconvex, stone.rigidBody, mode );
+                RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
             }
             prevOne = input.one;
 
@@ -547,7 +550,7 @@ int main( int argc, char * argv[] )
                 mode = PushOutWithContact;
                 dt = normal_dt;
                 slowmo = false;
-                RandomStone( stone.biconvex, stone.rigidBody, mode );
+                RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
             }
             prevTwo = input.two;
 
@@ -556,7 +559,7 @@ int main( int argc, char * argv[] )
                 mode = LinearCollisionResponse;
                 dt = normal_dt;
                 slowmo = false;
-                RandomStone( stone.biconvex, stone.rigidBody, mode );
+                RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
             }
             prevThree = input.three;
 
@@ -565,7 +568,7 @@ int main( int argc, char * argv[] )
                 mode = AngularCollisionResponse;
                 dt = normal_dt;
                 slowmo = false;
-                RandomStone( stone.biconvex, stone.rigidBody, mode );
+                RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
             }
             prevFour = input.four;
 
@@ -574,7 +577,7 @@ int main( int argc, char * argv[] )
                 mode = CollisionResponseWithFriction;
                 dt = normal_dt;
                 slowmo = false;
-                RandomStone( stone.biconvex, stone.rigidBody, mode );
+                RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
             }
             prevFive = input.five;
 
@@ -583,7 +586,7 @@ int main( int argc, char * argv[] )
                 mode = RollingFriction;
                 dt = normal_dt;
                 slowmo = false;
-                RandomStone( stone.biconvex, stone.rigidBody, mode );
+                RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
             }
             prevSix = input.six;
 
@@ -592,7 +595,7 @@ int main( int argc, char * argv[] )
                 mode = SolidColor;
                 dt = normal_dt;
                 slowmo = false;
-                RandomStone( stone.biconvex, stone.rigidBody, mode );
+                RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
             }
             prevSeven = input.seven;
 
@@ -707,8 +710,8 @@ int main( int argc, char * argv[] )
         if ( mode > Penetration )
         {
             StaticContact boardContact;
-            if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact ) )
-                stone.rigidBody.linearMomentum += boardContact.normal * boardContact.depth * 10;
+            if ( StoneBoardCollision( stoneData.biconvex, board, stoneInstance.rigidBody, boardContact ) )
+                stoneInstance.rigidBody.linearMomentum += boardContact.normal * boardContact.depth * 10;
         }
 
         // update stone physics
@@ -726,22 +729,25 @@ int main( int argc, char * argv[] )
             const float gravity = 9.8f * 10;    // cms/sec^2
     
             if ( mode > Penetration || !collided )
-                stone.rigidBody.linearMomentum += vec3f(0,0,-gravity) * stone.rigidBody.mass * iteration_dt;
+                stoneInstance.rigidBody.linearMomentum += vec3f(0,0,-gravity) * stoneInstance.rigidBody.mass * iteration_dt;
             else
-                stone.rigidBody.linearMomentum = vec3f(0,0,0);
+                stoneInstance.rigidBody.linearMomentum = vec3f(0,0,0);
 
-            stone.rigidBody.Update();
+            stoneInstance.rigidBody.UpdateMomentum();
 
-            stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
+            stoneInstance.rigidBody.position += stoneInstance.rigidBody.linearVelocity * iteration_dt;
 
+            quat4f spin;
+            AngularVelocityToSpin( stoneInstance.rigidBody.orientation, stoneInstance.rigidBody.angularVelocity, spin );
             const int rotation_substeps = 10;
             const float rotation_substep_dt = iteration_dt / rotation_substeps;
             for ( int j = 0; j < rotation_substeps; ++j )
             {
-                quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
-                stone.rigidBody.orientation += spin * rotation_substep_dt;
-                stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
+                stoneInstance.rigidBody.orientation += spin * rotation_substep_dt;
+                stoneInstance.rigidBody.orientation = normalize( stoneInstance.rigidBody.orientation );
             }
+
+            stoneInstance.rigidBody.UpdateTransform();
 
             // collision between stone and board
 
@@ -750,17 +756,16 @@ int main( int argc, char * argv[] )
             const float board_e = 0.8f;
             const float board_u = sliding ? 0.35f : 0.1f;
 
-            if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, boardContact, mode > Penetration ) )
+            if ( StoneBoardCollision( stoneData.biconvex, board, stoneInstance.rigidBody, boardContact, mode > Penetration ) )
             {
                 if ( mode == PushOutWithContact )
-                    stone.rigidBody.linearMomentum = vec3f(0,0,0);
+                    stoneInstance.rigidBody.linearMomentum = vec3f(0,0,0);
                 else if ( mode == LinearCollisionResponse )
                     ApplyLinearCollisionImpulse( boardContact, board_e );
                 else if ( mode == AngularCollisionResponse )
                     ApplyCollisionImpulseWithFriction( boardContact, board_e, 0.0f );
                 else if ( mode >= CollisionResponseWithFriction )
                     ApplyCollisionImpulseWithFriction( boardContact, board_e, board_u );
-                stone.rigidBody.Update();
                 collided = true;
             }
 
@@ -772,7 +777,7 @@ int main( int argc, char * argv[] )
                 const float floor_u = sliding ? 0.35f : 0.15f;
 
                 StaticContact floorContact;
-                if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, floorContact ) )
+                if ( StonePlaneCollision( stoneData.biconvex, vec4f(0,0,1,0), stoneInstance.rigidBody, floorContact ) )
                 {
                     if ( mode == LinearCollisionResponse )
                         ApplyLinearCollisionImpulse( floorContact, floor_e );
@@ -780,7 +785,6 @@ int main( int argc, char * argv[] )
                         ApplyCollisionImpulseWithFriction( floorContact, floor_e, 0.0f );
                     else if ( mode >= CollisionResponseWithFriction )
                         ApplyCollisionImpulseWithFriction( floorContact, floor_e, floor_u );
-                    stone.rigidBody.Update();
                     collided = true;
                 }
             }
@@ -792,24 +796,24 @@ int main( int argc, char * argv[] )
 
                 if ( collided )
                 {
-                    float momentum = length( stone.rigidBody.angularMomentum );
+                    float momentum = length( stoneInstance.rigidBody.angularMomentum );
                     const float factor_a = DecayFactor( 0.9915f, dt );
                     const float factor_b = DecayFactor( 0.9995f, dt );
                     const float a = 0.0f;
                     const float b = 1.0f;
                     if ( momentum >= b || appliedSpin )
                     {
-                        stone.rigidBody.angularMomentum *= factor_b;
+                        stoneInstance.rigidBody.angularMomentum *= factor_b;
                     }
                     else if ( momentum <= a )
                     {
-                        stone.rigidBody.angularMomentum *= factor_a;
+                        stoneInstance.rigidBody.angularMomentum *= factor_a;
                     }
                     else
                     {
                         const float alpha = ( momentum - a ) / ( b - a );
                         const float factor = factor_a * ( 1 - alpha ) + factor_b * alpha;
-                        stone.rigidBody.angularMomentum *= factor;
+                        stoneInstance.rigidBody.angularMomentum *= factor;
                     }
                 }
 
@@ -818,8 +822,8 @@ int main( int argc, char * argv[] )
                 const float linear_factor = DecayFactor( 0.99999f, dt );
                 const float angular_factor = DecayFactor( 0.9999f, dt );
 
-                stone.rigidBody.linearMomentum *= linear_factor;
-                stone.rigidBody.angularMomentum *= angular_factor;
+                stoneInstance.rigidBody.linearMomentum *= linear_factor;
+                stoneInstance.rigidBody.angularMomentum *= angular_factor;
             }
         }
 
@@ -936,7 +940,7 @@ int main( int argc, char * argv[] )
 
         glPushMatrix();
 
-        RigidBodyTransform biconvexTransform( stone.rigidBody.position, stone.rigidBody.orientation );
+        RigidBodyTransform & biconvexTransform = stoneInstance.rigidBody.transform;
         float opengl_transform[16];
         biconvexTransform.localToWorld.store( opengl_transform );
         glMultMatrixf( opengl_transform );

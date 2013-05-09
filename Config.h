@@ -1,7 +1,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#if defined( __APPLE__ ) && TARGET_OS_IPHONE
 #define OPENGL_ES2 1
+#endif
 
 /*
 #define LOCKED 1

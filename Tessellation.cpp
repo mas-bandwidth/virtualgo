@@ -5,13 +5,15 @@
 
 #include "Common.h"
 #include "Render.h"
-#include "Stone.h"
+#include "StoneData.h"
+#include "StoneInstance.h"
 #include "Mesh.h"
 #include "Platform.h"
 #include "Biconvex.h"
 #include "RigidBody.h"
 #include "Intersection.h"
 #include "CollisionDetection.h"
+#include "MeshGenerators.h"
 
 using namespace platform;
 
@@ -41,7 +43,7 @@ struct TessellationData
 
 TessellationData tessellation;
 
-void UpdateTessellation( Mesh & mesh, Mode mode, int subdivisions )
+void UpdateTessellation( Mesh<Vertex> & mesh, Mode mode, int subdivisions )
 {
     if ( mode == tessellation.mode && subdivisions == tessellation.subdivisions )
         return;
@@ -72,7 +74,7 @@ int main()
     rigidBody.inverseMass = 1.0f / rigidBody.mass;
     CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertia, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
 
-    Mesh mesh;
+    Mesh<Vertex> mesh;
     
     int displayWidth, displayHeight;
     GetDisplayResolution( displayWidth, displayHeight );
@@ -206,74 +208,71 @@ int main()
 
         ClearScreen( displayWidth, displayHeight );
 
-        if ( frame > 20 )
+        const float fov = 25.0f;
+        glMatrixMode( GL_PROJECTION );
+        glLoadIdentity();
+        gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
+
+        glMatrixMode( GL_MODELVIEW );
+        glLoadIdentity();
+        gluLookAt( 0, 0, 5, 
+                   0, 0, 0, 
+                   0, 1, 0 );
+
+        // set light position
+
+        GLfloat lightPosition0[] = { 250, 500, 1000, 1 };
+        GLfloat lightPosition1[] = { -250, -150, 0, 1 };
+        GLfloat lightPosition2[] = { 100, -50, 0, 1 };
+        GLfloat lightPosition3[] = { 0, +1000, +1000, 1 };
+        
+        glLightfv( GL_LIGHT0, GL_POSITION, lightPosition0 );
+        glLightfv( GL_LIGHT1, GL_POSITION, lightPosition1 );
+        glLightfv( GL_LIGHT2, GL_POSITION, lightPosition2 );
+        glLightfv( GL_LIGHT3, GL_POSITION, lightPosition3 );
+
+        // render stone
+
+        GLfloat mat_ambient[] = { 0.25, 0.25, 0.25, 1.0 };
+        GLfloat mat_diffuse[] = { 0.45, 0.45, 0.45, 1.0 };
+        GLfloat mat_specular[] = { 0.1, 0.1, 0.1, 1.0 };
+        GLfloat mat_shininess[] = { 100.0 };
+
+        glMaterialfv( GL_FRONT, GL_AMBIENT, mat_ambient );
+        glMaterialfv( GL_FRONT, GL_DIFFUSE, mat_diffuse );
+        glMaterialfv( GL_FRONT, GL_SPECULAR, mat_specular );
+        glMaterialfv( GL_FRONT, GL_SHININESS, mat_shininess );
+
+        const float targetRotation = rotating ? 0.28f : 0.0f;
+        smoothedRotation += ( targetRotation - smoothedRotation ) * 0.15f;
+        mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(3,2,1) );//-2,-1) );
+        rotation = rotation * deltaRotation;
+
+        RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
+
+        glPushMatrix();
+
+        float opengl_transform[16];
+        biconvexTransform.localToWorld.store( opengl_transform );
+        glMultMatrixf( opengl_transform );
+
+        glEnable( GL_LIGHTING );
+
+        if ( mode == Naive )
         {
-            const float fov = 25.0f;
-            glMatrixMode( GL_PROJECTION );
-            glLoadIdentity();
-            gluPerspective( fov, (float) displayWidth / (float) displayHeight, 0.1f, 100.0f );
-
-            glMatrixMode( GL_MODELVIEW );
-            glLoadIdentity();
-            gluLookAt( 0, 0, -5, 
-                       0, 0, 0, 
-                       0, 1, 0 );
-
-            // set light position
-
-            GLfloat lightPosition0[] = { 250, 1000, -500, 1 };
-            GLfloat lightPosition1[] = { -250, 0, -250, 1 };
-            GLfloat lightPosition2[] = { 100, 0, -100, 1 };
-            GLfloat lightPosition3[] = { 0, +1000, +1000, 1 };
-            
-            glLightfv( GL_LIGHT0, GL_POSITION, lightPosition0 );
-            glLightfv( GL_LIGHT1, GL_POSITION, lightPosition1 );
-            glLightfv( GL_LIGHT2, GL_POSITION, lightPosition2 );
-            glLightfv( GL_LIGHT3, GL_POSITION, lightPosition3 );
-    
-            // render stone
-
-            GLfloat mat_ambient[] = { 0.25, 0.25, 0.25, 1.0 };
-            GLfloat mat_diffuse[] = { 0.45, 0.45, 0.45, 1.0 };
-            GLfloat mat_specular[] = { 0.1, 0.1, 0.1, 1.0 };
-            GLfloat mat_shininess[] = { 100.0 };
-
-            glMaterialfv( GL_FRONT, GL_AMBIENT, mat_ambient );
-            glMaterialfv( GL_FRONT, GL_DIFFUSE, mat_diffuse );
-            glMaterialfv( GL_FRONT, GL_SPECULAR, mat_specular );
-            glMaterialfv( GL_FRONT, GL_SHININESS, mat_shininess );
-
-            const float targetRotation = rotating ? 0.28f : 0.0f;
-            smoothedRotation += ( targetRotation - smoothedRotation ) * 0.15f;
-            mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(-3,-2,1) );
-            rotation = rotation * deltaRotation;
-
-            RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
-
-            glPushMatrix();
-
-            float opengl_transform[16];
-            biconvexTransform.localToWorld.store( opengl_transform );
-            glMultMatrixf( opengl_transform );
-
-            glEnable( GL_LIGHTING );
-
-            if ( mode == Naive )
-            {
-                float i = pow( subdivisions, 1.5f );
-                int numSegments = 15 * i;
-                int numRings = 1.75f * i + 1;
-                if ( numSegments < 5 )
-                    numSegments = 5;
-                if ( numRings < 1 )
-                    numRings = 1;
-                RenderBiconvexNaive( biconvex, numSegments, numRings );
-            }
-            else
-                RenderMesh( mesh );
-
-            glPopMatrix();
+            float i = pow( subdivisions, 1.5f );
+            int numSegments = 15 * i;
+            int numRings = 1.75f * i + 1;
+            if ( numSegments < 5 )
+                numSegments = 5;
+            if ( numRings < 1 )
+                numRings = 1;
+            RenderBiconvexNaive( biconvex, numSegments, numRings );
         }
+        else
+            RenderMesh( mesh );
+
+        glPopMatrix();
 
         // update the display
         

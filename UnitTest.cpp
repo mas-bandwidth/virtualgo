@@ -15,7 +15,8 @@ SUITE( Intersection )
 {
     TEST( stone_board_collision_type )
     {
-        Board board( 9 );
+        Board board;
+        board.Initialize( 9 );
 
         const float w = board.GetWidth() * 0.5f;
         const float h = board.GetHeight() * 0.5f;
@@ -28,7 +29,7 @@ SUITE( Intersection )
         CHECK( DetermineStoneBoardRegion( board, vec3f(0,0,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_Primary );
         CHECK( broadPhaseReject == false );
 
-        CHECK( DetermineStoneBoardRegion( board, vec3f(0,-100,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_Primary );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(0,0,-100), radius, broadPhaseReject ) == STONE_BOARD_REGION_Primary );
         CHECK( broadPhaseReject == false );
 
         CHECK( DetermineStoneBoardRegion( board, vec3f(-w,0,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_LeftSide );
@@ -37,31 +38,32 @@ SUITE( Intersection )
         CHECK( DetermineStoneBoardRegion( board, vec3f(+w,0,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_RightSide );
         CHECK( broadPhaseReject == false );
         
-        CHECK( DetermineStoneBoardRegion( board, vec3f(0,0,+h), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopSide );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(0,+h,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopSide );
         CHECK( broadPhaseReject == false );
         
-        CHECK( DetermineStoneBoardRegion( board, vec3f(0,0,-h), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomSide );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(0,-h,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomSide );
         CHECK( broadPhaseReject == false );
 
-        CHECK( DetermineStoneBoardRegion( board, vec3f(-w,0,+h), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopLeftCorner );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(-w,+h,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopLeftCorner );
         CHECK( broadPhaseReject == false );
 
-        CHECK( DetermineStoneBoardRegion( board, vec3f(+w,0,+h), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopRightCorner );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(+w,+h,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_TopRightCorner );
         CHECK( broadPhaseReject == false );
 
-        CHECK( DetermineStoneBoardRegion( board, vec3f(+w,0,-h), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomRightCorner );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(+w,-h,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomRightCorner );
         CHECK( broadPhaseReject == false );
 
-        CHECK( DetermineStoneBoardRegion( board, vec3f(-w,0,-h), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomLeftCorner );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(-w,-h,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_BottomLeftCorner );
         CHECK( broadPhaseReject == false );
 
-        CHECK( DetermineStoneBoardRegion( board, vec3f(0,t+radius + 0.01f,0), radius, broadPhaseReject ) == STONE_BOARD_REGION_Primary );
+        CHECK( DetermineStoneBoardRegion( board, vec3f(0,0,t+radius + 0.01f), radius, broadPhaseReject ) == STONE_BOARD_REGION_Primary );
         CHECK( broadPhaseReject == true );
     }
 
     TEST( stone_board_collision_none )
     {
-        Board board( 9 );
+        Board board;
+        board.Initialize( 9 );
 
         const float w = board.GetWidth() * 0.5f;
         const float h = board.GetHeight() * 0.5f;
@@ -77,18 +79,19 @@ SUITE( Intersection )
         float depth;
         vec3f point, normal;
 
-        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,t+r*2,0) ), normal, depth ) );
+        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,0,t+r*2) ), normal, depth ) );
         CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(-w-r*2,0,0) ), normal, depth ) );
         CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(+w+r*2,0,0) ), normal, depth ) );
-        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,0,-h-r*2) ), normal, depth ) );
-        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,0,+h+r*2) ), normal, depth ) );
+        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,-h-r*2,0) ), normal, depth ) );
+        CHECK( !IntersectStoneBoard( board, biconvex, RigidBodyTransform( vec3f(0,+h+r*2,0) ), normal, depth ) );
     }
 
     TEST( stone_board_collision_primary )
     {
         const float epsilon = 0.001f;
 
-        Board board( 9 );
+        Board board;
+        board.Initialize( 9 );
 
         const float w = board.GetWidth() * 0.5f;
         const float h = board.GetHeight() * 0.5f;
@@ -105,78 +108,78 @@ SUITE( Intersection )
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
-            CHECK_CLOSE( depth, 1.0f, epsilon );
-            CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            CHECK_CLOSE( depth, t + biconvex.GetHeight()/2, epsilon );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,0,1), epsilon );
         }
         
         // test away from origin with identity rotation
         {
-            RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::identity() );
+            RigidBodyTransform biconvexTransform( vec3f(w/2,h/2,0), mat4f::identity() );
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
-            CHECK_CLOSE( depth, 1.0f, epsilon );
-            CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            CHECK_CLOSE( depth, t + biconvex.GetHeight()/2, epsilon );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,0,1), epsilon );
         }
 
         // test at origin flipped upside down (180 degrees)
         {
-            RigidBodyTransform biconvexTransform( vec3f(0,0,0), mat4f::axisRotation( 180, vec3f(0,0,1) ) );
+            RigidBodyTransform biconvexTransform( vec3f(0,0,0), mat4f::axisRotation( 180, vec3f(0,1,0) ) );
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
-            CHECK_CLOSE( depth, 1.0f, epsilon );
-            CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            CHECK_CLOSE( depth, t + biconvex.GetHeight()/2, epsilon );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,0,1), epsilon );
         }
 
         // test away from origin flipped upside down (180degrees)
         {
-            RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( 180, vec3f(0,0,1) ) );
+            RigidBodyTransform biconvexTransform( vec3f(w/2,h/2,0), mat4f::axisRotation( 180, vec3f(0,1,0) ) );
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
-            CHECK_CLOSE( depth, 1.0f, epsilon );
-            CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            CHECK_CLOSE( depth, t + biconvex.GetHeight()/2, epsilon );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,0,1), epsilon );
         }
 
         // test away from origin rotated 90 degrees clockwise around z axis
         {
-            RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( 90, vec3f(0,0,1) ) );
+            RigidBodyTransform biconvexTransform( vec3f(w/2,h/2,0), mat4f::axisRotation( 90, vec3f(0,1,0) ) );
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
-            CHECK_CLOSE( depth, 1.5f, epsilon );
-            CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            CHECK_CLOSE( depth, t + biconvex.GetWidth()/2, epsilon );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,0,1), epsilon );
         }
 
         // test away from origin rotated 90 degrees counter-clockwise around z axis
         {
-            RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( -90, vec3f(0,0,1) ) );
+            RigidBodyTransform biconvexTransform( vec3f(w/2,h/2,0), mat4f::axisRotation( -90, vec3f(0,1,0) ) );
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
-            CHECK_CLOSE( depth, 1.5f, epsilon );
-            CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            CHECK_CLOSE( depth, t + biconvex.GetWidth()/2, epsilon );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,0,1), epsilon );
         }
 
         // test away from origin rotated 90 degrees clockwise around x axis
         {
-            RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( 90, vec3f(1,0,0) ) );
+            RigidBodyTransform biconvexTransform( vec3f(w/2,h/2,0), mat4f::axisRotation( 90, vec3f(1,0,0) ) );
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
-            CHECK_CLOSE( depth, 1.5f, epsilon );
-            CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            CHECK_CLOSE( depth, t + biconvex.GetWidth()/2, epsilon );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,0,1), epsilon );
         }
 
         // test away from origin rotated 90 degrees counter-clockwise around x axis
         {
-            RigidBodyTransform biconvexTransform( vec3f(w/2,0,h/2), mat4f::axisRotation( -90, vec3f(1,0,0) ) );
+            RigidBodyTransform biconvexTransform( vec3f(w/2,h/2,0), mat4f::axisRotation( -90, vec3f(1,0,0) ) );
 
             CHECK( IntersectStoneBoard( board, biconvex, biconvexTransform, normal, depth ) );
 
-            CHECK_CLOSE( depth, 1.5f, epsilon );
-            CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
+            CHECK_CLOSE( depth, t + biconvex.GetWidth()/2, epsilon );
+            CHECK_CLOSE_VEC3( normal, vec3f(0,0,1), epsilon );
         }
     }
 
@@ -230,7 +233,7 @@ SUITE( Intersection )
         CHECK_CLOSE( biconvex.GetHeight(), 1.0f, epsilon );
         CHECK_CLOSE( biconvex.GetSphereRadius(), 1.25f, epsilon );
         CHECK_CLOSE( biconvex.GetSphereOffset(), 0.75f, epsilon );
-        CHECK_CLOSE( biconvex.GetSphereDot(), 0.599945f, epsilon );
+        CHECK_CLOSE( biconvex.GetSphereDot(), 0.799927f, epsilon );
     }    
 
     TEST( intersect_ray_sphere_hit )
@@ -281,11 +284,11 @@ SUITE( Intersection )
         CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,0,0), biconvex ) );
         CHECK( PointInsideBiconvex_LocalSpace( vec3f(-1,0,0), biconvex ) );
         CHECK( PointInsideBiconvex_LocalSpace( vec3f(+1,0,0), biconvex ) );
-        CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,0,-1), biconvex ) );
-        CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,0,+1), biconvex ) );
-        CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,0.5,0), biconvex ) );
-        CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,-0.5,0), biconvex ) );
-        CHECK( !PointInsideBiconvex_LocalSpace( vec3f(0,0.5,0.5f), biconvex ) );
+        CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,-1,0), biconvex ) );
+        CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,+1,0), biconvex ) );
+        CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,0,0.5), biconvex ) );
+        CHECK( PointInsideBiconvex_LocalSpace( vec3f(0,0,-0.5), biconvex ) );
+        CHECK( !PointInsideBiconvex_LocalSpace( vec3f(0,0.5f,0.5), biconvex ) );
     }
 
     TEST( point_on_biconvex_surface )
@@ -293,10 +296,10 @@ SUITE( Intersection )
         Biconvex biconvex( 2.0f, 1.0f );
         CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(-1,0,0), biconvex ) );
         CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(+1,0,0), biconvex ) );
-        CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(0,0,-1), biconvex ) );
-        CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(0,0,+1), biconvex ) );
-        CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(0,0.5,0), biconvex ) );
-        CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(0,-0.5,0), biconvex ) );
+        CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(0,-1,0), biconvex ) );
+        CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(0,+1,0), biconvex ) );
+        CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(0,0,0.5), biconvex ) );
+        CHECK( IsPointOnBiconvexSurface_LocalSpace( vec3f(0,0,-0.5), biconvex ) );
         CHECK( !IsPointOnBiconvexSurface_LocalSpace( vec3f(0,0,0), biconvex ) );
         CHECK( !IsPointOnBiconvexSurface_LocalSpace( vec3f(10,10,10), biconvex ) );
     }
@@ -332,11 +335,11 @@ SUITE( Intersection )
         Biconvex biconvex( 2.0f, 1.0f );
         vec3f nearest;
 
-        nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(0,10,0), biconvex );
-        CHECK_CLOSE_VEC3( nearest, vec3f(0,0.5f,0), epsilon );
+        nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(0,0,10), biconvex );
+        CHECK_CLOSE_VEC3( nearest, vec3f(0,0,0.5f), epsilon );
 
-        nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(0,-10,0), biconvex );
-        CHECK_CLOSE_VEC3( nearest, vec3f(0,-0.5f,0), epsilon );
+        nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(0,0,-10), biconvex );
+        CHECK_CLOSE_VEC3( nearest, vec3f(0,0,-0.5f), epsilon );
 
         nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(-10,0,0), biconvex );
         CHECK_CLOSE_VEC3( nearest, vec3f(-1,0,0), epsilon );
@@ -344,50 +347,11 @@ SUITE( Intersection )
         nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(10,0,0), biconvex );
         CHECK_CLOSE_VEC3( nearest, vec3f(1,0,0), epsilon );
 
-        nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(0,0,-10), biconvex );
-        CHECK_CLOSE_VEC3( nearest, vec3f(0,0,-1), epsilon );
+        nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(0,-10,0), biconvex );
+        CHECK_CLOSE_VEC3( nearest, vec3f(0,-1,0), epsilon );
 
-        nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(0,0,10), biconvex );
-        CHECK_CLOSE_VEC3( nearest, vec3f(0,0,1), epsilon );
-    }
-
-    TEST( intersect_plane_biconvex_bottom )
-    {
-        const float epsilon = 0.001f;
-        Biconvex biconvex( 2.0f, 1.0f );
-        vec3f planeNormal(0,1,0);
-        float planeDistance = -10;
-        vec3f point, normal;
-        float penetrationDepth = IntersectPlaneBiconvex_LocalSpace( planeNormal, planeDistance, biconvex, point, normal );
-        CHECK_CLOSE( penetrationDepth, -9.5, epsilon );
-        CHECK_CLOSE_VEC3( point, vec3f(0,-0.5,0), epsilon );
-        CHECK_CLOSE_VEC3( normal, vec3f(0,1,0), epsilon );
-    }
-
-    TEST( intersect_plane_biconvex_top )
-    {
-        const float epsilon = 0.001f;
-        Biconvex biconvex( 2.0f, 1.0f );
-        vec3f planeNormal(0,-1,0);
-        float planeDistance = -10;
-        vec3f point, normal;
-        float penetrationDepth = IntersectPlaneBiconvex_LocalSpace( planeNormal, planeDistance, biconvex, point, normal );
-        CHECK_CLOSE( penetrationDepth, -9.5, epsilon );
-        CHECK_CLOSE_VEC3( point, vec3f(0,+0.5,0), epsilon );
-        CHECK_CLOSE_VEC3( normal, vec3f(0,-1,0), epsilon );
-    }
-
-    TEST( intersect_plane_biconvex_side )
-    {
-        const float epsilon = 0.001f;
-        Biconvex biconvex( 2.0f, 1.0f );
-        vec3f planeNormal(-1,0,0);
-        float planeDistance = -10;
-        vec3f point, normal;
-        float penetrationDepth = IntersectPlaneBiconvex_LocalSpace( planeNormal, planeDistance, biconvex, point, normal );
-        CHECK_CLOSE( penetrationDepth, -9, epsilon );
-        CHECK_CLOSE_VEC3( point, vec3f(1,0,0), epsilon );
-        CHECK_CLOSE_VEC3( normal, vec3f(-1,0,0), epsilon );
+        nearest = GetNearestPointOnBiconvexSurface_LocalSpace( vec3f(0,10,0), biconvex );
+        CHECK_CLOSE_VEC3( nearest, vec3f(0,1,0), epsilon );
     }
 
     TEST( biconvex_support_local_space )
@@ -398,11 +362,11 @@ SUITE( Intersection )
 
         float s1,s2;
 
-        BiconvexSupport_LocalSpace( biconvex, vec3f(0,1,0), s1, s2 );
+        BiconvexSupport_LocalSpace( biconvex, vec3f(0,0,1), s1, s2 );
         CHECK_CLOSE( s1, -0.5f, epsilon );
         CHECK_CLOSE( s2, 0.5f, epsilon );
 
-        BiconvexSupport_LocalSpace( biconvex, vec3f(0,-1,0), s1, s2 );
+        BiconvexSupport_LocalSpace( biconvex, vec3f(0,0,-1), s1, s2 );
         CHECK_CLOSE( s1, -0.5f, epsilon );
         CHECK_CLOSE( s2, 0.5f, epsilon );
 
@@ -414,11 +378,11 @@ SUITE( Intersection )
         CHECK_CLOSE( s1, -1.0f, epsilon );
         CHECK_CLOSE( s2, 1.0f, epsilon );
 
-        BiconvexSupport_LocalSpace( biconvex, vec3f(0,0,1), s1, s2 );
+        BiconvexSupport_LocalSpace( biconvex, vec3f(0,1,0), s1, s2 );
         CHECK_CLOSE( s1, -1.0f, epsilon );
         CHECK_CLOSE( s2, 1.0f, epsilon );
 
-        BiconvexSupport_LocalSpace( biconvex, vec3f(0,0,-1), s1, s2 );
+        BiconvexSupport_LocalSpace( biconvex, vec3f(0,-1,0), s1, s2 );
         CHECK_CLOSE( s1, -1.0f, epsilon );
         CHECK_CLOSE( s2, 1.0f, epsilon );
     }

@@ -463,7 +463,7 @@ void GenerateGridMesh( Mesh<TexturedVertex> & mesh, const Board & board, float z
         }
     }
 
-    // todo: need to add corners to board mesh. ideally share the same texture, eg. take half of it
+    // todo: need to add corners to board mesh. ideally share the same texture, eg. take 1/4 of it
 }
 
 void GenerateStarPointsMesh( Mesh<TexturedVertex> & mesh, const Board & board, float zbias = -0.01f )

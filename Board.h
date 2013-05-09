@@ -56,6 +56,11 @@ public:
         halfHeight = 0;
     }
 
+    Board( int size, const BoardParams & params = BoardParams() )
+    {
+        Initialize( size, params );
+    }
+
     void Initialize( int size, const BoardParams & params = BoardParams() )
     {
         this->size = size;

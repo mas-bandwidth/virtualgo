@@ -96,11 +96,12 @@
 		F2776EB4171B834800E73C61 /* Mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Mesh.h; path = ../../Mesh.h; sourceTree = "<group>"; };
 		F2776EB5171B834800E73C61 /* Render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Render.h; path = ../../Render.h; sourceTree = "<group>"; };
 		F2776EB6171B834800E73C61 /* RigidBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RigidBody.h; path = ../../RigidBody.h; sourceTree = "<group>"; };
-		F2776EB7171B834800E73C61 /* Stone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Stone.h; path = ../../Stone.h; sourceTree = "<group>"; };
 		F2A39145172CFA7D00A6A74D /* BoardShader.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = BoardShader.fragment; path = "Virtual Go/shaders/BoardShader.fragment"; sourceTree = "<group>"; };
 		F2A39146172CFA7D00A6A74D /* StoneShader.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = StoneShader.fragment; path = "Virtual Go/shaders/StoneShader.fragment"; sourceTree = "<group>"; };
 		F2A39147172CFA7D00A6A74D /* BoardShader.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = BoardShader.vertex; path = "Virtual Go/shaders/BoardShader.vertex"; sourceTree = "<group>"; };
 		F2A39148172CFA7D00A6A74D /* StoneShader.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = StoneShader.vertex; path = "Virtual Go/shaders/StoneShader.vertex"; sourceTree = "<group>"; };
+		F2BE9741173BFC61005DCD6B /* StoneData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StoneData.h; path = ../../StoneData.h; sourceTree = "<group>"; };
+		F2BE9742173BFC61005DCD6B /* StoneInstance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StoneInstance.h; path = ../../StoneInstance.h; sourceTree = "<group>"; };
 		F2D0DDC4173B5F3B00CD12DA /* GameInstance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GameInstance.h; path = ../../GameInstance.h; sourceTree = "<group>"; };
 		F2D6AD68171FDF5A00930D69 /* virtual go.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "virtual go.png"; sourceTree = "<group>"; };
 		F2D6AD6A171FDFE500930D69 /* virtual go retina.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "virtual go retina.png"; sourceTree = "<group>"; };
@@ -111,7 +112,6 @@
 		F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape~ipad.png"; sourceTree = "<group>"; };
 		F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape@2x~ipad.png"; sourceTree = "<group>"; };
 		F2E1532D173B00E800D1538E /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Config.h; path = ../../Config.h; sourceTree = "<group>"; };
-		F2E1532E173B00E800D1538E /* Game.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Game.h; path = ../../Game.h; sourceTree = "<group>"; };
 		F2E1532F173B00E800D1538E /* Telemetry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Telemetry.h; path = ../../Telemetry.h; sourceTree = "<group>"; };
 		F2E15331173B350100D1538E /* Accelerometer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Accelerometer.h; path = ../../Accelerometer.h; sourceTree = "<group>"; };
 		F2E15332173B350100D1538E /* MeshGenerators.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MeshGenerators.h; path = ../../MeshGenerators.h; sourceTree = "<group>"; };
@@ -263,12 +263,13 @@
 		F2E1532C173B00BD00D1538E /* portable */ = {
 			isa = PBXGroup;
 			children = (
+				F2BE9741173BFC61005DCD6B /* StoneData.h */,
+				F2BE9742173BFC61005DCD6B /* StoneInstance.h */,
 				F2D0DDC4173B5F3B00CD12DA /* GameInstance.h */,
 				F2E15331173B350100D1538E /* Accelerometer.h */,
 				F2E15332173B350100D1538E /* MeshGenerators.h */,
 				F2E15333173B350100D1538E /* Physics.h */,
 				F2E1532D173B00E800D1538E /* Config.h */,
-				F2E1532E173B00E800D1538E /* Game.h */,
 				F2E1532F173B00E800D1538E /* Telemetry.h */,
 				F2776EAD171B834800E73C61 /* Biconvex.h */,
 				F2776EAE171B834800E73C61 /* Board.h */,
@@ -280,7 +281,6 @@
 				F2776EB4171B834800E73C61 /* Mesh.h */,
 				F2776EB5171B834800E73C61 /* Render.h */,
 				F2776EB6171B834800E73C61 /* RigidBody.h */,
-				F2776EB7171B834800E73C61 /* Stone.h */,
 			);
 			name = portable;
 			sourceTree = "<group>";

@@ -1,4 +1,28 @@
 
+Back port to MacOSX demos (9/5/2013):
+-------------------------------------
+
+    Back port to unit tests, C++ demos etc (useful to have)
+
+    Back port Collision.cpp
+
+    Back port Tessellation.cpp
+
+    Naive tessellation of biconvex is wrong rotation and seems inside out
+
+    Fixed camera, rotation direction and lighting in tessellation demo
+
+    Back port Support.cpp
+
+    Lighting is jacked in support demo
+
+    Support is incorrect.
+
+    Fixed it. Sphere dot was wrong (?!)
+
+    Backport Dynamics.cpp
+
+
 Moving game code out to GameInstance.h (8/5/2013):
 --------------------------------------------------
 

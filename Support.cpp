@@ -5,12 +5,12 @@
 
 #include "Common.h"
 #include "Render.h"
-#include "Stone.h"
 #include "Platform.h"
 #include "Biconvex.h"
 #include "RigidBody.h"
 #include "Intersection.h"
 #include "CollisionDetection.h"
+#include "MeshGenerators.h"
 
 using namespace platform;
 
@@ -37,7 +37,7 @@ int main( int argc, char * argv[] )
 
     Biconvex biconvex( 2.2f, 1.13f );
 
-    Mesh mesh;
+    Mesh<Vertex> mesh;
     GenerateBiconvexMesh( mesh, biconvex );
 
     int displayWidth, displayHeight;
@@ -89,7 +89,7 @@ int main( int argc, char * argv[] )
         return 1;
     }
 
-    mat4f rotation = mat4f::identity();
+    mat4f rotation = mat4f::axisRotation( 90, vec3f(1,0,0) );
 
     double t = 0.0f;
 
@@ -133,109 +133,100 @@ int main( int argc, char * argv[] )
 
         ClearScreen( displayWidth, displayHeight );
 
-        if ( frame > 20 )
-        {
-            glMatrixMode( GL_PROJECTION );
-            glLoadIdentity();
-            glOrtho( -1.5, +1.5f, -1.0f, +1.0f, 0.1f, 100.0f );
+        glMatrixMode( GL_PROJECTION );
+        glLoadIdentity();
+        glOrtho( -1.5, +1.5f, -1.0f, +1.0f, 0.1f, 100.0f );
 
-            float flipX[] = { -1,0,0,0,
-                               0,1,0,0,
-                               0,0,1,0,
-                               0,0,0,1 };
+        glScalef( 0.6f, 0.6f, 0.6f );
 
-            glMultMatrixf( flipX );
+        vec3f lightPosition( 1, 1, -5 );
 
-            glScalef( 0.6f, 0.6f, 0.6f );
+        GLfloat light_ambient[] = { 0.8, 0.8, 0.8, 1.0 };
+        GLfloat light_diffuse[] = { 0.7, 0.7, 0.7, 1.0 };
+        GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 
-            vec3f lightPosition( -1, +2, -5 );
+        glLightfv( GL_LIGHT0, GL_AMBIENT, light_ambient );
+        glLightfv( GL_LIGHT0, GL_DIFFUSE, light_diffuse );
+        glLightfv( GL_LIGHT0, GL_SPECULAR, light_specular );
 
-            GLfloat light_ambient[] = { 0.7, 0.7, 0.7, 1.0 };
-            GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
-            GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+        glMatrixMode( GL_MODELVIEW );
+        glLoadIdentity();
+        gluLookAt( 0, 0, -5, 
+                   0, 0, 0, 
+                   0, 1, 0 );
 
-            glLightfv( GL_LIGHT0, GL_AMBIENT, light_ambient );
-            glLightfv( GL_LIGHT0, GL_DIFFUSE, light_diffuse );
-            glLightfv( GL_LIGHT0, GL_SPECULAR, light_specular );
+        // render stone
 
-            glMatrixMode( GL_MODELVIEW );
-            glLoadIdentity();
-            gluLookAt( 0, 0, -5, 
-                       0, 0, 0, 
-                       0, 1, 0 );
+        const float targetRotation = rotating ? 0.28f : 0;
+        smoothedRotation += ( targetRotation - smoothedRotation ) * 0.15f;
+        mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(1,2,3) );
+        rotation = rotation * deltaRotation;
 
-            // render stone
+        RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
 
-            const float targetRotation = rotating ? 0.28f : 0;
-            smoothedRotation += ( targetRotation - smoothedRotation ) * 0.15f;
-            mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(1,2,3) );
-            rotation = rotation * deltaRotation;
+        glEnable( GL_LIGHTING );
+        glEnable( GL_LIGHT0 );
 
-            RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
+        glShadeModel( GL_SMOOTH );
 
-            glEnable( GL_LIGHTING );
-            glEnable( GL_LIGHT0 );
+        GLfloat lightAmbientColor[] = { 1, 1, 1, 1.0 };
+        glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
 
-            glShadeModel( GL_SMOOTH );
+        GLfloat position[4];
+        position[0] = lightPosition.x();
+        position[1] = lightPosition.y();
+        position[2] = lightPosition.z();
+        position[3] = 1.0f;
+        glLightfv( GL_LIGHT0, GL_POSITION, position );
 
-            GLfloat lightAmbientColor[] = { 1, 1, 1, 1.0 };
-            glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
+        glEnable( GL_CULL_FACE );
+        glCullFace( GL_BACK );
+        
+        glPushMatrix();
 
-            GLfloat position[4];
-            position[0] = lightPosition.x();
-            position[1] = lightPosition.y();
-            position[2] = lightPosition.z();
-            position[3] = 1.0f;
-            glLightfv( GL_LIGHT0, GL_POSITION, position );
+        float opengl_transform[16];
+        biconvexTransform.localToWorld.store( opengl_transform );
+        glMultMatrixf( opengl_transform );
 
-            glEnable( GL_CULL_FACE );
-            glCullFace( GL_BACK );
-            
-            glPushMatrix();
+        glColor4f(1,1,1,1);
 
-            float opengl_transform[16];
-            biconvexTransform.localToWorld.store( opengl_transform );
-            glMultMatrixf( opengl_transform );
+        RenderMesh( mesh );
 
-            glColor4f(1,1,1,1);
+        glPopMatrix();
 
-            RenderMesh( mesh );
+        // visualize biconvex support
 
-            glPopMatrix();
+        vec3f biconvexCenter, biconvexUp;
+        biconvexTransform.GetUp( biconvexUp );
+        biconvexTransform.GetPosition( biconvexCenter );
+        float s1,s2;
+        BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(1,0,0), s1, s2 );
 
-            // visualize biconvex support
+        glDisable( GL_LIGHTING );
+        
+        glEnable( GL_BLEND ); 
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+        
+        glLineStipple( 10, 0xAAAA );
+        glEnable( GL_LINE_STIPPLE );
+        glColor4f( 0.8,0.8,0.8,1 );
+        glLineWidth( 5 );
 
-            vec3f biconvexCenter = biconvexTransform.GetPosition();
-            vec3f biconvexUp = biconvexTransform.GetUp();
-            float s1,s2;
-            BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(1,0,0), s1, s2 );
+        glBegin( GL_LINES );
+        glVertex3f( s1, -10, 0 );
+        glVertex3f( s1, +10, 0 );
+        glVertex3f( s2, -10, 0 );
+        glVertex3f( s2, +10, 0 );
+        glEnd();
 
-            glDisable( GL_LIGHTING );
-            
-            glEnable( GL_BLEND ); 
-            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-            
-            glLineStipple( 10, 0xAAAA );
-            glEnable( GL_LINE_STIPPLE );
-            glColor4f( 0.8,0.8,0.8,1 );
-            glLineWidth( 5 );
+        glDisable( GL_LINE_STIPPLE );
+        glColor4f( 1,0,0,1 );
+        glLineWidth( 20 );
 
-            glBegin( GL_LINES );
-            glVertex3f( s1, -10, 0 );
-            glVertex3f( s1, +10, 0 );
-            glVertex3f( s2, -10, 0 );
-            glVertex3f( s2, +10, 0 );
-            glEnd();
-
-            glDisable( GL_LINE_STIPPLE );
-            glColor4f( 1,0,0,1 );
-            glLineWidth( 20 );
-
-            glBegin( GL_LINES );
-            glVertex3f( s1 - 0.01f, -1.65, 0 );
-            glVertex3f( s2 + 0.01f, -1.65, 0 );
-            glEnd();
-        }
+        glBegin( GL_LINES );
+        glVertex3f( s1 - 0.01f, -1.65, 0 );
+        glVertex3f( s2 + 0.01f, -1.65, 0 );
+        glEnd();
 
         // record to video
 

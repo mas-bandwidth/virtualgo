@@ -404,6 +404,26 @@ struct RigidBodyTransform
 {    
     mat4f localToWorld, worldToLocal;
 
+    RigidBodyTransform()
+    {
+        // ...
+    }
+
+    RigidBodyTransform( const vec3f & position )
+    {
+        Initialize( position );        
+    }
+
+    RigidBodyTransform( const vec3f & position, const mat4f & rotation )
+    {
+        Initialize( position, rotation, transpose( rotation ) );
+    }
+
+    void Initialize( const vec3f & position )
+    {
+        Initialize( position, mat4f::identity(), mat4f::identity() );
+    }
+
     void Initialize( const vec3f & position, const mat4f & rotation, const mat4f & inverseRotation )
     {
         localToWorld = rotation;

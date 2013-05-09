@@ -32,7 +32,7 @@ public:
         sphereRadius = ( width*width + height*height ) / ( 4 * height );
         sphereRadiusSquared = sphereRadius * sphereRadius;
         sphereOffset = sphereRadius - height/2;
-        sphereDot = dot( vec3f(1,0,0), normalize( vec3f( width/2, sphereOffset, 0 ) ) );
+        sphereDot = dot( vec3f(0,1,0), normalize( vec3f( width/2, sphereOffset, 0 ) ) );
 
         circleRadius = width / 2;
 
@@ -86,7 +86,7 @@ private:
     float bevelTorusMinorRadius;            // the minor radius of the torus generating the bevel
 };
 
-inline bool PointInsideBiconvex_LocalSpace( vec3f point,
+inline bool PointInsideBiconvex_LocalSpace( const vec3f & point,
                                             const Biconvex & biconvex,
                                             float epsilon = 0.001f )
 {
@@ -114,7 +114,7 @@ inline bool PointInsideBiconvex_LocalSpace( vec3f point,
     return false;
 }
 
-inline bool IsPointOnBiconvexSurface_LocalSpace( vec3f point, 
+inline bool IsPointOnBiconvexSurface_LocalSpace( const vec3f & point, 
                                                  const Biconvex & biconvex,
                                                  float epsilon = 0.001f )
 {
@@ -144,7 +144,7 @@ inline bool IsPointOnBiconvexSurface_LocalSpace( vec3f point,
     return false;
 }
 
-inline void GetBiconvexSurfaceNormalAtPoint_LocalSpace( vec3f point, 
+inline void GetBiconvexSurfaceNormalAtPoint_LocalSpace( const vec3f & point, 
                                                         const Biconvex & biconvex,
                                                         vec3f & normal,
                                                         float epsilon = 0.001 )
@@ -169,7 +169,7 @@ inline void GetBiconvexSurfaceNormalAtPoint_LocalSpace( vec3f point,
     }
 }
 
-inline vec3f GetNearestPointOnBiconvexSurface_LocalSpace( vec3f point, 
+inline vec3f GetNearestPointOnBiconvexSurface_LocalSpace( const vec3f & point, 
                                                           const Biconvex & biconvex,
                                                           float epsilon = 0.001f )
 {
@@ -193,7 +193,7 @@ inline vec3f GetNearestPointOnBiconvexSurface_LocalSpace( vec3f point,
 }
 
 inline void BiconvexSupport_LocalSpace( const Biconvex & biconvex, 
-                                        vec3f axis, 
+                                        const vec3f & axis, 
                                         float & s1, 
                                         float & s2 )
 {
@@ -221,9 +221,9 @@ inline void BiconvexSupport_LocalSpace( const Biconvex & biconvex,
 }
 
 inline void BiconvexSupport_WorldSpace( const Biconvex & biconvex, 
-                                        vec3f biconvexCenter,
-                                        vec3f biconvexUp,
-                                        vec3f axis, 
+                                        const vec3f & biconvexCenter,
+                                        const vec3f & biconvexUp,
+                                        const vec3f & axis, 
                                         float & s1,
                                         float & s2 )
 {
@@ -261,10 +261,10 @@ struct NearestPoint
 };
 
 inline void GetNearestPoint_Biconvex_Line( const Biconvex & biconvex, 
-                                           vec3f biconvexCenter,
-                                           vec3f biconvexUp,
-                                           vec3f lineOrigin,
-                                           vec3f lineDirection,
+                                           const vec3f & biconvexCenter,
+                                           const vec3f & biconvexUp,
+                                           const vec3f & lineOrigin,
+                                           const vec3f & lineDirection,
                                            vec3f & biconvexPoint,
                                            vec3f & linePoint )
 {
@@ -414,10 +414,10 @@ inline void GetNearestPoint_Biconvex_Line( const Biconvex & biconvex,
 */
 
 bool Biconvex_SAT( const Biconvex & biconvex,
-                   vec3f position_a,
-                   vec3f position_b,
-                   vec3f up_a,
-                   vec3f up_b,
+                   const vec3f & position_a,
+                   const vec3f & position_b,
+                   const vec3f & up_a,
+                   const vec3f & up_b,
                    float epsilon = 0.001f )
 {
     const float sphereOffset = biconvex.GetSphereOffset();

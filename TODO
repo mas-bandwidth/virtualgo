@@ -1,13 +1,19 @@
 DONE:
 
 TODO:
-
-    ----------------
-
-    Board shadow on the ground is broken
+    
+    ---------------
 
     Consolidate all matrix math such that it doesn't use GLKMatrix. 
     This way the matrix math can be portable using vectorial.
+
+    Move the game logic out of ViewController.m and into GameInstance.h
+
+    The idea is that the ViewController.m should just be funnelling
+    events to the game instance, leaving the bulk of the game code
+    as portable C++
+
+    ----------------
 
     Next I want to add the concept of stone ids and the
     logical board. Stone id can be a 32bit hash that increases
@@ -23,6 +29,7 @@ TODO:
     shadow related stone data can be in one place, matrices
     in another and so on.
 
+    Board shadow on the ground is broken
 
 
 

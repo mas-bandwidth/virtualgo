@@ -43,12 +43,12 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
             if ( !selected )
                 stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
 
+            quat4f spin;
+            AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity, spin );
             const int rotation_substeps = 1;
             const float rotation_substep_dt = iteration_dt / rotation_substeps;
             for ( int j = 0; j < rotation_substeps; ++j )
             {
-                quat4f spin;
-                AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity, spin );
                 stone.rigidBody.orientation += spin * rotation_substep_dt;
                 stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
             }        
@@ -196,6 +196,11 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
         for ( int i = 0; i < stones.size(); ++i )
         {
             StoneInstance & stone = stones[i];
+
+            if ( !stone.active )
+                continue;
+
+            stoneInstance.rigidBody.UpdateMomentum();
 
             if ( length_squared( stone.rigidBody.linearVelocity ) < DeactivateLinearThresholdSquared &&
                  length_squared( stone.rigidBody.angularVelocity ) < DeactivateAngularThresholdSquared )

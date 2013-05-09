@@ -5,12 +5,14 @@
 
 #include "Common.h"
 #include "Render.h"
-#include "Stone.h"
+#include "StoneData.h"
+#include "StoneInstance.h"
 #include "Platform.h"
 #include "Biconvex.h"
 #include "RigidBody.h"
 #include "CollisionDetection.h"
 #include "CollisionResponse.h"
+#include "MeshGenerators.h"
 #include "Intersection.h"
 #include <vector>
 
@@ -33,7 +35,8 @@ enum Mode
 
 Mode mode = Nothing;
 
-Stone stone;
+StoneData stoneData;
+StoneInstance stoneInstance;
 
 std::vector<RigidBody> snapshots;
 float snapshotAccumulator = FLT_MAX;
@@ -51,8 +54,8 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     }
     else if ( mode == Gravity || mode == Combination )
     {
-        rigidBody.position = vec3f(-5.75f,-6.1f,0);
-        rigidBody.linearMomentum = vec3f(13.5f,41.5f,0);
+        rigidBody.position = vec3f(-5.75f,0,-6.1f);
+        rigidBody.linearMomentum = vec3f(13.5f,0,41.5f);
     }
     else
     {
@@ -60,9 +63,10 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     }
 
     if ( mode == AngularMotion || mode == Combination )
-        rigidBody.angularMomentum = vec3f(1,2,10);
+        rigidBody.angularMomentum = vec3f(10,1,5);
 
-    rigidBody.Update();
+    rigidBody.UpdateMomentum();
+    rigidBody.UpdateTransform();
 
     snapshots.clear();
     snapshotAccumulator = FLT_MAX;
@@ -101,18 +105,22 @@ int main( int argc, char * argv[] )
 
     printf( "tesselating go stones...\n" );
 
-    StoneSize stoneSize = STONE_SIZE_32;
+    StoneSize stoneSize = STONE_SIZE_40;
 
-    stone.Initialize( stoneSize );
-    stone.rigidBody.inertia = vec3f(1,1,1);
-    stone.rigidBody.inertiaTensor = mat4f::identity();
-    stone.rigidBody.inverseInertiaTensor = mat4f::identity();
+    stoneData.Initialize( stoneSize );
 
-    Mesh mesh;
-    GenerateBiconvexMesh( mesh, stone.biconvex );
+    stoneInstance.Initialize( stoneData );
 
-    Mesh cheapMesh;
-    GenerateBiconvexMesh( cheapMesh, stone.biconvex, 3 );
+    stoneInstance.rigidBody.inertia = vec3f(1,1,1);
+    stoneInstance.rigidBody.inertiaTensor = mat4f::identity();
+    stoneInstance.rigidBody.inverseInertiaTensor = mat4f::identity();
+    stoneInstance.rigidBody.UpdateTransform();
+
+    Mesh<Vertex> mesh;
+    GenerateBiconvexMesh( mesh, stoneData.biconvex );
+
+    Mesh<Vertex> cheapMesh;
+    GenerateBiconvexMesh( cheapMesh, stoneData.biconvex, 3 );
 
     int displayWidth, displayHeight;
     GetDisplayResolution( displayWidth, displayHeight );
@@ -143,7 +151,7 @@ int main( int argc, char * argv[] )
     glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
     GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
-    GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat light_diffuse[] = { 0.7, 0.7, 0.7, 1.0 };
     GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 
     glLightfv( GL_LIGHT0, GL_AMBIENT, light_ambient );
@@ -164,7 +172,7 @@ int main( int argc, char * argv[] )
 
     glShadeModel( GL_SMOOTH );
 
-    GLfloat lightAmbientColor[] = { 0.2, 0.2, 0.2, 1.0 };
+    GLfloat lightAmbientColor[] = { 0.75, 0.75, 0.75, 1.0 };
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lightAmbientColor );
 
     glEnable( GL_BLEND );
@@ -264,7 +272,7 @@ int main( int argc, char * argv[] )
 
         if ( input.enter && !prevEnter )
         {
-            RandomStone( stone.biconvex, stone.rigidBody, mode );
+            RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
         }
         prevEnter = input.enter;
 
@@ -272,35 +280,35 @@ int main( int argc, char * argv[] )
         {
             mode = LinearMotionStrobe;
             moveAccumulator = 0;
-            RandomStone( stone.biconvex, stone.rigidBody, mode );
+            RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
         }
         prevOne = input.one;
 
         if ( input.two && !prevTwo )
         {
             mode = LinearMotionSmooth;
-            RandomStone( stone.biconvex, stone.rigidBody, mode );
+            RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
         }
         prevTwo = input.two;
 
         if ( input.three && !prevThree )
         {
             mode = Gravity;
-            RandomStone( stone.biconvex, stone.rigidBody, mode );
+            RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
         }
         prevThree = input.three;
 
         if ( input.four && !prevFour )
         {
             mode = AngularMotion;
-            RandomStone( stone.biconvex, stone.rigidBody, mode );
+            RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
         }
         prevFour = input.four;
 
         if ( input.five && !prevFive )
         {
             mode = Combination;
-            RandomStone( stone.biconvex, stone.rigidBody, mode );
+            RandomStone( stoneData.biconvex, stoneInstance.rigidBody, mode );
         }
         prevFive = input.five;
 
@@ -316,10 +324,10 @@ int main( int argc, char * argv[] )
 
         // setup lights
 
-        GLfloat lightPosition0[] = { 250, 1000, -500, 1 };
-        GLfloat lightPosition1[] = { -250, 0, -250, 1 };
-        GLfloat lightPosition2[] = { 100, 0, -100, 1 };
-        GLfloat lightPosition3[] = { 0, +1000, +1000, 1 };
+        GLfloat lightPosition0[] = { 250, -1000, 500, 1 };
+        GLfloat lightPosition1[] = { -250, 0, 250, 1 };
+        GLfloat lightPosition2[] = { 100, 0, 100, 1 };
+        GLfloat lightPosition3[] = { 0, -1000, 1000, 1 };
         
         glLightfv( GL_LIGHT0, GL_POSITION, lightPosition0 );
         glLightfv( GL_LIGHT1, GL_POSITION, lightPosition1 );
@@ -334,13 +342,6 @@ int main( int argc, char * argv[] )
 
         gluPerspective( FOV, (float) displayWidth / (float) displayHeight, Near, Far );
 
-        float flipX[] = { -1,0,0,0,
-                           0,1,0,0,
-                           0,0,1,0,
-                           0,0,0,1 };
-
-        glMultMatrixf( flipX );
-
         glMatrixMode( GL_MODELVIEW );
 
         glLoadIdentity();
@@ -348,13 +349,13 @@ int main( int argc, char * argv[] )
         float cameraDist = 10;
 
         if ( mode == LinearMotionStrobe || mode == LinearMotionSmooth )
-            cameraDist = 6.5f;
+            cameraDist = 6.4430f;
         else if ( mode == AngularMotion )
             cameraDist = 4.0f;
 
-        gluLookAt( 0, 0, -cameraDist, 
+        gluLookAt( 0, -cameraDist, 0,
                    0, 0, 0, 
-                   0, 1, 0 );
+                   0, 0, 1 );
 
         // update stone physics
 
@@ -364,31 +365,35 @@ int main( int argc, char * argv[] )
 
         if ( mode == LinearMotionStrobe )
         {
-            stone.rigidBody.linearMomentum = vec3f(0,0,0);
+            stoneInstance.rigidBody.linearMomentum = vec3f(0,0,0);
             moveAccumulator += dt;
             if ( moveAccumulator >= 1 )
             {
                 moveAccumulator -= 1;
-                stone.rigidBody.position += vec3f(2.5f,0,0);
+                stoneInstance.rigidBody.position += vec3f(2.5f,0,0);
             }
         }
         else if ( mode == LinearMotionSmooth )
         {
-            stone.rigidBody.linearMomentum = vec3f(2.5f,0,0);
+            stoneInstance.rigidBody.linearMomentum = vec3f(2.5f,0,0);
         }
 
         if ( mode == Gravity || mode == Combination )
         {
             const float gravity = 9.8f * 10;    // cms/sec^2
-            stone.rigidBody.linearMomentum += vec3f(0,-gravity,0) * stone.rigidBody.mass * dt;
+            stoneInstance.rigidBody.linearMomentum += vec3f(0,0,-gravity) * stoneInstance.rigidBody.mass * dt;
         }
 
-        stone.rigidBody.Update();
+        stoneInstance.rigidBody.UpdateMomentum();
 
-        stone.rigidBody.position += stone.rigidBody.linearVelocity * dt;
-        quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
-        stone.rigidBody.orientation += spin * dt;
-        stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
+        stoneInstance.rigidBody.position += stoneInstance.rigidBody.linearVelocity * dt;
+
+        quat4f spin;
+        AngularVelocityToSpin( stoneInstance.rigidBody.orientation, stoneInstance.rigidBody.angularVelocity, spin );
+        stoneInstance.rigidBody.orientation += spin * dt;
+        stoneInstance.rigidBody.orientation = normalize( stoneInstance.rigidBody.orientation );
+
+        stoneInstance.rigidBody.UpdateTransform();
 
         // update snapshots
 
@@ -401,7 +406,7 @@ int main( int argc, char * argv[] )
         snapshotAccumulator += dt;
         if ( snapshotAccumulator >= strobeTime && snapshots.size() < 30 )
         {
-            snapshots.push_back( stone.rigidBody );
+            snapshots.push_back( stoneInstance.rigidBody );
             if ( snapshotAccumulator != FLT_MAX )
                 snapshotAccumulator -= strobeTime;
             else
@@ -427,7 +432,7 @@ int main( int argc, char * argv[] )
 
                 RigidBody & rigidBody = snapshots[i];
 
-                RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
+                const RigidBodyTransform & biconvexTransform = rigidBody.transform;
                 float opengl_transform[16];
                 biconvexTransform.localToWorld.store( opengl_transform );
                 glMultMatrixf( opengl_transform );
@@ -451,7 +456,7 @@ int main( int argc, char * argv[] )
 
         glPushMatrix();
 
-        RigidBodyTransform biconvexTransform( stone.rigidBody.position, stone.rigidBody.orientation );
+        const RigidBodyTransform & biconvexTransform = stoneInstance.rigidBody.transform;
         float opengl_transform[16];
         biconvexTransform.localToWorld.store( opengl_transform );
         glMultMatrixf( opengl_transform );

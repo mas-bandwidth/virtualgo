@@ -180,8 +180,8 @@ void MakeShadowMatrix( const vec4f & plane, const vec4f & light, mat4f & shadowM
 #else
 
     #include "Config.h"
-    #include "Stone.h"
     #include "Board.h"
+    #include "Biconvex.h"
     #include "Mesh.h"
 
     #if PLATFORM == PLATFORM_MAC
@@ -209,16 +209,16 @@ void MakeShadowMatrix( const vec4f & plane, const vec4f & light, mat4f & shadowM
 
         // bottom surface of biconvex
         {
-            const float center_y = biconvex.GetSphereOffset();
-            const float delta_y = biconvex.GetHeight() / 2 / numRings;
+            const float center_z = biconvex.GetSphereOffset();
+            const float delta_z = biconvex.GetHeight() / 2 / numRings;
 
             for ( int i = 0; i < numRings; ++i )
             {
-                const float y1 = -i * delta_y;
-                const float s1 = y1 - center_y;
+                const float z1 = -i * delta_z;
+                const float s1 = z1 - center_z;
                 const float r1 = sqrt( sphereRadius*sphereRadius - (s1*s1) );
-                const float y2 = -(i+1) * delta_y;
-                const float s2 = y2 - center_y;
+                const float z2 = -(i+1) * delta_z;
+                const float s2 = z2 - center_z;
                 const float r2 = sqrt( sphereRadius*sphereRadius - (s2*s2) );
 
                 for ( int j = 0; j < numSegments; ++j )
@@ -227,21 +227,21 @@ void MakeShadowMatrix( const vec4f & plane, const vec4f & light, mat4f & shadowM
                     const float angle2 = angle1 + segmentAngle;
                     
                     const float top_x1 = cos( angle1 ) * r1;
-                    const float top_z1 = sin( angle1 ) * r1;    
+                    const float top_y1 = sin( angle1 ) * r1;    
                     const float top_x2 = cos( angle2 ) * r1;
-                    const float top_z2 = sin( angle2 ) * r1;
+                    const float top_y2 = sin( angle2 ) * r1;
 
                     const float bottom_x1 = cos( angle1 ) * r2;
-                    const float bottom_z1 = sin( angle1 ) * r2;    
+                    const float bottom_y1 = sin( angle1 ) * r2;    
                     const float bottom_x2 = cos( angle2 ) * r2;
-                    const float bottom_z2 = sin( angle2 ) * r2;
+                    const float bottom_y2 = sin( angle2 ) * r2;
 
-                    vec3f a( top_x1, y1, top_z1 );
-                    vec3f b( bottom_x1, y2, bottom_z1 );
-                    vec3f c( bottom_x2, y2, bottom_z2 );
-                    vec3f d( top_x2, y1, top_z2 );
+                    vec3f a( top_x1, top_y1, z1 );
+                    vec3f b( bottom_x1, bottom_y1, z2 );
+                    vec3f c( bottom_x2, bottom_y2, z2 );
+                    vec3f d( top_x2, top_y2, z1 );
 
-                    vec3f center( 0, center_y, 0 );
+                    vec3f center( 0, 0, center_z );
 
                     vec3f na = normalize( a - center );
                     vec3f nb = normalize( b - center );
@@ -271,16 +271,16 @@ void MakeShadowMatrix( const vec4f & plane, const vec4f & light, mat4f & shadowM
 
         // top surface of biconvex
         {
-            const float center_y = -biconvex.GetSphereOffset();
-            const float delta_y = biconvex.GetHeight() / 2 / numRings;
+            const float center_z = -biconvex.GetSphereOffset();
+            const float delta_z = biconvex.GetHeight() / 2 / numRings;
 
             for ( int i = 0; i < numRings; ++i )
             {
-                const float y1 = i * delta_y;
-                const float s1 = y1 - center_y;
+                const float z1 = i * delta_z;
+                const float s1 = z1 - center_z;
                 const float r1 = sqrt( sphereRadius*sphereRadius - (s1*s1) );
-                const float y2 = (i+1) * delta_y;
-                const float s2 = y2 - center_y;
+                const float z2 = (i+1) * delta_z;
+                const float s2 = z2 - center_z;
                 const float r2 = sqrt( sphereRadius*sphereRadius - (s2*s2) );
 
                 for ( int j = 0; j < numSegments; ++j )
@@ -289,21 +289,21 @@ void MakeShadowMatrix( const vec4f & plane, const vec4f & light, mat4f & shadowM
                     const float angle2 = angle1 + segmentAngle;
                     
                     const float top_x1 = cos( angle1 ) * r1;
-                    const float top_z1 = sin( angle1 ) * r1;    
+                    const float top_y1 = sin( angle1 ) * r1;    
                     const float top_x2 = cos( angle2 ) * r1;
-                    const float top_z2 = sin( angle2 ) * r1;
+                    const float top_y2 = sin( angle2 ) * r1;
 
                     const float bottom_x1 = cos( angle1 ) * r2;
-                    const float bottom_z1 = sin( angle1 ) * r2;
+                    const float bottom_y1 = sin( angle1 ) * r2;
                     const float bottom_x2 = cos( angle2 ) * r2;
-                    const float bottom_z2 = sin( angle2 ) * r2;
+                    const float bottom_y2 = sin( angle2 ) * r2;
 
-                    vec3f a( bottom_x1, y2, bottom_z1 );
-                    vec3f b( top_x1, y1, top_z1 );
-                    vec3f c( top_x2, y1, top_z2 );
-                    vec3f d( bottom_x2, y2, bottom_z2 );
+                    vec3f a( bottom_x1, bottom_y1, z2 );
+                    vec3f b( top_x1, top_y1, z1 );
+                    vec3f c( top_x2, top_y2, z1 );
+                    vec3f d( bottom_x2, bottom_y2, z2 );
 
-                    vec3f center( 0, center_y, 0 );
+                    vec3f center( 0, 0, center_z );
 
                     vec3f na = normalize( a - center );
                     vec3f nb = normalize( b - center );
@@ -416,12 +416,12 @@ void MakeShadowMatrix( const vec4f & plane, const vec4f & light, mat4f & shadowM
         glEnd();
     }
 
-    void RenderMesh( Mesh & mesh )
+    void RenderMesh( Mesh<Vertex> & mesh )
     {
         glBegin( GL_TRIANGLES );
 
         int numTriangles = mesh.GetNumTriangles();
-        int * indexBuffer = mesh.GetIndexBuffer();
+        uint16_t * indexBuffer = mesh.GetIndexBuffer();
         Vertex * vertexBuffer = mesh.GetVertexBuffer();
 
         for ( int i = 0; i < numTriangles; ++i )
