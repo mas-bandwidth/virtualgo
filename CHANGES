@@ -1,4 +1,20 @@
 
+Moving game code out to GameInstance.h (8/5/2013):
+--------------------------------------------------
+
+    Move ownership of key, non-render related objects into
+    GameInstance.h. This is the start of the game code moving
+    out of Objective-C.
+
+    Moved accelerometer object back into view controller. It is singleton.
+
+    Separate stone data and stone instance
+
+    Stone data is the template data common across all stones (eg: biconvex)
+
+    Stone instance has the rigid body and any data per-stone
+
+    
 Work in progress splitting out portable code from Obj-C (8/5/2013):
 -------------------------------------------------------------------
 
@@ -41,6 +57,19 @@ Work in progress splitting out portable code from Obj-C (8/5/2013):
     Make "updateDetection" work with single stone case
 
     Move physics simulation into its own method in Physics.h
+
+    Clean up render method. It's really fat and a lot of code
+    can be factored out and put into methods, eg. selectIBAndVB
+
+    Add a function pointer which is called on the first
+    counter increment. This will allow integration with
+    testflight.
+
+    Split out all OpenGL related stuff into OpenGL.h/m to keep
+    the ViewController.m as clean and simple as possible :)
+
+    Remove all the did become active notifications and paused
+    I don't need it. Unneccessary complication.
 
 
 Additional optimizations, reduce iterations (6/5/2013):

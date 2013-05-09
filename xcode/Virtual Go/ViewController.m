@@ -8,34 +8,50 @@
 
 #import "ViewController.h"
 #import "testflight/TestFlight.h"
+#import "OpenGL.h"
+#import "Config.h"
+#import "Common.h"
+#import "Render.h"
+#import "Physics.h"
+#import "Telemetry.h"
+#import "Accelerometer.h"
+#import "MeshGenerators.h"
+#import "GameInstance.h"
 
-#include "../../Config.h"
-#include "Common.h"
-#include "Biconvex.h"
-#include "Stone.h"
-#include "Board.h"
-#include "CollisionDetection.h"
-#include "CollisionResponse.h"
-#include "../../Render.h"
-#include "../../Physics.h"
-#include "../../Telemetry.h"
-#include "../../Accelerometer.h"
-#include "../../MeshGenerators.h"
+bool iPad()
+{
+    return UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad;
+}
+
+void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * counterName )
+{
+    if ( counterValue == 1 )
+        [TestFlight passCheckpoint:[NSString stringWithUTF8String:counterName]];
+}
 
 @interface ViewController ()
 {    
+    // converted
+
+    OpenGL * opengl;
+
+    GameInstance game;
+
+    Telemetry telemetry;
+
+    Accelerometer accelerometer;
+
+    // to be cleaned up below this line
+
     GLKMatrix4 _clipMatrix;
     GLKMatrix4 _inverseClipMatrix;
-        
-    std::vector<Stone> _stones;
-    Biconvex _biconvex;
+
     Mesh<Vertex> _stoneMesh;
     GLuint _stoneProgram;
     GLuint _stoneVertexBuffer;
     GLuint _stoneIndexBuffer;
     GLint _stoneUniforms[NUM_UNIFORMS];
     
-    Board _board;
     Mesh<TexturedVertex> _boardMesh;
     GLuint _boardProgram;
     GLuint _boardTexture;
@@ -75,16 +91,7 @@
     GLKMatrix3 _floorNormalMatrix;
     GLint _floorUniforms[NUM_UNIFORMS];
 
-    vec3f _lightPosition;
-
-    bool _locked;
-    bool _paused;
-    bool _zoomed;
-    bool _hasRendered;
-
-    float _smoothZoom;
-
-    Accelerometer _accelerometer;    
+    bool _hasRendered;      // todo: remove this by splitting the code that calculates matrices from render
 
     bool _swipeStarted;
     UITouch * _swipeTouch;
@@ -108,8 +115,6 @@
     double _selectPrevTimestamp;
     vec3f _selectIntersectionPoint;
     vec3f _selectPrevIntersectionPoint;
-    
-    Telemetry _telemetry;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -117,41 +122,24 @@
 - (void)setupGL;
 - (void)tearDownGL;
 
-- (void)didBecomeActive:(NSNotification *)notification;
-- (void)willResignActive:(NSNotification *)notification;
-- (void)didEnterBackground:(NSNotification *)notification;
-- (void)willEnterForeground:(NSNotification *)notification;
-
-- (void)deviceOrientationDidChange:(NSNotification *)notification;
-
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event;
 
-- (GLuint)loadShader:(NSString*)filename;
-- (BOOL)compileShader:(GLuint *)shader type:(GLenum)type file:(NSString *)file;
-- (BOOL)linkProgram:(GLuint)prog;
-- (BOOL)validateProgram:(GLuint)prog;
-
 @end
 
 @implementation ViewController
 
-bool iPad()
-{
-    return UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad;
-}
-
 - (void)viewDidLoad
 {
+    telemetry.SetCounterNotifyFunc( HandleCounterNotify );
+
     [super viewDidLoad];
 
-    [self setupNotifications];
-
-    UIAccelerometer * accelerometer = [UIAccelerometer sharedAccelerometer];
-    accelerometer.updateInterval = 1 / AccelerometerFrequency;
-    accelerometer.delegate = self;
+    UIAccelerometer * uiAccelerometer = [UIAccelerometer sharedAccelerometer];
+    uiAccelerometer.updateInterval = 1 / AccelerometerFrequency;
+    uiAccelerometer.delegate = self;
     
     self.context = [ [EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 ];
 
@@ -164,27 +152,29 @@ bool iPad()
     view.context = self.context;
     view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
     
-    _board.Initialize( BoardSize );
+    game.board.Initialize( BoardSize );
 
-    Stone stone;
-    stone.Initialize( STONE_SIZE_40 );
-    GenerateBiconvexMesh( _stoneMesh, stone.biconvex, 3 );
-    _biconvex = stone.biconvex;
+    game.stoneData.Initialize( STONE_SIZE_40 );
+    
+    GenerateBiconvexMesh( _stoneMesh, game.stoneData.biconvex, 3 );
 
     GenerateFloorMesh( _floorMesh );
-    GenerateBoardMesh( _boardMesh, _board );
-    GenerateGridMesh( _gridMesh, _board );
-    GenerateStarPointsMesh( _pointMesh, _board );
+    GenerateBoardMesh( _boardMesh, game.board );
+    GenerateGridMesh( _gridMesh, game.board );
+    GenerateStarPointsMesh( _pointMesh, game.board );
 
+    opengl = [[OpenGL alloc] init];
+   
     [self setupGL];
   
-    _locked = false;//true;
-    _paused = true;
-    _zoomed = !iPad();
+    game.locked = false;//true;
+    game.paused = false;
+    game.zoomed = !iPad();
+    
+    game.smoothZoom = [self getTargetZoom];
+    
     _hasRendered = false;
-    
-    _smoothZoom = [self getTargetZoom];
-    
+
     _swipeStarted = false;
     _holdStarted = false;
     _selected = false;
@@ -199,24 +189,27 @@ bool iPad()
     {
         for ( int j = 1; j <= BoardSize; ++j )
         {
+            StoneInstance stone;
+            stone.Initialize( game.stoneData );
             stone.rigidBody.position = _board.GetPointPosition( i, j ) + vec3f( 0, 0, stone.biconvex.GetHeight() / 2 );
             stone.rigidBody.orientation = quat4f(1,0,0,0);
             stone.rigidBody.linearMomentum = vec3f(0,0,0);
             stone.rigidBody.angularMomentum = vec3f(0,0,0);
             stone.rigidBody.Activate();
-            _stones.push_back( stone );
+            game.stones.push_back( stone );
         }
     }
 
 #else
 
-    // IMPORTANT: place initial stone
-    stone.rigidBody.position = vec3f( 0, 0, _board.GetThickness() + stone.biconvex.GetHeight()/2 );
+    StoneInstance stone;
+    stone.Initialize( game.stoneData );
+    stone.rigidBody.position = vec3f( 0, 0, game.board.GetThickness() + game.stoneData.biconvex.GetHeight()/2 );
     stone.rigidBody.orientation = quat4f(1,0,0,0);
     stone.rigidBody.linearMomentum = vec3f(0,0,0);
     stone.rigidBody.angularMomentum = vec3f(0,0,0);
     stone.rigidBody.Activate();
-    _stones.push_back( stone );
+    game.stones.push_back( stone );
 
 #endif
 }
@@ -231,52 +224,6 @@ bool iPad()
     }
 
     [ [NSNotificationCenter defaultCenter] removeObserver:self ];
-}
-
-- (void)setupNotifications
-{
-    [ [NSNotificationCenter defaultCenter] addObserver : self
-                                              selector : @selector(didBecomeActive:)
-                                                  name : UIApplicationDidBecomeActiveNotification object:nil ];
-
-    [ [NSNotificationCenter defaultCenter] addObserver : self
-                                              selector : @selector(willResignActive:)
-                                                  name : UIApplicationWillResignActiveNotification object:nil ];
-    
-    [ [NSNotificationCenter defaultCenter] addObserver : self
-                                              selector : @selector(didEnterBackground:)
-                                                  name : UIApplicationDidEnterBackgroundNotification object:nil ];
-
-    [ [NSNotificationCenter defaultCenter] addObserver : self
-                                              selector : @selector(willEnterForeground:)
-                                                  name : UIApplicationWillEnterForegroundNotification object:nil ];
-    
-    [ [NSNotificationCenter defaultCenter] addObserver : self
-                                              selector : @selector(deviceOrientationDidChange:)
-                                                  name : UIDeviceOrientationDidChangeNotification object:nil ];
-}
-
-- (void)didBecomeActive:(NSNotification *)notification
-{
-//    NSLog( @"did become active" );
-    _paused = false;
-    _hasRendered = false;
-}
-
-- (void)willResignActive:(NSNotification *)notification
-{
-//    NSLog( @"will resign active" );
-    _paused = true;
-}
-
-- (void)didEnterBackground:(NSNotification *)notification
-{
-//    NSLog( @"did enter background" );
-}
-
-- (void)willEnterForeground:(NSNotification *)notification
-{
-//    NSLog( @"will enter foreground" );
 }
 
 - (void)didReceiveMemoryWarning
@@ -299,44 +246,6 @@ bool iPad()
     }
 }
 
-- (void) generateVBAndIBFromMesh:(Mesh<Vertex>&) mesh
-                                  vertexBuffer:(GLuint&) vb
-                                   indexBuffer:(GLuint&) ib
-{
-    void * vertexData = mesh.GetVertexBuffer();
-    
-    assert( vertexData );
-    assert( mesh.GetNumIndices() > 0 );
-    assert( mesh.GetNumVertices() > 0 );
-
-    glGenBuffers( 1, &vb );
-    glBindBuffer( GL_ARRAY_BUFFER, vb );
-    glBufferData( GL_ARRAY_BUFFER, sizeof(Vertex) * mesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
-    
-    glGenBuffers( 1, &ib );
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib );
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, mesh.GetNumIndices()*sizeof(GLushort), mesh.GetIndexBuffer(), GL_STATIC_DRAW );
-}
-
-- (void) generateVBAndIBFromTexturedMesh:(Mesh<TexturedVertex>&) mesh
-                                          vertexBuffer:(GLuint&) vb
-                                           indexBuffer:(GLuint&) ib
-{
-    void * vertexData = mesh.GetVertexBuffer();
-    
-    assert( vertexData );
-    assert( mesh.GetNumIndices() > 0 );
-    assert( mesh.GetNumVertices() > 0 );
-
-    glGenBuffers( 1, &vb );
-    glBindBuffer( GL_ARRAY_BUFFER, vb );
-    glBufferData( GL_ARRAY_BUFFER, sizeof(TexturedVertex) * mesh.GetNumVertices(), vertexData, GL_STATIC_DRAW );
-    
-    glGenBuffers( 1, &ib );
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib );
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, mesh.GetNumIndices()*sizeof(GLushort), mesh.GetIndexBuffer(), GL_STATIC_DRAW );
-}
-
 - (void)setupGL
 {
     [EAGLContext setCurrentContext:self.context];
@@ -349,9 +258,9 @@ bool iPad()
 
     // stone shader, textures, VBs/IBs etc.
     {    
-        _stoneProgram = [self loadShader:@"StoneShader"];
+        _stoneProgram = [opengl loadShader:@"StoneShader"];
 
-        [self generateVBAndIBFromMesh:_stoneMesh vertexBuffer:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
+        [opengl generateVBAndIBFromMesh:_stoneMesh vertexBuffer:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
 
         _stoneUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _stoneProgram, "normalMatrix" );
         _stoneUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _stoneProgram, "modelViewProjectionMatrix" );
@@ -360,11 +269,11 @@ bool iPad()
     
     // board shader, textures, VBs/IBs etc.
     {
-        _boardProgram = [self loadShader:@"BoardShader"];
+        _boardProgram = [opengl loadShader:@"BoardShader"];
 
-        [self generateVBAndIBFromTexturedMesh:_boardMesh vertexBuffer:_boardVertexBuffer indexBuffer:_boardIndexBuffer];
+        [opengl generateVBAndIBFromTexturedMesh:_boardMesh vertexBuffer:_boardVertexBuffer indexBuffer:_boardIndexBuffer];
         
-        _boardTexture = [self loadTexture:@"wood.jpg"];
+        _boardTexture = [opengl loadTexture:@"wood.jpg"];
 
         _boardUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _boardProgram, "normalMatrix" );
         _boardUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _boardProgram, "modelViewProjectionMatrix" );
@@ -373,7 +282,7 @@ bool iPad()
 
     // shadow shader, uniforms etc.
     {
-        _shadowProgram = [self loadShader:@"ShadowShader"];
+        _shadowProgram = [opengl loadShader:@"ShadowShader"];
 
         _shadowUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _shadowProgram, "normalMatrix" );
         _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _shadowProgram, "modelViewProjectionMatrix" );
@@ -383,37 +292,37 @@ bool iPad()
   
     // grid shader, textures, VBs/IBs etc.
     {
-        _gridProgram = [self loadShader:@"GridShader"];
+        _gridProgram = [opengl loadShader:@"GridShader"];
 
-        [self generateVBAndIBFromTexturedMesh:_gridMesh vertexBuffer:_gridVertexBuffer indexBuffer:_gridIndexBuffer];
+        [opengl generateVBAndIBFromTexturedMesh:_gridMesh vertexBuffer:_gridVertexBuffer indexBuffer:_gridIndexBuffer];
         
         _gridUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _gridProgram, "normalMatrix" );
         _gridUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _gridProgram, "modelViewProjectionMatrix" );
         _gridUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _gridProgram, "lightPosition" );
 
-        _lineTexture = [self loadTexture:@"line.jpg"];
+        _lineTexture = [opengl loadTexture:@"line.jpg"];
     }
 
     // star points
     {
-        _pointProgram = [self loadShader:@"PointShader"];
+        _pointProgram = [opengl loadShader:@"PointShader"];
 
-        [self generateVBAndIBFromTexturedMesh:_pointMesh vertexBuffer:_pointVertexBuffer indexBuffer:_pointIndexBuffer];
+        [opengl generateVBAndIBFromTexturedMesh:_pointMesh vertexBuffer:_pointVertexBuffer indexBuffer:_pointIndexBuffer];
 
         _pointUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _pointProgram, "normalMatrix" );
         _pointUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _pointProgram, "modelViewProjectionMatrix" );
         _pointUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _pointProgram, "lightPosition" );
 
-        _pointTexture = [self loadTexture:@"point.jpg"];
+        _pointTexture = [opengl loadTexture:@"point.jpg"];
     }
 
     // floor shader, textures, VBs/IBs etc.
     {
-        _floorProgram = [self loadShader:@"FloorShader"];
+        _floorProgram = [opengl loadShader:@"FloorShader"];
 
-        [self generateVBAndIBFromTexturedMesh:_floorMesh vertexBuffer:_floorVertexBuffer indexBuffer:_floorIndexBuffer];
+        [opengl generateVBAndIBFromTexturedMesh:_floorMesh vertexBuffer:_floorVertexBuffer indexBuffer:_floorIndexBuffer];
         
-        _floorTexture = [self loadTexture:@"floor.jpg"];
+        _floorTexture = [opengl loadTexture:@"floor.jpg"];
 
         _floorUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _floorProgram, "normalMatrix" );
         _floorUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _floorProgram, "modelViewProjectionMatrix" );
@@ -427,104 +336,31 @@ bool iPad()
     self.view.multipleTouchEnabled = YES;
 }
 
-- (void)destroyBuffer:(GLuint&)buffer
-{
-    if ( buffer )
-    {
-        glDeleteBuffers( 1, &buffer );
-        buffer = 0;
-    }
-}
-
-- (void)destroyProgram:(GLuint&)program
-{
-    if ( program )
-    {
-        glDeleteBuffers( 1, &program );
-        program = 0;
-    }
-}
-
-- (void)destroyTexture:(GLuint&)texture
-{
-    if ( texture )
-    {
-        glDeleteTextures( 1, &texture );
-        texture = 0;
-    }
-}
-
 - (void)tearDownGL
 {
     [EAGLContext setCurrentContext:self.context];
 
-    [self destroyBuffer:_stoneIndexBuffer];
-    [self destroyBuffer:_stoneVertexBuffer];
-    [self destroyProgram:_stoneProgram];
+    [opengl destroyBuffer:_stoneIndexBuffer];
+    [opengl destroyBuffer:_stoneVertexBuffer];
+    [opengl destroyProgram:_stoneProgram];
 
-    [self destroyBuffer:_boardIndexBuffer];
-    [self destroyBuffer:_boardVertexBuffer];
-    [self destroyProgram:_boardProgram];
-    [self destroyTexture:_boardTexture];
+    [opengl destroyBuffer:_boardIndexBuffer];
+    [opengl destroyBuffer:_boardVertexBuffer];
+    [opengl destroyProgram:_boardProgram];
+    [opengl destroyTexture:_boardTexture];
 
-    [self destroyProgram:_shadowProgram];
+    [opengl destroyProgram:_shadowProgram];
     
-    // todo: lineTexture should become "grid texture"
-    // todo: can combine "point" texture and grid texture and render it all in one go, eg.
-    // divide grid texture into four squares. uv coords would need some management, but can work
+    [opengl destroyProgram:_gridProgram];
+    [opengl destroyTexture:_lineTexture];
     
-    [self destroyProgram:_gridProgram];
-    [self destroyTexture:_lineTexture];
-    
-    [self destroyProgram:_pointProgram];
-    [self destroyTexture:_pointTexture];
+    [opengl destroyProgram:_pointProgram];
+    [opengl destroyTexture:_pointTexture];
 
-    [self destroyBuffer:_floorIndexBuffer];
-    [self destroyBuffer:_floorVertexBuffer];
-    [self destroyProgram:_floorProgram];
-    [self destroyTexture:_floorTexture];
-}
-
-- (GLuint)loadTexture:(NSString *)filename
-{
-    // todo: really should generate texture mipchain using an offline tool
-    // then just load that already baked out texture here. this increases load time
-    // and will not scale when lots of textures need to be loaded for different boards
-    // and different sets of stones
-    
-    CGImageRef textureImage = [UIImage imageNamed:filename].CGImage;
-    if ( !textureImage )
-    {
-        NSLog( @"Failed to load image %@", filename );
-        exit(1);
-    }
- 
-    size_t textureWidth = CGImageGetWidth( textureImage );
-    size_t textureHeight = CGImageGetHeight( textureImage );
- 
-    GLubyte * textureData = (GLubyte *) calloc( textureWidth*textureHeight*4, sizeof(GLubyte) );
- 
-    CGContextRef textureContext = CGBitmapContextCreate( textureData, textureWidth, textureHeight, 8, textureWidth*4,
-        CGImageGetColorSpace(textureImage), kCGImageAlphaPremultipliedLast );
- 
-    CGContextDrawImage( textureContext, CGRectMake( 0, 0, textureWidth, textureHeight ), textureImage );
- 
-    CGContextRelease( textureContext );
- 
-    GLuint textureId;
-
-    glGenTextures( 1, &textureId );
-    glBindTexture( GL_TEXTURE_2D, textureId );
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData );
-
-    glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
-    glGenerateMipmap( GL_TEXTURE_2D );
-
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-    
-    free( textureData );
-
-    return textureId;
+    [opengl destroyBuffer:_floorIndexBuffer];
+    [opengl destroyBuffer:_floorVertexBuffer];
+    [opengl destroyProgram:_floorProgram];
+    [opengl destroyTexture:_floorTexture];
 }
 
 - (BOOL)canBecomeFirstResponder
@@ -541,9 +377,8 @@ bool iPad()
 
 - (void)toggleLocked
 {
-    _telemetry.IncrementCounter( COUNTER_ToggleLocked );
-    _locked = !_locked;
-    NSLog( @"toggle locked: %s", _locked ? "true" : "false " );
+    telemetry.IncrementCounter( COUNTER_ToggleLocked );
+    game.locked = !game.locked;
 }
 
 - (void)updateTouch:(float)dt
@@ -552,7 +387,7 @@ bool iPad()
     {   
 #ifndef MULTIPLE_STONES
 
-        Stone & stone = _stones[0];
+        StoneInstance & stone = game.stones[0];
 
         stone.rigidBody.angularMomentum *= SelectDamping;
         
@@ -577,8 +412,8 @@ bool iPad()
 
         if ( _holdTime >= HoldDelay )
         {
-            for ( int i = 0; i < _stones.size(); ++i )
-                _stones[i].rigidBody.angularMomentum *= HoldDamping;
+            for ( int i = 0; i < game.stones.size(); ++i )
+                game.stones[i].rigidBody.angularMomentum *= HoldDamping;
         }
     }
 
@@ -629,14 +464,14 @@ bool iPad()
                 // such that it is offset from the intersection point with this plane
                 
                 float t = 0;
-                if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), _board.GetThickness() + _biconvex.GetHeight()/2, t ) )
+                if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), game.board.GetThickness() + game.stoneData.biconvex.GetHeight()/2, t ) )
                 {
                     const float place_dt = [touch timestamp] - _firstPlacementTimestamp;
 
                     if ( place_dt < PlaceStoneHardThreshold )
-                        _telemetry.IncrementCounter( COUNTER_PlacedStoneHard );
+                        telemetry.IncrementCounter( COUNTER_PlacedStoneHard );
                     else
-                        _telemetry.IncrementCounter( COUNTER_PlacedStone );
+                        telemetry.IncrementCounter( COUNTER_PlacedStone );
 
 #ifdef MULTIPLE_STONES
 
@@ -644,11 +479,11 @@ bool iPad()
                     stone.Initialize( STONE_SIZE_40 );
                     stone.rigidBody.position = rayStart + rayDirection * t;
                     stone.rigidBody.Activate();
-                    _stones.push_back( stone );
+                    game.stones.push_back( stone );
 
 #else
 
-                    Stone & stone = _stones[0];
+                    StoneInstance & stone = game.stones[0];
 
                     stone.rigidBody.position = rayStart + rayDirection * t;
                     stone.rigidBody.orientation = quat4f(0,0,0,1);
@@ -660,7 +495,7 @@ bool iPad()
         
                     vec3f intersectionPoint, intersectionNormal;
                     
-                    if ( IntersectRayStone( stone.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+                    if ( IntersectRayStone( game.stoneData.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
                     {
                         _selected = true;
                         _selectTouch = touch;
@@ -683,7 +518,7 @@ bool iPad()
 
     if ( !_selected )
     {
-        Stone & stone = _stones[0];
+        StoneInstance & stone = game.stones[0];
 
         CGPoint selectPoint = [touch locationInView:self.view];
 
@@ -701,11 +536,11 @@ bool iPad()
         
         vec3f intersectionPoint, intersectionNormal;
 
-        if ( IntersectRayStone( stone.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+        if ( IntersectRayStone( game.stoneData.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
         {
 //            NSLog( @"select" );
             
-            _telemetry.IncrementCounter( COUNTER_SelectedStone );
+            telemetry.IncrementCounter( COUNTER_SelectedStone );
 
             _selected = true;
             _selectTouch = touch;
@@ -749,7 +584,7 @@ bool iPad()
 
     if ( _selected )
     {
-        Stone & stone = _stones[0];
+        StoneInstance & stone = game.stones[0];
 
         if ( [touches containsObject:_selectTouch] )
         {
@@ -774,7 +609,7 @@ bool iPad()
             // off the board (looks bad)
 
             vec3f intersectionPoint, intersectionNormal;
-            if ( IntersectRayStone( stone.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+            if ( IntersectRayStone( game.stoneData.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
             {
                 if ( intersectionPoint.z() > _selectDepth )
                 {
@@ -816,7 +651,7 @@ bool iPad()
 
             if ( length( delta ) > HoldMoveThreshold )
             {
-                NSLog( @"hold moved" );
+//                NSLog( @"hold moved" );
                 _holdStarted = false;
             }
         }
@@ -848,6 +683,8 @@ bool iPad()
     }
 }
 
+// todo: can move this out to GameInstance.h -- keep it general, and in pixels!
+
 - (bool) isPointOnBoard:(CGPoint)selectPoint
 {
     const float contentScaleFactor = [self.view contentScaleFactor];
@@ -865,7 +702,7 @@ bool iPad()
     // such that it is offset from the intersection point with this plane
     
     float t = 0;
-    if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), _board.GetThickness(), t ) )
+    if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), game.board.GetThickness(), t ) )
     {
         vec3f intersectionPoint = rayStart + rayDirection * t;
 
@@ -873,7 +710,7 @@ bool iPad()
         const float y = intersectionPoint.y();
 
         float bx, by;
-        _board.GetBounds( bx, by );
+        game.board.GetBounds( bx, by );
 
         return x >= -bx && x <= bx && y >= -by && y <= by;
     }
@@ -904,12 +741,12 @@ bool iPad()
 
         if ( iPad() && _firstPlacementTouch == nil )
         {
-            if ( _zoomed )
-                _telemetry.IncrementCounter( COUNTER_ZoomedOut );
+            if ( game.zoomed )
+                telemetry.IncrementCounter( COUNTER_ZoomedOut );
             else
-                _telemetry.IncrementCounter( COUNTER_ZoomedIn );
+                telemetry.IncrementCounter( COUNTER_ZoomedIn );
         
-            _zoomed = !_zoomed;
+            game.zoomed = !game.zoomed;
         }
 
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
@@ -919,7 +756,7 @@ bool iPad()
 
     if ( _selected )
     {
-        Stone & stone = _stones[0];
+        StoneInstance & stone = game.stones[0];
 
         if ( [touches containsObject:_selectTouch] )
         {
@@ -936,7 +773,7 @@ bool iPad()
 
             const float speed = length( stone.rigidBody.linearVelocity );
 
-            if ( _locked && onBoard && speed > LockedDragSpeedMax )
+            if ( game.locked && onBoard && speed > LockedDragSpeedMax )
             {
                 stone.rigidBody.linearVelocity /= speed;
                 stone.rigidBody.linearVelocity *= LockedDragSpeedMax;
@@ -949,15 +786,15 @@ bool iPad()
             if ( distance > 10 )
             {
                 if ( speed > FlickSpeedThreshold )
-                    _telemetry.IncrementCounter( COUNTER_FlickedStone );
+                    telemetry.IncrementCounter( COUNTER_FlickedStone );
                 else
-                    _telemetry.IncrementCounter( COUNTER_DraggedStone );
+                    telemetry.IncrementCounter( COUNTER_DraggedStone );
             }
             else
             {
                 const float currentTimestamp = [touch timestamp];
                 if ( currentTimestamp - _selectTimestamp < 0.1f )
-                    _telemetry.IncrementCounter( COUNTER_TouchedStone );
+                    telemetry.IncrementCounter( COUNTER_TouchedStone );
             }
         }
     }
@@ -976,28 +813,27 @@ bool iPad()
 - (void)handleSingleTap:(NSDictionary *)touches
 {
 //    NSLog( @"single tap" );
-//    [self dropStone];
 }
 
 - (void)handleSwipe:(vec3f)delta atPoint:(vec3f)point
 {
     #if !LOCKED
-    if ( !_locked )
+    if ( !game.locked )
     {
 //      NSLog( @"swipe" );
 
-        for ( int i = 0; i < _stones.size(); ++i )
+        for ( int i = 0; i < game.stones.size(); ++i )
         {
-            Stone & stone = _stones[i];
+            StoneInstance & stone = game.stones[i];
 
-            const vec3f & up = _accelerometer.GetUp();
+            const vec3f & up = accelerometer.GetUp();
             stone.rigidBody.angularMomentum += SwipeMomentum * up;
             stone.rigidBody.Activate();
         }
 
-        _telemetry.IncrementCounter( COUNTER_Swiped );
+        telemetry.IncrementCounter( COUNTER_Swiped );
 
-        _telemetry.SetSwipedThisFrame();
+        telemetry.SetSwipedThisFrame();
     }
     #endif
 }
@@ -1010,42 +846,9 @@ bool iPad()
     _firstPlacementTouch = nil;
 }
 
-- (void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event
+- (void)accelerometer:(UIAccelerometer *)uiAccelerometer didAccelerate:(UIAcceleration *)acceleration
 {
-    // ...
-}
-
-- (void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event
-{
-    if ( event.subtype == UIEventSubtypeMotionShake )
-    {
-//        NSLog( @"shake" );
-    }
-}
-
-- (void)motionCancelled:(UIEventSubtype)motion withEvent:(UIEvent *)event
-{
-    // ...
-}
-
-- (void)accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration
-{
-    _accelerometer.Update( vec3f( acceleration.x, acceleration.y, acceleration.z ) );
-}
-
-- (void)deviceOrientationDidChange:(NSNotification *)notification
-{
-    // ...
-}
-
-- (vec3f)getDown
-{
-    return _locked ? vec3f(0,0,-1) : _accelerometer.GetDown();
-}
-
-- (vec3f)getGravity
-{
-    return 9.8f * 10 * [self getDown];
+    accelerometer.Update( vec3f( acceleration.x, acceleration.y, acceleration.z ) );
 }
 
 - (void)updatePhysics:(float)dt
@@ -1063,23 +866,23 @@ bool iPad()
     
     // apply jerk acceleration to stones
 
-    const vec3f & jerkAcceleration = _accelerometer.GetJerkAcceleration();
+    const vec3f & jerkAcceleration = accelerometer.GetJerkAcceleration();
     const float jerk = length( jerkAcceleration );
     if ( jerk > JerkThreshold )
     {
-        for ( int i = 0; i < _stones.size(); ++i )
+        for ( int i = 0; i < game.stones.size(); ++i )
         {
-            Stone & stone = _stones[i];
+            StoneInstance & stone = game.stones[i];
             stone.rigidBody.ApplyImpulse( JerkScale * jerkAcceleration * stone.rigidBody.mass );
         }
     }
 
     // detect when the user has asked to launch the stone into the air
 
-    const vec3f down = [self getDown];
+    const vec3f down = accelerometer.GetDown();
     const vec3f up = -down;
 
-    if ( !_locked )
+    if ( !game.locked )
     {
         if ( iPad() )
         {
@@ -1090,13 +893,13 @@ bool iPad()
             
             if ( jerkUp > LaunchThreshold )
             {
-                for ( int i = 0; i < _stones.size(); ++i )
+                for ( int i = 0; i < game.stones.size(); ++i )
                 {
-                    Stone & stone = _stones[i];
+                    StoneInstance & stone = game.stones[i];
                     stone.rigidBody.ApplyImpulse( jerkUp * LaunchMomentum * up );
                 }
 
-                _telemetry.IncrementCounter( COUNTER_AppliedImpulse );
+                telemetry.IncrementCounter( COUNTER_AppliedImpulse );
             }
         }
         else
@@ -1106,30 +909,33 @@ bool iPad()
             
             if ( jerk > LaunchThreshold )
             {
-                for ( int i = 0; i < _stones.size(); ++i )
+                for ( int i = 0; i < game.stones.size(); ++i )
                 {
-                    Stone & stone = _stones[i];
+                    StoneInstance & stone = game.stones[i];
                     stone.rigidBody.ApplyImpulse( jerkAcceleration * LaunchMomentum );
                 }
 
-                _telemetry.IncrementCounter( COUNTER_AppliedImpulse );
+                telemetry.IncrementCounter( COUNTER_AppliedImpulse );
             }
         }
     }
  
     // update physics sim
 
-    UpdatePhysics( dt, _board, _stones, _telemetry, frustum, [self getGravity], _selected, _locked, _smoothZoom );
+    vec3f gravity = 10 * 9.8f * accelerometer.GetDown();
+    
+    UpdatePhysics( dt, game.board, game.stoneData, game.stones, telemetry,
+                   frustum, gravity, _selected, game.locked, game.smoothZoom );
  }
 
 - (void)updateLights
 {
-    _lightPosition = vec3f( 30, 30, 100 );
+    game.lightPosition = vec3f( 30, 30, 100 );
 }
 
 - (float)getTargetZoom
 {
-    return iPad() ? ( _zoomed ? ZoomIn_iPad : ZoomOut_iPad ) : ( _zoomed ? ZoomIn_iPhone : ZoomOut_iPhone );
+    return iPad() ? ( game.zoomed ? ZoomIn_iPad : ZoomOut_iPad ) : ( game.zoomed ? ZoomIn_iPhone : ZoomOut_iPhone );
 }
 
 - (void)render
@@ -1138,11 +944,11 @@ bool iPad()
     
     const float targetZoom = [self getTargetZoom];
     
-    _smoothZoom += ( targetZoom - _smoothZoom ) * ( _zoomed ? ZoomInTightness : ZoomOutTightness );
+    game.smoothZoom += ( targetZoom - game.smoothZoom ) * ( game.zoomed ? ZoomInTightness : ZoomOutTightness );
     
     GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective( GLKMathDegreesToRadians(40.0f), aspect, 0.1f, 100.0f );
     
-    GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeLookAt( 0, 0, _smoothZoom,
+    GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeLookAt( 0, 0, game.smoothZoom,
                                                            0, 0, 0,
                                                            0, 1, 0 );
 
@@ -1170,7 +976,7 @@ bool iPad()
 
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     
-    if ( _paused )
+    if ( game.paused )
         return;
 
     // render floor
@@ -1178,86 +984,39 @@ bool iPad()
     {
         glUseProgram( _floorProgram );
                 
-        glBindTexture( GL_TEXTURE_2D, _floorTexture );
-
-        glBindBuffer( GL_ARRAY_BUFFER, _floorVertexBuffer );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _floorIndexBuffer );
-        
-        glEnableVertexAttribArray( GLKVertexAttribPosition );
-        glEnableVertexAttribArray( GLKVertexAttribNormal );
-        glEnableVertexAttribArray( GLKVertexAttribTexCoord0 );
-
-        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), 0 );
-        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)16 );
-        glVertexAttribPointer( GLKVertexAttribTexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)32 );
+        [opengl selectTexturedMesh:_floorTexture vertexBuffer:_floorVertexBuffer indexBuffer:_floorIndexBuffer];
 
         glUniformMatrix4fv( _floorUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _floorModelViewProjectionMatrix.m );
         glUniformMatrix3fv( _floorUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _floorNormalMatrix.m );
-        glUniform3fv( _floorUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&_lightPosition );
+        glUniform3fv( _floorUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
 
         glDrawElements( GL_TRIANGLES, _floorMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
-
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-
-        glDisableVertexAttribArray( GLKVertexAttribPosition );
-        glDisableVertexAttribArray( GLKVertexAttribNormal );
-        glDisableVertexAttribArray( GLKVertexAttribTexCoord0 );
     }
 
     // render board
 
     {
         glUseProgram( _boardProgram );
-                
-        glBindTexture( GL_TEXTURE_2D, _boardTexture );
-
-        glBindBuffer( GL_ARRAY_BUFFER, _boardVertexBuffer );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _boardIndexBuffer );
         
-        glEnableVertexAttribArray( GLKVertexAttribPosition );
-        glEnableVertexAttribArray( GLKVertexAttribNormal );
-        glEnableVertexAttribArray( GLKVertexAttribTexCoord0 );
-
-        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), 0 );
-        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)16 );
-        glVertexAttribPointer( GLKVertexAttribTexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)32 );
+        [opengl selectTexturedMesh:_boardTexture vertexBuffer:_boardVertexBuffer indexBuffer:_boardIndexBuffer];
 
         glUniformMatrix4fv( _boardUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _boardModelViewProjectionMatrix.m );
         glUniformMatrix3fv( _boardUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _boardNormalMatrix.m );
-        glUniform3fv( _boardUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&_lightPosition );
+        glUniform3fv( _boardUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
 
         glDrawElements( GL_TRIANGLES, _boardMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
-
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-
-        glDisableVertexAttribArray( GLKVertexAttribPosition );
-        glDisableVertexAttribArray( GLKVertexAttribNormal );
-        glDisableVertexAttribArray( GLKVertexAttribTexCoord0 );
     }
 
     // render grid
     
     {
         glUseProgram( _gridProgram );
-        
-        glBindTexture( GL_TEXTURE_2D, _lineTexture );
 
-        glBindBuffer( GL_ARRAY_BUFFER, _gridVertexBuffer );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _gridIndexBuffer );
-        
-        glEnableVertexAttribArray( GLKVertexAttribPosition );
-        glEnableVertexAttribArray( GLKVertexAttribNormal );
-        glEnableVertexAttribArray( GLKVertexAttribTexCoord0 );
-
-        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), 0 );
-        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)16 );
-        glVertexAttribPointer( GLKVertexAttribTexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)32 );
+        [opengl selectTexturedMesh:_lineTexture vertexBuffer:_gridVertexBuffer indexBuffer:_gridIndexBuffer];
         
         glUniformMatrix4fv( _gridUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _gridModelViewProjectionMatrix.m );
         glUniformMatrix3fv( _gridUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _gridNormalMatrix.m );
-        glUniform3fv( _gridUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&_lightPosition );
+        glUniform3fv( _gridUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
         
         glEnable( GL_BLEND );
         glBlendFunc( GL_ZERO, GL_SRC_COLOR );
@@ -1269,13 +1028,6 @@ bool iPad()
         glEnable( GL_DEPTH_TEST );
 
         glDisable( GL_BLEND );
-
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-        
-        glDisableVertexAttribArray( GLKVertexAttribPosition );
-        glDisableVertexAttribArray( GLKVertexAttribNormal );
-        glDisableVertexAttribArray( GLKVertexAttribTexCoord0 );
     }
 
     // render star points
@@ -1283,22 +1035,11 @@ bool iPad()
     {
         glUseProgram( _pointProgram );
         
-        glBindTexture( GL_TEXTURE_2D, _pointTexture );
+        [opengl selectTexturedMesh:_pointTexture vertexBuffer:_pointVertexBuffer indexBuffer:_pointIndexBuffer];
 
-        glBindBuffer( GL_ARRAY_BUFFER, _pointVertexBuffer );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _pointIndexBuffer );
-        
-        glEnableVertexAttribArray( GLKVertexAttribPosition );
-        glEnableVertexAttribArray( GLKVertexAttribNormal );
-        glEnableVertexAttribArray( GLKVertexAttribTexCoord0 );
-
-        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), 0 );
-        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)16 );
-        glVertexAttribPointer( GLKVertexAttribTexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)32 );
-        
         glUniformMatrix4fv( _pointUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _pointModelViewProjectionMatrix.m );
         glUniformMatrix3fv( _pointUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _pointNormalMatrix.m );
-        glUniform3fv( _pointUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&_lightPosition );
+        glUniform3fv( _pointUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
         
         glEnable( GL_BLEND );
         glBlendFunc( GL_ZERO, GL_SRC_COLOR );
@@ -1310,35 +1051,22 @@ bool iPad()
         glEnable( GL_DEPTH_TEST );
 
         glDisable( GL_BLEND );
-
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-        
-        glDisableVertexAttribArray( GLKVertexAttribPosition );
-        glDisableVertexAttribArray( GLKVertexAttribNormal );
-        glDisableVertexAttribArray( GLKVertexAttribTexCoord0 );
     }
     
     // render board shadow on ground
     
     {
         glUseProgram( _shadowProgram );
-                
-        glBindBuffer( GL_ARRAY_BUFFER, _boardVertexBuffer );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _boardIndexBuffer );
         
-        glEnableVertexAttribArray( GLKVertexAttribPosition );
-        glEnableVertexAttribArray( GLKVertexAttribNormal );
-
-        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), 0 );
-        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)16 );
+        [opengl selectNonTexturedMesh:_boardVertexBuffer indexBuffer:_boardIndexBuffer];
 
         float boardShadowAlpha = 1.0f;
 
         GLKMatrix4 view = baseModelViewMatrix;
 
+        // todo: clean up this bullshit. should be directly working with mat4f the whole time
         mat4f shadow_matrix;
-        MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z() * 0.5f, 0 ), shadow_matrix );
+        MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( game.lightPosition.x(), game.lightPosition.y(), game.lightPosition.z() * 0.5f, 0 ), shadow_matrix );
         float shadow_data[16];
         shadow_matrix.store( shadow_data );
         GLKMatrix4 shadow = GLKMatrix4MakeWithArray( shadow_data );
@@ -1356,12 +1084,6 @@ bool iPad()
         glDrawElements( GL_TRIANGLES, _boardMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
 
         glDisable( GL_BLEND );
-
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-
-        glDisableVertexAttribArray( GLKVertexAttribPosition );
-        glDisableVertexAttribArray( GLKVertexAttribNormal );
     }
 
     // render stone shadow on ground
@@ -1369,21 +1091,14 @@ bool iPad()
     {
         glUseProgram( _shadowProgram );
         
-        glBindBuffer( GL_ARRAY_BUFFER, _stoneVertexBuffer );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _stoneIndexBuffer );
-        
-        glEnableVertexAttribArray( GLKVertexAttribPosition );
-        glEnableVertexAttribArray( GLKVertexAttribNormal );
-        
-        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0 );
-        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)16 );
-        
+        [opengl selectNonTexturedMesh:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
+
         glEnable( GL_BLEND );
         glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
-        for ( int i = 0; i < _stones.size(); ++i )
+        for ( int i = 0; i < game.stones.size(); ++i )
         {
-            Stone & stone = _stones[i];
+            StoneInstance & stone = game.stones[i];
             
             GLKMatrix4 view = baseModelViewMatrix;
             
@@ -1392,8 +1107,9 @@ bool iPad()
 
             GLKMatrix4 model = GLKMatrix4MakeWithArray( opengl_transform );
             
+            // todo: clean up this bullshit
             mat4f shadow_matrix;
-            MakeShadowMatrix( vec4f(0,0,1,0), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z(), 1 ), shadow_matrix );
+            MakeShadowMatrix( vec4f(0,0,1,0), vec4f( game.lightPosition.x(), game.lightPosition.y(), game.lightPosition.z(), 1 ), shadow_matrix );
             float shadow_data[16];
             shadow_matrix.store( shadow_data );
             GLKMatrix4 shadow = GLKMatrix4MakeWithArray( shadow_data );
@@ -1404,7 +1120,7 @@ bool iPad()
 
             glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, stoneGroundShadowModelViewProjectionMatrix.m );
 
-            float shadowAlpha = GetShadowAlpha( stone );
+            float shadowAlpha = GetShadowAlpha( stone.rigidBody.position );
 
             glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&shadowAlpha );
 
@@ -1425,14 +1141,7 @@ bool iPad()
     {
         glUseProgram( _shadowProgram );
         
-        glBindBuffer( GL_ARRAY_BUFFER, _stoneVertexBuffer );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _stoneIndexBuffer );
-        
-        glEnableVertexAttribArray( GLKVertexAttribPosition );
-        glEnableVertexAttribArray( GLKVertexAttribNormal );
-        
-        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0 );
-        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)16 );
+        [opengl selectNonTexturedMesh:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
         
         glEnable( GL_BLEND );
         glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -1440,14 +1149,14 @@ bool iPad()
         glEnable( GL_DEPTH_TEST );
         glDepthFunc( GL_GREATER );
 
-        for ( int i = 0; i < _stones.size(); ++i )
+        for ( int i = 0; i < game.stones.size(); ++i )
         {
-            Stone & stone = _stones[i];
+            StoneInstance & stone = game.stones[i];
 
-            if ( stone.rigidBody.position.z() < _board.GetThickness() )
+            if ( stone.rigidBody.position.z() < game.board.GetThickness() )
                 continue;
         
-            float shadowAlpha = GetShadowAlpha( stone );
+            float shadowAlpha = GetShadowAlpha( stone.rigidBody.position );
             
             if ( shadowAlpha == 0.0f )
                 continue;
@@ -1462,7 +1171,7 @@ bool iPad()
             // HACK: the fact that I have to minus here indicates
             // something wrong in the shadow matrix derivation. perhaps it assumes left handed?
             mat4f shadow_matrix;
-            MakeShadowMatrix( vec4f(0,0,1,-_board.GetThickness()+0.1f), vec4f( _lightPosition.x(), _lightPosition.y(), _lightPosition.z(), 1 ), shadow_matrix );
+            MakeShadowMatrix( vec4f(0,0,1,-game.board.GetThickness()+0.1f), vec4f( game.lightPosition.x(), game.lightPosition.y(), game.lightPosition.z(), 1 ), shadow_matrix );
             float shadow_data[16];
             shadow_matrix.store( shadow_data );
             GLKMatrix4 shadow = GLKMatrix4MakeWithArray( shadow_data );
@@ -1481,12 +1190,6 @@ bool iPad()
         glDepthFunc( GL_LESS );
 
         glDisable( GL_BLEND );
-        
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-        
-        glDisableVertexAttribArray( GLKVertexAttribPosition );
-        glDisableVertexAttribArray( GLKVertexAttribNormal );
     }
 
     // render stone
@@ -1494,18 +1197,11 @@ bool iPad()
     {
         glUseProgram( _stoneProgram );
                 
-        glBindBuffer( GL_ARRAY_BUFFER, _stoneVertexBuffer );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _stoneIndexBuffer );
-        
-        glEnableVertexAttribArray( GLKVertexAttribPosition );
-        glEnableVertexAttribArray( GLKVertexAttribNormal );
+        [opengl selectNonTexturedMesh:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
 
-        glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0 );
-        glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)16 );
-
-        for ( int i = 0; i < _stones.size(); ++i )
+        for ( int i = 0; i < game.stones.size(); ++i )
         {
-            Stone & stone = _stones[i];
+            StoneInstance & stone = game.stones[i];
             
             // todo: standardize all matrix math to use vectorial (portable)
             // instead of using GLKMatrix4 bullshit (not portable)
@@ -1520,16 +1216,10 @@ bool iPad()
 
             glUniformMatrix4fv( _stoneUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, stoneModelViewProjectionMatrix.m );
             glUniformMatrix3fv( _stoneUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, stoneNormalMatrix.m );
-            glUniform3fv( _stoneUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&_lightPosition );
+            glUniform3fv( _stoneUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
 
             glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
         }
-
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-
-        glDisableVertexAttribArray( GLKVertexAttribPosition );
-        glDisableVertexAttribArray( GLKVertexAttribNormal );
     }
 
     const GLenum discards[]  = { GL_DEPTH_ATTACHMENT };
@@ -1540,12 +1230,9 @@ bool iPad()
 
 - (void)update
 {
-    float dt = self.timeSinceLastUpdate;
+    float dt = 1.0f / 60.0f;
 
-    if ( dt > 1 / 10.0f )
-        dt = 1 / 10.0f;
-    
-    if ( _paused )
+    if ( game.paused )
         dt = 0.0f;
 
     [self updateTouch:dt];
@@ -1556,191 +1243,7 @@ bool iPad()
 
     [self render];
 
-    _telemetry.Update( _board, _stones, dt, _locked, _accelerometer.GetUp() );
-}
-
-- (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
-{
-    [self render];
-}
-
-#pragma mark -  OpenGL ES 2 shader compilation
-
-- (GLuint)loadShader:(NSString*)filename
-{
-    GLuint vertShader, fragShader;
-
-    NSString *vertShaderPathname, *fragShaderPathname;
-    
-    // Create shader program.
-    GLuint program = glCreateProgram();
-    
-    // Create and compile vertex shader.
-    vertShaderPathname = [[NSBundle mainBundle] pathForResource:filename ofType:@"vertex"];
-    
-    if ( !vertShaderPathname )
-    {
-        NSLog( @"Could not find vertex shader: %@", filename );
-        return 0;
-    }
-
-    if (![self compileShader:&vertShader type:GL_VERTEX_SHADER file:vertShaderPathname])
-    {
-        NSLog( @"Failed to compile vertex shader" );
-        return 0;
-    }
-    
-    // Create and compile fragment shader.
-    fragShaderPathname = [[NSBundle mainBundle] pathForResource:filename ofType:@"fragment"];
-
-    if ( !fragShaderPathname )
-    {
-        NSLog( @"Could not find fragment shader: %@", filename );
-        return 0;
-    }
-
-    if (![self compileShader:&fragShader type:GL_FRAGMENT_SHADER file:fragShaderPathname])
-    {
-        NSLog( @"Failed to compile fragment shader" );
-        return 0;
-    }
-    
-    // Attach vertex shader to program.
-    glAttachShader( program, vertShader );
-    
-    // Attach fragment shader to program.
-    glAttachShader( program, fragShader );
-    
-    // Bind attribute locations.
-    // This needs to be done prior to linking.
-    glBindAttribLocation( program, GLKVertexAttribPosition, "position" );
-    glBindAttribLocation( program, GLKVertexAttribNormal, "normal" );
-    glBindAttribLocation( program, GLKVertexAttribTexCoord0, "texCoords" );
-    
-    // Link program.
-    if (![self linkProgram:program])
-    {
-        NSLog( @"Failed to link program: %d", program );
-        
-        if ( vertShader )
-        {
-            glDeleteShader( vertShader );
-            vertShader = 0;
-        }
-        if ( fragShader )
-        {
-            glDeleteShader( fragShader );
-            fragShader = 0;
-        }
-        if ( program )
-        {
-            glDeleteProgram( program );
-            program = 0;
-        }
-        
-        return 0;
-    }
-        
-    // Release vertex and fragment shaders.
-    if ( vertShader )
-    {
-        glDetachShader( program, vertShader );
-        glDeleteShader( vertShader );
-    }
-    if ( fragShader )
-    {
-        glDetachShader( program, fragShader );
-        glDeleteShader( fragShader );
-    }
-    
-    return program;
-}
-
-- (BOOL)compileShader:(GLuint *)shader type:(GLenum)type file:(NSString *)file
-{
-    GLint status;
-    const GLchar *source;
-    
-    source = (GLchar *)[[NSString stringWithContentsOfFile:file encoding:NSUTF8StringEncoding error:nil] UTF8String];
-    if (!source)
-    {
-        NSLog( @"Failed to load vertex shader" );
-        return NO;
-    }
-    
-    *shader = glCreateShader(type);
-    glShaderSource(*shader, 1, &source, NULL);
-    glCompileShader(*shader);
-    
-#if defined(DEBUG)
-    GLint logLength;
-    glGetShaderiv( *shader, GL_INFO_LOG_LENGTH, &logLength );
-    if ( logLength > 0 )
-    {
-        GLchar *log = (GLchar *)malloc( logLength );
-        glGetShaderInfoLog( *shader, logLength, &logLength, log );
-        NSLog( @"Shader compile log:\n%s", log );
-        free( log );
-    }
-#endif
-    
-    glGetShaderiv( *shader, GL_COMPILE_STATUS, &status );
-    if ( status == 0 )
-    {
-        glDeleteShader( *shader );
-        return NO;
-    }
-    
-    return YES;
-}
-
-- (BOOL)linkProgram:(GLuint)prog
-{
-    GLint status;
-    glLinkProgram( prog );
-    
-#if defined(DEBUG)
-    GLint logLength;
-    glGetProgramiv( prog, GL_INFO_LOG_LENGTH, &logLength );
-    if ( logLength > 0 )
-    {
-        GLchar *log = (GLchar *)malloc( logLength );
-        glGetProgramInfoLog( prog, logLength, &logLength, log );
-        NSLog( @"Program link log:\n%s", log );
-        free( log );
-    }
-#endif
-    
-    glGetProgramiv( prog, GL_LINK_STATUS, &status );
-    if ( status == 0 )
-    {
-        return NO;
-    }
-    
-    return YES;
-}
-
-- (BOOL)validateProgram:(GLuint)prog
-{
-    GLint logLength, status;
-    
-    glValidateProgram( prog );
-    glGetProgramiv( prog, GL_INFO_LOG_LENGTH, &logLength );
-    if ( logLength > 0 )
-    {
-        GLchar *log = (GLchar *)malloc( logLength );
-        glGetProgramInfoLog( prog, logLength, &logLength, log );
-        NSLog( @"Program validate log:\n%s", log );
-        free(log);
-    }
-    
-    glGetProgramiv( prog, GL_VALIDATE_STATUS, &status );
-    if ( status == 0 )
-    {
-        return NO;
-    }
-    
-    return YES;
+    telemetry.Update( dt, game.board, game.stones, game.locked, accelerometer.GetUp() );
 }
 
 @end

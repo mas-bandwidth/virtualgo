@@ -45,6 +45,7 @@
 		F2D6AD801720557300930D69 /* Default-Portrait~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD7F1720557300930D69 /* Default-Portrait~ipad.png */; };
 		F2D6AD821720557A00930D69 /* Default-Landscape~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */; };
 		F2D6AD841720557E00930D69 /* Default-Landscape@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */; };
+		F2E15336173B4B8600D1538E /* OpenGL.m in Sources */ = {isa = PBXBuildFile; fileRef = F2E15335173B4B8600D1538E /* OpenGL.m */; };
 		F2F71CFE1731BC5D0051C50F /* line.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F2F71CFC1731BC5D0051C50F /* line.jpg */; };
 		F2F71CFF1731BC5D0051C50F /* point.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F2F71CFD1731BC5D0051C50F /* point.jpg */; };
 		F2F71D021731D1A10051C50F /* PointShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F2F71D001731D1A10051C50F /* PointShader.fragment */; };
@@ -100,6 +101,7 @@
 		F2A39146172CFA7D00A6A74D /* StoneShader.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = StoneShader.fragment; path = "Virtual Go/shaders/StoneShader.fragment"; sourceTree = "<group>"; };
 		F2A39147172CFA7D00A6A74D /* BoardShader.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = BoardShader.vertex; path = "Virtual Go/shaders/BoardShader.vertex"; sourceTree = "<group>"; };
 		F2A39148172CFA7D00A6A74D /* StoneShader.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = StoneShader.vertex; path = "Virtual Go/shaders/StoneShader.vertex"; sourceTree = "<group>"; };
+		F2D0DDC4173B5F3B00CD12DA /* GameInstance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GameInstance.h; path = ../../GameInstance.h; sourceTree = "<group>"; };
 		F2D6AD68171FDF5A00930D69 /* virtual go.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "virtual go.png"; sourceTree = "<group>"; };
 		F2D6AD6A171FDFE500930D69 /* virtual go retina.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "virtual go retina.png"; sourceTree = "<group>"; };
 		F2D6AD6C171FE05600930D69 /* virtual go retina ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "virtual go retina ipad.png"; sourceTree = "<group>"; };
@@ -111,6 +113,11 @@
 		F2E1532D173B00E800D1538E /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Config.h; path = ../../Config.h; sourceTree = "<group>"; };
 		F2E1532E173B00E800D1538E /* Game.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Game.h; path = ../../Game.h; sourceTree = "<group>"; };
 		F2E1532F173B00E800D1538E /* Telemetry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Telemetry.h; path = ../../Telemetry.h; sourceTree = "<group>"; };
+		F2E15331173B350100D1538E /* Accelerometer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Accelerometer.h; path = ../../Accelerometer.h; sourceTree = "<group>"; };
+		F2E15332173B350100D1538E /* MeshGenerators.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MeshGenerators.h; path = ../../MeshGenerators.h; sourceTree = "<group>"; };
+		F2E15333173B350100D1538E /* Physics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Physics.h; path = ../../Physics.h; sourceTree = "<group>"; };
+		F2E15334173B4B8600D1538E /* OpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenGL.h; sourceTree = "<group>"; };
+		F2E15335173B4B8600D1538E /* OpenGL.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = OpenGL.m; sourceTree = "<group>"; };
 		F2F71CFC1731BC5D0051C50F /* line.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = line.jpg; path = "Virtual Go/textures/line.jpg"; sourceTree = "<group>"; };
 		F2F71CFD1731BC5D0051C50F /* point.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = point.jpg; path = "Virtual Go/textures/point.jpg"; sourceTree = "<group>"; };
 		F2F71D001731D1A10051C50F /* PointShader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = PointShader.fragment; path = "Virtual Go/shaders/PointShader.fragment"; sourceTree = "<group>"; };
@@ -181,6 +188,8 @@
 		F26653F8171A205400CFB131 /* Virtual Go */ = {
 			isa = PBXGroup;
 			children = (
+				F2E15334173B4B8600D1538E /* OpenGL.h */,
+				F2E15335173B4B8600D1538E /* OpenGL.m */,
 				F2665401171A205400CFB131 /* AppDelegate.h */,
 				F2665402171A205400CFB131 /* AppDelegate.m */,
 				F2665414171A205500CFB131 /* ViewController.h */,
@@ -254,6 +263,10 @@
 		F2E1532C173B00BD00D1538E /* portable */ = {
 			isa = PBXGroup;
 			children = (
+				F2D0DDC4173B5F3B00CD12DA /* GameInstance.h */,
+				F2E15331173B350100D1538E /* Accelerometer.h */,
+				F2E15332173B350100D1538E /* MeshGenerators.h */,
+				F2E15333173B350100D1538E /* Physics.h */,
 				F2E1532D173B00E800D1538E /* Config.h */,
 				F2E1532E173B00E800D1538E /* Game.h */,
 				F2E1532F173B00E800D1538E /* Telemetry.h */,
@@ -388,6 +401,7 @@
 				F26653FF171A205400CFB131 /* main.m in Sources */,
 				F2665403171A205400CFB131 /* AppDelegate.m in Sources */,
 				F2665416171A205500CFB131 /* ViewController.m in Sources */,
+				F2E15336173B4B8600D1538E /* OpenGL.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

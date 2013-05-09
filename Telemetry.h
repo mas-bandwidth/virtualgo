@@ -4,8 +4,8 @@
 #define TELEMETRY_H
 
 #include <vector>
-#include "Stone.h"
 #include "Board.h"
+#include "StoneInstance.h"
 
 struct DetectionTimer
 {
@@ -142,6 +142,8 @@ const char * CounterNames[] =
     "orientation upside down"
 };
 
+typedef void (*CounterNotifyFunc)( int counterIndex, uint64_t counterValue, const char * counterName );
+
 enum Conditions
 {
     CONDITION_AtRestBoard,
@@ -202,13 +204,19 @@ public:
         secondsSinceLastSwipe = 0;
         memset( counters, 0, sizeof( counters ) );
         memset( secondsSinceCollision, 0, sizeof( secondsSinceCollision ) );
+        counterNotifyFunc = NULL;
     }
 
-    void Update( const Board & board, const std::vector<Stone> & stones, float dt, bool locked, const vec3f & up )
+    void SetCounterNotifyFunc( CounterNotifyFunc function )
+    {
+        counterNotifyFunc = function;
+    }
+
+    void Update( float dt, const Board & board, const std::vector<StoneInstance> & stones, bool locked, const vec3f & up )
     {
     #ifndef MULTIPLE_STONES
 
-        const Stone & stone = stones[0];
+        const StoneInstance & stone = stones[0];
 
         // update seconds since last swipe
 
@@ -311,7 +319,7 @@ public:
         {
             const float SpinTime = 0.25f;
             
-            const Stone & stone = stones[0];
+            const StoneInstance & stone = stones[0];
             
             vec3f stoneUp;
             stone.rigidBody.transform.GetUp( stoneUp );
@@ -395,14 +403,9 @@ public:
 
     void IncrementCounter( Counters counterIndex )
     {
-        if ( ++counters[counterIndex] == 1 )
-        {
-            // todo: need some sort of callback or something so we can hook up to testflight
-            // via Obj-C. this file needs to stay pure C++ for portability
-            /*
-            [TestFlight passCheckpoint:[NSString stringWithUTF8String:CounterNames[counterIndex]]];
-            */
-        }
+        ++counters[counterIndex];
+        if ( counterNotifyFunc )
+            counterNotifyFunc( counterIndex, counters[counterIndex], CounterNames[counterIndex] );
     }
 
 private:
@@ -416,6 +419,8 @@ private:
     uint64_t counters[COUNTER_NumValues];
     
     DetectionTimer detectionTimer[CONDITION_NumValues];
+    
+    CounterNotifyFunc counterNotifyFunc;
 };
 
 #endif

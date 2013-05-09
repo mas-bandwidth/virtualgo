@@ -21,7 +21,7 @@ inline int random( int maximum )
     return randomNumber;
 }
 
-uint32_t hash( const uint8_t * data, uint32_t length, uint32_t hash = 0 )
+inline uint32_t hash( const uint8_t * data, uint32_t length, uint32_t hash = 0 )
 {
     for ( uint32_t i = 0; i < length; ++i )
     {

@@ -3,13 +3,14 @@
 
 #include <vector>
 #include "Board.h"
-#include "Stone.h"
+#include "StoneData.h"
+#include "StoneInstance.h"
 #include "RigidBody.h"
 #include "CollisionDetection.h"
 #include "CollisionResponse.h"
 #include "Telemetry.h"
 
-inline void UpdatePhysics( float dt, const Board & board, std::vector<Stone> & stones,
+inline void UpdatePhysics( float dt, const Board & board, const StoneData & stoneData, std::vector<StoneInstance> & stones,
                            Telemetry & telemetry, const Frustum & frustum,
                            const vec3f & gravity, bool selected, bool locked, float smoothZoom )
 {
@@ -27,7 +28,7 @@ inline void UpdatePhysics( float dt, const Board & board, std::vector<Stone> & s
     {
         for ( int j = 0; j < stones.size(); ++j )
         {
-            Stone & stone = stones[j];
+            StoneInstance & stone = stones[j];
 
             if ( !stone.rigidBody.active )
                 continue;
@@ -71,7 +72,7 @@ inline void UpdatePhysics( float dt, const Board & board, std::vector<Stone> & s
                 vec4f nearPlane( 0, 0, -1, -smoothZoom );
                 #endif
                 
-                if ( StonePlaneCollision( stone.biconvex, nearPlane, stone.rigidBody, contact ) )
+                if ( StonePlaneCollision( stoneData.biconvex, nearPlane, stone.rigidBody, contact ) )
                 {
                     ApplyCollisionImpulseWithFriction( contact, e, u );
                     iteration_collided = true;
@@ -80,7 +81,7 @@ inline void UpdatePhysics( float dt, const Board & board, std::vector<Stone> & s
 
                 // collision between stone and left plane
 
-                if ( StonePlaneCollision( stone.biconvex, frustum.left, stone.rigidBody, contact ) )
+                if ( StonePlaneCollision( stoneData.biconvex, frustum.left, stone.rigidBody, contact ) )
                 {
                     ApplyCollisionImpulseWithFriction( contact, e, u );
                     iteration_collided = true;
@@ -89,7 +90,7 @@ inline void UpdatePhysics( float dt, const Board & board, std::vector<Stone> & s
 
                 // collision between stone and right plane
 
-                if ( StonePlaneCollision( stone.biconvex, frustum.right, stone.rigidBody, contact ) )
+                if ( StonePlaneCollision( stoneData.biconvex, frustum.right, stone.rigidBody, contact ) )
                 {
                     ApplyCollisionImpulseWithFriction( contact, e, u );
                     iteration_collided = true;
@@ -98,7 +99,7 @@ inline void UpdatePhysics( float dt, const Board & board, std::vector<Stone> & s
 
                 // collision between stone and top plane
 
-                if ( StonePlaneCollision( stone.biconvex, frustum.top, stone.rigidBody, contact ) )
+                if ( StonePlaneCollision( stoneData.biconvex, frustum.top, stone.rigidBody, contact ) )
                 {
                     ApplyCollisionImpulseWithFriction( contact, e, u );
                     iteration_collided = true;
@@ -107,7 +108,7 @@ inline void UpdatePhysics( float dt, const Board & board, std::vector<Stone> & s
 
                 // collision between stone and bottom plane
 
-                if ( StonePlaneCollision( stone.biconvex, frustum.bottom, stone.rigidBody, contact ) )
+                if ( StonePlaneCollision( stoneData.biconvex, frustum.bottom, stone.rigidBody, contact ) )
                 {
                     ApplyCollisionImpulseWithFriction( contact, e, u );
                     iteration_collided = true;
@@ -117,7 +118,7 @@ inline void UpdatePhysics( float dt, const Board & board, std::vector<Stone> & s
 
             // collision between stone and ground plane
             
-            if ( StonePlaneCollision( stone.biconvex, vec4f(0,0,1,0), stone.rigidBody, contact ) )
+            if ( StonePlaneCollision( stoneData.biconvex, vec4f(0,0,1,0), stone.rigidBody, contact ) )
             {
                 ApplyCollisionImpulseWithFriction( contact, e, u );
                 iteration_collided = true;
@@ -126,7 +127,7 @@ inline void UpdatePhysics( float dt, const Board & board, std::vector<Stone> & s
 
             // collision between stone and board
 
-            if ( StoneBoardCollision( stone.biconvex, board, stone.rigidBody, contact, true, selected ) )
+            if ( StoneBoardCollision( stoneData.biconvex, board, stone.rigidBody, contact, true, selected ) )
             {
                 ApplyCollisionImpulseWithFriction( contact, e, u );
                 iteration_collided = true;
@@ -194,7 +195,7 @@ inline void UpdatePhysics( float dt, const Board & board, std::vector<Stone> & s
 
         for ( int i = 0; i < stones.size(); ++i )
         {
-            Stone & stone = stones[i];
+            StoneInstance & stone = stones[i];
 
             if ( length_squared( stone.rigidBody.linearVelocity ) < DeactivateLinearThresholdSquared &&
                  length_squared( stone.rigidBody.angularVelocity ) < DeactivateAngularThresholdSquared )

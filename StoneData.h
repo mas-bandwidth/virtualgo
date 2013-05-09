@@ -1,8 +1,7 @@
-#ifndef STONE_H
-#define STONE_H
+#ifndef STONE_DATA_H
+#define STONE_DATA_H
 
 #include "Biconvex.h"
-#include "RigidBody.h"
 #include "InertiaTensor.h"
 
 // stone sizes from http://www.kurokigoishi.co.jp/english/seihin/goishi/index.html
@@ -54,26 +53,30 @@ inline float GetStoneHeight( StoneSize stoneSize, bool black = false )
 	return StoneHeight[stoneSize] + ( black ? 0.3f : 0 );
 }
 
-struct Stone
+struct StoneData
 {
     void Initialize( StoneSize stoneSize, 
                      float bevel = 0.1f, 
                      float mass = 1.0f, 
                      bool black = false )
     {
+        this->mass = mass;
         biconvex = Biconvex( GetStoneWidth( stoneSize, black ), GetStoneHeight( stoneSize, black ), bevel );
-        rigidBody.mass = mass;
-        rigidBody.inverseMass = 1.0f / mass;
-        CalculateBiconvexInertiaTensor( mass, biconvex, rigidBody.inertia, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
+        CalculateBiconvexInertiaTensor( mass, biconvex, inertia, inertiaTensor, inverseInertiaTensor );
     }
 
     Biconvex biconvex;
-    RigidBody rigidBody;
+
+    float mass;
+
+    vec3f inertia;
+    mat4f inertiaTensor;
+    mat4f inverseInertiaTensor;
 };
 
 inline vec3f NearestPointOnStone( const Biconvex & biconvex, 
                                   const RigidBodyTransform & biconvexTransform, 
-                                  vec3f point )
+                                  const vec3f & point )
 {
 	vec3f localPoint = TransformPoint( biconvexTransform.worldToLocal, point );
     vec3f nearestLocal = GetNearestPointOnBiconvexSurface_LocalSpace( localPoint, biconvex );

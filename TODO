@@ -2,39 +2,12 @@ DONE:
 
 TODO:
 
-    Clean up render method. It's really fat and a lot of code
-    can be factored out and put into methods, eg. selectIBAndVB
+    ----------------
 
-    ----------------------
+    Board shadow on the ground is broken
 
-    Add a function point which is called on the first
-    counter increment. This will allow integration with
-    testflight.
-
-    Put a wrapper around rigid body. It should not be
-    directly mutable, because many quantities are secondary.
-    Instead there should be methods for setting values, applying
-    impulses and so on.
-
-    --------------------------------
-
-    Next I would like to consolidate all matrix math such that
-    it doesn't use GLKMatrix. This way the matrix math can be
-    portable using vectorial.
-
-    I'd like to move all the render matrix management into Render.h
-
-    This code can be independent of iOS specific OpenGL ES 2.0 code.
-
-    Eg. create a "Scene" object which manages matrices, perhaps
-    even manages push/pop matrix style stuff like OpenGL 1.0
-
-    I'd also like at this point to make rigid body a bit more
-    protected. It has many data members which are in reality
-    secondary and should not be modified. It should probably
-    have some encapsulation at this point.
-
-    -----------------------------------
+    Consolidate all matrix math such that it doesn't use GLKMatrix. 
+    This way the matrix math can be portable using vectorial.
 
     Next I want to add the concept of stone ids and the
     logical board. Stone id can be a 32bit hash that increases
@@ -49,10 +22,6 @@ TODO:
     stone ids so I'm not left with a big fat stone class, eg.
     shadow related stone data can be in one place, matrices
     in another and so on.
-
-
-
-
 
 
 

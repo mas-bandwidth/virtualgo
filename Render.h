@@ -162,12 +162,12 @@ void MakeShadowMatrix( const vec4f & plane, const vec4f & light, mat4f & shadowM
         rayDirection = normalize( ray2 - ray1 );
     }
 
-    float GetShadowAlpha( const Stone & stone )
+    float GetShadowAlpha( const vec3f & stonePosition )
     {
         const float ShadowFadeStart = 5.0f;
         const float ShadowFadeFinish = 20.0f;
 
-        const float z = stone.rigidBody.position.z();
+        const float z = stonePosition.z();
 
         if ( z < ShadowFadeStart )
             return 1.0f;
