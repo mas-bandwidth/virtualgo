@@ -1,4 +1,23 @@
 
+Verify code still works in iOS (9/5/2013):
+------------------------------------------
+
+    Verify code still works on iOS post-backport
+
+    Profile multiple stones code again -- is it faster?
+
+     10.8% - ApplyCollisionImpulseWithFriction
+      4.1% - StonePlaneCollision
+      4.1% - RigidBody::GetVelocityAtWorldPoint
+      2.6% - ClosestFeaturesBiconvexPlane_LocalSpace
+      1.7% - RigidBody::UpdateTransform
+      0.7% - RigidBody::UpdateMomentum
+
+    It is definitely much faster. 
+
+    I believe this is a result of fixing pass-by-value for vec3f
+
+
 Back port to MacOSX demos (9/5/2013):
 -------------------------------------
 

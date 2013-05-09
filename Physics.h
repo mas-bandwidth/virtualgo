@@ -197,10 +197,10 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
         {
             StoneInstance & stone = stones[i];
 
-            if ( !stone.active )
+            if ( !stone.rigidBody.active )
                 continue;
 
-            stoneInstance.rigidBody.UpdateMomentum();
+            stone.rigidBody.UpdateMomentum();
 
             if ( length_squared( stone.rigidBody.linearVelocity ) < DeactivateLinearThresholdSquared &&
                  length_squared( stone.rigidBody.angularVelocity ) < DeactivateAngularThresholdSquared )

@@ -1,7 +1,7 @@
 DONE:
 
 TODO:
-    
+
     ---------------
 
     Consolidate all matrix math such that it doesn't use GLKMatrix. 

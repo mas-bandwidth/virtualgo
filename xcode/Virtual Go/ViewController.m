@@ -191,7 +191,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         {
             StoneInstance stone;
             stone.Initialize( game.stoneData );
-            stone.rigidBody.position = _board.GetPointPosition( i, j ) + vec3f( 0, 0, stone.biconvex.GetHeight() / 2 );
+            stone.rigidBody.position = game.board.GetPointPosition( i, j ) + vec3f( 0, 0, game.stoneData.biconvex.GetHeight() / 2 );
             stone.rigidBody.orientation = quat4f(1,0,0,0);
             stone.rigidBody.linearMomentum = vec3f(0,0,0);
             stone.rigidBody.angularMomentum = vec3f(0,0,0);
@@ -475,8 +475,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
 #ifdef MULTIPLE_STONES
 
-                    Stone stone;
-                    stone.Initialize( STONE_SIZE_40 );
+                    StoneInstance stone;
+                    stone.Initialize( game.stoneData );
                     stone.rigidBody.position = rayStart + rayDirection * t;
                     stone.rigidBody.Activate();
                     game.stones.push_back( stone );

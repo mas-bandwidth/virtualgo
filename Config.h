@@ -5,10 +5,8 @@
 #define OPENGL_ES2 1
 #endif
 
-/*
 #define LOCKED 1
 #define MULTIPLE_STONES 1
-*/
 
 //#define USE_SECONDARY_DISPLAY_IF_EXISTS
 //#define DEBUG_SHADOW_VOLUMES
