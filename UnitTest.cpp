@@ -233,7 +233,7 @@ SUITE( Intersection )
         CHECK_CLOSE( biconvex.GetHeight(), 1.0f, epsilon );
         CHECK_CLOSE( biconvex.GetSphereRadius(), 1.25f, epsilon );
         CHECK_CLOSE( biconvex.GetSphereOffset(), 0.75f, epsilon );
-        CHECK_CLOSE( biconvex.GetSphereDot(), 0.799927f, epsilon );
+        CHECK_CLOSE( biconvex.GetSphereDot(), 0.599945f, epsilon );
     }    
 
     TEST( intersect_ray_sphere_hit )
