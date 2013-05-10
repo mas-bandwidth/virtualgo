@@ -10,17 +10,18 @@
 #include "CollisionResponse.h"
 #include "Telemetry.h"
 
-inline void UpdatePhysics( float dt, const Board & board, const StoneData & stoneData, std::vector<StoneInstance> & stones,
-                           Telemetry & telemetry, const Frustum & frustum,
-                           const vec3f & gravity, bool selected, bool locked, float smoothZoom )
+inline void UpdatePhysics( float dt, 
+                           const Board & board, 
+                           const StoneData & stoneData, 
+                           std::vector<StoneInstance> & stones,
+                           Telemetry & telemetry, 
+                           const Frustum & frustum,
+                           const vec3f & gravity, 
+                           float ceiling )
 {
     // update stone physics
 
-    #if MULTIPLE_STONES
     const int iterations = 1;
-    #else
-    const int iterations = 10;
-    #endif
 
     const float iteration_dt = dt / iterations;
 
@@ -33,15 +34,11 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
             if ( !stone.rigidBody.active )
                 continue;
 
-            #if !MULTIPLE_STONES            
-            if ( !selected )
-            #endif
-                stone.rigidBody.linearMomentum += gravity * stone.rigidBody.mass * iteration_dt;
+            stone.rigidBody.linearMomentum += gravity * stone.rigidBody.mass * iteration_dt;
 
             stone.rigidBody.UpdateMomentum();
 
-            if ( !selected )
-                stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
+            stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
 
             quat4f spin;
             AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity, spin );
@@ -64,14 +61,7 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
         
             // collision between stone and near plane
 
-            assert( smoothZoom == smoothZoom );
-            
-            #if MULTIPLE_STONES
-            vec4f nearPlane( 0, 0, -1, -smoothZoom * 0.5f );
-            #else
-            vec4f nearPlane( 0, 0, -1, -smoothZoom );
-            #endif
-            
+            vec4f nearPlane( 0, 0, -1, -ceiling );
             if ( StonePlaneCollision( stoneData.biconvex, nearPlane, stone.rigidBody, contact ) )
             {
                 ApplyCollisionImpulseWithFriction( contact, e, u );
@@ -126,6 +116,8 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
 
             // collision between stone and board
 
+            bool selected = false;          // todo: if stone is selected push out along board
+            
             if ( StoneBoardCollision( stoneData.biconvex, board, stone.rigidBody, contact, true, selected ) )
             {
                 ApplyCollisionImpulseWithFriction( contact, e, u );
@@ -140,13 +132,8 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
             {
                 if ( length_squared( stone.rigidBody.angularMomentum ) > 0.0001f )
                 {
-                    #if MULTIPLE_STONES
                     const float factor_a = DecayFactor( 0.75f, iteration_dt );
                     const float factor_b = DecayFactor( 0.99f, iteration_dt );
-                    #else
-                    const float factor_a = 0.9925f;
-                    const float factor_b = 0.9995f;
-                    #endif
                     
                     const float momentum = length( stone.rigidBody.angularMomentum );
 
@@ -176,13 +163,8 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
 
             // apply damping
 
-            #if MULTIPLE_STONES
             const float linear_factor = DecayFactor( 0.999f, iteration_dt );
             const float angular_factor = DecayFactor( 0.999f, iteration_dt );
-            #else
-            const float linear_factor = 0.99999f;
-            const float angular_factor = 0.99999f;
-            #endif
 
             stone.rigidBody.linearMomentum *= linear_factor;
             stone.rigidBody.angularMomentum *= angular_factor;

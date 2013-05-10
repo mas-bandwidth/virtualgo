@@ -14,16 +14,5 @@
          startingLineNumber = "8"
          endingLineNumber = "8">
       </FileBreakpoint>
-      <FileBreakpoint
-         shouldBeEnabled = "Yes"
-         ignoreCount = "0"
-         continueAfterRunningActions = "No"
-         filePath = "../Common.h"
-         timestampString = "389854312.247115"
-         startingColumnNumber = "9223372036854775807"
-         endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "14"
-         endingLineNumber = "14">
-      </FileBreakpoint>
    </FileBreakpoints>
 </Bucket>

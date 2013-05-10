@@ -1,6 +1,53 @@
 DONE:
 
+    Study the existing touch code. How to best move it into GameInstance.h?
+
+    Ideally, I want to have the logic for responding to gestures to be
+    platform independent. I don't necessarily see the need to make the
+    gesture DETECTION code platform independent... that's not the hard
+    part.
+
+    Key point is that I want to move the stone selection and dragging
+    and placement logic into GameInstance.h. This is necessary because
+    it's about to become a lot more complex.
+
+    I think this means that more of the touch stuff is going to
+    move into GameInstance.h that I would otherwise do just for
+    portability.
+
+    Back up old touch handler code.
+
+    Removed old touch code and everything that doesn't support
+    multiple stones. We are starting from scratch!!!
+
+    *** WOW: DISABLING GRAVITY IS A REALLY FUN MODE. PLAY GO IN SPACE! ***
+
 TODO:
+
+    Add Touch.h
+
+    Inside here add a concept of "TouchHandle" which typedefs
+    to a 64bit pointer.
+
+    Then, add a set of functions to query data from touch objects
+
+    Next, in touch functions from OS, find a way to pass all touches
+    into the GameInstance.h versions of touch handling.
+
+    Avoids dictionaries obviously, will most likely need to move
+    the touches into a flat array or something similar.
+
+    -------------------------------------------------------------------
+
+
+
+    Now, inside GameInstance.h, implement stone select and drag!
+
+
+
+
+
+    -----------------------------------------------------------------
 
     Implement stone selection and dragging with multiple stones
 

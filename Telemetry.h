@@ -216,6 +216,8 @@ public:
     {
     #ifndef MULTIPLE_STONES
 
+        // todo: detection needs to be updated to support multiple stones
+
         const StoneInstance & stone = stones[0];
 
         // update seconds since last swipe

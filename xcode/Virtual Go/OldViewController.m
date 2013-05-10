@@ -81,6 +81,29 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLuint _floorVertexBuffer;
     GLuint _floorIndexBuffer;
     GLint _floorUniforms[NUM_UNIFORMS];
+
+    bool _swipeStarted;
+    UITouch * _swipeTouch;
+    float _swipeTime;
+    CGPoint _swipeStartPoint;
+
+    bool _holdStarted;
+    UITouch * _holdTouch;
+    float _holdTime;
+    CGPoint _holdPoint;
+
+    UITouch * _firstPlacementTouch;
+    double _firstPlacementTimestamp;
+    
+    bool _selected;
+    UITouch * _selectTouch;
+    CGPoint _selectPoint;
+    float _selectDepth;
+    vec3f _selectOffset;
+    double _selectTimestamp;
+    double _selectPrevTimestamp;
+    vec3f _selectIntersectionPoint;
+    vec3f _selectPrevIntersectionPoint;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -133,6 +156,17 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     opengl = [[OpenGL alloc] init];
    
     [self setupGL];
+
+    // ----------------------------------------------------
+    // todo: move this setup into the game instance
+    
+    _swipeStarted = false;
+    _holdStarted = false;
+    _selected = false;
+
+    _firstPlacementTouch = nil;
+
+    // ----------------------------------------------------
 }
 
 - (void)dealloc
@@ -296,6 +330,283 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     [self becomeFirstResponder];
 }
 
+// ---------------------------------------------------------
+
+- (void)updateTouch:(float)dt
+{
+    if ( _selected )
+    {   
+#ifndef MULTIPLE_STONES
+
+        StoneInstance & stone = game.stones[0];
+
+        stone.rigidBody.angularMomentum *= SelectDamping;
+        
+        const float select_dt = max( 1.0f / 60.0f, _selectTimestamp - _selectPrevTimestamp );
+
+        stone.rigidBody.linearMomentum = stone.rigidBody.mass *
+            ( _selectIntersectionPoint - _selectPrevIntersectionPoint ) / select_dt;
+
+        stone.rigidBody.position = _selectIntersectionPoint + _selectOffset;
+
+        stone.rigidBody.Activate();
+    
+#endif
+
+        _holdStarted = false;
+        _swipeStarted = false;
+    }
+
+    if ( _holdStarted )
+    {
+        _holdTime += dt;
+
+        if ( _holdTime >= HoldDelay )
+        {
+            for ( int i = 0; i < game.stones.size(); ++i )
+                game.stones[i].rigidBody.angularMomentum *= HoldDamping;
+        }
+    }
+
+    if ( _swipeStarted )
+    {
+        _swipeTime += dt;
+
+        if ( _swipeTime > MaxSwipeTime )
+            _swipeStarted = false;
+    }
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+//    NSLog( @"touches began" );
+    
+    UITouch * touch = [touches anyObject];
+
+    if ( [touches count] == 1 )
+    {
+        if ( _firstPlacementTouch == nil )
+        {
+            _firstPlacementTouch = touch;
+            _firstPlacementTimestamp = [touch timestamp];
+        }
+
+        if ( _firstPlacementTouch != nil && touch != _firstPlacementTouch && !_selected )
+        {
+            CGPoint selectPoint = [touch locationInView:self.view];
+            
+            bool onBoard = [self isPointOnBoard:selectPoint];
+
+            if ( onBoard )
+            {
+                vec3f point = [self pointToPixels:selectPoint];
+                
+                vec3f rayStart, rayDirection;
+                GetPickRay( game.inverseClipMatrix, point.x(), point.y(), rayStart, rayDirection );
+                
+                // next, intersect with the plane at board depth and place a new stone
+                // such that it is offset from the intersection point with this plane
+                
+                float t = 0;
+                if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), game.board.GetThickness() + game.stoneData.biconvex.GetHeight()/2, t ) )
+                {
+                    const float place_dt = [touch timestamp] - _firstPlacementTimestamp;
+
+                    if ( place_dt < PlaceStoneHardThreshold )
+                        telemetry.IncrementCounter( COUNTER_PlacedStoneHard );
+                    else
+                        telemetry.IncrementCounter( COUNTER_PlacedStone );
+
+#ifdef MULTIPLE_STONES
+
+                    StoneInstance stone;
+                    stone.Initialize( game.stoneData );
+                    stone.rigidBody.position = rayStart + rayDirection * t;
+                    stone.rigidBody.Activate();
+                    game.stones.push_back( stone );
+
+#else
+
+                    StoneInstance & stone = game.stones[0];
+
+                    stone.rigidBody.position = rayStart + rayDirection * t;
+                    stone.rigidBody.orientation = quat4f(0,0,0,1);
+                    stone.rigidBody.linearMomentum = vec3f(0,0,0);
+                    stone.rigidBody.angularMomentum = vec3f(0,0,0);
+                    stone.rigidBody.Activate();
+
+                    // IMPORTANT: go into select mode post placement so you can immediately drag the stone
+        
+                    vec3f intersectionPoint, intersectionNormal;
+                    
+                    if ( IntersectRayStone( game.stoneData.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+                    {
+                        _selected = true;
+                        _selectTouch = touch;
+                        _selectPoint = selectPoint;
+                        _selectDepth = intersectionPoint.z();
+                        _selectOffset = stone.rigidBody.position - intersectionPoint;
+                        _selectIntersectionPoint = intersectionPoint;
+                        _selectTimestamp = [touch timestamp];
+                        _selectPrevIntersectionPoint = _selectIntersectionPoint;
+                        _selectPrevTimestamp = _selectTimestamp;
+                    }
+
+#endif
+                }
+            }
+        }
+    }
+
+#if !MULTIPLE_STONES
+
+    if ( !_selected )
+    {
+        StoneInstance & stone = game.stones[0];
+
+        CGPoint selectPoint = [touch locationInView:self.view];
+
+        vec3f point = [self pointToPixels:selectPoint];
+
+        vec3f rayStart, rayDirection;
+        
+        GetPickRay( inverseClipMatrix, point.x(), point.y(), rayStart, rayDirection );
+        
+        vec3f intersectionPoint, intersectionNormal;
+
+        if ( IntersectRayStone( game.stoneData.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+        {
+//            NSLog( @"select" );
+            
+            telemetry.IncrementCounter( COUNTER_SelectedStone );
+
+            _selected = true;
+            _selectTouch = touch;
+            _selectPoint = selectPoint;
+            _selectDepth = intersectionPoint.z();
+            _selectOffset = stone.rigidBody.position - intersectionPoint;
+            _selectIntersectionPoint = intersectionPoint;
+            _selectTimestamp = [touch timestamp];
+            _selectPrevIntersectionPoint = _selectIntersectionPoint;
+            _selectPrevTimestamp = _selectTimestamp;
+
+            stone.rigidBody.ApplyImpulseAtWorldPoint( intersectionPoint, vec3f(0,0,-TouchImpulse) );
+        }
+    }
+
+#endif
+
+    if ( !_selected )
+    {
+        if ( !_holdStarted )
+        {
+            _holdTouch = touch;
+            _holdStarted = true;
+            _holdTime = 0;
+            _holdPoint = [touch locationInView:self.view];
+        }
+
+        if ( !_swipeStarted )
+        {
+            _swipeTouch = touch;
+            _swipeTime = 0;
+            _swipeStarted = true;
+            _swipeStartPoint = [touch locationInView:self.view];
+        }
+    }
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+#ifndef MULTIPLE_STONES
+
+    if ( _selected )
+    {
+        StoneInstance & stone = game.stones[0];
+
+        if ( [touches containsObject:_selectTouch] )
+        {
+            UITouch * touch = _selectTouch;
+
+            CGPoint selectPoint = [touch locationInView:self.view];
+        
+            vec3f point = [self pointToPixels:selectPoint];
+            
+            vec3f rayStart, rayDirection;
+            GetPickRay( inverseClipMatrix, point.x(), point.y(), rayStart, rayDirection );
+            
+            // IMPORTANT: first update intersect depth. this way stones can lift
+            // from the ground to the board and then not snap back to ground when dragged
+            // off the board (looks bad)
+
+            vec3f intersectionPoint, intersectionNormal;
+            if ( IntersectRayStone( game.stoneData.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+            {
+                if ( intersectionPoint.z() > _selectDepth )
+                {
+                    _selectPoint = selectPoint;
+                    _selectDepth = intersectionPoint.z();
+                    _selectOffset = stone.rigidBody.position - intersectionPoint;
+                    _selectIntersectionPoint = intersectionPoint;
+                }
+            }
+
+            // next, intersect with the plane at select depth and move the stone
+            // such that it is offset from the intersection point with this plane
+
+            float t = 0;
+            if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), _selectDepth, t ) )
+            {
+                _selectPrevIntersectionPoint = _selectIntersectionPoint;
+                _selectPrevTimestamp = _selectTimestamp;
+
+                _selectIntersectionPoint = rayStart + rayDirection * t;
+                _selectTimestamp = [touch timestamp];
+            }
+        }
+    }
+    else
+#endif
+    {
+        if ( _holdStarted && [touches containsObject:_holdTouch] )
+        {
+            UITouch * touch = _holdTouch;
+
+            _holdStarted = false;
+
+            CGPoint currentPosition = [touch locationInView:self.view];
+
+            vec3f delta( _holdPoint.x - currentPosition.x,
+                         _holdPoint.y - currentPosition.y,
+                         0 );
+
+            if ( length( delta ) > HoldMoveThreshold )
+            {
+//                NSLog( @"hold moved" );
+                _holdStarted = false;
+            }
+        }
+
+        if ( _swipeStarted && [touches containsObject:_swipeTouch] )
+        {
+            UITouch * touch = _swipeTouch;
+            
+            CGPoint currentPosition = [touch locationInView:self.view];
+
+            vec3f swipeDelta( _swipeStartPoint.x - currentPosition.x,
+                              _swipeStartPoint.y - currentPosition.y,
+                              0 );
+            
+            if ( length( swipeDelta ) >= MinimumSwipeLength + SwipeLengthPerSecond * _swipeTime )
+            {
+                game.OnSwipe( [self pointToPixels:_swipeStartPoint] );
+                
+                _swipeStarted = false;
+            }
+        }
+    }
+}
+
 - (vec3f) pointToPixels:(CGPoint)point
 {
     const float contentScaleFactor = [self.view contentScaleFactor];
@@ -304,24 +615,93 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     return pixels;
 }
 
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+- (bool) isPointOnBoard:(CGPoint)selectPoint
 {
-    // ...
-}
-
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    // ...
+    return game.IsScreenPointOnBoard( [self pointToPixels:selectPoint] );
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    // ...
+//    NSLog( @"touches ended" );
+    
+    if ( _firstPlacementTouch != nil && [touches containsObject:_firstPlacementTouch] )
+        _firstPlacementTouch = nil;
+    
+    UITouch * touch = [touches anyObject];
+
+    if ( touch.tapCount >= 2 )
+    {
+        CGPoint touchPoint = [touch locationInView:self.view];
+
+        game.OnDoubleTap( [self pointToPixels:touchPoint] );
+        
+        [NSObject cancelPreviousPerformRequestsWithTarget:self];
+    }
+
+#ifndef MULTIPLE_STONES
+
+    if ( _selected )
+    {
+        StoneInstance & stone = game.stones[0];
+
+        if ( [touches containsObject:_selectTouch] )
+        {
+            UITouch * touch = _selectTouch;
+
+            CGPoint selectPoint = [touch locationInView:self.view];
+
+            const bool onBoard = [self isPointOnBoard:selectPoint];
+
+            const float dx = selectPoint.x - _selectPoint.x;
+            const float dy = selectPoint.y - _selectPoint.y;
+
+            const float distance = sqrt( dx*dx + dy*dy );
+
+            const float speed = length( stone.rigidBody.linearVelocity );
+
+            if ( game.locked && onBoard && speed > LockedDragSpeedMax )
+            {
+                stone.rigidBody.linearVelocity /= speed;
+                stone.rigidBody.linearVelocity *= LockedDragSpeedMax;
+                stone.rigidBody.linearMomentum = stone.rigidBody.linearVelocity * stone.rigidBody.mass;
+                stone.rigidBody.UpdateMomentum();
+            }
+
+            stone.rigidBody.Activate();
+            
+            if ( distance > 10 )
+            {
+                if ( speed > FlickSpeedThreshold )
+                    telemetry.IncrementCounter( COUNTER_FlickedStone );
+                else
+                    telemetry.IncrementCounter( COUNTER_DraggedStone );
+            }
+            else
+            {
+                const float currentTimestamp = [touch timestamp];
+                if ( currentTimestamp - _selectTimestamp < 0.1f )
+                    telemetry.IncrementCounter( COUNTER_TouchedStone );
+            }
+        }
+    }
+#endif
+
+    if ( [touches containsObject:_selectTouch] )
+        _selected = false;
+
+    if ( [touches containsObject:_holdTouch] )
+        _holdStarted = false;
+
+    if ( [touches containsObject:_swipeTouch] )
+        _swipeStarted = false;
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    // ...
+    _holdStarted = false;
+    _swipeStarted = false;
+    _selected = false;
+    _firstPlacementTouch = nil;
 }
 
 - (void)accelerometer:(UIAccelerometer *)uiAccelerometer didAccelerate:(UIAcceleration *)acceleration
@@ -583,7 +963,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     if ( game.paused )
         dt = 0.0f;
 
-    game.UpdateCamera( dt );
+    game.UpdateMatrices();
+
+    [self updateTouch:dt];
 
     game.UpdatePhysics( dt, accelerometer );
     

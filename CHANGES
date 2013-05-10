@@ -1,4 +1,22 @@
 
+WIP moving event handling into game instance (10/5/2013):
+---------------------------------------------------------
+
+    Add conversion function: CGPoint -> vec2f pixels
+
+    Move PlaceStones into GameInstance.h
+
+    Move OnDoubleTap into GameInstance.h
+
+    Move OnSwipe into GameInstance.h
+
+    Move matrix data into GameInstance.h
+
+    Move matrix update into GameInstance.h
+
+    Move IsScreenPointOnBoard into GameInstance.h
+
+
 Got first build out with multiple stones (9/5/2013):
 ----------------------------------------------------
 
