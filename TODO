@@ -1,11 +1,28 @@
 DONE:
 
-TODO:
-
-    ---------------
-
     Consolidate all matrix math such that it doesn't use GLKMatrix. 
     This way the matrix math can be portable using vectorial.
+
+    Hacked up mat3f dummy class to work with 3x3 matrix float layout
+
+    Need a function to invert a matrix. Falling back to GLK for now.
+
+    Converted board, floor, grid, point to use mat4f
+
+    Converted stone to use mat4f    
+
+    Convert shadow rendering to use mat4f
+
+    Fixed board shadow on ground. Was selecting textured board mesh
+    as non-textured vertices. Hence, garbage verts.
+
+TODO:
+
+    Convert stone shadow on ground
+
+    Convert stone shadow on board
+
+    -------------------
 
     Move the game logic out of ViewController.m and into GameInstance.h
 
@@ -29,8 +46,6 @@ TODO:
     shadow related stone data can be in one place, matrices
     in another and so on.
 
-    Board shadow on the ground is broken
-
 
 
 
@@ -38,9 +53,9 @@ TODO:
 
     -----------------------------------------------------------------
 
-    Turn on locked mode and start tuning this. 
-
     Why are the stones drifting even though gravity is down?!!!
+
+    Turn on locked mode and start tuning this. 
 
     Fix shadow z fighting for stones on board/ground etc.
 

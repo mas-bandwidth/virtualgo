@@ -12,7 +12,11 @@ public:
 
 	GameInstance()
 	{
+        #if LOCKED
 		locked = true;
+        #else
+        locked = false;
+        #endif
 		paused = false;
 		zoomed = false;
 		smoothZoom = 10;

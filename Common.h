@@ -8,6 +8,7 @@
 #include "vectorial/vec3f.h"
 #include "vectorial/vec4f.h"
 #include "vectorial/mat4f.h"
+#include "vectorial/mat3f.h"
 
 using namespace vectorial;
 
@@ -46,7 +47,7 @@ inline bool chance( float probability )
     return random(100) <= percent;
 }
 
-float DegToRad( float degrees )
+inline float DegToRad( float degrees )
 {
     return ( degrees / 360.0f ) * 2 * pi;
 }
@@ -79,17 +80,17 @@ inline float clamp( float v, float min, float max )
     return v;
 }
 
-void PrintVector( vec3f vector )
+inline void PrintVector( vec3f vector )
 {
     printf( "[%f,%f,%f]\n", vector.x(), vector.y(), vector.z() );
 }
 
-void PrintVector( vec4f vector )
+inline void PrintVector( vec4f vector )
 {
     printf( "[%f,%f,%f,%f]\n", vector.x(), vector.y(), vector.z(), vector.w() );
 }
 
-void PrintMatrix( mat4f matrix )
+inline void PrintMatrix( mat4f matrix )
 {
     printf( "[%f,%f,%f,%f,\n %f,%f,%f,%f\n %f,%f,%f,%f\n %f,%f,%f,%f]\n", 
         simd4f_get_x(matrix.value.x), 

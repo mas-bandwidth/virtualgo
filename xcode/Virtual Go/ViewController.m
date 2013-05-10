@@ -41,10 +41,13 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     Accelerometer accelerometer;
 
-    // to be cleaned up below this line
+    mat4f projectionMatrix;
+    mat4f cameraMatrix;
+    mat3f normalMatrix;
+    mat4f clipMatrix;
+    mat4f inverseClipMatrix;
 
-    GLKMatrix4 _clipMatrix;
-    GLKMatrix4 _inverseClipMatrix;
+    // to be cleaned up below this line
 
     Mesh<Vertex> _stoneMesh;
     GLuint _stoneProgram;
@@ -57,8 +60,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLuint _boardTexture;
     GLuint _boardVertexBuffer;
     GLuint _boardIndexBuffer;
-    GLKMatrix4 _boardModelViewProjectionMatrix;
-    GLKMatrix3 _boardNormalMatrix;
     GLint _boardUniforms[NUM_UNIFORMS];
 
     GLuint _shadowProgram;
@@ -68,8 +69,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLuint _gridProgram;
     GLuint _gridVertexBuffer;
     GLuint _gridIndexBuffer;
-    GLKMatrix4 _gridModelViewProjectionMatrix;
-    GLKMatrix3 _gridNormalMatrix;
     GLint _gridUniforms[NUM_UNIFORMS];
     GLuint _lineTexture;
 
@@ -77,8 +76,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLuint _pointProgram;
     GLuint _pointVertexBuffer;
     GLuint _pointIndexBuffer;
-    GLKMatrix4 _pointModelViewProjectionMatrix;
-    GLKMatrix3 _pointNormalMatrix;
     GLint _pointUniforms[NUM_UNIFORMS];
     GLuint _pointTexture;
 
@@ -87,8 +84,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLuint _floorTexture;
     GLuint _floorVertexBuffer;
     GLuint _floorIndexBuffer;
-    GLKMatrix4 _floorModelViewProjectionMatrix;
-    GLKMatrix3 _floorNormalMatrix;
     GLint _floorUniforms[NUM_UNIFORMS];
 
     bool _hasRendered;      // todo: remove this by splitting the code that calculates matrices from render
@@ -148,7 +143,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         NSLog( @"Failed to create ES context" );
     }
     
-    GLKView *view = (GLKView *)self.view;
+    GLKView * view = (GLKView *)self.view;
     view.context = self.context;
     view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
     
@@ -166,11 +161,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     opengl = [[OpenGL alloc] init];
    
     [self setupGL];
+
+    // todo: move this setup into the game instance
   
-    game.locked = false;//true;
-    game.paused = false;
-    game.zoomed = !iPad();
-    
     game.smoothZoom = [self getTargetZoom];
     
     _hasRendered = false;
@@ -455,9 +448,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
                 
                 vec3f rayStart, rayDirection;
                 
-                mat4f inverseClipMatrix;
-                inverseClipMatrix.load( _inverseClipMatrix.m );
-                
                 GetPickRay( inverseClipMatrix, point.x(), point.y(), rayStart, rayDirection );
                 
                 // next, intersect with the plane at board depth and place a new stone
@@ -693,9 +683,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     
     vec3f rayStart, rayDirection;
     
-    mat4f inverseClipMatrix;
-    inverseClipMatrix.load( _inverseClipMatrix.m );
-    
     GetPickRay( inverseClipMatrix, point.x(), point.y(), rayStart, rayDirection );
     
     // next, intersect with the plane at select depth and move the stone
@@ -858,9 +845,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     // calculate frustum planes for collision
 
-    mat4f clipMatrix;
-    clipMatrix.load( _clipMatrix.m );
-
     Frustum frustum;
     CalculateFrustumPlanes( clipMatrix, frustum );
     
@@ -922,7 +906,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
  
     // update physics sim
 
-    vec3f gravity = 10 * 9.8f * accelerometer.GetDown();
+    vec3f gravity = 10 * 9.8f * ( game.locked ? vec3f(0,0,-1) : accelerometer.GetDown() );
     
     UpdatePhysics( dt, game.board, game.stoneData, game.stones, telemetry,
                    frustum, gravity, _selected, game.locked, game.smoothZoom );
@@ -938,39 +922,39 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     return iPad() ? ( game.zoomed ? ZoomIn_iPad : ZoomOut_iPad ) : ( game.zoomed ? ZoomIn_iPhone : ZoomOut_iPhone );
 }
 
-- (void)render
+mat4f inverse( const mat4f & matrix )
 {
-    float aspect = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
-    
+    // todo: this is shitty
+    float data[16];
+    matrix.store( data );
+    GLKMatrix4 glkMatrix = GLKMatrix4MakeWithArray( data );
+    bool invertible;
+    GLKMatrix4 glkMatrixInverse = GLKMatrix4Invert( glkMatrix, &invertible );
+    assert( invertible );
+    mat4f inverse;
+    inverse.load( glkMatrixInverse.m );
+    return inverse;
+}
+
+- (void)render
+{    
     const float targetZoom = [self getTargetZoom];
     
     game.smoothZoom += ( targetZoom - game.smoothZoom ) * ( game.zoomed ? ZoomInTightness : ZoomOutTightness );
     
-    GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective( GLKMathDegreesToRadians(40.0f), aspect, 0.1f, 100.0f );
-    
-    GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeLookAt( 0, 0, game.smoothZoom,
-                                                           0, 0, 0,
-                                                           0, 1, 0 );
+    const float aspect = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
 
-    _clipMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
+    projectionMatrix = mat4f::perspective( 40, aspect, 0.1f, 100.0f );
 
-    bool invertible;
-    _inverseClipMatrix = GLKMatrix4Invert( _clipMatrix, &invertible );
-    assert( invertible );
+    cameraMatrix = mat4f::lookAt( vec3f( 0, 0, game.smoothZoom ),
+                                  vec3f( 0, 0, 0 ),
+                                  vec3f( 0, 1, 0 ) );
 
-    // todo: need to clean up this matrix bullshit
-    
-    _boardNormalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(baseModelViewMatrix), NULL );
-    _boardModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
-    
-    _gridNormalMatrix = _boardNormalMatrix;
-    _gridModelViewProjectionMatrix = _boardModelViewProjectionMatrix;
+    clipMatrix = projectionMatrix * cameraMatrix;
 
-    _pointNormalMatrix = _boardNormalMatrix;
-    _pointModelViewProjectionMatrix = _boardModelViewProjectionMatrix;
+    inverseClipMatrix = inverse( clipMatrix );
 
-    _floorNormalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(baseModelViewMatrix), NULL );
-    _floorModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, baseModelViewMatrix );
+    normalMatrix.load( cameraMatrix );
 
     glClearColor( 0, 0, 0, 1 );
 
@@ -986,8 +970,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
                 
         [opengl selectTexturedMesh:_floorTexture vertexBuffer:_floorVertexBuffer indexBuffer:_floorIndexBuffer];
 
-        glUniformMatrix4fv( _floorUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _floorModelViewProjectionMatrix.m );
-        glUniformMatrix3fv( _floorUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _floorNormalMatrix.m );
+        glUniformMatrix4fv( _floorUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&clipMatrix );
+        glUniformMatrix3fv( _floorUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&normalMatrix );
         glUniform3fv( _floorUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
 
         glDrawElements( GL_TRIANGLES, _floorMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
@@ -1000,8 +984,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         
         [opengl selectTexturedMesh:_boardTexture vertexBuffer:_boardVertexBuffer indexBuffer:_boardIndexBuffer];
 
-        glUniformMatrix4fv( _boardUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _boardModelViewProjectionMatrix.m );
-        glUniformMatrix3fv( _boardUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _boardNormalMatrix.m );
+        glUniformMatrix4fv( _boardUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&clipMatrix );
+        glUniformMatrix3fv( _boardUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&normalMatrix );
         glUniform3fv( _boardUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
 
         glDrawElements( GL_TRIANGLES, _boardMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
@@ -1014,8 +998,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
         [opengl selectTexturedMesh:_lineTexture vertexBuffer:_gridVertexBuffer indexBuffer:_gridIndexBuffer];
         
-        glUniformMatrix4fv( _gridUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _gridModelViewProjectionMatrix.m );
-        glUniformMatrix3fv( _gridUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _gridNormalMatrix.m );
+        glUniformMatrix4fv( _gridUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&clipMatrix );
+        glUniformMatrix3fv( _gridUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&normalMatrix );
         glUniform3fv( _gridUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
         
         glEnable( GL_BLEND );
@@ -1037,8 +1021,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         
         [opengl selectTexturedMesh:_pointTexture vertexBuffer:_pointVertexBuffer indexBuffer:_pointIndexBuffer];
 
-        glUniformMatrix4fv( _pointUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _pointModelViewProjectionMatrix.m );
-        glUniformMatrix3fv( _pointUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _pointNormalMatrix.m );
+        glUniformMatrix4fv( _pointUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&clipMatrix );
+        glUniformMatrix3fv( _pointUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&normalMatrix );
         glUniform3fv( _pointUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
         
         glEnable( GL_BLEND );
@@ -1052,30 +1036,23 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
         glDisable( GL_BLEND );
     }
-    
+
     // render board shadow on ground
     
     {
         glUseProgram( _shadowProgram );
         
-        [opengl selectNonTexturedMesh:_boardVertexBuffer indexBuffer:_boardIndexBuffer];
+        [opengl selectTexturedMesh:0 vertexBuffer:_boardVertexBuffer indexBuffer:_boardIndexBuffer];
 
         float boardShadowAlpha = 1.0f;
 
-        GLKMatrix4 view = baseModelViewMatrix;
+        mat4f shadowMatrix;
+        MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( game.lightPosition.x(), game.lightPosition.y(), game.lightPosition.z() * 0.5f, 0 ), shadowMatrix );
 
-        // todo: clean up this bullshit. should be directly working with mat4f the whole time
-        mat4f shadow_matrix;
-        MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( game.lightPosition.x(), game.lightPosition.y(), game.lightPosition.z() * 0.5f, 0 ), shadow_matrix );
-        float shadow_data[16];
-        shadow_matrix.store( shadow_data );
-        GLKMatrix4 shadow = GLKMatrix4MakeWithArray( shadow_data );
-
-        GLKMatrix4 modelView = GLKMatrix4Multiply( view, shadow );
-
-        GLKMatrix4 boardGroundShadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelView );
+        mat4f modelView = cameraMatrix * shadowMatrix;
+        mat4f modelViewProjectionMatrix = projectionMatrix * modelView;
         
-        glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, boardGroundShadowModelViewProjectionMatrix.m );
+        glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
         glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&boardShadowAlpha );
 
         glEnable( GL_BLEND );
@@ -1085,6 +1062,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
         glDisable( GL_BLEND );
     }
+
+#if 0
 
     // render stone shadow on ground
     
@@ -1192,6 +1171,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         glDisable( GL_BLEND );
     }
 
+#endif
+
     // render stone
 
     {
@@ -1203,19 +1184,15 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         {
             StoneInstance & stone = game.stones[i];
             
-            // todo: standardize all matrix math to use vectorial (portable)
-            // instead of using GLKMatrix4 bullshit (not portable)
-            float opengl_transform[16];
-            stone.rigidBody.transform.localToWorld.store( opengl_transform );
-
-            GLKMatrix4 modelViewMatrix = GLKMatrix4MakeWithArray( opengl_transform );
-            modelViewMatrix = GLKMatrix4Multiply( baseModelViewMatrix, modelViewMatrix );
+            mat4f modelViewMatrix = cameraMatrix * stone.rigidBody.transform.localToWorld;
             
-            GLKMatrix3 stoneNormalMatrix = GLKMatrix3InvertAndTranspose( GLKMatrix4GetMatrix3(modelViewMatrix), NULL );
-            GLKMatrix4 stoneModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelViewMatrix );
+            mat3f stoneNormalMatrix;
+            stoneNormalMatrix.load( modelViewMatrix );
 
-            glUniformMatrix4fv( _stoneUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, stoneModelViewProjectionMatrix.m );
-            glUniformMatrix3fv( _stoneUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, stoneNormalMatrix.m );
+            mat4f stoneModelViewProjectionMatrix = projectionMatrix * modelViewMatrix;
+
+            glUniformMatrix4fv( _stoneUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&stoneModelViewProjectionMatrix );
+            glUniformMatrix3fv( _stoneUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&stoneNormalMatrix );
             glUniform3fv( _stoneUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
 
             glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
