@@ -5,7 +5,7 @@
 #define OPENGL_ES2 1
 #endif
 
-//#define LOCKED 1
+#define LOCKED 1
 #define MULTIPLE_STONES 1
 
 //#define USE_SECONDARY_DISPLAY_IF_EXISTS
@@ -41,7 +41,7 @@ const float AccelerometerTightness = 0.1f;
 const float JerkThreshold = 0.1f;
 const float JerkScale = 0.5f;
 
-const float LaunchThreshold = 0.5f;
+const float LaunchThreshold = 0.75f;
 const float LaunchMomentum = 8;
 
 const float MinimumSwipeLength = 50;            // points

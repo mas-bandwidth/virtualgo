@@ -92,7 +92,10 @@ protected:
 
     int GetGridCellBucket( uint32_t x, uint32_t y, uint32_t z )
     {
-        uint32_t data[3] = { x, y, z };
+        uint32_t data[3];
+        data[0] = x;
+        data[1] = y;
+        data[2] = z;
         return hash( (const uint8_t*) &data[0], 12 ) % numBuckets;
     }
 

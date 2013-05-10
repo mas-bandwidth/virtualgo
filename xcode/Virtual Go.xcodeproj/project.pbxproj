@@ -34,9 +34,7 @@
 		F266540F171A205500CFB131 /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F266540D171A205500CFB131 /* MainStoryboard_iPad.storyboard */; };
 		F2665416171A205500CFB131 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2665415171A205500CFB131 /* ViewController.m */; };
 		F2A3914E172CFACC00A6A74D /* BoardShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F2A39145172CFA7D00A6A74D /* BoardShader.fragment */; };
-		F2A3914F172CFACC00A6A74D /* StoneShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F2A39146172CFA7D00A6A74D /* StoneShader.fragment */; };
 		F2A39150172CFACC00A6A74D /* BoardShader.vertex in Resources */ = {isa = PBXBuildFile; fileRef = F2A39147172CFA7D00A6A74D /* BoardShader.vertex */; };
-		F2A39151172CFACC00A6A74D /* StoneShader.vertex in Resources */ = {isa = PBXBuildFile; fileRef = F2A39148172CFA7D00A6A74D /* StoneShader.vertex */; };
 		F2D6AD69171FDF5A00930D69 /* virtual go.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD68171FDF5A00930D69 /* virtual go.png */; };
 		F2D6AD6B171FDFE500930D69 /* virtual go retina.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD6A171FDFE500930D69 /* virtual go retina.png */; };
 		F2D6AD6D171FE05600930D69 /* virtual go retina ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD6C171FE05600930D69 /* virtual go retina ipad.png */; };
@@ -46,6 +44,10 @@
 		F2D6AD821720557A00930D69 /* Default-Landscape~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD811720557A00930D69 /* Default-Landscape~ipad.png */; };
 		F2D6AD841720557E00930D69 /* Default-Landscape@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D6AD831720557E00930D69 /* Default-Landscape@2x~ipad.png */; };
 		F2E15336173B4B8600D1538E /* OpenGL.m in Sources */ = {isa = PBXBuildFile; fileRef = F2E15335173B4B8600D1538E /* OpenGL.m */; };
+		F2E20293173C9EA400FC056D /* BlackStoneShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F2E2028F173C9EA400FC056D /* BlackStoneShader.fragment */; };
+		F2E20294173C9EA400FC056D /* WhiteStoneShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F2E20290173C9EA400FC056D /* WhiteStoneShader.fragment */; };
+		F2E20295173C9EA400FC056D /* BlackStoneShader.vertex in Resources */ = {isa = PBXBuildFile; fileRef = F2E20291173C9EA400FC056D /* BlackStoneShader.vertex */; };
+		F2E20296173C9EA400FC056D /* WhiteStoneShader.vertex in Resources */ = {isa = PBXBuildFile; fileRef = F2E20292173C9EA400FC056D /* WhiteStoneShader.vertex */; };
 		F2F71CFE1731BC5D0051C50F /* line.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F2F71CFC1731BC5D0051C50F /* line.jpg */; };
 		F2F71CFF1731BC5D0051C50F /* point.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F2F71CFD1731BC5D0051C50F /* point.jpg */; };
 		F2F71D021731D1A10051C50F /* PointShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F2F71D001731D1A10051C50F /* PointShader.fragment */; };
@@ -97,9 +99,7 @@
 		F2776EB5171B834800E73C61 /* Render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Render.h; path = ../../Render.h; sourceTree = "<group>"; };
 		F2776EB6171B834800E73C61 /* RigidBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RigidBody.h; path = ../../RigidBody.h; sourceTree = "<group>"; };
 		F2A39145172CFA7D00A6A74D /* BoardShader.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = BoardShader.fragment; path = "Virtual Go/shaders/BoardShader.fragment"; sourceTree = "<group>"; };
-		F2A39146172CFA7D00A6A74D /* StoneShader.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = StoneShader.fragment; path = "Virtual Go/shaders/StoneShader.fragment"; sourceTree = "<group>"; };
 		F2A39147172CFA7D00A6A74D /* BoardShader.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = BoardShader.vertex; path = "Virtual Go/shaders/BoardShader.vertex"; sourceTree = "<group>"; };
-		F2A39148172CFA7D00A6A74D /* StoneShader.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = StoneShader.vertex; path = "Virtual Go/shaders/StoneShader.vertex"; sourceTree = "<group>"; };
 		F2BE9741173BFC61005DCD6B /* StoneData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StoneData.h; path = ../../StoneData.h; sourceTree = "<group>"; };
 		F2BE9742173BFC61005DCD6B /* StoneInstance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StoneInstance.h; path = ../../StoneInstance.h; sourceTree = "<group>"; };
 		F2D0DDC4173B5F3B00CD12DA /* GameInstance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GameInstance.h; path = ../../GameInstance.h; sourceTree = "<group>"; };
@@ -118,6 +118,10 @@
 		F2E15333173B350100D1538E /* Physics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Physics.h; path = ../../Physics.h; sourceTree = "<group>"; };
 		F2E15334173B4B8600D1538E /* OpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenGL.h; sourceTree = "<group>"; };
 		F2E15335173B4B8600D1538E /* OpenGL.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = OpenGL.m; sourceTree = "<group>"; };
+		F2E2028F173C9EA400FC056D /* BlackStoneShader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = BlackStoneShader.fragment; path = "Virtual Go/shaders/BlackStoneShader.fragment"; sourceTree = "<group>"; };
+		F2E20290173C9EA400FC056D /* WhiteStoneShader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = WhiteStoneShader.fragment; path = "Virtual Go/shaders/WhiteStoneShader.fragment"; sourceTree = "<group>"; };
+		F2E20291173C9EA400FC056D /* BlackStoneShader.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = BlackStoneShader.vertex; path = "Virtual Go/shaders/BlackStoneShader.vertex"; sourceTree = "<group>"; };
+		F2E20292173C9EA400FC056D /* WhiteStoneShader.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = WhiteStoneShader.vertex; path = "Virtual Go/shaders/WhiteStoneShader.vertex"; sourceTree = "<group>"; };
 		F2F71CFC1731BC5D0051C50F /* line.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = line.jpg; path = "Virtual Go/textures/line.jpg"; sourceTree = "<group>"; };
 		F2F71CFD1731BC5D0051C50F /* point.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = point.jpg; path = "Virtual Go/textures/point.jpg"; sourceTree = "<group>"; };
 		F2F71D001731D1A10051C50F /* PointShader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = PointShader.fragment; path = "Virtual Go/shaders/PointShader.fragment"; sourceTree = "<group>"; };
@@ -241,10 +245,12 @@
 				F22E484B172F07B000907BCD /* FloorShader.vertex */,
 				F2A39145172CFA7D00A6A74D /* BoardShader.fragment */,
 				F2A39147172CFA7D00A6A74D /* BoardShader.vertex */,
-				F2A39146172CFA7D00A6A74D /* StoneShader.fragment */,
-				F2A39148172CFA7D00A6A74D /* StoneShader.vertex */,
 				F2502FD6172DD763002BC84D /* ShadowShader.fragment */,
 				F2502FD7172DD763002BC84D /* ShadowShader.vertex */,
+				F2E2028F173C9EA400FC056D /* BlackStoneShader.fragment */,
+				F2E20291173C9EA400FC056D /* BlackStoneShader.vertex */,
+				F2E20290173C9EA400FC056D /* WhiteStoneShader.fragment */,
+				F2E20292173C9EA400FC056D /* WhiteStoneShader.vertex */,
 			);
 			name = shaders;
 			sourceTree = "<group>";
@@ -356,16 +362,18 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F2E20293173C9EA400FC056D /* BlackStoneShader.fragment in Resources */,
+				F2E20294173C9EA400FC056D /* WhiteStoneShader.fragment in Resources */,
+				F2E20295173C9EA400FC056D /* BlackStoneShader.vertex in Resources */,
+				F2E20296173C9EA400FC056D /* WhiteStoneShader.vertex in Resources */,
 				F2A3914E172CFACC00A6A74D /* BoardShader.fragment in Resources */,
 				F2F71D021731D1A10051C50F /* PointShader.fragment in Resources */,
 				F2F71D031731D1A10051C50F /* PointShader.vertex in Resources */,
-				F2A3914F172CFACC00A6A74D /* StoneShader.fragment in Resources */,
 				F22E4846172E247800907BCD /* GridShader.fragment in Resources */,
 				F22E4847172E247800907BCD /* GridShader.vertex in Resources */,
 				F22E484C172F07B000907BCD /* FloorShader.fragment in Resources */,
 				F22E484D172F07B000907BCD /* FloorShader.vertex in Resources */,
 				F2A39150172CFACC00A6A74D /* BoardShader.vertex in Resources */,
-				F2A39151172CFACC00A6A74D /* StoneShader.vertex in Resources */,
 				F26653FD171A205400CFB131 /* InfoPlist.strings in Resources */,
 				F2502FD8172DD763002BC84D /* ShadowShader.fragment in Resources */,
 				F2502FD9172DD763002BC84D /* ShadowShader.vertex in Resources */,

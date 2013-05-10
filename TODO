@@ -1,50 +1,20 @@
 DONE:
 
-    Consolidate all matrix math such that it doesn't use GLKMatrix. 
-    This way the matrix math can be portable using vectorial.
-
-    Hacked up mat3f dummy class to work with 3x3 matrix float layout
-
-    Need a function to invert a matrix. Falling back to GLK for now.
-
-    Converted board, floor, grid, point to use mat4f
-
-    Converted stone to use mat4f    
-
-    Convert shadow rendering to use mat4f
-
-    Fixed board shadow on ground. Was selecting textured board mesh
-    as non-textured vertices. Hence, garbage verts.
-
 TODO:
 
-    Convert stone shadow on ground
+    Implement stone selection and dragging with multiple stones
 
-    Convert stone shadow on board
+    When a stone is moved, it should logically attach to a grid point
 
-    -------------------
+    Add a constraint to the grid point
 
-    Move the game logic out of ViewController.m and into GameInstance.h
+    Add some UI element to toggle locked mode on/off
 
-    The idea is that the ViewController.m should just be funnelling
-    events to the game instance, leaving the bulk of the game code
-    as portable C++
+    When in locked mode, any stone that is not logically occupying
+    a position on the logical board will be deleted in 5 secs.
 
-    ----------------
+    -----------------------------------------------------------------
 
-    Next I want to add the concept of stone ids and the
-    logical board. Stone id can be a 32bit hash that increases
-    with each stone allocated, combined with an index into
-    the array.
-
-    This allows subsystems to simply use arrays to store data
-    and to compare vs. the stone handle to see if the data has
-    been invalidated (removed).
-
-    Once I have stone ids, I can have different managers with
-    stone ids so I'm not left with a big fat stone class, eg.
-    shadow related stone data can be in one place, matrices
-    in another and so on.
 
 
 
@@ -55,61 +25,46 @@ TODO:
 
     Why are the stones drifting even though gravity is down?!!!
 
-    Turn on locked mode and start tuning this. 
+    It seems that 10 iterations was hiding this issue.
 
-    Fix shadow z fighting for stones on board/ground etc.
+    Stone is pulled down due to gravity then pushed out of the board,
+    this creates movement that causes a sliding motion even when friction
+    should stick.
 
-    I want pretty stone wobbling. Not overly damped.
-
-    Get stone id concept.
-
-    Implement stone selection and dragging with multiple stones
-
-    Implement stone id concept
-
-    Remove stones that go offscreen or which are off board for > n secs
+    Perhaps when applying gravity to objects that are already in
+    contact with the board or ground, they should do a static friction
+    check before applying any component of gravity that isn't in the
+    surface normal direction?
 
     -----------------------------------------------------------------
 
 
 
 
+    -------------------------------------------------------------------
+
+    Add method point to pixels outputting vec2f
+
+    Add method "IsPointOnBoard" to Board.h and rename to something
+    like "is point above board" or something like that. 
+    ("On Board" is ambigious.)    
+
+    -------------------------------------------------------------------
+
+    Move the game logic out of ViewController.m and into GameInstance.h
+
+    The idea is that the ViewController.m should just be funnelling
+    events to the game instance, leaving the bulk of the game code
+    as portable C++
+
+    -------------------------------------------------------------------
 
 
 
 
-    -----------------------------------------------------------------
 
-    There should be a concept of stone id
 
-    This way the same stone can have separate data off in different
-    arrays, avoiding fat stone data structure (eg. basic components)
 
-    This means that each stone should have an "is valid", or perhaps
-    there should be an stone manager with bools per-stone, eg.
-    iterate across stones, is this guy valid. OK stone data etc.
-
-    Should move most of the game code out of Objective C into C++
-
-    This will make it more portable, and more maintainable for me.
-
-    -----------------------------------------------------------------
-
-    Dynamic stones flying about, especially stones resting on the 
-    floor and in the corners is likely to be a performance problem.
-
-    Any stone which is not currently touching the board should be
-    removed. This will tend to keep the number of stones reasonable
-    in the case of atomic tesuji.
-
-    Any stones that go off the surface of the board should be culled
-
-    -----------------------------------------------------------------
-
-    In locked mode if a stones logically attach to a grid point
-    when placed, and maintain relation to this point via constraint.
-
-    When a stone is moved, it should attach to a grid point
 
     -----------------------------------------------------------------
 

@@ -78,10 +78,7 @@
             fragShader = 0;
         }
         if ( program )
-        {
             glDeleteProgram( program );
-            program = 0;
-        }
         
         return 0;
     }

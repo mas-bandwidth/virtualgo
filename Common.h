@@ -22,15 +22,15 @@ inline int random( int maximum )
     return randomNumber;
 }
 
-inline uint32_t hash( const uint8_t * data, uint32_t length, uint32_t hash = 0 )
+inline uint32_t hash( const uint8_t * data, uint32_t length, uint32_t value = 0 )
 {
     for ( uint32_t i = 0; i < length; ++i )
     {
-        hash += data[i];
-        hash += (hash << 10);
-        hash ^= (hash >> 6);
+        value += data[i];
+        value += ( value << 10 );
+        value ^= ( value >> 6 );
     }
-    return hash;
+    return value;
 } 
 
 inline float random_float( float min, float max )

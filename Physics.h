@@ -14,7 +14,7 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
                            Telemetry & telemetry, const Frustum & frustum,
                            const vec3f & gravity, bool selected, bool locked, float smoothZoom )
 {
-   // update stone physics
+    // update stone physics
 
     #if MULTIPLE_STONES
     const int iterations = 1;
@@ -45,7 +45,7 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
 
             quat4f spin;
             AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity, spin );
-            const int rotation_substeps = 1;
+            const int rotation_substeps = 10;
             const float rotation_substep_dt = iteration_dt / rotation_substeps;
             for ( int j = 0; j < rotation_substeps; ++j )
             {
@@ -62,58 +62,57 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
             const float e = 0.5f;
             const float u = 0.5f;
         
-            if ( !locked )
+            // collision between stone and near plane
+
+            assert( smoothZoom == smoothZoom );
+            
+            #if MULTIPLE_STONES
+            vec4f nearPlane( 0, 0, -1, -smoothZoom * 0.5f );
+            #else
+            vec4f nearPlane( 0, 0, -1, -smoothZoom );
+            #endif
+            
+            if ( StonePlaneCollision( stoneData.biconvex, nearPlane, stone.rigidBody, contact ) )
             {
-                // collision between stone and near plane
+                ApplyCollisionImpulseWithFriction( contact, e, u );
+                iteration_collided = true;
+                telemetry.SetCollision( COLLISION_NearPlane );
+            }
 
-                #if MULTIPLE_STONES
-                vec4f nearPlane( 0, 0, -1, -smoothZoom * 0.5f );
-                #else
-                vec4f nearPlane( 0, 0, -1, -smoothZoom );
-                #endif
-                
-                if ( StonePlaneCollision( stoneData.biconvex, nearPlane, stone.rigidBody, contact ) )
-                {
-                    ApplyCollisionImpulseWithFriction( contact, e, u );
-                    iteration_collided = true;
-                    telemetry.SetCollision( COLLISION_NearPlane );
-                }
+            // collision between stone and left plane
 
-                // collision between stone and left plane
+            if ( StonePlaneCollision( stoneData.biconvex, frustum.left, stone.rigidBody, contact ) )
+            {
+                ApplyCollisionImpulseWithFriction( contact, e, u );
+                iteration_collided = true;
+                telemetry.SetCollision( COLLISION_LeftPlane );
+            }
 
-                if ( StonePlaneCollision( stoneData.biconvex, frustum.left, stone.rigidBody, contact ) )
-                {
-                    ApplyCollisionImpulseWithFriction( contact, e, u );
-                    iteration_collided = true;
-                    telemetry.SetCollision( COLLISION_LeftPlane );
-                }
+            // collision between stone and right plane
 
-                // collision between stone and right plane
+            if ( StonePlaneCollision( stoneData.biconvex, frustum.right, stone.rigidBody, contact ) )
+            {
+                ApplyCollisionImpulseWithFriction( contact, e, u );
+                iteration_collided = true;
+                telemetry.SetCollision( COLLISION_RightPlane );
+            }
 
-                if ( StonePlaneCollision( stoneData.biconvex, frustum.right, stone.rigidBody, contact ) )
-                {
-                    ApplyCollisionImpulseWithFriction( contact, e, u );
-                    iteration_collided = true;
-                    telemetry.SetCollision( COLLISION_RightPlane );
-                }
+            // collision between stone and top plane
 
-                // collision between stone and top plane
+            if ( StonePlaneCollision( stoneData.biconvex, frustum.top, stone.rigidBody, contact ) )
+            {
+                ApplyCollisionImpulseWithFriction( contact, e, u );
+                iteration_collided = true;
+                telemetry.SetCollision( COLLISION_TopPlane );
+            }
 
-                if ( StonePlaneCollision( stoneData.biconvex, frustum.top, stone.rigidBody, contact ) )
-                {
-                    ApplyCollisionImpulseWithFriction( contact, e, u );
-                    iteration_collided = true;
-                    telemetry.SetCollision( COLLISION_TopPlane );
-                }
+            // collision between stone and bottom plane
 
-                // collision between stone and bottom plane
-
-                if ( StonePlaneCollision( stoneData.biconvex, frustum.bottom, stone.rigidBody, contact ) )
-                {
-                    ApplyCollisionImpulseWithFriction( contact, e, u );
-                    iteration_collided = true;
-                    telemetry.SetCollision( COLLISION_BottomPlane );
-                }
+            if ( StonePlaneCollision( stoneData.biconvex, frustum.bottom, stone.rigidBody, contact ) )
+            {
+                ApplyCollisionImpulseWithFriction( contact, e, u );
+                iteration_collided = true;
+                telemetry.SetCollision( COLLISION_BottomPlane );
             }
 
             // collision between stone and ground plane
@@ -139,15 +138,8 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
 
             if ( iteration_collided )
             {
-                #if LOCKED
-
-                    const float factor = DecayFactor( 0.9f, iteration_dt );
-                    stone.rigidBody.angularMomentum *= factor;
-
-                #else
-
-                    float momentum = length( stone.rigidBody.angularMomentum );
-                
+                if ( length_squared( stone.rigidBody.angularMomentum ) > 0.0001f )
+                {
                     #if MULTIPLE_STONES
                     const float factor_a = DecayFactor( 0.75f, iteration_dt );
                     const float factor_b = DecayFactor( 0.99f, iteration_dt );
@@ -156,7 +148,9 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
                     const float factor_b = 0.9995f;
                     #endif
                     
-                    const float a = 0.0f;
+                    const float momentum = length( stone.rigidBody.angularMomentum );
+
+                    const float a = 0.25f;
                     const float b = 1.0f;
                     
                     if ( momentum >= b )
@@ -173,18 +167,21 @@ inline void UpdatePhysics( float dt, const Board & board, const StoneData & ston
                         const float factor = factor_a * ( 1 - alpha ) + factor_b * alpha;
                         stone.rigidBody.angularMomentum *= factor;
                     }
-
-                #endif
+                }
+                else
+                {
+                    stone.rigidBody.angularMomentum = vec3f( 0, 0, 0 );
+                }
             }
 
             // apply damping
 
             #if MULTIPLE_STONES
-            const float linear_factor = 0.99999f;
-            const float angular_factor = 0.99999f;
-            #else
             const float linear_factor = DecayFactor( 0.999f, iteration_dt );
             const float angular_factor = DecayFactor( 0.999f, iteration_dt );
+            #else
+            const float linear_factor = 0.99999f;
+            const float angular_factor = 0.99999f;
             #endif
 
             stone.rigidBody.linearMomentum *= linear_factor;

@@ -50,10 +50,12 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     // to be cleaned up below this line
 
     Mesh<Vertex> _stoneMesh;
-    GLuint _stoneProgram;
+    GLuint _stoneProgramWhite;
+    GLuint _stoneProgramBlack;
     GLuint _stoneVertexBuffer;
     GLuint _stoneIndexBuffer;
-    GLint _stoneUniforms[NUM_UNIFORMS];
+    GLint _stoneUniformsBlack[NUM_UNIFORMS];
+    GLint _stoneUniformsWhite[NUM_UNIFORMS];
     
     Mesh<TexturedVertex> _boardMesh;
     GLuint _boardProgram;
@@ -85,8 +87,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLuint _floorVertexBuffer;
     GLuint _floorIndexBuffer;
     GLint _floorUniforms[NUM_UNIFORMS];
-
-    bool _hasRendered;      // todo: remove this by splitting the code that calculates matrices from render
 
     bool _swipeStarted;
     UITouch * _swipeTouch;
@@ -126,6 +126,43 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
 @implementation ViewController
 
+- (void)placeStones
+{
+    game.stones.clear();
+
+#if MULTIPLE_STONES
+
+    bool white = true;
+    for ( int i = 1; i <= BoardSize; ++i )
+    {
+        for ( int j = 1; j <= BoardSize; ++j )
+        {
+            StoneInstance stone;
+            stone.Initialize( game.stoneData, white );
+            stone.rigidBody.position = game.board.GetPointPosition( i, j ) + vec3f( 0, 0, game.stoneData.biconvex.GetHeight() / 2 );
+            stone.rigidBody.orientation = quat4f(1,0,0,0);
+            stone.rigidBody.linearMomentum = vec3f(0,0,0);
+            stone.rigidBody.angularMomentum = vec3f(0,0,0);
+            stone.rigidBody.Activate();
+            game.stones.push_back( stone );
+            //white = !white;
+        }
+    }
+
+#else
+
+    StoneInstance stone;
+    stone.Initialize( game.stoneData );
+    stone.rigidBody.position = vec3f( 0, 0, game.board.GetThickness() + game.stoneData.biconvex.GetHeight()/2 );
+    stone.rigidBody.orientation = quat4f(1,0,0,0);
+    stone.rigidBody.linearMomentum = vec3f(0,0,0);
+    stone.rigidBody.angularMomentum = vec3f(0,0,0);
+    stone.rigidBody.Activate();
+    game.stones.push_back( stone );
+
+#endif
+}
+
 - (void)viewDidLoad
 {
     telemetry.SetCounterNotifyFunc( HandleCounterNotify );
@@ -145,11 +182,11 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     
     GLKView * view = (GLKView *)self.view;
     view.context = self.context;
-    view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
+    view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
     
     game.board.Initialize( BoardSize );
 
-    game.stoneData.Initialize( STONE_SIZE_40 );
+    game.stoneData.Initialize( STONE_SIZE_32 );
     
     GenerateBiconvexMesh( _stoneMesh, game.stoneData.biconvex, 3 );
 
@@ -166,8 +203,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
   
     game.smoothZoom = [self getTargetZoom];
     
-    _hasRendered = false;
-
     _swipeStarted = false;
     _holdStarted = false;
     _selected = false;
@@ -176,35 +211,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     
     [self updateLights];
 
-#if MULTIPLE_STONES
-
-    for ( int i = 1; i <= BoardSize; ++i )
-    {
-        for ( int j = 1; j <= BoardSize; ++j )
-        {
-            StoneInstance stone;
-            stone.Initialize( game.stoneData );
-            stone.rigidBody.position = game.board.GetPointPosition( i, j ) + vec3f( 0, 0, game.stoneData.biconvex.GetHeight() / 2 );
-            stone.rigidBody.orientation = quat4f(1,0,0,0);
-            stone.rigidBody.linearMomentum = vec3f(0,0,0);
-            stone.rigidBody.angularMomentum = vec3f(0,0,0);
-            stone.rigidBody.Activate();
-            game.stones.push_back( stone );
-        }
-    }
-
-#else
-
-    StoneInstance stone;
-    stone.Initialize( game.stoneData );
-    stone.rigidBody.position = vec3f( 0, 0, game.board.GetThickness() + game.stoneData.biconvex.GetHeight()/2 );
-    stone.rigidBody.orientation = quat4f(1,0,0,0);
-    stone.rigidBody.linearMomentum = vec3f(0,0,0);
-    stone.rigidBody.angularMomentum = vec3f(0,0,0);
-    stone.rigidBody.Activate();
-    game.stones.push_back( stone );
-
-#endif
+    [self placeStones];
 }
 
 - (void)dealloc
@@ -251,13 +258,18 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     // stone shader, textures, VBs/IBs etc.
     {    
-        _stoneProgram = [opengl loadShader:@"StoneShader"];
+        _stoneProgramBlack = [opengl loadShader:@"BlackStoneShader"];
+        _stoneProgramWhite = [opengl loadShader:@"WhiteStoneShader"];
 
         [opengl generateVBAndIBFromMesh:_stoneMesh vertexBuffer:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
 
-        _stoneUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _stoneProgram, "normalMatrix" );
-        _stoneUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _stoneProgram, "modelViewProjectionMatrix" );
-        _stoneUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _stoneProgram, "lightPosition" );
+        _stoneUniformsBlack[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _stoneProgramBlack, "normalMatrix" );
+        _stoneUniformsBlack[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _stoneProgramBlack, "modelViewProjectionMatrix" );
+        _stoneUniformsBlack[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _stoneProgramBlack, "lightPosition" );
+
+        _stoneUniformsWhite[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _stoneProgramWhite, "normalMatrix" );
+        _stoneUniformsWhite[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _stoneProgramWhite, "modelViewProjectionMatrix" );
+        _stoneUniformsWhite[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _stoneProgramWhite, "lightPosition" );
     }
     
     // board shader, textures, VBs/IBs etc.
@@ -335,7 +347,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     [opengl destroyBuffer:_stoneIndexBuffer];
     [opengl destroyBuffer:_stoneVertexBuffer];
-    [opengl destroyProgram:_stoneProgram];
+    [opengl destroyProgram:_stoneProgramBlack];
+    [opengl destroyProgram:_stoneProgramWhite];
 
     [opengl destroyBuffer:_boardIndexBuffer];
     [opengl destroyBuffer:_boardVertexBuffer];
@@ -724,17 +737,24 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     }
     else if ( touch.tapCount >= 2 )
     {
-//            NSLog( @"double tap" );
+        #if LOCKED
 
-        if ( iPad() && _firstPlacementTouch == nil )
-        {
-            if ( game.zoomed )
-                telemetry.IncrementCounter( COUNTER_ZoomedOut );
-            else
-                telemetry.IncrementCounter( COUNTER_ZoomedIn );
-        
-            game.zoomed = !game.zoomed;
-        }
+            if ( _firstPlacementTouch == nil )
+                [self placeStones];
+
+        #else
+
+            if ( iPad() && _firstPlacementTouch == nil )
+            {
+                if ( game.zoomed )
+                    telemetry.IncrementCounter( COUNTER_ZoomedOut );
+                else
+                    telemetry.IncrementCounter( COUNTER_ZoomedIn );
+            
+                game.zoomed = !game.zoomed;
+            }
+
+        #endif
 
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
     }
@@ -838,11 +858,29 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     accelerometer.Update( vec3f( acceleration.x, acceleration.y, acceleration.z ) );
 }
 
+- (void)updateMatrices
+{
+    const float targetZoom = [self getTargetZoom];
+    
+    game.smoothZoom += ( targetZoom - game.smoothZoom ) * ( game.zoomed ? ZoomInTightness : ZoomOutTightness );
+    
+    const float aspect = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
+
+    projectionMatrix = mat4f::perspective( 40, aspect, 0.1f, 100.0f );
+
+    cameraMatrix = mat4f::lookAt( vec3f( 0, 0, game.smoothZoom ),
+                                  vec3f( 0, 0, 0 ),
+                                  vec3f( 0, 1, 0 ) );
+
+    clipMatrix = projectionMatrix * cameraMatrix;
+
+    inverseClipMatrix = inverse( clipMatrix );
+
+    normalMatrix.load( cameraMatrix );
+}
+
 - (void)updatePhysics:(float)dt
 {
-    if ( !_hasRendered )
-        return;
-
     // calculate frustum planes for collision
 
     Frustum frustum;
@@ -861,47 +899,17 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         }
     }
 
-    // detect when the user has asked to launch the stone into the air
+    // detect when the user jhas asked to launch the stone into the air
 
-    const vec3f down = accelerometer.GetDown();
-    const vec3f up = -down;
-
-    if ( !game.locked )
+    if ( jerk > LaunchThreshold )
     {
-        if ( iPad() )
+        for ( int i = 0; i < game.stones.size(); ++i )
         {
-            // for pads, let the launch go up in the air only!
-            // other launches feel wrong and cause nausea -- treat the tablet like the board
-            
-            const float jerkUp = dot( jerkAcceleration, up );
-            
-            if ( jerkUp > LaunchThreshold )
-            {
-                for ( int i = 0; i < game.stones.size(); ++i )
-                {
-                    StoneInstance & stone = game.stones[i];
-                    stone.rigidBody.ApplyImpulse( jerkUp * LaunchMomentum * up );
-                }
-
-                telemetry.IncrementCounter( COUNTER_AppliedImpulse );
-            }
+            StoneInstance & stone = game.stones[i];
+            stone.rigidBody.ApplyImpulse( jerkAcceleration * vec3f( LaunchMomentum*0.66f, LaunchMomentum*0.66f, LaunchMomentum ) );
         }
-        else
-        {
-            // for the iphone let the player shake the stone around like a toy
-            // the go stone is trapped inside the phone. this looks cool!
-            
-            if ( jerk > LaunchThreshold )
-            {
-                for ( int i = 0; i < game.stones.size(); ++i )
-                {
-                    StoneInstance & stone = game.stones[i];
-                    stone.rigidBody.ApplyImpulse( jerkAcceleration * LaunchMomentum );
-                }
 
-                telemetry.IncrementCounter( COUNTER_AppliedImpulse );
-            }
-        }
+        telemetry.IncrementCounter( COUNTER_AppliedImpulse );
     }
  
     // update physics sim
@@ -938,24 +946,6 @@ mat4f inverse( const mat4f & matrix )
 
 - (void)render
 {    
-    const float targetZoom = [self getTargetZoom];
-    
-    game.smoothZoom += ( targetZoom - game.smoothZoom ) * ( game.zoomed ? ZoomInTightness : ZoomOutTightness );
-    
-    const float aspect = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
-
-    projectionMatrix = mat4f::perspective( 40, aspect, 0.1f, 100.0f );
-
-    cameraMatrix = mat4f::lookAt( vec3f( 0, 0, game.smoothZoom ),
-                                  vec3f( 0, 0, 0 ),
-                                  vec3f( 0, 1, 0 ) );
-
-    clipMatrix = projectionMatrix * cameraMatrix;
-
-    inverseClipMatrix = inverse( clipMatrix );
-
-    normalMatrix.load( cameraMatrix );
-
     glClearColor( 0, 0, 0, 1 );
 
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -1063,8 +1053,6 @@ mat4f inverse( const mat4f & matrix )
         glDisable( GL_BLEND );
     }
 
-#if 0
-
     // render stone shadow on ground
     
     {
@@ -1079,28 +1067,15 @@ mat4f inverse( const mat4f & matrix )
         {
             StoneInstance & stone = game.stones[i];
             
-            GLKMatrix4 view = baseModelViewMatrix;
+            mat4f shadowMatrix;
+            MakeShadowMatrix( vec4f(0,0,1,0), vec4f( game.lightPosition.x(), game.lightPosition.y(), game.lightPosition.z(), 1 ), shadowMatrix );
+
+            mat4f modelView = cameraMatrix * shadowMatrix * stone.rigidBody.transform.localToWorld;
+            mat4f modelViewProjectionMatrix = projectionMatrix * modelView;
             
-            float opengl_transform[16];
-            stone.rigidBody.transform.localToWorld.store( opengl_transform );
-
-            GLKMatrix4 model = GLKMatrix4MakeWithArray( opengl_transform );
-            
-            // todo: clean up this bullshit
-            mat4f shadow_matrix;
-            MakeShadowMatrix( vec4f(0,0,1,0), vec4f( game.lightPosition.x(), game.lightPosition.y(), game.lightPosition.z(), 1 ), shadow_matrix );
-            float shadow_data[16];
-            shadow_matrix.store( shadow_data );
-            GLKMatrix4 shadow = GLKMatrix4MakeWithArray( shadow_data );
-
-            GLKMatrix4 modelView = GLKMatrix4Multiply( view, GLKMatrix4Multiply( shadow, model ) );
-
-            GLKMatrix4 stoneGroundShadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelView );
-
-            glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, stoneGroundShadowModelViewProjectionMatrix.m );
+            glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
 
             float shadowAlpha = GetShadowAlpha( stone.rigidBody.position );
-
             glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&shadowAlpha );
 
             glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
@@ -1114,7 +1089,7 @@ mat4f inverse( const mat4f & matrix )
         glDisableVertexAttribArray( GLKVertexAttribPosition );
         glDisableVertexAttribArray( GLKVertexAttribNormal );
     }
-    
+
     // render stone shadow on board
     
     {
@@ -1134,33 +1109,16 @@ mat4f inverse( const mat4f & matrix )
 
             if ( stone.rigidBody.position.z() < game.board.GetThickness() )
                 continue;
-        
+
+            mat4f shadowMatrix;
+            MakeShadowMatrix( vec4f(0,0,1,-game.board.GetThickness()+0.1f), vec4f( game.lightPosition.x(), game.lightPosition.y(), game.lightPosition.z(), 1 ), shadowMatrix );
+            
+            mat4f modelView = cameraMatrix * shadowMatrix * stone.rigidBody.transform.localToWorld;
+            mat4f modelViewProjectionMatrix = projectionMatrix * modelView;
+            
+            glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
+            
             float shadowAlpha = GetShadowAlpha( stone.rigidBody.position );
-            
-            if ( shadowAlpha == 0.0f )
-                continue;
-
-            GLKMatrix4 view = baseModelViewMatrix;
-            
-            float opengl_transform[16];
-            stone.rigidBody.transform.localToWorld.store( opengl_transform );
-
-            GLKMatrix4 model = GLKMatrix4MakeWithArray( opengl_transform );
-            
-            // HACK: the fact that I have to minus here indicates
-            // something wrong in the shadow matrix derivation. perhaps it assumes left handed?
-            mat4f shadow_matrix;
-            MakeShadowMatrix( vec4f(0,0,1,-game.board.GetThickness()+0.1f), vec4f( game.lightPosition.x(), game.lightPosition.y(), game.lightPosition.z(), 1 ), shadow_matrix );
-            float shadow_data[16];
-            shadow_matrix.store( shadow_data );
-            GLKMatrix4 shadow = GLKMatrix4MakeWithArray( shadow_data );
-
-            GLKMatrix4 modelView = GLKMatrix4Multiply( view, GLKMatrix4Multiply( shadow, model ) );
-
-            GLKMatrix4 stoneBoardShadowModelViewProjectionMatrix = GLKMatrix4Multiply( projectionMatrix, modelView );
-
-            glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, stoneBoardShadowModelViewProjectionMatrix.m );
-
             glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&shadowAlpha );
 
             glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
@@ -1171,18 +1129,19 @@ mat4f inverse( const mat4f & matrix )
         glDisable( GL_BLEND );
     }
 
-#endif
-
-    // render stone
+    // render white stones
 
     {
-        glUseProgram( _stoneProgram );
+        glUseProgram( _stoneProgramWhite );
                 
         [opengl selectNonTexturedMesh:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
 
         for ( int i = 0; i < game.stones.size(); ++i )
         {
             StoneInstance & stone = game.stones[i];
+            
+            if ( !stone.white )
+                continue;
             
             mat4f modelViewMatrix = cameraMatrix * stone.rigidBody.transform.localToWorld;
             
@@ -1191,18 +1150,45 @@ mat4f inverse( const mat4f & matrix )
 
             mat4f stoneModelViewProjectionMatrix = projectionMatrix * modelViewMatrix;
 
-            glUniformMatrix4fv( _stoneUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&stoneModelViewProjectionMatrix );
-            glUniformMatrix3fv( _stoneUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&stoneNormalMatrix );
-            glUniform3fv( _stoneUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
+            glUniformMatrix4fv( _stoneUniformsWhite[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&stoneModelViewProjectionMatrix );
+            glUniformMatrix3fv( _stoneUniformsWhite[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&stoneNormalMatrix );
+            glUniform3fv( _stoneUniformsWhite[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
 
+            glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+        }
+    }
+
+    // render black stones
+    
+    {
+        glUseProgram( _stoneProgramBlack );
+        
+        [opengl selectNonTexturedMesh:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
+        
+        for ( int i = 0; i < game.stones.size(); ++i )
+        {
+            StoneInstance & stone = game.stones[i];
+            
+            if ( stone.white )
+                continue;
+            
+            mat4f modelViewMatrix = cameraMatrix * stone.rigidBody.transform.localToWorld;
+            
+            mat3f stoneNormalMatrix;
+            stoneNormalMatrix.load( modelViewMatrix );
+            
+            mat4f stoneModelViewProjectionMatrix = projectionMatrix * modelViewMatrix;
+            
+            glUniformMatrix4fv( _stoneUniformsBlack[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&stoneModelViewProjectionMatrix );
+            glUniformMatrix3fv( _stoneUniformsBlack[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&stoneNormalMatrix );
+            glUniform3fv( _stoneUniformsBlack[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
+            
             glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
         }
     }
 
     const GLenum discards[]  = { GL_DEPTH_ATTACHMENT };
     glDiscardFramebufferEXT( GL_FRAMEBUFFER, 1, discards );
-    
-    _hasRendered = true;
 }
 
 - (void)update
@@ -1211,6 +1197,8 @@ mat4f inverse( const mat4f & matrix )
 
     if ( game.paused )
         dt = 0.0f;
+
+    [self updateMatrices];
 
     [self updateTouch:dt];
 
