@@ -39,9 +39,7 @@ class GameInstance
     vec3f selectPoint;
     float selectDepth;
     vec3f selectOffset;
-    double selectStartTimestamp;
     double selectTimestamp;
-    double selectPrevTimestamp;
     vec3f selectIntersectionPoint;
     vec3f selectPrevIntersectionPoint;
 
@@ -286,14 +284,12 @@ public:
                     selectActive = true;
                     selectStoneId = stone->id;
                     selectTouchHandle = touch.handle;
-                    selectStartTimestamp = touch.timestamp;
                     selectPoint = selectPoint;
                     selectDepth = intersectionPoint.z();
                     selectOffset = stone->rigidBody.position - intersectionPoint;
                     selectIntersectionPoint = intersectionPoint;
-                    selectTimestamp = touch.timestamp;
                     selectPrevIntersectionPoint = selectIntersectionPoint;
-                    selectPrevTimestamp = selectTimestamp;
+                    selectTimestamp = touch.timestamp;
                 }
             }
         }
@@ -325,7 +321,6 @@ public:
                             selectPoint = selectPoint;
                             selectDepth = intersectionPoint.z();
                             selectOffset = stone->rigidBody.position - intersectionPoint;
-                            selectIntersectionPoint = intersectionPoint;
                         }
                     }
 
@@ -335,23 +330,9 @@ public:
                     if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), selectDepth, t ) )
                     {
                         selectPrevIntersectionPoint = selectIntersectionPoint;
-                        selectPrevTimestamp = selectTimestamp;
-
                         selectIntersectionPoint = rayStart + rayDirection * t;
                         selectTimestamp = touch.timestamp;
-                        
-                        const float select_dt = max( 1.0f / 60.0f, selectTimestamp - selectPrevTimestamp );
-
-                        const vec3f delta = selectIntersectionPoint - selectPrevIntersectionPoint;
-
-                        if ( length_squared( delta ) > 0.1 * 0.1f )
-                        {
-                            stone->rigidBody.linearMomentum = stone->rigidBody.mass * delta / select_dt;
-                        }
-                        
                         stone->rigidBody.position = selectIntersectionPoint + selectOffset;
-                        
-                        stone->rigidBody.Activate();
                     }
                 }
                 else
@@ -372,7 +353,22 @@ public:
                 selectActive = false;
                 StoneInstance * stone = FindStoneInstance( selectStoneId );
                 if ( stone )
+                {
                     stone->selected = 0;
+
+                    const float select_dt = max( 1.0f / 60.0f, touch.timestamp - selectTimestamp );
+
+                    const vec3f delta = selectIntersectionPoint - selectPrevIntersectionPoint;
+
+                    if ( length_squared( delta ) > 0.1 * 0.1f )
+                    {
+                        stone->rigidBody.linearMomentum = stone->rigidBody.mass * delta / select_dt;
+                    }
+                    
+                    stone->rigidBody.position = selectIntersectionPoint + selectOffset;
+                    
+                    stone->rigidBody.Activate();
+                }
             }
         }
     }

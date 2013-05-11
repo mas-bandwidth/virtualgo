@@ -24,6 +24,8 @@ Re-implemented stone dragging and flicking (10/5/2013):
 
     Implement dragging and flicking.
 
+    Fixed some bugs in select + flicking
+
 
 Implemented basic stone picking (10/5/2013):
 --------------------------------------------
