@@ -33,17 +33,9 @@ class GameInstance
 
     uint32_t stoneId;
 
-    bool selectActive;
-    uint32_t selectStoneId;
-    TouchHandle selectTouchHandle;
-    vec3f selectPoint;
-    float selectDepth;
-    vec3f selectOffset;
-    double selectTimestamp;
-    vec3f selectIntersectionPoint;
-    vec3f selectPrevIntersectionPoint;
-
     Telemetry * telemetry;
+
+    SelectMap selectMap;
 
 public:
 
@@ -55,8 +47,6 @@ public:
 		zoomed = false;
         gravity = false;
 		
-        selectActive = false;
-
         smoothZoom = GetTargetZoom();
         aspectRatio = 1.0f;
 
@@ -82,6 +72,7 @@ public:
     void PlaceStones()
     {
         stones.clear();
+        selectMap.clear();
 
         bool white = true;
         for ( int i = 1; i <= BoardSize; ++i )
@@ -216,6 +207,16 @@ public:
         return NULL;
     }
 
+    void InferStoneMomentum( StoneInstance & stone, const vec3f & prevPosition, const vec3f & newPosition, float dt, float threshold = 0.1f * 0.1f )
+    {
+        const vec3f delta = newPosition - prevPosition;
+
+        if ( length_squared( delta ) > threshold )
+            stone.rigidBody.linearMomentum = stone.rigidBody.mass * delta / max( 1.0f / 60.0f, dt );
+        
+        stone.rigidBody.Activate();
+    }
+
     // -------------------------------------------------------
     // event handling
     // -------------------------------------------------------
@@ -249,7 +250,7 @@ public:
 
             float t;
             vec3f intersectionPoint, intersectionNormal;            
-            if ( IntersectRayStone( stoneData.biconvex, stone.rigidBody.transform, rayStart, rayDirection, t, intersectionPoint, intersectionNormal ) )
+            if ( IntersectRayStone( stoneData.biconvex, stone.rigidBody.transform, rayStart, rayDirection, t, intersectionPoint, intersectionNormal, FatFingerBonus ) )
             {
                 if ( t < pick_t )
                 {
@@ -260,7 +261,7 @@ public:
                 }
             }
         }
-
+        
         return pick_stone;
     }
 
@@ -269,7 +270,8 @@ public:
         for ( int i = 0; i < numTouches; ++i )
         {
             Touch & touch = touches[i];
-            if ( !selectActive )
+
+            if ( selectMap.find( touch.handle ) == selectMap.end() )
             {
                 vec3f rayStart, rayDirection;
                 GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
@@ -281,15 +283,18 @@ public:
                 {
                     stone->rigidBody.ApplyImpulseAtWorldPoint( intersectionPoint, TouchImpulse * rayDirection );
                     stone->selected = 1;
-                    selectActive = true;
-                    selectStoneId = stone->id;
-                    selectTouchHandle = touch.handle;
-                    selectPoint = selectPoint;
-                    selectDepth = intersectionPoint.z();
-                    selectOffset = stone->rigidBody.position - intersectionPoint;
-                    selectIntersectionPoint = intersectionPoint;
-                    selectPrevIntersectionPoint = selectIntersectionPoint;
-                    selectTimestamp = touch.timestamp;
+
+                    SelectData select;
+                    select.stoneId = stone->id;
+                    select.touchHandle = touch.handle;
+                    select.point = intersectionPoint;
+                    select.depth = intersectionPoint.z();
+                    select.offset = stone->rigidBody.position - intersectionPoint;
+                    select.intersectionPoint = intersectionPoint;
+                    select.prevIntersectionPoint = intersectionPoint;
+                    select.timestamp = touch.timestamp;
+
+                    selectMap.insert( std::make_pair( touch.handle, select ) );
                 }
             }
         }
@@ -300,9 +305,11 @@ public:
         for ( int i = 0; i < numTouches; ++i )
         {
             Touch & touch = touches[i];
-            if ( selectActive && selectTouchHandle == touch.handle )
+            SelectMap::iterator itor = selectMap.find( touch.handle );
+            if ( itor != selectMap.end() ) 
             {
-                StoneInstance * stone = FindStoneInstance( selectStoneId );
+                SelectData & select = itor->second;
+                StoneInstance * stone = FindStoneInstance( select.stoneId );
                 if ( stone )
                 {
                     vec3f rayStart, rayDirection;
@@ -314,30 +321,30 @@ public:
 
                     float t;
                     vec3f intersectionPoint, intersectionNormal;
-                    if ( IntersectRayStone( stoneData.biconvex, stone->rigidBody.transform, rayStart, rayDirection, t, intersectionPoint, intersectionNormal ) )
+                    if ( IntersectRayStone( stoneData.biconvex, stone->rigidBody.transform, rayStart, rayDirection, t, intersectionPoint, intersectionNormal, FatFingerBonus ) )
                     {
-                        if ( intersectionPoint.z() > selectDepth )
+                        if ( intersectionPoint.z() > select.depth )
                         {
-                            selectPoint = selectPoint;
-                            selectDepth = intersectionPoint.z();
-                            selectOffset = stone->rigidBody.position - intersectionPoint;
+                            select.depth = intersectionPoint.z();
+                            select.offset = stone->rigidBody.position - intersectionPoint;
                         }
                     }
 
                     // next, intersect with the plane at select depth and move the stone
                     // such that it is offset from the intersection point with this plane
 
-                    if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), selectDepth, t ) )
+                    if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), select.depth, t ) )
                     {
-                        selectPrevIntersectionPoint = selectIntersectionPoint;
-                        selectIntersectionPoint = rayStart + rayDirection * t;
-                        selectTimestamp = touch.timestamp;
-                        stone->rigidBody.position = selectIntersectionPoint + selectOffset;
+                        select.prevIntersectionPoint = select.intersectionPoint;
+                        select.intersectionPoint = rayStart + rayDirection * t;
+                        select.timestamp = touch.timestamp;
+
+                        stone->rigidBody.position = select.intersectionPoint + select.offset;
                     }
                 }
                 else
                 {
-                    selectActive = false;
+                    selectMap.erase( itor );
                 }
             }
         }
@@ -348,27 +355,21 @@ public:
         for ( int i = 0; i < numTouches; ++i )
         {
             Touch & touch = touches[i];
-            if ( selectActive && selectTouchHandle == touch.handle )
+            SelectMap::iterator itor = selectMap.find( touch.handle );
+            if ( itor != selectMap.end() )
             {
-                selectActive = false;
-                StoneInstance * stone = FindStoneInstance( selectStoneId );
+                SelectData & select = itor->second;
+                StoneInstance * stone = FindStoneInstance( select.stoneId );
                 if ( stone )
                 {
                     stone->selected = 0;
-
-                    const float select_dt = max( 1.0f / 60.0f, touch.timestamp - selectTimestamp );
-
-                    const vec3f delta = selectIntersectionPoint - selectPrevIntersectionPoint;
-
-                    if ( length_squared( delta ) > 0.1 * 0.1f )
-                    {
-                        stone->rigidBody.linearMomentum = stone->rigidBody.mass * delta / select_dt;
-                    }
                     
-                    stone->rigidBody.position = selectIntersectionPoint + selectOffset;
-                    
-                    stone->rigidBody.Activate();
+                    InferStoneMomentum( *stone,
+                                        select.prevIntersectionPoint, 
+                                        select.intersectionPoint, 
+                                        touch.timestamp - select.timestamp );
                 }
+                selectMap.erase( itor );
             }
         }
     }
@@ -378,12 +379,21 @@ public:
         for ( int i = 0; i < numTouches; ++i )
         {
             Touch & touch = touches[i];
-            if ( selectActive && selectTouchHandle == touch.handle )
+            SelectMap::iterator itor = selectMap.find( touch.handle );
+            if ( itor != selectMap.end() )
             {
-                selectActive = false;
-                StoneInstance * stone = FindStoneInstance( selectStoneId );
+                SelectData & select = itor->second;
+                StoneInstance * stone = FindStoneInstance( select.stoneId );
                 if ( stone )
+                {
                     stone->selected = 0;
+                    
+                    InferStoneMomentum( *stone,
+                                       select.prevIntersectionPoint,
+                                       select.intersectionPoint,
+                                       touch.timestamp - select.timestamp );
+                }
+                selectMap.erase( itor );
             }
         }
     }

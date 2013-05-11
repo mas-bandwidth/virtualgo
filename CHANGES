@@ -1,4 +1,25 @@
 
+Added "fat finger bonus" for stone select (11/5/2013):
+------------------------------------------------------
+
+    Add scale factor for ray vs. stone intersect
+
+    This will make it easier to select stones around the edges
+    (make them fatter)
+
+
+Added multi-touch support for select, drag and flick (11/5/2013):
+-----------------------------------------------------------------
+
+    Prep for multi-touch by moving select data into struct in Touch.h
+
+    Add select touches std::map
+
+    Hook up map via touches
+
+    Multi-touches work!
+
+
 Re-implemented stone dragging and flicking (10/5/2013):
 -------------------------------------------------------
 

@@ -80,15 +80,18 @@ inline bool IntersectRayBiconvex_LocalSpace( vec3f rayStart,
 }
 
 inline bool IntersectRayStone( const Biconvex & biconvex, 
-                                const RigidBodyTransform & biconvexTransform,
-                                vec3f rayStart, 
-                                vec3f rayDirection, 
-                                float & t,
-                                vec3f & point, 
-                                vec3f & normal )
+                               const RigidBodyTransform & biconvexTransform,
+                               vec3f rayStart, 
+                               vec3f rayDirection, 
+                               float & t,
+                               vec3f & point, 
+                               vec3f & normal,
+                               float scale = 1.0f )
 {
-    vec3f local_rayStart = TransformPoint( biconvexTransform.worldToLocal, rayStart );
-    vec3f local_rayDirection = TransformVector( biconvexTransform.worldToLocal, rayDirection );
+    mat4f worldToLocal = mat4f::scale(1/scale) * biconvexTransform.worldToLocal;
+
+    vec3f local_rayStart = TransformPoint( worldToLocal, rayStart );
+    vec3f local_rayDirection = normalize( TransformVector( worldToLocal, rayDirection ) );
     
     vec3f local_point, local_normal;
 
@@ -102,8 +105,10 @@ inline bool IntersectRayStone( const Biconvex & biconvex,
     if ( !result )
         return false;
 
-    point = TransformPoint( biconvexTransform.localToWorld, local_point );
-    normal = TransformVector( biconvexTransform.localToWorld, local_normal );
+    mat4f localToWorld = biconvexTransform.localToWorld * mat4f::scale(scale);
+
+    point = TransformPoint( localToWorld, local_point );
+    normal = TransformVector( localToWorld, local_normal );
     
     return true;
 }

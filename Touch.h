@@ -1,6 +1,8 @@
 #ifndef TOUCH_H
 #define TOUCH_H
 
+#include <map>
+
 typedef void* TouchHandle;
 
 struct Touch
@@ -9,5 +11,19 @@ struct Touch
 	vec3f point;
 	double timestamp;
 };
+
+struct SelectData
+{
+    uint32_t stoneId;
+    TouchHandle touchHandle;
+    vec3f point;
+    float depth;
+    vec3f offset;
+    double timestamp;
+    vec3f intersectionPoint;
+    vec3f prevIntersectionPoint;
+};
+
+typedef std::map<TouchHandle,SelectData> SelectMap;
 
 #endif

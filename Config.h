@@ -10,6 +10,8 @@
 //#define FRUSTUM_CULLING
 //#define DISCOVER_KEY_CODES
 
+const float FatFingerBonus = 1.35f;
+
 const int BoardSize = 9;
 
 const int MaxStarPoints = 9;

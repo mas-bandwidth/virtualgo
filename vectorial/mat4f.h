@@ -43,6 +43,8 @@ namespace vectorial {
 
         static mat4f identity() { mat4f m; simd4x4f_identity(&m.value); return m; }
 
+        static mat4f scale( float s ) { mat4f m; simd4x4f_scale(&m.value, s); return m; }
+
         static mat4f perspective(float fovy, float aspect, float znear, float zfar) {
             simd4x4f m;
             simd4x4f_perspective(&m, fovy, aspect, znear, zfar);

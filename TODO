@@ -2,17 +2,27 @@ DONE:
 
 TODO:
 
-    Generalize to support multiple simultaneous select touches
+    Implement 3D hash grid for stone postitions
 
-    eg. select data becomes a struct, and goes into a hash
-    indexed by touch handle.
+    Insert stone into grid bucket cells that the bounding
+    sphere overlaps, so the testing is simpler.
 
-    This way multiple fingers can be on different stones
-    at the same time, dragging them around the board.
+    Keep track of the grid cells inside the stone so you can
+    go both ways, eg. num cells, cell array.
 
-    This is natural and expected.
+    Visualize the grid cells a stone is in when a stone is selected
 
-    ---------------------------------------------------------
+    Implement basic stone vs. stone collision detection using
+    bounding spheres, purely linear.
+
+    This should go surprisingly far to avoid stupid looking crap.
+
+    Algorithm is to basically test against all other spheres in the
+    current grid cell. I'm thinking grid cell resolution should be about
+    cubes with side length of 3 or 4 stone bounding sphere radius.
+
+    -----------------------------------------------------------------
+
 
 
 

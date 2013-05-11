@@ -35,6 +35,13 @@ vectorial_inline void simd4x4f_identity(simd4x4f* m) {
 }
 
 
+vectorial_inline void simd4x4f_scale(simd4x4f* m, float s) {
+    *m = simd4x4f_create( simd4f_create(s, 0.0f, 0.0f, 0.0f),
+                          simd4f_create(0.0f, s, 0.0f, 0.0f),
+                          simd4f_create(0.0f, 0.0f, s, 0.0f),
+                          simd4f_create(0.0f, 0.0f, 0.0f, 1.0f));
+}
+
 
 vectorial_inline void simd4x4f_uload(simd4x4f* m, float *f) {
 
