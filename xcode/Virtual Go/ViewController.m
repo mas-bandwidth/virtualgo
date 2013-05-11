@@ -109,11 +109,11 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     game.Initialize( telemetry, aspectRatio );
 
-    GenerateBiconvexMesh( _stoneMesh, game.stoneData.biconvex, 3 );
+    GenerateBiconvexMesh( _stoneMesh, game.GetBiconvex(), 3 );
     GenerateFloorMesh( _floorMesh );
-    GenerateBoardMesh( _boardMesh, game.board );
-    GenerateGridMesh( _gridMesh, game.board );
-    GenerateStarPointsMesh( _pointMesh, game.board );
+    GenerateBoardMesh( _boardMesh, game.GetBoard() );
+    GenerateGridMesh( _gridMesh, game.GetBoard() );
+    GenerateStarPointsMesh( _pointMesh, game.GetBoard() );
 
     UIAccelerometer * uiAccelerometer = [UIAccelerometer sharedAccelerometer];
     uiAccelerometer.updateInterval = 1 / AccelerometerFrequency;
@@ -304,24 +304,65 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     return pixels;
 }
 
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+- (void)convertTouches:(NSSet*)nativeTouches toArray:(Touch*)touches andCount:(int&)numTouches
 {
-    // ...
+    NSArray * array = [nativeTouches allObjects];
+    numTouches = [array count];
+    assert( numTouches <= MaxTouches );
+    for ( int i = 0; i < numTouches; ++i )
+    {
+        UITouch * nativeTouch = [array objectAtIndex:i];
+        touches[i].handle = (__bridge TouchHandle)nativeTouch;
+        touches[i].point = [self pointToPixels:[nativeTouch locationInView:self.view]];
+        touches[i].timestamp = [nativeTouch timestamp];
+    }
 }
 
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+- (void)touchesBegan:(NSSet *)nativeTouches withEvent:(UIEvent *)event
 {
-    // ...
+    int numTouches = 0;
+    Touch touches[MaxTouches];
+    [self convertTouches:nativeTouches toArray:touches andCount:numTouches];
+
+    game.OnTouchesBegan( touches, numTouches );
 }
 
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+- (void)touchesMoved:(NSSet *)nativeTouches withEvent:(UIEvent *)event
 {
-    // ...
+    int numTouches = 0;
+    Touch touches[MaxTouches];
+    [self convertTouches:nativeTouches toArray:touches andCount:numTouches];
+
+    game.OnTouchesMoved( touches, numTouches );
 }
 
-- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+- (void)touchesEnded:(NSSet *)nativeTouches withEvent:(UIEvent *)event
 {
-    // ...
+    int numTouches = 0;
+    Touch touches[MaxTouches];
+    [self convertTouches:nativeTouches toArray:touches andCount:numTouches];
+
+    game.OnTouchesEnded( touches, numTouches );
+
+    UITouch * touch = [nativeTouches anyObject];
+
+    if ( touch.tapCount >= 2 )
+    {
+        CGPoint touchPoint = [touch locationInView:self.view];
+
+        game.OnDoubleTap( [self pointToPixels:touchPoint] );
+        
+        [NSObject cancelPreviousPerformRequestsWithTarget:self];
+    }
+}
+
+- (void)touchesCancelled:(NSSet *)nativeTouches withEvent:(UIEvent *)event
+{
+    int numTouches = 0;
+    Touch touches[MaxTouches];
+    [self convertTouches:nativeTouches toArray:touches andCount:numTouches];
+
+    game.OnTouchesCancelled( touches, numTouches );
 }
 
 - (void)accelerometer:(UIAccelerometer *)uiAccelerometer didAccelerate:(UIAcceleration *)acceleration
@@ -335,9 +376,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     
-    if ( game.paused )
-        return;
-
     // render floor
 
     {
@@ -345,9 +383,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
                 
         [opengl selectTexturedMesh:_floorTexture vertexBuffer:_floorVertexBuffer indexBuffer:_floorIndexBuffer];
 
-        glUniformMatrix4fv( _floorUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.clipMatrix );
-        glUniformMatrix3fv( _floorUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.normalMatrix );
-        glUniform3fv( _floorUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
+        glUniformMatrix4fv( _floorUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
+        glUniformMatrix3fv( _floorUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
+        glUniform3fv( _floorUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.GetLightPosition() );
 
         glDrawElements( GL_TRIANGLES, _floorMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
     }
@@ -359,9 +397,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         
         [opengl selectTexturedMesh:_boardTexture vertexBuffer:_boardVertexBuffer indexBuffer:_boardIndexBuffer];
 
-        glUniformMatrix4fv( _boardUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.clipMatrix );
-        glUniformMatrix3fv( _boardUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.normalMatrix );
-        glUniform3fv( _boardUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
+        glUniformMatrix4fv( _boardUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
+        glUniformMatrix3fv( _boardUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
+        glUniform3fv( _boardUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.GetLightPosition() );
 
         glDrawElements( GL_TRIANGLES, _boardMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
     }
@@ -373,9 +411,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
         [opengl selectTexturedMesh:_lineTexture vertexBuffer:_gridVertexBuffer indexBuffer:_gridIndexBuffer];
         
-        glUniformMatrix4fv( _gridUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.clipMatrix );
-        glUniformMatrix3fv( _gridUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.normalMatrix );
-        glUniform3fv( _gridUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
+        glUniformMatrix4fv( _gridUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
+        glUniformMatrix3fv( _gridUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
+        glUniform3fv( _gridUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.GetLightPosition() );
         
         glEnable( GL_BLEND );
         glBlendFunc( GL_ZERO, GL_SRC_COLOR );
@@ -396,9 +434,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         
         [opengl selectTexturedMesh:_pointTexture vertexBuffer:_pointVertexBuffer indexBuffer:_pointIndexBuffer];
 
-        glUniformMatrix4fv( _pointUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.clipMatrix );
-        glUniformMatrix3fv( _pointUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.normalMatrix );
-        glUniform3fv( _pointUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
+        glUniformMatrix4fv( _pointUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
+        glUniformMatrix3fv( _pointUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
+        glUniform3fv( _pointUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.GetLightPosition() );
         
         glEnable( GL_BLEND );
         glBlendFunc( GL_ZERO, GL_SRC_COLOR );
@@ -414,6 +452,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     // render board shadow on ground
     
+    const vec3f & lightPosition = game.GetLightPosition();
+    
     {
         glUseProgram( _shadowProgram );
         
@@ -422,10 +462,10 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         float boardShadowAlpha = 1.0f;
 
         mat4f shadowMatrix;
-        MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( game.lightPosition.x(), game.lightPosition.y(), game.lightPosition.z() * 0.5f, 0 ), shadowMatrix );
+        MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z() * 0.5f, 0 ), shadowMatrix );
 
-        mat4f modelView = game.cameraMatrix * shadowMatrix;
-        mat4f modelViewProjectionMatrix = game.projectionMatrix * modelView;
+        mat4f modelView = game.GetCameraMatrix() * shadowMatrix;
+        mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
         
         glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
         glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&boardShadowAlpha );
@@ -448,15 +488,17 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         glEnable( GL_BLEND );
         glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
-        for ( int i = 0; i < game.stones.size(); ++i )
+        const std::vector<StoneInstance> & stones = game.GetStones();
+        
+        for ( int i = 0; i < stones.size(); ++i )
         {
-            StoneInstance & stone = game.stones[i];
+            const StoneInstance & stone = stones[i];
             
             mat4f shadowMatrix;
-            MakeShadowMatrix( vec4f(0,0,1,0), vec4f( game.lightPosition.x(), game.lightPosition.y(), game.lightPosition.z(), 1 ), shadowMatrix );
+            MakeShadowMatrix( vec4f(0,0,1,0), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
 
-            mat4f modelView = game.cameraMatrix * shadowMatrix * stone.rigidBody.transform.localToWorld;
-            mat4f modelViewProjectionMatrix = game.projectionMatrix * modelView;
+            mat4f modelView = game.GetCameraMatrix() * shadowMatrix * stone.rigidBody.transform.localToWorld;
+            mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
             
             glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
 
@@ -488,18 +530,20 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         glEnable( GL_DEPTH_TEST );
         glDepthFunc( GL_GREATER );
 
-        for ( int i = 0; i < game.stones.size(); ++i )
-        {
-            StoneInstance & stone = game.stones[i];
+        const std::vector<StoneInstance> & stones = game.GetStones();
 
-            if ( stone.rigidBody.position.z() < game.board.GetThickness() )
+        for ( int i = 0; i < stones.size(); ++i )
+        {
+            const StoneInstance & stone = stones[i];
+
+            if ( stone.rigidBody.position.z() < game.GetBoard().GetThickness() )
                 continue;
 
             mat4f shadowMatrix;
-            MakeShadowMatrix( vec4f(0,0,1,-game.board.GetThickness()+0.1f), vec4f( game.lightPosition.x(), game.lightPosition.y(), game.lightPosition.z(), 1 ), shadowMatrix );
+            MakeShadowMatrix( vec4f(0,0,1,-game.GetBoard().GetThickness()+0.1f), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
             
-            mat4f modelView = game.cameraMatrix * shadowMatrix * stone.rigidBody.transform.localToWorld;
-            mat4f modelViewProjectionMatrix = game.projectionMatrix * modelView;
+            mat4f modelView = game.GetCameraMatrix() * shadowMatrix * stone.rigidBody.transform.localToWorld;
+            mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
             
             glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
             
@@ -521,23 +565,25 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
                 
         [opengl selectNonTexturedMesh:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
 
-        for ( int i = 0; i < game.stones.size(); ++i )
+        const std::vector<StoneInstance> & stones = game.GetStones();
+
+        for ( int i = 0; i < stones.size(); ++i )
         {
-            StoneInstance & stone = game.stones[i];
+            const StoneInstance & stone = stones[i];
             
             if ( !stone.white )
                 continue;
             
-            mat4f modelViewMatrix = game.cameraMatrix * stone.rigidBody.transform.localToWorld;
+            mat4f modelViewMatrix = game.GetCameraMatrix() * stone.rigidBody.transform.localToWorld;
             
             mat3f stoneNormalMatrix;
             stoneNormalMatrix.load( modelViewMatrix );
 
-            mat4f stoneModelViewProjectionMatrix = game.projectionMatrix * modelViewMatrix;
+            mat4f stoneModelViewProjectionMatrix = game.GetProjectionMatrix() * modelViewMatrix;
 
             glUniformMatrix4fv( _stoneUniformsWhite[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&stoneModelViewProjectionMatrix );
             glUniformMatrix3fv( _stoneUniformsWhite[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&stoneNormalMatrix );
-            glUniform3fv( _stoneUniformsWhite[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
+            glUniform3fv( _stoneUniformsWhite[UNIFORM_LIGHT_POSITION], 1, (float*)&lightPosition );
 
             glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
         }
@@ -550,23 +596,25 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         
         [opengl selectNonTexturedMesh:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
         
-        for ( int i = 0; i < game.stones.size(); ++i )
+        const std::vector<StoneInstance> & stones = game.GetStones();
+
+        for ( int i = 0; i < stones.size(); ++i )
         {
-            StoneInstance & stone = game.stones[i];
+            const StoneInstance & stone = stones[i];
             
             if ( stone.white )
                 continue;
             
-            mat4f modelViewMatrix = game.cameraMatrix * stone.rigidBody.transform.localToWorld;
+            mat4f modelViewMatrix = game.GetCameraMatrix() * stone.rigidBody.transform.localToWorld;
             
             mat3f stoneNormalMatrix;
             stoneNormalMatrix.load( modelViewMatrix );
             
-            mat4f stoneModelViewProjectionMatrix = game.projectionMatrix * modelViewMatrix;
+            mat4f stoneModelViewProjectionMatrix = game.GetProjectionMatrix() * modelViewMatrix;
             
             glUniformMatrix4fv( _stoneUniformsBlack[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&stoneModelViewProjectionMatrix );
             glUniformMatrix3fv( _stoneUniformsBlack[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&stoneNormalMatrix );
-            glUniform3fv( _stoneUniformsBlack[UNIFORM_LIGHT_POSITION], 1, (float*)&game.lightPosition );
+            glUniform3fv( _stoneUniformsBlack[UNIFORM_LIGHT_POSITION], 1, (float*)&lightPosition );
             
             glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
         }
@@ -580,16 +628,13 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 {
     float dt = 1.0f / 60.0f;
 
-    if ( game.paused )
-        dt = 0.0f;
-
     game.UpdateCamera( dt );
 
     game.UpdatePhysics( dt, accelerometer );
     
     [self render];
 
-    telemetry.Update( dt, game.board, game.stones, game.locked, accelerometer.GetUp() );
+    telemetry.Update( dt, game.GetBoard(), game.GetStones(), game.IsLocked(), accelerometer.GetUp() );
 }
 
 @end

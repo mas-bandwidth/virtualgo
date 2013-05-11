@@ -5,8 +5,6 @@
 #define OPENGL_ES2 1
 #endif
 
-#define LOCKED 1
-
 //#define USE_SECONDARY_DISPLAY_IF_EXISTS
 //#define DEBUG_SHADOW_VOLUMES
 //#define FRUSTUM_CULLING
@@ -16,9 +14,7 @@ const int BoardSize = 9;
 
 const int MaxStarPoints = 9;
 
-const float DeactivateTime = 0.1f;
-const float DeactivateLinearThresholdSquared = 0.1f * 0.1f;
-const float DeactivateAngularThresholdSquared = 0.05f * 0.05f;
+const int MaxTouches = 64;
 
 const float LockedDragSpeedMax = 10.0f;
 const float FlickSpeedThreshold = 20.0f;
@@ -51,6 +47,6 @@ const float HoldMoveThreshold = 40;             // points
 
 const float SelectDamping = 0.75f;
 
-const float TouchImpulse = 4.0f;
+const float TouchImpulse = 1.0f;
 
 #endif

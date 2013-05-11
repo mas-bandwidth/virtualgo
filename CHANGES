@@ -1,4 +1,66 @@
 
+Re-implemented stone dragging and flicking (10/5/2013):
+-------------------------------------------------------
+
+    Made game instance data private
+
+    Add selected flag to stone.
+
+    "selected" flag to true on stone when picked.
+
+    If selected in true on the stone treat it differently, eg.
+    major damping, don't apply gravity, push out of board vertically
+    etc (check old code for all cases...!)
+
+    Apply impulse to stone on touch
+
+    Add a function to find a stone by id.
+
+    Now keep track of selected stone by id.
+
+    When the touch is released, unselect the stone.
+
+    Now, implement touch moved tracking.
+
+    Implement dragging and flicking.
+
+
+Implemented basic stone picking (10/5/2013):
+--------------------------------------------
+
+    Implement stone picking on touches began
+
+    Add concept of "stone id" 32bit incremented with each add
+
+    Log stone id on stone pick
+
+
+Implement portable touch interface (10/5/2013):
+-----------------------------------------------
+
+    Implemented portable touch interface
+
+    Settled on the simplest possible conversion:
+
+    A dumb array of POD touch structs!
+
+    Update to support multiple touches per-call
+
+    Verified that touch conversion is working.
+
+
+Parameterized physics update (10/5/2013):
+-----------------------------------------
+
+    Added gravity bool so I can turn it on/off dynamically
+
+    Break out physics parameters into "PhysicsParams" struct
+
+    This will allow GameInstance.h to control physics update,
+    without having to add a shit-tonne of parameters to the 
+    update physics function each time I want something.
+
+
 WIP moving event handling into game instance (10/5/2013):
 ---------------------------------------------------------
 
@@ -15,6 +77,40 @@ WIP moving event handling into game instance (10/5/2013):
     Move matrix update into GameInstance.h
 
     Move IsScreenPointOnBoard into GameInstance.h
+
+    Study the existing touch code. How to best move it into GameInstance.h?
+
+    Ideally, I want to have the logic for responding to gestures to be
+    platform independent. I don't necessarily see the need to make the
+    gesture DETECTION code platform independent... that's not the hard
+    part.
+
+    Key point is that I want to move the stone selection and dragging
+    and placement logic into GameInstance.h. This is necessary because
+    it's about to become a lot more complex.
+
+    I think this means that more of the touch stuff is going to
+    move into GameInstance.h that I would otherwise do just for
+    portability.
+
+    Back up old touch handler code.
+
+    Removed old touch code and everything that doesn't support
+    multiple stones. We are starting from scratch!!!
+
+    *** WOW: DISABLING GRAVITY IS A REALLY FUN MODE. PLAY GO IN SPACE! ***
+
+    Add Touch.h
+
+    Inside here add a concept of "TouchHandle" which typedefs
+    to a 64bit pointer.
+
+    Then, add a set of functions to query data from touch objects
+
+    Next, in touch functions from OS, find a way to pass all touches
+    into the GameInstance.h versions of touch handling.
+
+    Also add touch set, which encapsulates the NSSet* of touches.
 
 
 Got first build out with multiple stones (9/5/2013):

@@ -6,13 +6,10 @@
 #include "StoneData.h"
 #include "StoneInstance.h"
 #include "Telemetry.h"
+#include "Touch.h"
 
 class GameInstance
 {
-public:
-
-    // todo: this should become private. GameInstance is in charge!
-
     Board board;
 
     StoneData stoneData;
@@ -28,25 +25,40 @@ public:
     mat4f inverseClipMatrix;
 
     bool locked;
-    bool paused;
     bool zoomed;
+    bool gravity;
 
     float smoothZoom;
     float aspectRatio;
 
+    uint32_t stoneId;
+
+    bool selectActive;
+    uint32_t selectStoneId;
+    TouchHandle selectTouchHandle;
+    vec3f selectPoint;
+    float selectDepth;
+    vec3f selectOffset;
+    double selectStartTimestamp;
+    double selectTimestamp;
+    double selectPrevTimestamp;
+    vec3f selectIntersectionPoint;
+    vec3f selectPrevIntersectionPoint;
+
     Telemetry * telemetry;
+
+public:
 
 	GameInstance()
 	{
-        #if LOCKED
-		locked = true;
-        #else
-        locked = false;
-        #endif
+        stoneId = 0;
 
-		paused = false;
+		locked = true;
 		zoomed = false;
+        gravity = false;
 		
+        selectActive = false;
+
         smoothZoom = GetTargetZoom();
         aspectRatio = 1.0f;
 
@@ -79,7 +91,7 @@ public:
             for ( int j = 1; j <= BoardSize; ++j )
             {
                 StoneInstance stone;
-                stone.Initialize( stoneData, white );
+                stone.Initialize( stoneData, stoneId++, white );
                 stone.rigidBody.position = board.GetPointPosition( i, j ) + vec3f( 0, 0, stoneData.biconvex.GetHeight() / 2 );
                 stone.rigidBody.orientation = quat4f(1,0,0,0);
                 stone.rigidBody.linearMomentum = vec3f(0,0,0);
@@ -159,10 +171,14 @@ public:
      
         // update physics sim
 
-        vec3f gravity = 10 * 9.8f * ( locked ? vec3f(0,0,-1) : accelerometer.GetDown() );
-        
-        ::UpdatePhysics( dt, board, stoneData, stones, *telemetry,
-                         frustum, gravity, smoothZoom * 0.5f );
+        PhysicsParameters params;
+
+        params.dt = dt;
+        params.ceiling = smoothZoom * 0.5f;
+        params.gravity = gravity ? ( 10 * 9.8f * ( locked ? vec3f(0,0,-1) : accelerometer.GetDown() ) )
+                                 : vec3f(0,0,0);
+
+        ::UpdatePhysics( params, board, stoneData, stones, *telemetry, frustum );
     }
 
     float GetTargetZoom() const
@@ -192,26 +208,237 @@ public:
         return false;
     }
 
+    StoneInstance * FindStoneInstance( uint32_t id )
+    {
+        for ( int i = 0; i < stones.size(); ++i )
+        {
+            if ( stones[i].id == id ) 
+                return &stones[i];
+        }
+        return NULL;
+    }
+
     // -------------------------------------------------------
     // event handling
     // -------------------------------------------------------
 
     void OnDoubleTap( const vec3f & point )
     {
-        #if LOCKED
-
+        if ( locked )
+        {
             PlaceStones();
-
-        #else
-
+        }
+        else
+        {
             if ( zoomed )
                 telemetry->IncrementCounter( COUNTER_ZoomedOut );
             else
                 telemetry->IncrementCounter( COUNTER_ZoomedIn );
         
-            game.zoomed = !game.zoomed;
+            zoomed = !zoomed;
+        }
+    }
 
-        #endif
+    StoneInstance * PickStone( const vec3f & rayStart, const vec3f & rayDirection,
+                               float & pick_t, vec3f & pick_point, vec3f & pick_normal )
+    {
+        pick_t = FLT_MAX;
+        StoneInstance * pick_stone = NULL;
+
+        for ( int i = 0; i < stones.size(); ++i )
+        {
+            StoneInstance & stone = stones[i];
+
+            float t;
+            vec3f intersectionPoint, intersectionNormal;            
+            if ( IntersectRayStone( stoneData.biconvex, stone.rigidBody.transform, rayStart, rayDirection, t, intersectionPoint, intersectionNormal ) )
+            {
+                if ( t < pick_t )
+                {
+                    pick_stone = &stone;
+                    pick_t = t;
+                    pick_point = intersectionPoint;
+                    pick_normal = intersectionNormal;
+                }
+            }
+        }
+
+        return pick_stone;
+    }
+
+    void OnTouchesBegan( Touch * touches, int numTouches )
+    {
+        for ( int i = 0; i < numTouches; ++i )
+        {
+            Touch & touch = touches[i];
+            if ( !selectActive )
+            {
+                vec3f rayStart, rayDirection;
+                GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
+
+                float t;
+                vec3f intersectionPoint, intersectionNormal;
+                StoneInstance * stone = PickStone( rayStart, rayDirection, t, intersectionPoint, intersectionNormal );
+                if ( stone )
+                {
+                    stone->rigidBody.ApplyImpulseAtWorldPoint( intersectionPoint, TouchImpulse * rayDirection );
+                    stone->selected = 1;
+                    selectActive = true;
+                    selectStoneId = stone->id;
+                    selectTouchHandle = touch.handle;
+                    selectStartTimestamp = touch.timestamp;
+                    selectPoint = selectPoint;
+                    selectDepth = intersectionPoint.z();
+                    selectOffset = stone->rigidBody.position - intersectionPoint;
+                    selectIntersectionPoint = intersectionPoint;
+                    selectTimestamp = touch.timestamp;
+                    selectPrevIntersectionPoint = selectIntersectionPoint;
+                    selectPrevTimestamp = selectTimestamp;
+                }
+            }
+        }
+    }
+
+    void OnTouchesMoved( Touch * touches, int numTouches )
+    {
+        for ( int i = 0; i < numTouches; ++i )
+        {
+            Touch & touch = touches[i];
+            if ( selectActive && selectTouchHandle == touch.handle )
+            {
+                StoneInstance * stone = FindStoneInstance( selectStoneId );
+                if ( stone )
+                {
+                    vec3f rayStart, rayDirection;
+                    GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
+        
+                    // IMPORTANT: first update intersect depth. this way stones can lift
+                    // from the ground to the board and then not snap back to ground when dragged
+                    // off the board (looks bad)
+
+                    float t;
+                    vec3f intersectionPoint, intersectionNormal;
+                    if ( IntersectRayStone( stoneData.biconvex, stone->rigidBody.transform, rayStart, rayDirection, t, intersectionPoint, intersectionNormal ) )
+                    {
+                        if ( intersectionPoint.z() > selectDepth )
+                        {
+                            selectPoint = selectPoint;
+                            selectDepth = intersectionPoint.z();
+                            selectOffset = stone->rigidBody.position - intersectionPoint;
+                            selectIntersectionPoint = intersectionPoint;
+                        }
+                    }
+
+                    // next, intersect with the plane at select depth and move the stone
+                    // such that it is offset from the intersection point with this plane
+
+                    if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), selectDepth, t ) )
+                    {
+                        selectPrevIntersectionPoint = selectIntersectionPoint;
+                        selectPrevTimestamp = selectTimestamp;
+
+                        selectIntersectionPoint = rayStart + rayDirection * t;
+                        selectTimestamp = touch.timestamp;
+                        
+                        const float select_dt = max( 1.0f / 60.0f, selectTimestamp - selectPrevTimestamp );
+
+                        const vec3f delta = selectIntersectionPoint - selectPrevIntersectionPoint;
+
+                        if ( length_squared( delta ) > 0.1 * 0.1f )
+                        {
+                            stone->rigidBody.linearMomentum = stone->rigidBody.mass * delta / select_dt;
+                        }
+                        
+                        stone->rigidBody.position = selectIntersectionPoint + selectOffset;
+                        
+                        stone->rigidBody.Activate();
+                    }
+                }
+                else
+                {
+                    selectActive = false;
+                }
+            }
+        }
+    }
+
+    void OnTouchesEnded( Touch * touches, int numTouches )
+    {
+        for ( int i = 0; i < numTouches; ++i )
+        {
+            Touch & touch = touches[i];
+            if ( selectActive && selectTouchHandle == touch.handle )
+            {
+                selectActive = false;
+                StoneInstance * stone = FindStoneInstance( selectStoneId );
+                if ( stone )
+                    stone->selected = 0;
+            }
+        }
+    }
+
+    void OnTouchesCancelled( Touch * touches, int numTouches )
+    {
+        for ( int i = 0; i < numTouches; ++i )
+        {
+            Touch & touch = touches[i];
+            if ( selectActive && selectTouchHandle == touch.handle )
+            {
+                selectActive = false;
+                StoneInstance * stone = FindStoneInstance( selectStoneId );
+                if ( stone )
+                    stone->selected = 0;
+            }
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // accessors
+    // ----------------------------------------------------------------
+
+    const Biconvex & GetBiconvex() const
+    {
+        return stoneData.biconvex;
+    }
+
+    const Board & GetBoard() const
+    {
+        return board;
+    }
+
+    const std::vector<StoneInstance> & GetStones() const
+    {
+        return stones;
+    }
+
+    const mat4f & GetCameraMatrix() const
+    {
+        return cameraMatrix;
+    }
+
+    const mat4f & GetProjectionMatrix() const
+    {
+        return projectionMatrix;
+    }
+
+    const mat4f & GetClipMatrix() const
+    {
+        return clipMatrix;
+    }
+
+    const mat3f & GetNormalMatrix() const
+    {
+        return normalMatrix;
+    }
+
+    const vec3f & GetLightPosition() const
+    {
+        return lightPosition;
+    }
+
+    bool IsLocked() const
+    {
+        return locked;
     }
 };
 

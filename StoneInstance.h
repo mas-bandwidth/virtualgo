@@ -6,9 +6,12 @@
 
 struct StoneInstance
 {
-	void Initialize( const StoneData & stoneData, bool white = true )
+	void Initialize( const StoneData & stoneData, uint32_t id = 0, bool white = true )
 	{
+        this->id = id;
         this->white = white;
+        this->selected = 0;
+
         rigidBody.mass = stoneData.mass;
         rigidBody.inverseMass = 1.0f / stoneData.mass;
         rigidBody.inertia = stoneData.inertia;
@@ -16,7 +19,9 @@ struct StoneInstance
         rigidBody.inverseInertiaTensor = stoneData.inverseInertiaTensor;
     }
 
-    bool white;
+    uint32_t id;
+    uint32_t white : 1;
+    uint32_t selected : 1;
     RigidBody rigidBody;
 };
 

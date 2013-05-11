@@ -79,10 +79,11 @@ inline bool IntersectRayBiconvex_LocalSpace( vec3f rayStart,
     return false;
 }
 
-inline float IntersectRayStone( const Biconvex & biconvex, 
+inline bool IntersectRayStone( const Biconvex & biconvex, 
                                 const RigidBodyTransform & biconvexTransform,
                                 vec3f rayStart, 
                                 vec3f rayDirection, 
+                                float & t,
                                 vec3f & point, 
                                 vec3f & normal )
 {
@@ -91,8 +92,6 @@ inline float IntersectRayStone( const Biconvex & biconvex,
     
     vec3f local_point, local_normal;
 
-    float t;
-
     bool result = IntersectRayBiconvex_LocalSpace( local_rayStart, 
                                                    local_rayDirection,
                                                    biconvex,
@@ -100,14 +99,13 @@ inline float IntersectRayStone( const Biconvex & biconvex,
                                                    local_point,
                                                    local_normal );
 
-    if ( result )
-    {
-        point = TransformPoint( biconvexTransform.localToWorld, local_point );
-        normal = TransformVector( biconvexTransform.localToWorld, local_normal );
-        return t;
-    }
+    if ( !result )
+        return false;
 
-    return -1;
+    point = TransformPoint( biconvexTransform.localToWorld, local_point );
+    normal = TransformVector( biconvexTransform.localToWorld, local_normal );
+    
+    return true;
 }
 
 inline float IntersectRayBoard( const Board & board,

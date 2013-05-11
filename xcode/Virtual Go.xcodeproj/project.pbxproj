@@ -60,6 +60,7 @@
 		F203E5811720C6650040ECA8 /* release_notes.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = release_notes.md; sourceTree = "<group>"; };
 		F203E5821720C6650040ECA8 /* TestFlight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFlight.h; sourceTree = "<group>"; };
 		F203E5861720C9260040ECA8 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		F220DE33173DDB5D0007EE14 /* Touch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Touch.h; path = ../../Touch.h; sourceTree = "<group>"; };
 		F22E4844172E247800907BCD /* GridShader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = GridShader.fragment; path = "Virtual Go/shaders/GridShader.fragment"; sourceTree = "<group>"; };
 		F22E4845172E247800907BCD /* GridShader.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = GridShader.vertex; path = "Virtual Go/shaders/GridShader.vertex"; sourceTree = "<group>"; };
 		F22E4848172F02BC00907BCD /* floor.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = floor.jpg; path = "Virtual Go/textures/floor.jpg"; sourceTree = "<group>"; };
@@ -269,6 +270,7 @@
 		F2E1532C173B00BD00D1538E /* portable */ = {
 			isa = PBXGroup;
 			children = (
+				F220DE33173DDB5D0007EE14 /* Touch.h */,
 				F2BE9741173BFC61005DCD6B /* StoneData.h */,
 				F2BE9742173BFC61005DCD6B /* StoneInstance.h */,
 				F2D0DDC4173B5F3B00CD12DA /* GameInstance.h */,
