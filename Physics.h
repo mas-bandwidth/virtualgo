@@ -5,6 +5,7 @@
 #include "Board.h"
 #include "StoneData.h"
 #include "StoneInstance.h"
+#include "SceneGrid.h"
 #include "RigidBody.h"
 #include "CollisionDetection.h"
 #include "CollisionResponse.h"
@@ -65,6 +66,7 @@ struct PhysicsParameters
 inline void UpdatePhysics( const PhysicsParameters & params,
                            const Board & board, 
                            const StoneData & stoneData, 
+                           SceneGrid & sceneGrid,
                            std::vector<StoneInstance> & stones,
                            Telemetry & telemetry, 
                            const Frustum & frustum )
@@ -75,12 +77,18 @@ inline void UpdatePhysics( const PhysicsParameters & params,
 
     for ( int i = 0; i < params.iterations; ++i )
     {
+        // =======================================================================
+        // 1. integrate object motion for this iteration
+        // =======================================================================
+
         for ( int j = 0; j < stones.size(); ++j )
         {
             StoneInstance & stone = stones[j];
 
             if ( !stone.rigidBody.active )
                 continue;
+
+            vec3f previousPosition = stone.rigidBody.position;
 
             if ( !stone.selected )
                 stone.rigidBody.linearMomentum += params.gravity * stone.rigidBody.mass * iteration_dt;
@@ -100,6 +108,20 @@ inline void UpdatePhysics( const PhysicsParameters & params,
             }        
             
             stone.rigidBody.UpdateTransform();
+
+            sceneGrid.MoveObject( stone.id, previousPosition, stone.rigidBody.position );
+        }
+
+        // =======================================================================
+        // 2. collide all objects against static planes, floor, board etc.
+        // =======================================================================
+
+        for ( int j = 0; j < stones.size(); ++j )
+        {
+            StoneInstance & stone = stones[j];
+
+            if ( !stone.rigidBody.active )
+                continue;
 
             StaticContact contact;
 
@@ -223,27 +245,35 @@ inline void UpdatePhysics( const PhysicsParameters & params,
                 stone.rigidBody.angularMomentum *= SelectDamping;
         }
 
-        // deactivate stones at rest
+        // =======================================================================
+        // 3. collide stones against other stones
+        // =======================================================================
 
-        for ( int i = 0; i < stones.size(); ++i )
+        // ...
+    }
+
+    // =======================================================================
+    // 4. detect stones at rest and deactivate them
+    // =======================================================================
+
+    for ( int i = 0; i < stones.size(); ++i )
+    {
+        StoneInstance & stone = stones[i];
+
+        if ( !stone.rigidBody.active )
+            continue;
+
+        stone.rigidBody.UpdateMomentum();
+
+        if ( length_squared( stone.rigidBody.linearVelocity ) < params.deactivateLinearThreshold &&
+             length_squared( stone.rigidBody.angularVelocity ) < params.deactivateAngularThreshold )
         {
-            StoneInstance & stone = stones[i];
-
-            if ( !stone.rigidBody.active )
-                continue;
-
-            stone.rigidBody.UpdateMomentum();
-
-            if ( length_squared( stone.rigidBody.linearVelocity ) < params.deactivateLinearThreshold &&
-                 length_squared( stone.rigidBody.angularVelocity ) < params.deactivateAngularThreshold )
-            {
-                stone.rigidBody.deactivateTimer += iteration_dt;
-                if ( stone.rigidBody.deactivateTimer >= params.deactivateTime )
-                    stone.rigidBody.Deactivate();
-            }
-            else
-                stone.rigidBody.deactivateTimer = 0;
+            stone.rigidBody.deactivateTimer += iteration_dt;
+            if ( stone.rigidBody.deactivateTimer >= params.deactivateTime )
+                stone.rigidBody.Deactivate();
         }
+        else
+            stone.rigidBody.deactivateTimer = 0;
     }
 }
 

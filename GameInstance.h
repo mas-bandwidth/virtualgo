@@ -5,6 +5,7 @@
 #include "Board.h"
 #include "StoneData.h"
 #include "StoneInstance.h"
+#include "SceneGrid.h"
 #include "Telemetry.h"
 #include "Touch.h"
 
@@ -37,6 +38,8 @@ class GameInstance
 
     SelectMap selectMap;
 
+    SceneGrid sceneGrid;
+
 public:
 
 	GameInstance()
@@ -58,6 +61,8 @@ public:
 
         stoneData.Initialize( STONE_SIZE_32 );
 
+        sceneGrid.Initialize( SceneGridRes, vec3f( SceneGridBounds, SceneGridBounds, SceneGridBounds ) );
+
         PlaceStones();
 
         UpdateCamera();
@@ -73,6 +78,7 @@ public:
     {
         stones.clear();
         selectMap.clear();
+        sceneGrid.clear();
 
         bool white = true;
         for ( int i = 1; i <= BoardSize; ++i )
@@ -88,6 +94,8 @@ public:
                 stone.rigidBody.Activate();
                 stones.push_back( stone );
                 //white = !white;
+
+                sceneGrid.AddObject( stone.id, stone.rigidBody.position );
             }
         }
     }
@@ -167,7 +175,7 @@ public:
         params.gravity = gravity ? ( 10 * 9.8f * ( locked ? vec3f(0,0,-1) : accelerometer.GetDown() ) )
                                  : vec3f(0,0,0);
 
-        ::UpdatePhysics( params, board, stoneData, stones, *telemetry, frustum );
+        ::UpdatePhysics( params, board, stoneData, sceneGrid, stones, *telemetry, frustum );
     }
 
     float GetTargetZoom() const
@@ -339,7 +347,11 @@ public:
                         select.intersectionPoint = rayStart + rayDirection * t;
                         select.timestamp = touch.timestamp;
 
+                        vec3f previousPosition = stone->rigidBody.position;
+
                         stone->rigidBody.position = select.intersectionPoint + select.offset;
+
+                        sceneGrid.MoveObject( stone->id, previousPosition, stone->rigidBody.position );
                     }
                 }
                 else

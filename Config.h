@@ -10,6 +10,9 @@
 //#define FRUSTUM_CULLING
 //#define DISCOVER_KEY_CODES
 
+const float SceneGridRes = 5;
+const float SceneGridBounds = 64;
+
 const float FatFingerBonus = 1.35f;
 
 const int BoardSize = 9;

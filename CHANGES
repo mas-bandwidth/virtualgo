@@ -1,4 +1,26 @@
 
+Added scene grid (12/5/2013):
+-----------------------------
+
+   Implement 3D scene grid for stone postitions
+
+    Sketch out functions to clear, add/remove and move objects
+
+    Call all the correct scene grid functions when placing
+    objects, moving them in physics or drag/click etc.
+
+    Implement simple insert and remove functions
+
+    Implement move object function *simply* by just
+    removing then adding again. This can be improved later.
+
+    I've decided to only insert the object into the immediate
+    cell that the object is inside. Neighbours can be handled
+    elsewhere, eg. in physics overlap tests.
+
+    Implement non-stupid version of object move function
+
+
 Added "fat finger bonus" for stone select (11/5/2013):
 ------------------------------------------------------
 

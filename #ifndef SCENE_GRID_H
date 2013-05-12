@@ -1,0 +1,40 @@
+#ifndef SCENE_GRID_H
+#define SCENE_GRID_H
+
+struct Cell
+{
+	std::vector<uint32_t> objects;	
+};
+
+class SceneGrid
+{
+	float res;										// grid resolution, eg. size of grid cube side
+
+	float width;
+	float height;
+	float depth;
+
+	int sx,sy,sz;									// grid bounds in integer coordinates [0,sx-1]
+
+	std::vector<Cell> cells;
+
+public:
+
+	void Initialize( float res, float width, float height, float depth )
+	{
+		this->gridSize = gridSize;
+		this->width = width;
+		this->height = height;
+		this->depth = depth;
+
+		// todo: determine 
+		cells.resize( 1 );
+	}
+
+	Cell & GetCell( const vec3f & position )
+	{
+
+	}
+};
+
+#endif

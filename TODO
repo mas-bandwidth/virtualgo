@@ -1,25 +1,66 @@
 DONE:
 
 TODO:
+    
+    -----------------------------------------------------------------
 
-    Implement 3D hash grid for stone postitions
+    Pass over cell grid gathering pairs of potentially colliding objects.
 
-    Insert stone into grid bucket cells that the bounding
-    sphere overlaps, so the testing is simpler.
+    Standardize order such that the lower object id is first in the pair.
 
-    Keep track of the grid cells inside the stone so you can
-    go both ways, eg. num cells, cell array.
+    Unique the pairs of objects, eg. 64bit pair [src][dst] in correct order.
 
-    Visualize the grid cells a stone is in when a stone is selected
+    Apply broadphase reject between pairs when their bounding
+    spheres are too far away.
 
-    Implement basic stone vs. stone collision detection using
-    bounding spheres, purely linear.
+    When stones are colliding push each out of penetration along normal.
 
-    This should go surprisingly far to avoid stupid looking crap.
+    Apply simple linear collision response.
 
-    Algorithm is to basically test against all other spheres in the
-    current grid cell. I'm thinking grid cell resolution should be about
-    cubes with side length of 3 or 4 stone bounding sphere radius.
+    This should be enough for BASIC non-stupid looking motion in zero-g.
+
+    -----------------------------------------------------------------
+
+
+
+
+
+
+    -----------------------------------------------------------------
+
+    Determine sets of axes required to test biconvex vs. biconvex
+
+    Find axis of least penetration
+
+    Implement proper collision response for two moving objects
+
+    Implement stone vs. stone collision response in zero-g
+
+    -----------------------------------------------------------------
+
+
+
+
+
+
+    -----------------------------------------------------------------
+
+    Research solver. What do I have to do to implement the solver?
+
+    I strongly suspect that I have to unify the treatement of static
+    and non-static contacts in order for the solver to work, because
+    the solver must balance the needs of the stones penetrating vs.
+    the penetration with the ground and board.
+
+    There must be a way to run the solver without running CD steps
+    between each iteration. I simply cannot afford this. But how does
+    this work with position correction against penetration?
+
+    (The position offset, is that something that accumulates?)
+
+    Need to talk to Erin to understand the core algorithm.
+
+    Do I need to run CD in between each iteration?
 
     -----------------------------------------------------------------
 
