@@ -88,10 +88,11 @@ public:
         vec3f pointPosition[MaxStarPoints];
         board.GetStarPoints( pointPosition, numStarPoints );
 
+        bool white = false;
         for ( int i = 0; i < numStarPoints; ++i )
         {
             StoneInstance stone;
-            stone.Initialize( stoneData, stoneId++ );
+            stone.Initialize( stoneData, stoneId++, white );
             stone.rigidBody.position = pointPosition[i];
             stone.rigidBody.orientation = quat4f(1,0,0,0);
             stone.rigidBody.linearMomentum = vec3f(0,0,0);
@@ -99,6 +100,7 @@ public:
             stone.rigidBody.Activate();
             stones.push_back( stone );
             sceneGrid.AddObject( stone.id, stone.rigidBody.position );
+            white = !white;
         }
 
         /*

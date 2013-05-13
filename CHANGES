@@ -1,5 +1,20 @@
 
-Simple collision between stones (13/5/2013):
+Added shader for black stones (12/5/2013):
+------------------------------------------
+
+    Found a really cool trick for making the black stones
+    look realistic, hybrid diffuse + specular using POW,
+    eg. take the normal diffuse dot and pow it.
+
+    I've applied this to black stones making them look
+    really realistic with pow 4, then backported to white
+    stones and they look much better at pow 2 than basic
+    diffuse.
+
+    WOW!
+    
+
+Simple collision between stones (12/5/2013):
 --------------------------------------------
 
     Iterate across potentially colliding object pairs
@@ -18,8 +33,12 @@ Simple collision between stones (13/5/2013):
 
     Put a white stone on each star point.
 
+    Fix dragging bugs with the stone
 
-Added overlapping objects test using scene grid (13/5/2013):
+    Get a new build out. First build with stone vs. stone collsion
+
+
+Added overlapping objects test using scene grid (12/5/2013):
 ------------------------------------------------------------
 
     Add object pair struct

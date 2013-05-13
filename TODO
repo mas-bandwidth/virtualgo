@@ -1,8 +1,5 @@
 DONE:
 
-    Fix dragging bugs with the stone
-
-    Get a new build out. First build with stone vs. stone collsion
 
 TODO:
 
@@ -14,12 +11,10 @@ TODO:
 
     Need to find what is causing the drift!
 
-    Find a way to get decent looking black stones!
-
     Fix jitter when stone is dragged off the screen!
 
     -------------------------------------------------
-
+    
 
 
 
