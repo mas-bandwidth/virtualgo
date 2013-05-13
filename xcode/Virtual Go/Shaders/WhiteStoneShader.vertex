@@ -25,7 +25,7 @@ void main()
     
     float nDotVP = max( 0.0, dot( eyeNormal, normalize( lightPosition ) ) );
                  
-    colorVarying = ambientColor + diffuseColor * pow( nDotVP, 1.5 );
+    colorVarying = ambientColor + diffuseColor * pow( nDotVP, 0.75 );
     
     gl_Position = modelViewProjectionMatrix * position;
 }
