@@ -60,7 +60,7 @@ struct PhysicsParameters
 
         deactivateTime = 0.1f;
         deactivateLinearThreshold = 0.1f * 0.1f;
-        deactivateAngularThreshold = 0.05f * 0.05f;
+        deactivateAngularThreshold = 0.1f * 0.1f;
     }
 };
 
@@ -454,10 +454,20 @@ inline void UpdatePhysics( const PhysicsParameters & params,
 
         stone.rigidBody.UpdateMomentum();
 
+        // hackfix: post-collision response there is some velocity remaining up
+        // this velocity causes the stone to drift and never come to rest.
+        // I just clear less than certain amount of z momentum to zero to fix!
+        float linear_z = stone.rigidBody.linearMomentum.z();
+        if ( linear_z > 0 && linear_z < 1.0f * stone.rigidBody.mass )
+        {
+            stone.rigidBody.linearMomentum = vec3f( stone.rigidBody.linearMomentum.x(), stone.rigidBody.linearMomentum.y(), 0 );
+            stone.rigidBody.UpdateMomentum();
+        }
+
         if ( length_squared( stone.rigidBody.linearVelocity ) < params.deactivateLinearThreshold &&
              length_squared( stone.rigidBody.angularVelocity ) < params.deactivateAngularThreshold )
         {
-            stone.rigidBody.deactivateTimer += iteration_dt;
+            stone.rigidBody.deactivateTimer += params.dt;
             if ( stone.rigidBody.deactivateTimer >= params.deactivateTime )
                 stone.rigidBody.Deactivate();
         }

@@ -1,4 +1,21 @@
 
+Fixed drift and coming to rest (12/5/2013):
+-------------------------------------------
+
+    Need to find what is causing the drift!
+    
+    The gravity acceleration is being reflected, leading to
+    velocity being upwards at 0.5 * gravity * dt post-collision.
+
+    This was hidden with multiple iterations because the gravity
+    post-would adjust and move towards zero.
+
+    I'm going to try a hack fix if the linear velocity z is
+    less than some threshold up at end of frame, clear to zero.
+
+    Works pretty well!
+
+
 Added shader for black stones (12/5/2013):
 ------------------------------------------
 

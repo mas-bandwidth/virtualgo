@@ -5,13 +5,21 @@ TODO:
 
     --------------------------------------------------
 
+    Fix jitter when stone is dragged off the screen!
+
+    I think the correct approach is to re-instate the
+    snap to touch position in "UpdateTouch" and run
+    that before the physics.
+
+    This way it is always run first before physics
+    update, and physics always runs AFTER, before render
+    so it constrains the dragged stone in the scene.
+
+    --------------------------------------------------
+
     Fix the bugs with the scene grid
 
     Extend nearest object pair search to adjacent cells
-
-    Need to find what is causing the drift!
-
-    Fix jitter when stone is dragged off the screen!
 
     -------------------------------------------------
     

@@ -123,13 +123,17 @@ struct RigidBody
     void Activate()
     {
         if ( !active )
+        {
+            printf( "activate\n" );
             active = true;
+        }
     }
 
     void Deactivate()
     {
         if ( active )
         {
+            printf( "deactivate\n" );
             active = false;
             deactivateTimer = 0;
             linearMomentum = vec3f(0,0,0);
