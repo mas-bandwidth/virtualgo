@@ -19,10 +19,22 @@ struct StoneInstance
         rigidBody.inverseInertiaTensor = stoneData.inverseInertiaTensor;
     }
 
-    uint32_t id;
+    uint32_t id : 16;
     uint32_t white : 1;
     uint32_t selected : 1;
+
     RigidBody rigidBody;
 };
+
+StoneInstance * FindStoneInstance( uint16_t id, std::vector<StoneInstance> & stones )
+{
+    // todo: need a fast version of this function
+    for ( int i = 0; i < stones.size(); ++i )
+    {
+        if ( stones[i].id == id ) 
+            return &stones[i];
+    }
+    return NULL;
+}
 
 #endif

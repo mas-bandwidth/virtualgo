@@ -32,9 +32,10 @@ class GameInstance
     float smoothZoom;
     float aspectRatio;
 
-    uint32_t stoneId;
+    uint32_t stoneId : 16;
 
     Telemetry * telemetry;
+    Accelerometer * accelerometer;
 
     SelectMap selectMap;
 
@@ -48,12 +49,12 @@ public:
 
 		locked = true;
 		zoomed = false;
-        gravity = false;
+        gravity = true;
 		
         smoothZoom = GetTargetZoom();
         aspectRatio = 1.0f;
 
-        lightPosition = vec3f( 30, 30, 100 );
+        lightPosition = vec3f( 10, 10, 50 );
 
         telemetry = NULL;
 
@@ -61,16 +62,17 @@ public:
 
         stoneData.Initialize( STONE_SIZE_32 );
 
-        sceneGrid.Initialize( SceneGridRes, vec3f( SceneGridBounds, SceneGridBounds, SceneGridBounds ) );
+        sceneGrid.Initialize( SceneGridRes, SceneGridWidth, SceneGridHeight, SceneGridDepth );
 
         PlaceStones();
 
         UpdateCamera();
 	}
 
-    void Initialize( Telemetry & telemetry, float aspectRatio )
+    void Initialize( Telemetry & telemetry, Accelerometer & accelerometer, float aspectRatio )
     {
         this->telemetry = &telemetry;
+        this->accelerometer = &accelerometer;
         this->aspectRatio = aspectRatio;
     }
 
@@ -79,6 +81,28 @@ public:
         stones.clear();
         selectMap.clear();
         sceneGrid.clear();
+
+        // add stones on the star points
+
+        int numStarPoints;
+        vec3f pointPosition[MaxStarPoints];
+        board.GetStarPoints( pointPosition, numStarPoints );
+
+        for ( int i = 0; i < numStarPoints; ++i )
+        {
+            StoneInstance stone;
+            stone.Initialize( stoneData, stoneId++ );
+            stone.rigidBody.position = pointPosition[i];
+            stone.rigidBody.orientation = quat4f(1,0,0,0);
+            stone.rigidBody.linearMomentum = vec3f(0,0,0);
+            stone.rigidBody.angularMomentum = vec3f(0,0,0);
+            stone.rigidBody.Activate();
+            stones.push_back( stone );
+            sceneGrid.AddObject( stone.id, stone.rigidBody.position );
+        }
+
+        /*
+        // add stones on every point
 
         bool white = true;
         for ( int i = 1; i <= BoardSize; ++i )
@@ -98,6 +122,7 @@ public:
                 sceneGrid.AddObject( stone.id, stone.rigidBody.position );
             }
         }
+        */
     }
 
     void InvertMatrix( const mat4f & matrix, mat4f & inverse )
@@ -110,6 +135,13 @@ public:
         GLKMatrix4 glkMatrixInverse = GLKMatrix4Invert( glkMatrix, &invertible );
         assert( invertible );
         inverse.load( glkMatrixInverse.m );
+    }
+
+    void Update( float dt )
+    {
+        UpdateCamera( dt );
+        
+        UpdatePhysics( dt );
     }
 
     void UpdateCamera( float dt = 0.0f )
@@ -131,7 +163,7 @@ public:
         normalMatrix.load( cameraMatrix );
     }
 
-    void UpdatePhysics( float dt, const Accelerometer & accelerometer )
+    void UpdatePhysics( float dt )
     {
         // calculate frustum planes for collision
 
@@ -142,7 +174,7 @@ public:
 
         // apply jerk acceleration to stones
 
-        const vec3f & jerkAcceleration = accelerometer.GetJerkAcceleration();
+        const vec3f & jerkAcceleration = accelerometer->GetJerkAcceleration();
         const float jerk = length( jerkAcceleration );
         if ( jerk > JerkThreshold )
         {
@@ -172,7 +204,7 @@ public:
 
         params.dt = dt;
         params.ceiling = smoothZoom * 0.5f;
-        params.gravity = gravity ? ( 10 * 9.8f * ( locked ? vec3f(0,0,-1) : accelerometer.GetDown() ) )
+        params.gravity = gravity ? ( 10 * 9.8f * ( locked ? vec3f(0,0,-1) : accelerometer->GetDown() ) )
                                  : vec3f(0,0,0);
 
         ::UpdatePhysics( params, board, stoneData, sceneGrid, stones, *telemetry, frustum );
@@ -203,16 +235,6 @@ public:
         }
 
         return false;
-    }
-
-    StoneInstance * FindStoneInstance( uint32_t id )
-    {
-        for ( int i = 0; i < stones.size(); ++i )
-        {
-            if ( stones[i].id == id ) 
-                return &stones[i];
-        }
-        return NULL;
     }
 
     void InferStoneMomentum( StoneInstance & stone, const vec3f & prevPosition, const vec3f & newPosition, float dt, float threshold = 0.1f * 0.1f )
@@ -289,6 +311,7 @@ public:
                 StoneInstance * stone = PickStone( rayStart, rayDirection, t, intersectionPoint, intersectionNormal );
                 if ( stone )
                 {
+                    stone->rigidBody.linearMomentum = vec3f(0,0,0);
                     stone->rigidBody.ApplyImpulseAtWorldPoint( intersectionPoint, TouchImpulse * rayDirection );
                     stone->selected = 1;
 
@@ -317,30 +340,17 @@ public:
             if ( itor != selectMap.end() ) 
             {
                 SelectData & select = itor->second;
-                StoneInstance * stone = FindStoneInstance( select.stoneId );
+                StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
                 if ( stone )
                 {
                     vec3f rayStart, rayDirection;
                     GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
         
-                    // IMPORTANT: first update intersect depth. this way stones can lift
-                    // from the ground to the board and then not snap back to ground when dragged
-                    // off the board (looks bad)
+                    // intersect with the plane at select depth and move the stone
+                    // such that it is offset from the intersection point with this plane.
+                    // then, push the go stone above the go board.
 
                     float t;
-                    vec3f intersectionPoint, intersectionNormal;
-                    if ( IntersectRayStone( stoneData.biconvex, stone->rigidBody.transform, rayStart, rayDirection, t, intersectionPoint, intersectionNormal, FatFingerBonus ) )
-                    {
-                        if ( intersectionPoint.z() > select.depth )
-                        {
-                            select.depth = intersectionPoint.z();
-                            select.offset = stone->rigidBody.position - intersectionPoint;
-                        }
-                    }
-
-                    // next, intersect with the plane at select depth and move the stone
-                    // such that it is offset from the intersection point with this plane
-
                     if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), select.depth, t ) )
                     {
                         select.prevIntersectionPoint = select.intersectionPoint;
@@ -351,7 +361,13 @@ public:
 
                         stone->rigidBody.position = select.intersectionPoint + select.offset;
 
+                        StaticContact contact;
+                        StoneBoardCollision( stoneData.biconvex, board, stone->rigidBody, contact, true, true );
+
                         sceneGrid.MoveObject( stone->id, previousPosition, stone->rigidBody.position );
+
+                        select.intersectionPoint = stone->rigidBody.position - select.offset;
+                        select.depth = select.intersectionPoint.z();
                     }
                 }
                 else
@@ -371,7 +387,7 @@ public:
             if ( itor != selectMap.end() )
             {
                 SelectData & select = itor->second;
-                StoneInstance * stone = FindStoneInstance( select.stoneId );
+                StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
                 if ( stone )
                 {
                     stone->selected = 0;
@@ -395,7 +411,7 @@ public:
             if ( itor != selectMap.end() )
             {
                 SelectData & select = itor->second;
-                StoneInstance * stone = FindStoneInstance( select.stoneId );
+                StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
                 if ( stone )
                 {
                     stone->selected = 0;

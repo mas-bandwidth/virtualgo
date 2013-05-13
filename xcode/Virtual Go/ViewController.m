@@ -107,7 +107,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     const float aspectRatio = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
 
-    game.Initialize( telemetry, aspectRatio );
+    game.Initialize( telemetry, accelerometer, aspectRatio );
 
     GenerateBiconvexMesh( _stoneMesh, game.GetBiconvex(), 3 );
     GenerateFloorMesh( _floorMesh );
@@ -462,7 +462,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         float boardShadowAlpha = 1.0f;
 
         mat4f shadowMatrix;
-        MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z() * 0.5f, 0 ), shadowMatrix );
+        MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
 
         mat4f modelView = game.GetCameraMatrix() * shadowMatrix;
         mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
@@ -628,10 +628,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 {
     float dt = 1.0f / 60.0f;
 
-    game.UpdateCamera( dt );
+    game.Update( dt );
 
-    game.UpdatePhysics( dt, accelerometer );
-    
     [self render];
 
     telemetry.Update( dt, game.GetBoard(), game.GetStones(), game.IsLocked(), accelerometer.GetUp() );

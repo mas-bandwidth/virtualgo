@@ -1,25 +1,24 @@
 DONE:
 
+    Fix dragging bugs with the stone
+
+    Get a new build out. First build with stone vs. stone collsion
+
 TODO:
-    
-    -----------------------------------------------------------------
 
-    Pass over cell grid gathering pairs of potentially colliding objects.
+    --------------------------------------------------
 
-    Standardize order such that the lower object id is first in the pair.
+    Fix the bugs with the scene grid
 
-    Unique the pairs of objects, eg. 64bit pair [src][dst] in correct order.
+    Extend nearest object pair search to adjacent cells
 
-    Apply broadphase reject between pairs when their bounding
-    spheres are too far away.
+    Need to find what is causing the drift!
 
-    When stones are colliding push each out of penetration along normal.
+    Find a way to get decent looking black stones!
 
-    Apply simple linear collision response.
+    Fix jitter when stone is dragged off the screen!
 
-    This should be enough for BASIC non-stupid looking motion in zero-g.
-
-    -----------------------------------------------------------------
+    -------------------------------------------------
 
 
 
@@ -33,8 +32,10 @@ TODO:
     Find axis of least penetration
 
     Implement proper collision response for two moving objects
+    with angular effects. 
 
-    Implement stone vs. stone collision response in zero-g
+    Handle the case where the mass is scaled
+    to infinite as well, eg. stone that is currently selected.
 
     -----------------------------------------------------------------
 

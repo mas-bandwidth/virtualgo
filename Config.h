@@ -10,8 +10,12 @@
 //#define FRUSTUM_CULLING
 //#define DISCOVER_KEY_CODES
 
-const float SceneGridRes = 5;
-const float SceneGridBounds = 64;
+const int MaxStones = 256;
+
+const float SceneGridRes = 100;
+const float SceneGridWidth = 64;
+const float SceneGridHeight = 64;
+const float SceneGridDepth = 32;
 
 const float FatFingerBonus = 1.35f;
 

@@ -58,6 +58,7 @@ public:
     float GetSphereDot() const { return sphereDot; }
 
     float GetBoundingSphereRadius() const { return boundingSphereRadius; }
+    float GetBoundingSphereRadiusSquared() const { return boundingSphereRadiusSquared; }
 
     float GetCircleRadius() const { return circleRadius; }
 

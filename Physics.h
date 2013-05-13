@@ -10,6 +10,7 @@
 #include "CollisionDetection.h"
 #include "CollisionResponse.h"
 #include "Telemetry.h"
+#include <set>
 
 struct PhysicsParameters
 {
@@ -54,14 +55,110 @@ struct PhysicsParameters
         rollingSpeedA = 0.25f;
         rollingSpeedB = 1.0f;
         
-        dampingThreshold = 0.5f;
-        dampingFactor = 0.9995f;
+        dampingThreshold = 0.01f;
+        dampingFactor = 0.999f;
 
         deactivateTime = 0.1f;
         deactivateLinearThreshold = 0.1f * 0.1f;
         deactivateAngularThreshold = 0.05f * 0.05f;
     }
 };
+
+struct IdPair
+{
+    uint32_t a : 16;
+    uint32_t b : 16;
+
+    bool operator < ( const IdPair & other ) const
+    {
+        return *((uint32_t*)this) < *((uint32_t*)&other);
+    }
+};
+
+struct ObjectPair
+{
+    IdPair id_pair;
+    StoneInstance * a;
+    StoneInstance * b;
+};
+
+typedef std::set<IdPair> ObjectSet;
+
+inline void FindOverlappingObjects( SceneGrid & sceneGrid,
+                                    float boundingSphereRadiusSquared,
+                                    std::vector<StoneInstance> & stones,
+                                    std::vector<ObjectPair> & overlappingObjects )
+{
+    static ObjectSet objectSet;
+    objectSet.clear();
+    
+    int nx, ny, nz;
+    sceneGrid.GetIntegerBounds( nx, ny, nz );
+    
+    for ( int iz = 0; iz < nz; ++iz )
+    {
+        for ( int iy = 0; iy < ny; ++iy )
+        {
+            for ( int ix = 0; ix < nx; ++ix )
+            {
+                int index = sceneGrid.GetCellIndex( ix, iy, iz );
+                
+                const Cell & cell = sceneGrid.GetCell( index );
+                    
+                for ( int i = 0; i < cell.objects.size(); ++i )
+                {
+                    uint16_t a = cell.objects[i];
+
+                    for ( int j = 0; j < cell.objects.size(); ++j )
+                    {
+                        uint16_t b = cell.objects[j];
+                        
+                        if ( a == b )
+                            continue;
+
+                        IdPair id_pair;
+                        
+                        if ( a < b )
+                        {
+                            id_pair.a = a;
+                            id_pair.b = b;
+                        }
+                        else
+                        {
+                            id_pair.a = b;
+                            id_pair.b = a;
+                        }
+                        
+                        if ( objectSet.find( id_pair ) == objectSet.end() )
+                        {
+                            ObjectPair objectPair;
+                            objectPair.id_pair = id_pair;
+                            objectPair.a = FindStoneInstance( id_pair.a, stones );
+                            objectPair.b = FindStoneInstance( id_pair.b, stones );
+                            assert( objectPair.a );
+                            assert( objectPair.b );
+                            if ( length_squared( objectPair.a->rigidBody.position - objectPair.b->rigidBody.position ) < boundingSphereRadiusSquared * 4 )
+                            {
+                                objectSet.insert( id_pair );
+                                overlappingObjects.push_back( objectPair );
+                            }
+                        }
+                    }
+                }
+
+                // todo: compare base cell vs. the adjecent cells +1
+
+                //   a: (+1,0,0)
+                //   b: (0,+1,0)
+                //   c: (0,0,+1)
+                //   d: (+1,+1,0)
+                //   e: (0,+1,+1)
+                //   f: (+1,0,+1)
+                //   g: (+1,+1,+1)
+            }
+        }
+    }
+}
 
 inline void UpdatePhysics( const PhysicsParameters & params,
                            const Board & board, 
@@ -78,7 +175,20 @@ inline void UpdatePhysics( const PhysicsParameters & params,
     for ( int i = 0; i < params.iterations; ++i )
     {
         // =======================================================================
-        // 1. integrate object motion for this iteration
+        // 0. keep track of previous position per-stone before any adjustments
+        // =======================================================================
+        
+        vec3f previousPosition[MaxStones];
+        
+        for ( int j = 0; j < stones.size(); ++j )
+        {
+            StoneInstance & stone = stones[j];
+
+            previousPosition[j] = stone.rigidBody.position;
+        }
+        
+        // =======================================================================
+        // 1. integrate motion
         // =======================================================================
 
         for ( int j = 0; j < stones.size(); ++j )
@@ -88,8 +198,6 @@ inline void UpdatePhysics( const PhysicsParameters & params,
             if ( !stone.rigidBody.active )
                 continue;
 
-            vec3f previousPosition = stone.rigidBody.position;
-
             if ( !stone.selected )
                 stone.rigidBody.linearMomentum += params.gravity * stone.rigidBody.mass * iteration_dt;
 
@@ -97,7 +205,7 @@ inline void UpdatePhysics( const PhysicsParameters & params,
 
             if ( !stone.selected )
                 stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
-
+            
             quat4f spin;
             AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity, spin );
             const float rotation_substep_dt = iteration_dt / params.rotationSubsteps;
@@ -105,11 +213,9 @@ inline void UpdatePhysics( const PhysicsParameters & params,
             {
                 stone.rigidBody.orientation += spin * rotation_substep_dt;
                 stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
-            }        
+            }
             
             stone.rigidBody.UpdateTransform();
-
-            sceneGrid.MoveObject( stone.id, previousPosition, stone.rigidBody.position );
         }
 
         // =======================================================================
@@ -227,7 +333,7 @@ inline void UpdatePhysics( const PhysicsParameters & params,
                 }
             }
 
-            // apply damping
+            // apply air resistance damping
 
             if ( length_squared( stone.rigidBody.linearMomentum ) > params.dampingThreshold ||
                  length_squared( stone.rigidBody.angularMomentum ) > params.dampingThreshold )
@@ -246,14 +352,97 @@ inline void UpdatePhysics( const PhysicsParameters & params,
         }
 
         // =======================================================================
-        // 3. collide stones against other stones
+        // 3. update stone positions in scene grid post static-collision
         // =======================================================================
 
-        // ...
+        for ( int j = 0; j < stones.size(); ++j )
+        {
+            StoneInstance & stone = stones[j];
+            
+            if ( !stone.rigidBody.active )
+                continue;
+
+            sceneGrid.MoveObject( stone.id, previousPosition[j], stone.rigidBody.position );
+            
+            previousPosition[j] = stone.rigidBody.position;
+        }        
+        
+        // =======================================================================
+        // 4. collide stones against other stones
+        // =======================================================================
+        
+        static std::vector<ObjectPair> potentiallyOverlappingObjects;
+        potentiallyOverlappingObjects.clear();
+
+        FindOverlappingObjects( sceneGrid, 
+                                stoneData.biconvex.GetBoundingSphereRadiusSquared(),
+                                stones,
+                                potentiallyOverlappingObjects );
+
+        /*
+        static float accum = 0;
+        accum += params.dt;
+        if ( accum > 1 )
+        {
+            printf( "overlapping objects: %d\n", (int) potentiallyOverlappingObjects.size() );
+            accum = 0;
+        }
+        */
+
+        for ( int j = 0; j < potentiallyOverlappingObjects.size(); ++j )
+        {
+            ObjectPair & pair = potentiallyOverlappingObjects[j];
+            
+            StoneInstance * a = pair.a;
+            StoneInstance * b = pair.b;
+
+            vec3f & position_a = a->rigidBody.position;
+            vec3f & position_b = b->rigidBody.position;
+
+            vec3f difference = position_a - position_b;
+
+            float distance = length( difference );
+
+            vec3f axis = distance > 0.00001f ? normalize( difference ) : vec3f(0,1,0);
+
+            const float boundingSphereRadius = stoneData.biconvex.GetBoundingSphereRadius();
+
+            const float penetration = 2 * boundingSphereRadius - distance;
+
+            if ( !a->selected )
+                position_a += axis * penetration / 2;
+            
+            if ( !b->selected )
+                position_b -= axis * penetration / 2;
+            
+            // todo: apply simple linear impulse response
+            
+            // todo: treat selected stones as if they have infinite mass!
+            
+            a->rigidBody.Activate();
+            b->rigidBody.Activate();
+            
+            a->rigidBody.UpdateTransform();
+            b->rigidBody.UpdateTransform();
+        }
+                
+        // =======================================================================
+        // 5. update stone positions in scene grid post dynamic-collision
+        // =======================================================================
+        
+        for ( int j = 0; j < stones.size(); ++j )
+        {
+            StoneInstance & stone = stones[j];
+            
+            if ( !stone.rigidBody.active )
+                continue;
+            
+            sceneGrid.MoveObject( stone.id, previousPosition[j], stone.rigidBody.position );
+        }        
     }
 
     // =======================================================================
-    // 4. detect stones at rest and deactivate them
+    // 6. detect stones at rest and deactivate them
     // =======================================================================
 
     for ( int i = 0; i < stones.size(); ++i )

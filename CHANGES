@@ -1,4 +1,61 @@
 
+Simple collision between stones (13/5/2013):
+--------------------------------------------
+
+    Iterate across potentially colliding object pairs
+
+    When stones are colliding push each out of penetration along normal.
+
+    There appear to be bugs in the scene grid. I cannot explain
+    current behavior. It seems to work fine with a single grid
+    cell, but more than one cell and it breaks down.
+
+    Need to get the scene grid under unit test and verify correctness.
+
+    If stone is selected, treat it as if it has infinite mass.
+
+    (What to do with multiple stones selected?!)
+
+    Put a white stone on each star point.
+
+
+Added overlapping objects test using scene grid (13/5/2013):
+------------------------------------------------------------
+
+    Add object pair struct
+
+    Think about how to implement "FindOverlappingObjects"
+    method in terms of object pairs.
+
+    I'm going to need a fast lookup from object id -> stone instance.
+
+    For the moment hacked up with a slow linear lookup
+
+    Sort a,b ids so that a is always less than b. This lets me combine
+    the two ids into a 32bit integer that eliminates (a,b) and (b,a)
+    looking like different object pairs.
+
+    Add an ObjectSet: std::set<IdPair> to filter out existing
+    object pairs when comparing.
+
+    Added simple, non-cache friendly broadphase filtering between
+    stones, eg. get position from rigid body, filter if length squared
+    between them is > bounding sphere radius squared.
+
+    Pass over cell grid gathering pairs of potentially colliding objects.
+
+    First, I'm doing a simple scheme where I only test objects within
+    the current grid cell. This is incorrect, as it will miss object
+    overlaps when objects are overlapping grid cells.
+
+    Reduce to only a few stones.
+
+    Print out set of potentially colliding objects per-frame
+    to the TTY.
+
+    Verify that this matches what I expect!
+
+
 Added scene grid (12/5/2013):
 -----------------------------
 
