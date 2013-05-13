@@ -60,7 +60,7 @@ public:
 
         board.Initialize( BoardSize );
 
-        stoneData.Initialize( STONE_SIZE_32 );
+        stoneData.Initialize( STONE_SIZE_40 );
 
         sceneGrid.Initialize( SceneGridRes, SceneGridWidth, SceneGridHeight, SceneGridDepth );
 
@@ -174,6 +174,8 @@ public:
         
         // todo: perhaps jerk and launch are best combined into some non-linear scale of high pass accelerometer?
 
+        const float variance = 0.1f;
+
         // apply jerk acceleration to stones
 
         const vec3f & jerkAcceleration = accelerometer->GetJerkAcceleration();
@@ -183,7 +185,12 @@ public:
             for ( int i = 0; i < stones.size(); ++i )
             {
                 StoneInstance & stone = stones[i];
-                stone.rigidBody.ApplyImpulse( JerkScale * jerkAcceleration * stone.rigidBody.mass );
+
+                vec3f varianceScale = vec3f( random_float( 1.0f - variance, 1.0f + variance ),
+                                             random_float( 1.0f - variance, 1.0f + variance ),
+                                             random_float( 1.0f - variance, 1.0f + variance ) );
+
+                stone.rigidBody.ApplyImpulse( JerkScale * jerkAcceleration * varianceScale * stone.rigidBody.mass );
             }
         }
 
@@ -194,7 +201,13 @@ public:
             for ( int i = 0; i < stones.size(); ++i )
             {
                 StoneInstance & stone = stones[i];
-                stone.rigidBody.ApplyImpulse( jerkAcceleration * vec3f( LaunchMomentum*0.66f, LaunchMomentum*0.66f, LaunchMomentum ) );
+
+                vec3f varianceScale = vec3f( random_float( 1.0f - variance, 1.0f + variance ),
+                                             random_float( 1.0f - variance, 1.0f + variance ),
+                                             random_float( 1.0f - variance, 1.0f + variance ) );
+
+                stone.rigidBody.ApplyImpulse( jerkAcceleration * varianceScale * 
+                                              vec3f( LaunchMomentum*0.66f, LaunchMomentum*0.66f, LaunchMomentum ) );
             }
 
             telemetry->IncrementCounter( COUNTER_AppliedImpulse );

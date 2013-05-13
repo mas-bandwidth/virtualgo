@@ -23,6 +23,27 @@ TODO:
 
     -------------------------------------------------
     
+    Would be really nice if I could dynamically adjust
+    stone sizes and it would adapt the friction and
+    damping settings. Perhaps linear interpolation?
+
+    Would be really nice to let the player adjust stone
+    size while the app is running. Would be a very cool
+    demo of the different way stones move.
+
+    eg. Do sizes 30, 32, 34, 36, 38, 40...
+
+    Also would be nice to pass over all things that
+    affect the stone and make them mass aware, eg.
+    impulses should affect heavy stones less
+
+    Perhaps I need to calculate the mass of the go
+    stones at various sizes, and feed this in to the
+    simulation. It seems the mass needs to be larger
+    so that impulses would have less effect.
+
+    -------------------------------------------------
+
 
 
 

@@ -124,7 +124,7 @@ struct RigidBody
     {
         if ( !active )
         {
-            printf( "activate\n" );
+//            printf( "activate\n" );
             active = true;
         }
     }
@@ -133,7 +133,7 @@ struct RigidBody
     {
         if ( active )
         {
-            printf( "deactivate\n" );
+//            printf( "deactivate\n" );
             active = false;
             deactivateTimer = 0;
             linearMomentum = vec3f(0,0,0);
@@ -147,7 +147,7 @@ struct RigidBody
     {
         Activate();
         linearMomentum += impulse;
-        UpdateMomentum();                   // todo: can this be avoided?
+        UpdateMomentum();
     }
 
     void ApplyImpulseAtWorldPoint( const vec3f & point, const vec3f & impulse )
@@ -156,7 +156,7 @@ struct RigidBody
         vec3f r = point - position;
         linearMomentum += impulse;
         angularMomentum += cross( r, impulse );
-        UpdateMomentum();                   // todo: can this be avoided?
+        UpdateMomentum();
     }
 };
 

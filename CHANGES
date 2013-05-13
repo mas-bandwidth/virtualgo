@@ -1,4 +1,19 @@
 
+Added wabi-sabi to accelerometer impulses (12/5/2013):
+------------------------------------------------------
+
+    Previously impulses were applied uniformly to all stones. 
+
+    This lead to really strange behavior where multiple stones
+    had *exactly* the same motion in parallel.
+
+    To fix this I've added a bit of variance to the impulse,
+    per-stone, on the order of a scale +/- 10% per-component.
+
+    This makes the stone reaction to impulses look much more
+    natural, and in keeping with the japanese ideal of WABI SABI!!!
+
+
 Fixed drift and coming to rest (12/5/2013):
 -------------------------------------------
 

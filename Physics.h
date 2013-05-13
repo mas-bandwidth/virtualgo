@@ -44,21 +44,35 @@ struct PhysicsParameters
         rotationSubsteps = 1;
 
         e = 0.5f;
-        u = 0.5f;
+
+        // size 40
+        u = 0.35f;
+
+        // size 32 
+        //u = 0.5f;
         
         ceiling = 100.0f;
         
         gravity = vec3f(0,0,0);
 
+        // size 40
+        rollingFactorA = 0.75f;
+        rollingFactorB = 0.975f;
+        rollingSpeedA = 0.25f;
+        rollingSpeedB = 1.0f;
+
+        /*
+        // size 32
         rollingFactorA = 0.75f;
         rollingFactorB = 0.99f;
         rollingSpeedA = 0.25f;
         rollingSpeedB = 1.0f;
+        */
         
         dampingThreshold = 0.01f;
         dampingFactor = 0.999f;
 
-        deactivateTime = 0.1f;
+        deactivateTime = 0.25f;
         deactivateLinearThreshold = 0.1f * 0.1f;
         deactivateAngularThreshold = 0.1f * 0.1f;
     }
