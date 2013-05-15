@@ -6,11 +6,6 @@ DONE:
 
 TODO:
 
-    Impulse should be non-linear scale. Why separate launch and jerk?
-
-    Also, make sure small jerk impulses are not
-    making stones never come to rest (printf check)
-
     --------------------------------------------------
 
     Get the scene grid under unit test

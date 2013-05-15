@@ -224,7 +224,7 @@ public:
                                              random_float( 1.0f - variance, 1.0f + variance ) );
 
                 stone.rigidBody.ApplyImpulse( jerkAcceleration * varianceScale * 
-                                              vec3f( LaunchMomentum*0.66f, LaunchMomentum*0.66f, LaunchMomentum ) );
+                                              vec3f( LaunchMomentum*0.66f, LaunchMomentum*0.66f, LaunchMomentum*1.5f ) );
             }
 
             telemetry->IncrementCounter( COUNTER_AppliedImpulse );
