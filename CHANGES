@@ -1,4 +1,12 @@
 
+Minor fixes and tuning (15/5/2013):
+-----------------------------------
+
+    Fix jitter when stone is dragged off the screen
+
+    Tuned accelerometer impulse
+
+
 Added wabi-sabi to accelerometer impulses (12/5/2013):
 ------------------------------------------------------
 
