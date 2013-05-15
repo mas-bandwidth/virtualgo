@@ -1,21 +1,19 @@
 DONE:
 
+    Adjusted impulse threshold lower
+
+    Fix jitter when stone is dragged off the screen
 
 TODO:
 
-    --------------------------------------------------
+    Impulse should be non-linear scale. Why separate launch and jerk?
 
-    Fix jitter when stone is dragged off the screen!
-
-    I think the correct approach is to re-instate the
-    snap to touch position in "UpdateTouch" and run
-    that before the physics.
-
-    This way it is always run first before physics
-    update, and physics always runs AFTER, before render
-    so it constrains the dragged stone in the scene.
+    Also, make sure small jerk impulses are not
+    making stones never come to rest (printf check)
 
     --------------------------------------------------
+
+    Get the scene grid under unit test
 
     Fix the bugs with the scene grid
 
@@ -44,7 +42,20 @@ TODO:
 
     -------------------------------------------------
 
+    Black stones should be slightly larger than white
+    stones, both in physics calculation and in mesh.
 
+    Would be nice to turn this on.
+
+    -------------------------------------------------
+
+    Bring back stone swipe detection
+
+    Add wabi sabi to the swipe angular momentum
+
+    -------------------------------------------------
+
+    
 
 
 
@@ -108,28 +119,6 @@ TODO:
 
     -----------------------------------------------------------------
 
-
-
-
-
-
-
-    -----------------------------------------------------------------
-
-    Why are the stones drifting even though gravity is down?!!!
-
-    It seems that 10 iterations was hiding this issue.
-
-    Stone is pulled down due to gravity then pushed out of the board,
-    this creates movement that causes a sliding motion even when friction
-    should stick.
-
-    Perhaps when applying gravity to objects that are already in
-    contact with the board or ground, they should do a static friction
-    check before applying any component of gravity that isn't in the
-    surface normal direction?
-
-    -----------------------------------------------------------------
 
 
 
@@ -266,11 +255,6 @@ TODO:
 
 
     -----------------------------------------------------------------
-
-    Seems that hold sometimes does not trigger. Not sure why yet?
-    It seems that touch began triggers, but somehow the hold doesn't
-    kick in. Maybe the touch began but it doesn't know where?
-    Anyway, this is reproduceable so can be fixed later.
 
     Pops occur in the corners/edges. Need iterative contacts.
 

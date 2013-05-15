@@ -452,6 +452,8 @@ inline void UpdatePhysics( const PhysicsParameters & params,
                 continue;
             
             sceneGrid.MoveObject( stone.id, previousPosition[j], stone.rigidBody.position );
+
+            stone.rigidBody.UpdateTransform();
         }        
     }
 

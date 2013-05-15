@@ -93,7 +93,7 @@ public:
         {
             StoneInstance stone;
             stone.Initialize( stoneData, stoneId++, white );
-            stone.rigidBody.position = pointPosition[i];
+            stone.rigidBody.position = pointPosition[i] + vec3f(0,0,stoneData.biconvex.GetHeight()/2);
             stone.rigidBody.orientation = quat4f(1,0,0,0);
             stone.rigidBody.linearMomentum = vec3f(0,0,0);
             stone.rigidBody.angularMomentum = vec3f(0,0,0);
@@ -142,6 +142,8 @@ public:
     void Update( float dt )
     {
         UpdateCamera( dt );
+
+        UpdateTouch( dt );
         
         UpdatePhysics( dt );
     }
@@ -165,6 +167,23 @@ public:
         normalMatrix.load( cameraMatrix );
     }
 
+    void UpdateTouch( float dt )
+    {
+        for ( SelectMap::iterator itor = selectMap.begin(); itor != selectMap.end(); ++itor ) 
+        {
+            SelectData & select = itor->second;
+
+            StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
+            if ( stone )
+            {
+                vec3f previousPosition = stone->rigidBody.position;
+                stone->rigidBody.position = select.intersectionPoint + select.offset;
+                sceneGrid.MoveObject( stone->id, previousPosition, stone->rigidBody.position );
+                stone->rigidBody.Activate();
+            }
+        }
+    }
+
     void UpdatePhysics( float dt )
     {
         // calculate frustum planes for collision
@@ -172,8 +191,6 @@ public:
         Frustum frustum;
         CalculateFrustumPlanes( clipMatrix, frustum );
         
-        // todo: perhaps jerk and launch are best combined into some non-linear scale of high pass accelerometer?
-
         const float variance = 0.1f;
 
         // apply jerk acceleration to stones
@@ -254,6 +271,12 @@ public:
 
     void InferStoneMomentum( StoneInstance & stone, const vec3f & prevPosition, const vec3f & newPosition, float dt, float threshold = 0.1f * 0.1f )
     {
+        // todo: max momentum
+
+        // todo: make the *impulse* relative to the distance
+        // not the mass * distance, therefore heavier stones
+        // are harder to flick (desired)
+
         const vec3f delta = newPosition - prevPosition;
 
         if ( length_squared( delta ) > threshold )
@@ -371,18 +394,6 @@ public:
                         select.prevIntersectionPoint = select.intersectionPoint;
                         select.intersectionPoint = rayStart + rayDirection * t;
                         select.timestamp = touch.timestamp;
-
-                        vec3f previousPosition = stone->rigidBody.position;
-
-                        stone->rigidBody.position = select.intersectionPoint + select.offset;
-
-                        StaticContact contact;
-                        StoneBoardCollision( stoneData.biconvex, board, stone->rigidBody, contact, true, true );
-
-                        sceneGrid.MoveObject( stone->id, previousPosition, stone->rigidBody.position );
-
-                        select.intersectionPoint = stone->rigidBody.position - select.offset;
-                        select.depth = select.intersectionPoint.z();
                     }
                 }
                 else
@@ -406,7 +417,7 @@ public:
                 if ( stone )
                 {
                     stone->selected = 0;
-                    
+
                     InferStoneMomentum( *stone,
                                         select.prevIntersectionPoint, 
                                         select.intersectionPoint, 
@@ -439,6 +450,21 @@ public:
                 selectMap.erase( itor );
             }
         }
+    }
+
+    void OnSwipe( const vec3f & point, const vec3f & delta )
+    {
+        const vec3f up = -normalize( accelerometer->GetSmoothedAcceleration() );
+
+        for ( int i = 0; i < stones.size(); ++i )
+        {
+            StoneInstance & stone = stones[i];
+            stone.rigidBody.angularMomentum += SwipeMomentum * up;
+            stone.rigidBody.Activate();
+        }
+
+        telemetry->IncrementCounter( COUNTER_Swiped );
+        telemetry->SetSwipedThisFrame();
     }
 
     // ----------------------------------------------------------------

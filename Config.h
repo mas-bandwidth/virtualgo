@@ -39,10 +39,10 @@ const float ZoomOutTightness = 0.15f;
 const float AccelerometerFrequency = 20;
 const float AccelerometerTightness = 0.1f;
 
-const float JerkThreshold = 0.1f;
+const float JerkThreshold = 0.0f;
 const float JerkScale = 0.5f;
 
-const float LaunchThreshold = 0.75f;
+const float LaunchThreshold = 0.625f;
 const float LaunchMomentum = 8;
 
 const float MinimumSwipeLength = 50;            // points
