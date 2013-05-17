@@ -76,12 +76,100 @@ public:
         this->aspectRatio = aspectRatio;
     }
 
+    enum Color
+    {
+        Black,
+        White
+    };
+
+    void AddStone( int row, int column, Color color, float variance = 0.15 )
+    {
+        vec3f wabiSabi = vec3f( random_float( - variance, + variance ),
+                                random_float( - variance, + variance ),
+                                0 );
+
+        StoneInstance stone;
+        stone.Initialize( stoneData, stoneId++, color == White );
+        stone.rigidBody.position = board.GetPointPosition( row, column ) + vec3f( 0, 0, stoneData.biconvex.GetHeight() / 2 ) + wabiSabi;
+        stone.rigidBody.orientation = quat4f(1,0,0,0);
+        stone.rigidBody.linearMomentum = vec3f(0,0,0);
+        stone.rigidBody.angularMomentum = vec3f(0,0,0);
+        stone.rigidBody.Activate();
+        stones.push_back( stone );
+        sceneGrid.AddObject( stone.id, stone.rigidBody.position );
+    }
+
     void PlaceStones()
     {
         stones.clear();
         selectMap.clear();
         sceneGrid.clear();
 
+        // Miyamoto Naoki vs Go Seigen 9x9
+        // https://www.youtube.com/watch?v=VsBqYNR5P3U
+
+        AddStone( 1, 2, Black );
+        AddStone( 1, 3, White );
+        AddStone( 1, 4, White );
+        AddStone( 1, 8, White );
+
+        AddStone( 2, 2, Black );
+        AddStone( 2, 3, White );
+        AddStone( 2, 5, White );
+        AddStone( 2, 7, White );
+        AddStone( 2, 8, Black );
+        AddStone( 2, 9, Black );
+
+        AddStone( 3, 2, Black );
+        AddStone( 3, 3, Black );
+        AddStone( 3, 4, White );
+        AddStone( 3, 5, White );
+        AddStone( 3, 6, White );
+        AddStone( 3, 7, Black );
+        AddStone( 3, 8, Black );
+
+        AddStone( 4, 3, Black );
+        AddStone( 4, 4, White );
+        AddStone( 4, 6, White );
+        AddStone( 4, 7, White );
+        AddStone( 4, 8, Black );
+
+        AddStone( 5, 1, Black );
+        AddStone( 5, 2, Black );
+        AddStone( 5, 5, Black );
+        AddStone( 5, 7, White );
+        AddStone( 5, 8, Black );
+
+        AddStone( 6, 1, Black );
+        AddStone( 6, 2, White );
+        AddStone( 6, 3, Black );
+        AddStone( 6, 4, Black );
+        AddStone( 6, 6, Black );
+        AddStone( 6, 7, White );
+        AddStone( 6, 8, Black );
+        
+        AddStone( 7, 1, Black );
+        AddStone( 7, 2, White );
+        AddStone( 7, 3, White );
+        AddStone( 7, 4, Black );
+        AddStone( 7, 6, White );
+        AddStone( 7, 7, Black );
+
+        AddStone( 8, 1, White );
+        AddStone( 8, 2, White );
+        AddStone( 8, 3, White );
+        AddStone( 8, 4, White );
+        AddStone( 8, 5, White );
+        AddStone( 8, 6, White );
+        AddStone( 8, 7, Black );
+
+        AddStone( 9, 2, Black );
+        AddStone( 9, 3, White );
+        AddStone( 9, 4, Black );
+        AddStone( 9, 6, White );
+        AddStone( 9, 7, Black );
+
+        /*
         // add stones on the star points
 
         int numStarPoints;
@@ -102,6 +190,7 @@ public:
             sceneGrid.AddObject( stone.id, stone.rigidBody.position );
             white = !white;
         }
+        */
 
         /*
         // add stones on every point

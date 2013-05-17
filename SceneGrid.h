@@ -43,6 +43,9 @@ public:
         const int size = nx * ny * nz;
         assert( size > 0 );
 		cells.resize( size );
+
+		for ( int i = 0; i < cells.size(); ++i )
+			cells[i].objects.reserve( 32 );
 	}
 
 	void GetCellCoordinates( const vec3f & position, int & x, int & y, int & z )

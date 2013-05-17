@@ -2,6 +2,10 @@ DONE:
 
 TODO:
 
+    Some stones appear to not be colliding. Scene grid
+    still has some bugs where stones are not considered
+    for collision when they should!
+
     Get a basic linear collision response going
     between the stones so flicking a stone at another
     stone results in basically plausible collision.

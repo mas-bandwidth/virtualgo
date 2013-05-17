@@ -1,4 +1,18 @@
 
+Initial stone position is now the end position for a real 9x9 game (17/5/2013):
+-------------------------------------------------------------------------------
+
+    Demonstrates that we can now simulate the required number of stones.
+
+    There are still some issues with the solver obviously having lots of
+    jitter due to one iteration, but the collision detection is fast enough
+    to support this amount of stones.
+
+    Also seems to be some small issue where stones sometimes do not collide,
+    this appears to indicate that there is still some issue where the cell
+    grid is not finding colliding pairs of objects where it should.
+
+
 Fix bugs in scene grid (16/5/2013):
 -----------------------------------
 

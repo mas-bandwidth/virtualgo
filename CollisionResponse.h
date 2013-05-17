@@ -6,11 +6,22 @@
 
 void ApplyLinearCollisionImpulse( StaticContact & contact, float e )
 {
-    vec3f velocityAtPoint;
-    contact.rigidBody->GetVelocityAtWorldPoint( contact.point, velocityAtPoint );
+    vec3f velocity;
+    contact.rigidBody->GetVelocityAtWorldPoint( contact.point, velocity );
     const float k = contact.rigidBody->inverseMass;
-    const float j = max( - ( 1 + e ) * dot( velocityAtPoint, contact.normal ) / k, 0 );
+    const float j = max( - ( 1 + e ) * dot( velocity, contact.normal ) / k, 0 );
     contact.rigidBody->linearMomentum += j * contact.normal;
+}
+
+void ApplyLinearCollisionImpulse( DynamicContact & contact, float e )
+{
+    /*
+    vec3f velocity;
+    contact.rigidBody->GetVelocityAtWorldPoint( contact.point, velocity );
+    const float k = contact.rigidBody->inverseMass;
+    const float j = max( - ( 1 + e ) * dot( velocity, contact.normal ) / k, 0 );
+    contact.rigidBody->linearMomentum += j * contact.normal;
+     */
 }
 
 void ApplyCollisionImpulseWithFriction( StaticContact & contact, float e, float u, float epsilon = 0.00001f )

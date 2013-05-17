@@ -89,10 +89,15 @@ struct RigidBody
         }
     }
 
+    void GetLinearVelocity( vec3f & velocity ) const
+    {
+        velocity = linearVelocity / mass;
+    }
+
     void GetVelocityAtWorldPoint( const vec3f & point, vec3f & velocity ) const
     {
         vec3f angularVelocity = transformVector( inverseInertiaTensorWorld, angularMomentum );
-        velocity = linearVelocity + cross( angularVelocity, point - position );
+        velocity = linearMomentum / mass + cross( angularVelocity, point - position );
     }
 
     float GetKineticEnergy() const
