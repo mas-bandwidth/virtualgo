@@ -1,4 +1,38 @@
 
+Fix bugs in scene grid (16/5/2013):
+-----------------------------------
+
+    Get the scene grid under unit test
+
+    Fix the bugs with the scene grid
+
+    Found it! 
+
+    There was a problem with the index calculation 
+    from integer x,y,z that would have resulted in
+    incorrect index for stones based on position.
+
+    Is this the only bug? Verify in game.
+
+    Still problems where stones are not colliding.
+
+    Add tests for add object, remove object, move object.
+
+    Found a couple other logic errors with stones not
+    being properly removed from the cells when moved.
+
+    Seems to be working now in most cases, except it
+    breaks down when objects are in different cells
+    (expected)
+
+    Generalize search between cells so I can easily
+    compare multiple cells without lots of dupe code.
+
+    Seems to be running fast enough with lots of stones!
+
+    Extend nearest object pair search to adjacent cells
+
+
 Minor fixes and tuning (15/5/2013):
 -----------------------------------
 

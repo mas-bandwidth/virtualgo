@@ -1,17 +1,25 @@
 DONE:
 
-
 TODO:
 
-    --------------------------------------------------
-
-    Get the scene grid under unit test
-
-    Fix the bugs with the scene grid
-
-    Extend nearest object pair search to adjacent cells
+    Get a basic linear collision response going
+    between the stones so flicking a stone at another
+    stone results in basically plausible collision.
 
     -------------------------------------------------
+
+    Bring back stone swipe detection
+
+    Add wabi sabi to the swipe angular momentum
+
+    -------------------------------------------------
+
+
+
+
+
+
+    -------------------------------------------------------
     
     Would be really nice if I could dynamically adjust
     stone sizes and it would adapt the friction and
@@ -40,13 +48,6 @@ TODO:
     Would be nice to turn this on.
 
     -------------------------------------------------
-
-    Bring back stone swipe detection
-
-    Add wabi sabi to the swipe angular momentum
-
-    -------------------------------------------------
-
     
 
 

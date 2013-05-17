@@ -12,10 +12,10 @@
 
 const int MaxStones = 256;
 
-const float SceneGridRes = 100;
+const float SceneGridRes = 4;
 const float SceneGridWidth = 64;
 const float SceneGridHeight = 64;
-const float SceneGridDepth = 32;
+const float SceneGridDepth = 64;
 
 const float FatFingerBonus = 1.35f;
 

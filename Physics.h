@@ -98,6 +98,55 @@ struct ObjectPair
 
 typedef std::set<IdPair> ObjectSet;
 
+inline void FindCellOverlappingObjects( ObjectSet & objectSet, 
+                                        float boundingSphereRadiusSquared,
+                                        std::vector<StoneInstance> & stones,
+                                        std::vector<ObjectPair> & overlappingObjects,
+                                        const Cell & self,
+                                        const Cell & other )
+{
+    for ( int i = 0; i < self.objects.size(); ++i )
+    {
+        uint16_t a = self.objects[i];
+
+        for ( int j = 0; j < other.objects.size(); ++j )
+        {
+            uint16_t b = other.objects[j];
+            
+            if ( a == b )
+                continue;
+
+            IdPair id_pair;
+            
+            if ( a < b )
+            {
+                id_pair.a = a;
+                id_pair.b = b;
+            }
+            else
+            {
+                id_pair.a = b;
+                id_pair.b = a;
+            }
+            
+            if ( objectSet.find( id_pair ) == objectSet.end() )
+            {
+                ObjectPair objectPair;
+                objectPair.id_pair = id_pair;
+                objectPair.a = FindStoneInstance( id_pair.a, stones );
+                objectPair.b = FindStoneInstance( id_pair.b, stones );
+                assert( objectPair.a );
+                assert( objectPair.b );
+                if ( length_squared( objectPair.a->rigidBody.position - objectPair.b->rigidBody.position ) < boundingSphereRadiusSquared * 4 )
+                {
+                    objectSet.insert( id_pair );
+                    overlappingObjects.push_back( objectPair );
+                }
+            }
+        }
+    }
+}
+
 inline void FindOverlappingObjects( SceneGrid & sceneGrid,
                                     float boundingSphereRadiusSquared,
                                     std::vector<StoneInstance> & stones,
@@ -115,60 +164,23 @@ inline void FindOverlappingObjects( SceneGrid & sceneGrid,
         {
             for ( int ix = 0; ix < nx; ++ix )
             {
-                int index = sceneGrid.GetCellIndex( ix, iy, iz );
-                
-                const Cell & cell = sceneGrid.GetCell( index );
-                    
-                for ( int i = 0; i < cell.objects.size(); ++i )
-                {
-                    uint16_t a = cell.objects[i];
+                const Cell & a = sceneGrid.GetCellAtIntCoords( ix, iy, iz );
+                const Cell & b = sceneGrid.GetCellAtIntCoords( ix+1, iy, iz ); 
+                const Cell & c = sceneGrid.GetCellAtIntCoords( ix, iy+1, iz ); 
+                const Cell & d = sceneGrid.GetCellAtIntCoords( ix, iy, iz+1 ); 
+                const Cell & e = sceneGrid.GetCellAtIntCoords( ix+1, iy+1, iz ); 
+                const Cell & f = sceneGrid.GetCellAtIntCoords( ix, iy+1, iz+1 ); 
+                const Cell & g = sceneGrid.GetCellAtIntCoords( ix+1, iy, iz+1 ); 
+                const Cell & h = sceneGrid.GetCellAtIntCoords( ix+1, iy+1, iz+1 ); 
 
-                    for ( int j = 0; j < cell.objects.size(); ++j )
-                    {
-                        uint16_t b = cell.objects[j];
-                        
-                        if ( a == b )
-                            continue;
-
-                        IdPair id_pair;
-                        
-                        if ( a < b )
-                        {
-                            id_pair.a = a;
-                            id_pair.b = b;
-                        }
-                        else
-                        {
-                            id_pair.a = b;
-                            id_pair.b = a;
-                        }
-                        
-                        if ( objectSet.find( id_pair ) == objectSet.end() )
-                        {
-                            ObjectPair objectPair;
-                            objectPair.id_pair = id_pair;
-                            objectPair.a = FindStoneInstance( id_pair.a, stones );
-                            objectPair.b = FindStoneInstance( id_pair.b, stones );
-                            assert( objectPair.a );
-                            assert( objectPair.b );
-                            if ( length_squared( objectPair.a->rigidBody.position - objectPair.b->rigidBody.position ) < boundingSphereRadiusSquared * 4 )
-                            {
-                                objectSet.insert( id_pair );
-                                overlappingObjects.push_back( objectPair );
-                            }
-                        }
-                    }
-                }
-
-                // todo: compare base cell vs. the adjecent cells +1
-
-                //   a: (+1,0,0)
-                //   b: (0,+1,0)
-                //   c: (0,0,+1)
-                //   d: (+1,+1,0)
-                //   e: (0,+1,+1)
-                //   f: (+1,0,+1)
-                //   g: (+1,+1,+1)
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, a );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, b );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, c );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, d );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, e );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, f );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, g );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, h );
             }
         }
     }

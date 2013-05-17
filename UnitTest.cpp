@@ -4,12 +4,143 @@
 #include "Intersection.h"
 #include "InertiaTensor.h"
 #include "CollisionDetection.h"
+#include "SceneGrid.h"
 
 #include "UnitTest++/UnitTest++.h"
 #include "UnitTest++/TestRunner.h"
 #include "UnitTest++/TestReporterStdout.h"
 
 #define CHECK_CLOSE_VEC3( value, expected, epsilon ) CHECK_CLOSE( length( value - expected ), 0.0f, epsilon )
+
+SUITE( SceneGrid )
+{
+    TEST( scene_grid_integer_bounds )
+    {
+        SceneGrid sceneGrid;
+        sceneGrid.Initialize( 4.0f, 16.0f, 16.0f, 16.0f );
+
+        int nx,ny,nz;
+        sceneGrid.GetIntegerBounds( nx, ny, nz );
+        CHECK( nx == 4 );
+        CHECK( ny == 4 );
+        CHECK( nz == 4 );
+    }
+
+    TEST( scene_grid_cell_coordinates )
+    {
+        SceneGrid sceneGrid;
+        sceneGrid.Initialize( 4.0f, 16.0f, 16.0f, 16.0f );
+
+        int ix,iy,iz;
+        sceneGrid.GetCellCoordinates( vec3f(1,1,1), ix, iy, iz );
+        CHECK( ix == 2 );
+        CHECK( iy == 2 );
+        CHECK( iz == 0 );
+
+        sceneGrid.GetCellCoordinates( vec3f(-100,-100,-100), ix, iy, iz );
+        CHECK( ix == 0 );
+        CHECK( iy == 0 );
+        CHECK( iz == 0 );
+
+        int nx,ny,nz;
+        sceneGrid.GetIntegerBounds( nx, ny, nz );
+
+        sceneGrid.GetCellCoordinates( vec3f(+100,+100,+100), ix, iy, iz );
+        CHECK( ix == nx - 1 );
+        CHECK( iy == ny - 1 );
+        CHECK( iz == nz - 1 );
+    }
+
+    TEST( scene_grid_cell_index )
+    {
+        SceneGrid sceneGrid;
+        sceneGrid.Initialize( 4.0f, 16.0f, 16.0f, 16.0f );
+
+        int index = sceneGrid.GetCellIndex( 0, 0, 0 );
+        CHECK( index == 0 );
+
+        int nx,ny,nz;
+        sceneGrid.GetIntegerBounds( nx, ny, nz );
+
+        index = sceneGrid.GetCellIndex( 100, 100, 100 );
+        CHECK( index == (nx-1) + (ny-1)*nx + (nz-1)*nx*ny );
+
+        index = sceneGrid.GetCellIndex( 2, 0, 0 );
+        CHECK( index == 2 );
+
+        index = sceneGrid.GetCellIndex( 0, 2, 0 );
+        CHECK( index == 2*4 );
+
+        index = sceneGrid.GetCellIndex( 0, 0, 2 );
+        CHECK( index == 2*4*4 );
+    }
+
+    TEST( scene_grid_add_object )
+    {
+        SceneGrid sceneGrid;
+        sceneGrid.Initialize( 4.0f, 16.0f, 16.0f, 16.0f );
+
+        uint16_t id = 1;
+        vec3f position(0,0,0);
+
+        sceneGrid.AddObject( id, position );
+
+        int ix,iy,iz;
+        sceneGrid.GetCellCoordinates( position, ix, iy, iz );
+
+        int index = sceneGrid.GetCellIndex( ix, iy, iz );
+
+        Cell & cell = sceneGrid.GetCell( index );
+
+        CHECK( std::find( cell.objects.begin(), cell.objects.end(), id ) != cell.objects.end() );
+    }
+
+    TEST( scene_grid_remove_object )
+    {
+        SceneGrid sceneGrid;
+        sceneGrid.Initialize( 4.0f, 16.0f, 16.0f, 16.0f );
+
+        uint16_t id = 1;
+        vec3f position(0,0,0);
+
+        sceneGrid.AddObject( id, position );
+
+        int ix,iy,iz;
+        sceneGrid.GetCellCoordinates( position, ix, iy, iz );
+        int index = sceneGrid.GetCellIndex( ix, iy, iz );
+        Cell & cell = sceneGrid.GetCell( index );
+        CHECK( std::find( cell.objects.begin(), cell.objects.end(), id ) != cell.objects.end() );
+
+        sceneGrid.RemoveObject( id, position );
+        CHECK( std::find( cell.objects.begin(), cell.objects.end(), id ) == cell.objects.end() );
+    }
+
+    TEST( scene_grid_move_object )
+    {
+        SceneGrid sceneGrid;
+        sceneGrid.Initialize( 4.0f, 16.0f, 16.0f, 16.0f );
+
+        uint16_t id = 1;
+        vec3f position1(0,0,0);
+        vec3f position2(10,10,10);
+
+        sceneGrid.AddObject( id, position1 );
+
+        int ix,iy,iz;
+        sceneGrid.GetCellCoordinates( position1, ix, iy, iz );
+        int index = sceneGrid.GetCellIndex( ix, iy, iz );
+        Cell & cell = sceneGrid.GetCell( index );
+        CHECK( std::find( cell.objects.begin(), cell.objects.end(), id ) != cell.objects.end() );
+
+        sceneGrid.MoveObject( id, position1, position2 );
+        CHECK( std::find( cell.objects.begin(), cell.objects.end(), id ) == cell.objects.end() );
+
+        sceneGrid.GetCellCoordinates( position2, ix, iy, iz );
+        index = sceneGrid.GetCellIndex( ix, iy, iz );
+        cell = sceneGrid.GetCell( index );
+        CHECK( std::find( cell.objects.begin(), cell.objects.end(), id ) != cell.objects.end() );
+    }
+}
 
 SUITE( Intersection )
 {

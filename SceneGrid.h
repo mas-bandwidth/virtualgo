@@ -47,9 +47,9 @@ public:
 
 	void GetCellCoordinates( const vec3f & position, int & x, int & y, int & z )
 	{
-		x = (int) floor( ( position.x() + width/2 ) / res );
-		y = (int) floor( ( position.y() + height/2 ) / res );
-		z = (int) floor( position.z() / res );
+		x = clamp( (int) floor( ( position.x() + width/2 ) / res ), 0, nx - 1 );
+		y = clamp( (int) floor( ( position.y() + height/2 ) / res ), 0, ny - 1 );
+		z = clamp( (int) floor( position.z() / res ), 0, nz - 1 );
 	}
 
 	int GetCellIndex( int x, int y, int z )
@@ -58,7 +58,7 @@ public:
 		y = clamp( y, 0, ny - 1 );
 		z = clamp( z, 0, nz - 1 );
 
-		int index = x + y*ny + z*nz;
+		int index = x + y*nx + z*nx*ny;
 
 		assert( index >= 0 );
 		assert( index < cells.size() );
@@ -68,6 +68,12 @@ public:
 
 	Cell & GetCell( int index )
 	{
+		return cells[index];
+	}
+
+	Cell & GetCellAtIntCoords( int ix, int iy, int iz )
+	{
+		int index = GetCellIndex( ix, iy, iz );
 		return cells[index];
 	}
 
@@ -91,7 +97,7 @@ public:
 	{
 		int prev_x,prev_y,prev_z;
 		int curr_x,curr_y,curr_z;
-		GetCellCoordinates( currentPosition, prev_x, prev_y, prev_z );
+		GetCellCoordinates( previousPosition, prev_x, prev_y, prev_z );
 		GetCellCoordinates( currentPosition, curr_x, curr_y, curr_z );
 		const int prev_index = GetCellIndex( prev_x, prev_y, prev_z );
 		const int curr_index = GetCellIndex( curr_x, curr_y, curr_z );
@@ -99,7 +105,7 @@ public:
         {
             Cell & prev = GetCell( prev_index );
             Cell & curr = GetCell( curr_index );
-            std::remove( prev.objects.begin(), prev.objects.end(), id );
+			prev.objects.erase( std::remove( prev.objects.begin(), prev.objects.end(), id ), prev.objects.end() );
             assert( std::find( curr.objects.begin(), curr.objects.end(), id ) == curr.objects.end() );
             curr.objects.push_back( id );
         }
@@ -111,7 +117,7 @@ public:
 		GetCellCoordinates( position, x, y, z );
 		const int index = GetCellIndex( x, y, z );
 		Cell & cell = GetCell( index );
-		std::remove( cell.objects.begin(), cell.objects.end(), id );
+		cell.objects.erase( std::remove( cell.objects.begin(), cell.objects.end(), id ), cell.objects.end() );
 	}
 
 	void GetIntegerBounds( int & nx, int & ny, int & nz )
