@@ -1,4 +1,35 @@
 
+Work on locked mode with stone constraints (18/5/2013):
+-------------------------------------------------------
+
+    First pass lock to constraint
+
+    Goal: Show that stones can be locked to grid and
+    still behave plausibly when shook, without the
+    game build ruined.
+
+    Doesn't seem to be that good. It seems that
+    the constraint needs to adjust velocity at
+    the point like a collision detection constraint,
+    otherwise the stone wobbles about stupidly.
+
+    Attempting to clamp maximum jerk impulse to stop
+    strange effects of constraint. I think this
+    probably is the simplest method!
+
+    Actually, even simpler. Just disable the launch
+    momentum while in the locked mode.
+
+    Separated out tilt from locked. Now can be
+    unlocked, but not have gravity tilt enabled.
+
+    Disable flicking in locked mode.
+
+    Disable dragging for the moment, as it is broken.
+
+    Get a new build out for feedback!
+
+
 Initial stone position is now the end position for a real 9x9 game (17/5/2013):
 -------------------------------------------------------------------------------
 

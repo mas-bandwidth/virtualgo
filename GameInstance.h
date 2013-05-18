@@ -28,6 +28,7 @@ class GameInstance
     bool locked;
     bool zoomed;
     bool gravity;
+    bool tilt;
 
     float smoothZoom;
     float aspectRatio;
@@ -82,19 +83,21 @@ public:
         White
     };
 
-    void AddStone( int row, int column, Color color, float variance = 0.15 )
+    void AddStone( int row, int column, Color color, bool constrained = true, float variance = 0.1f )
     {
-        vec3f wabiSabi = vec3f( random_float( - variance, + variance ),
-                                random_float( - variance, + variance ),
+        vec3f wabiSabi = vec3f( random_float( - PlacementVariance, + PlacementVariance ),
+                                random_float( - PlacementVariance, + PlacementVariance ),
                                 0 );
 
         StoneInstance stone;
         stone.Initialize( stoneData, stoneId++, color == White );
         stone.rigidBody.position = board.GetPointPosition( row, column ) + vec3f( 0, 0, stoneData.biconvex.GetHeight() / 2 ) + wabiSabi;
-        stone.rigidBody.orientation = quat4f(1,0,0,0);
+        stone.rigidBody.orientation = quat4f(1,0,0,0);      // todo: when we have a texture we're going to want to rotate randomly about z axis
         stone.rigidBody.linearMomentum = vec3f(0,0,0);
         stone.rigidBody.angularMomentum = vec3f(0,0,0);
         stone.rigidBody.Activate();
+        stone.constrained = 1;
+        stone.constraintPosition = board.GetPointPosition( row, column );
         stones.push_back( stone );
         sceneGrid.AddObject( stone.id, stone.rigidBody.position );
     }
@@ -280,8 +283,6 @@ public:
         Frustum frustum;
         CalculateFrustumPlanes( clipMatrix, frustum );
         
-        const float variance = 0.1f;
-
         // apply jerk acceleration to stones
 
         const vec3f & jerkAcceleration = accelerometer->GetJerkAcceleration();
@@ -292,28 +293,35 @@ public:
             {
                 StoneInstance & stone = stones[i];
 
-                vec3f varianceScale = vec3f( random_float( 1.0f - variance, 1.0f + variance ),
-                                             random_float( 1.0f - variance, 1.0f + variance ),
-                                             random_float( 1.0f - variance, 1.0f + variance ) );
+                vec3f varianceScale = vec3f( random_float( 1.0f - JerkVariance, 1.0f + JerkVariance ),
+                                             random_float( 1.0f - JerkVariance, 1.0f + JerkVariance ),
+                                             random_float( 1.0f - JerkVariance, 1.0f + JerkVariance ) );
 
-                stone.rigidBody.ApplyImpulse( JerkScale * jerkAcceleration * varianceScale * stone.rigidBody.mass );
+                vec3f jerkImpulse = JerkScale * jerkAcceleration;
+
+                float jerkLength = length( jerkImpulse );
+                if ( jerkLength > JerkMax )
+                    jerkImpulse = jerkImpulse / jerkLength * JerkMax;
+                
+                stone.rigidBody.ApplyImpulse( jerkImpulse * varianceScale * stone.rigidBody.mass );
             }
         }
 
         // detect when the user wants to launch the stone into the air
 
-        if ( jerk > LaunchThreshold )
+        if ( !locked && jerk > LaunchThreshold )
         {
             for ( int i = 0; i < stones.size(); ++i )
             {
                 StoneInstance & stone = stones[i];
 
-                vec3f varianceScale = vec3f( random_float( 1.0f - variance, 1.0f + variance ),
-                                             random_float( 1.0f - variance, 1.0f + variance ),
-                                             random_float( 1.0f - variance, 1.0f + variance ) );
+                vec3f varianceScale = vec3f( random_float( 1.0f - LaunchVariance, 1.0f + LaunchVariance ),
+                                             random_float( 1.0f - LaunchVariance, 1.0f + LaunchVariance ),
+                                             random_float( 1.0f - LaunchVariance, 1.0f + LaunchVariance ) );
 
-                stone.rigidBody.ApplyImpulse( jerkAcceleration * varianceScale * 
-                                              vec3f( LaunchMomentum*0.66f, LaunchMomentum*0.66f, LaunchMomentum*1.5f ) );
+                vec3f jerkImpulse = jerkAcceleration * vec3f( LaunchMomentum*0.66f, LaunchMomentum*0.66f, LaunchMomentum*1.5f );
+
+                stone.rigidBody.ApplyImpulse( jerkImpulse * varianceScale );
             }
 
             telemetry->IncrementCounter( COUNTER_AppliedImpulse );
@@ -324,8 +332,9 @@ public:
         PhysicsParameters params;
 
         params.dt = dt;
+        params.locked = locked;
         params.ceiling = smoothZoom * 0.5f;
-        params.gravity = gravity ? ( 10 * 9.8f * ( locked ? vec3f(0,0,-1) : accelerometer->GetDown() ) )
+        params.gravity = gravity ? ( 10 * 9.8f * ( tilt ? accelerometer->GetDown() : vec3f(0,0,-1) ) )
                                  : vec3f(0,0,0);
 
         ::UpdatePhysics( params, board, stoneData, sceneGrid, stones, *telemetry, frustum );
@@ -360,16 +369,20 @@ public:
 
     void InferStoneMomentum( StoneInstance & stone, const vec3f & prevPosition, const vec3f & newPosition, float dt, float threshold = 0.1f * 0.1f )
     {
-        // todo: max momentum
-
-        // todo: make the *impulse* relative to the distance
-        // not the mass * distance, therefore heavier stones
-        // are harder to flick (desired)
+        // todo: max flick momentum
 
         const vec3f delta = newPosition - prevPosition;
 
         if ( length_squared( delta ) > threshold )
+        {
             stone.rigidBody.linearMomentum = stone.rigidBody.mass * delta / max( 1.0f / 60.0f, dt );
+            if ( locked )
+            {
+                float momentumLength = length( stone.rigidBody.linearMomentum );
+                if ( momentumLength > FlickMax )
+                    stone.rigidBody.linearMomentum = stone.rigidBody.linearMomentum / momentumLength * FlickMax;
+            }
+        }
         
         stone.rigidBody.Activate();
     }
@@ -380,19 +393,7 @@ public:
 
     void OnDoubleTap( const vec3f & point )
     {
-        if ( locked )
-        {
-            PlaceStones();
-        }
-        else
-        {
-            if ( zoomed )
-                telemetry->IncrementCounter( COUNTER_ZoomedOut );
-            else
-                telemetry->IncrementCounter( COUNTER_ZoomedIn );
-        
-            zoomed = !zoomed;
-        }
+        zoomed = !zoomed;
     }
 
     StoneInstance * PickStone( const vec3f & rayStart, const vec3f & rayDirection,
@@ -460,6 +461,8 @@ public:
 
     void OnTouchesMoved( Touch * touches, int numTouches )
     {
+        // temporary: disable dragging until logical board works
+        /*
         for ( int i = 0; i < numTouches; ++i )
         {
             Touch & touch = touches[i];
@@ -491,6 +494,7 @@ public:
                 }
             }
         }
+        */
     }
 
     void OnTouchesEnded( Touch * touches, int numTouches )

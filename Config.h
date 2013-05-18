@@ -5,10 +5,10 @@
 #define OPENGL_ES2 1
 #endif
 
-//#define USE_SECONDARY_DISPLAY_IF_EXISTS
-//#define DEBUG_SHADOW_VOLUMES
-//#define FRUSTUM_CULLING
-//#define DISCOVER_KEY_CODES
+const float FlickMax = 1;
+
+const float PlacementVariance = 0.2f;
+const float ConstraintDelta = 0.5f;
 
 const int MaxStones = 256;
 
@@ -25,9 +25,6 @@ const int MaxStarPoints = 9;
 
 const int MaxTouches = 64;
 
-const float LockedDragSpeedMax = 10.0f;
-const float FlickSpeedThreshold = 20.0f;
-
 const float PlaceStoneHardThreshold = 0.075f;
 
 const float ZoomIn = 25;
@@ -41,9 +38,12 @@ const float AccelerometerTightness = 0.1f;
 
 const float JerkThreshold = 0.1f;
 const float JerkScale = 1.0f;
+const float JerkMax = 1.0f;
+const float JerkVariance = 0.25f;
 
 const float LaunchThreshold = 0.625f;
 const float LaunchMomentum = 8;
+const float LaunchVariance = 0.1f;
 
 const float MinimumSwipeLength = 50;            // points
 const float SwipeLengthPerSecond = 250;         // points
@@ -56,6 +56,6 @@ const float HoldMoveThreshold = 40;             // points
 
 const float SelectDamping = 0.75f;
 
-const float TouchImpulse = 1.0f;
+const float TouchImpulse = 5.0f;
 
 #endif

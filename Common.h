@@ -35,6 +35,8 @@ inline uint32_t hash( const uint8_t * data, uint32_t length, uint32_t value = 0 
 
 inline float random_float( float min, float max )
 {
+    if ( fabs( max - min ) < 0.001f )
+        return min;
     assert( max > min );
     return random( 1000000 ) / 1000000.f * ( max - min ) + min;
 }

@@ -18,6 +18,8 @@ struct PhysicsParameters
     int iterations;
     int rotationSubsteps;
 
+    bool locked;
+
     vec3f gravity;
 
     float e;
@@ -44,12 +46,9 @@ struct PhysicsParameters
         rotationSubsteps = 1;
 
         e = 0.5f;
+        u = 0.5f;
 
-        // size 40
-        u = 0.35f;
-
-        // size 32 
-        //u = 0.5f;
+        locked = false;
         
         ceiling = 100.0f;
         
@@ -259,50 +258,53 @@ inline void UpdatePhysics( const PhysicsParameters & params,
 
             bool iteration_collided = false;
             
-            // collision between stone and near plane
-
-            vec4f nearPlane( 0, 0, -1, -params.ceiling );
-            if ( StonePlaneCollision( stoneData.biconvex, nearPlane, stone.rigidBody, contact ) )
+            if ( !params.locked )
             {
-                ApplyCollisionImpulseWithFriction( contact, params.e, params.u );
-                telemetry.SetCollision( COLLISION_NearPlane );
-                iteration_collided = true;
-            }
+                // collision between stone and near plane
 
-            // collision between stone and left plane
+                vec4f nearPlane( 0, 0, -1, -params.ceiling );
+                if ( StonePlaneCollision( stoneData.biconvex, nearPlane, stone.rigidBody, contact ) )
+                {
+                    ApplyCollisionImpulseWithFriction( contact, params.e, params.u );
+                    telemetry.SetCollision( COLLISION_NearPlane );
+                    iteration_collided = true;
+                }
 
-            if ( StonePlaneCollision( stoneData.biconvex, frustum.left, stone.rigidBody, contact ) )
-            {
-                ApplyCollisionImpulseWithFriction( contact, params.e, params.u );
-                telemetry.SetCollision( COLLISION_LeftPlane );
-                iteration_collided = true;
-            }
+                // collision between stone and left plane
 
-            // collision between stone and right plane
+                if ( StonePlaneCollision( stoneData.biconvex, frustum.left, stone.rigidBody, contact ) )
+                {
+                    ApplyCollisionImpulseWithFriction( contact, params.e, params.u );
+                    telemetry.SetCollision( COLLISION_LeftPlane );
+                    iteration_collided = true;
+                }
 
-            if ( StonePlaneCollision( stoneData.biconvex, frustum.right, stone.rigidBody, contact ) )
-            {
-                ApplyCollisionImpulseWithFriction( contact, params.e, params.u );
-                telemetry.SetCollision( COLLISION_RightPlane );
-                iteration_collided = true;
-            }
+                // collision between stone and right plane
 
-            // collision between stone and top plane
+                if ( StonePlaneCollision( stoneData.biconvex, frustum.right, stone.rigidBody, contact ) )
+                {
+                    ApplyCollisionImpulseWithFriction( contact, params.e, params.u );
+                    telemetry.SetCollision( COLLISION_RightPlane );
+                    iteration_collided = true;
+                }
 
-            if ( StonePlaneCollision( stoneData.biconvex, frustum.top, stone.rigidBody, contact ) )
-            {
-                ApplyCollisionImpulseWithFriction( contact, params.e, params.u );
-                telemetry.SetCollision( COLLISION_TopPlane );
-                iteration_collided = true;
-            }
+                // collision between stone and top plane
 
-            // collision between stone and bottom plane
+                if ( StonePlaneCollision( stoneData.biconvex, frustum.top, stone.rigidBody, contact ) )
+                {
+                    ApplyCollisionImpulseWithFriction( contact, params.e, params.u );
+                    telemetry.SetCollision( COLLISION_TopPlane );
+                    iteration_collided = true;
+                }
 
-            if ( StonePlaneCollision( stoneData.biconvex, frustum.bottom, stone.rigidBody, contact ) )
-            {
-                ApplyCollisionImpulseWithFriction( contact, params.e, params.u );
-                telemetry.SetCollision( COLLISION_BottomPlane );
-                iteration_collided = true;
+                // collision between stone and bottom plane
+
+                if ( StonePlaneCollision( stoneData.biconvex, frustum.bottom, stone.rigidBody, contact ) )
+                {
+                    ApplyCollisionImpulseWithFriction( contact, params.e, params.u );
+                    telemetry.SetCollision( COLLISION_BottomPlane );
+                    iteration_collided = true;
+                }
             }
 
             // collision between stone and ground plane
@@ -400,8 +402,10 @@ inline void UpdatePhysics( const PhysicsParameters & params,
         static std::vector<ObjectPair> potentiallyOverlappingObjects;
         potentiallyOverlappingObjects.clear();
 
+        const float radius = stoneData.biconvex.GetBoundingSphereRadius() - 0.035f;       // hack for bevel!
+
         FindOverlappingObjects( sceneGrid, 
-                                stoneData.biconvex.GetBoundingSphereRadiusSquared(),
+                                radius * radius,
                                 stones,
                                 potentiallyOverlappingObjects );
 
@@ -431,9 +435,7 @@ inline void UpdatePhysics( const PhysicsParameters & params,
 
             vec3f axis = distance > 0.00001f ? normalize( difference ) : vec3f(0,1,0);
 
-            const float boundingSphereRadius = stoneData.biconvex.GetBoundingSphereRadius();
-
-            const float penetration = 2 * boundingSphereRadius - distance;
+            const float penetration = 2 * radius - distance;
 
             if ( !a->selected )
                 position_a += axis * penetration / 2;
@@ -451,9 +453,38 @@ inline void UpdatePhysics( const PhysicsParameters & params,
             a->rigidBody.UpdateTransform();
             b->rigidBody.UpdateTransform();
         }
-                
+
         // =======================================================================
-        // 5. update stone positions in scene grid post dynamic-collision
+        // 5. enforce stone position constraints
+        // =======================================================================
+            
+        if ( params.locked )
+        {
+            for ( int j = 0; j < stones.size(); ++j )
+            {
+                StoneInstance & stone = stones[j];
+
+                if ( !stone.rigidBody.active )
+                    continue;
+
+                if ( !stone.constrained || stone.selected )
+                    continue;
+
+                vec3f delta = stone.rigidBody.position - stone.constraintPosition;
+
+                const float dx = clamp( delta.x(), -ConstraintDelta, +ConstraintDelta );
+                const float dy = clamp( delta.y(), -ConstraintDelta, +ConstraintDelta );
+
+                stone.rigidBody.position = vec3f( stone.constraintPosition.x() + dx, 
+                                                  stone.constraintPosition.y() + dy, 
+                                                  stone.rigidBody.position.z() );
+                
+                stone.rigidBody.UpdateTransform();
+            }
+        }
+
+        // =======================================================================
+        // 6. update stone positions in scene grid post dynamic-collision
         // =======================================================================
         
         for ( int j = 0; j < stones.size(); ++j )

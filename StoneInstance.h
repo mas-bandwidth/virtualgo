@@ -11,6 +11,7 @@ struct StoneInstance
         this->id = id;
         this->white = white;
         this->selected = 0;
+        this->constrained = 0;
 
         rigidBody.mass = stoneData.mass;
         rigidBody.inverseMass = 1.0f / stoneData.mass;
@@ -22,6 +23,9 @@ struct StoneInstance
     uint32_t id : 16;
     uint32_t white : 1;
     uint32_t selected : 1;
+    uint32_t constrained : 1;
+
+    vec3f constraintPosition;
 
     RigidBody rigidBody;
 };
