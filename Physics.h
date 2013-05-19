@@ -464,16 +464,35 @@ inline void UpdatePhysics( const PhysicsParameters & params,
             {
                 StoneInstance & stone = stones[j];
 
-                if ( !stone.rigidBody.active )
-                    continue;
-
-                if ( !stone.constrained || stone.selected )
+                if ( !stone.constrained )
                     continue;
 
                 vec3f delta = stone.rigidBody.position - stone.constraintPosition;
 
-                const float dx = clamp( delta.x(), -ConstraintDelta, +ConstraintDelta );
-                const float dy = clamp( delta.y(), -ConstraintDelta, +ConstraintDelta );
+                float dx = delta.x();
+                float dy = delta.y();
+
+                if ( dx > ConstraintDelta )
+                {
+                    stone.rigidBody.linearMomentum -= vec3f(stone.rigidBody.linearMomentum.x(),0,0);
+                    dx = ConstraintDelta;
+                }
+                else if ( dx < -ConstraintDelta )
+                {
+                    stone.rigidBody.linearMomentum -= vec3f(stone.rigidBody.linearMomentum.x(),0,0);
+                    dx = -ConstraintDelta;
+                }
+
+                if ( dy > ConstraintDelta )
+                {
+                    stone.rigidBody.linearMomentum -= vec3f(0,stone.rigidBody.linearMomentum.y(),0);
+                    dy = ConstraintDelta;
+                }
+                else if ( dy < -ConstraintDelta )
+                {
+                    stone.rigidBody.linearMomentum -= vec3f(0,stone.rigidBody.linearMomentum.y(),0);
+                    dy = -ConstraintDelta;
+                }
 
                 stone.rigidBody.position = vec3f( stone.constraintPosition.x() + dx, 
                                                   stone.constraintPosition.y() + dy, 

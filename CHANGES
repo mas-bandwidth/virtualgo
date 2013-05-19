@@ -1,4 +1,32 @@
 
+Added 3D camera angles (18/5/2013):
+-----------------------------------
+
+    I wanted to get some Z accelerometer action but
+    currently there is no way to do this without 
+    inducing undesirable motion in the stones.
+
+    Perhaps a damping or some constraint that makes
+    stones in locked mode want to prefer to orient 
+    vertically when they are lifted off the board.
+
+    Try placing the camera not directly down
+
+    Looks pretty rad.
+
+    Shadow looks like it doesn't match stone
+    highlight position. Is this a result of pow
+    lighting or an incorrect shadow matrix?
+
+    Dropped to size 36. Nice middle ground stone.
+
+    Accelerometer needs to be adjusted to be relative
+    to camera position. Multiply by normal matrix?
+
+    For now all that was required was flipping x/y
+    and negating x (due to landscape orientation).
+
+
 Work on locked mode with stone constraints (18/5/2013):
 -------------------------------------------------------
 

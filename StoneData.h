@@ -45,12 +45,12 @@ const float StoneHeight[] =
 
 inline float GetStoneWidth( StoneSize stoneSize, bool black = false )
 {
-	return 2.2f + 0.1f; //+ ( black ? 0.3f : 0 );
+	return 2.2f + 0.2f; //+ ( black ? 0.3f : 0 );
 }
 
 inline float GetStoneHeight( StoneSize stoneSize, bool black = false )
 {
-	return StoneHeight[stoneSize] + ( black ? 0.3f : 0 );
+	return StoneHeight[stoneSize];// + ( black ? 0.3f : 0 );
 }
 
 struct StoneData

@@ -1,39 +1,53 @@
 DONE:
 
-TODO:
+    Experimented with double tap to zoom in to point
+
+    Doesn't feel very good.
 
     Turn dragging back on.
-   
-    I think a Go stone should project itself vertically
-    above the other go stones while being dragged.
 
-    This is the simplest solution that allows players
-    to drag stones. If the player wants to push other
-    stones he can move and lift the stone above the
-    other stone to the right of it and drap and the
-    physics should push the stones.
+    Add stones to logical board on initial placement,
+    eg. set to "white" or "black"
 
-    Add logical board. Logical board has a state per
-    intersection, which is empty, black, white.
+    Add stone ids to logical board on initial placement.
 
-    Also logical board should maintain the stone id
-    of a stone in its position, when it is locked
-    to it.
+    On stone selection, remove constraint data.
 
-    In locked mode, stones should search for a nearby
-    logical board point that is empty. As stones are
-    being dragged they should remember that last point
-    and logically consider themselves "on it" such that
-    when they are dropped they set constraint to it.
+    When selecting a stone remove it from the logical board.
 
-    However, if a stone is dragged off the board and
-    dropped in locked mode, that stone should lose
-    its constraint.
+    This is important so the stone can be returned to its
+    initial position and not see that position as being
+    full!
 
-    If a stone is unconstrained and dragged back onto
-    the board, then it should be constrained again.
+    Stones that are unconstrained and not selected should
+    be deleted after 2 seconds.
+
+    When a stone is dropped find the XY of the stone center
+    and constrain the stone to that point *if* that point
+    is currently empty!
+
+    Added cycle between top-down, 45 degrees and zoomed in
+    camera angles. Let the players see the different options.
+
+TODO:
+
+    Add code to project selected stones ABOVE other stones
+
+    Would be really nice to hold down off the board and
+    have the stones "tighten" towards their constraints.
+
+    Add smoothing on Z axis, this isn't obvious top-down
+    but there are pops when watching in 3D camera view.
 
     -------------------------------------------------
+
+    The case where stones are penetrating. I believe this
+    is caused because one of the stones is at rest and for
+    some reason does not react to push out. Oh, maybe the 
+    stone that is lower id is at rest. But how?!!!
+
+    -------------------------------------------------
+
 
     Get a basic linear collision response going
     between the stones so flicking a stone at another

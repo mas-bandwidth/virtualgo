@@ -93,6 +93,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event;
 
+- (void)deviceOrientationDidChange:(NSNotification *)notification;
+
 @end
 
 @implementation ViewController
@@ -107,7 +109,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     const float aspectRatio = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
 
-    game.Initialize( telemetry, accelerometer, aspectRatio );
+    game.Initialize( telemetry, accelerometer, 1.0f / aspectRatio );        // hack: for landscape!
 
     GenerateBiconvexMesh( _stoneMesh, game.GetBiconvex(), 3 );
     GenerateFloorMesh( _floorMesh );
@@ -133,6 +135,11 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     opengl = [[OpenGL alloc] init];
    
     [self setupGL];
+
+    
+    [ [NSNotificationCenter defaultCenter] addObserver : self
+                                              selector : @selector(deviceOrientationDidChange:)
+                                                  name : UIDeviceOrientationDidChangeNotification object:nil ];
 }
 
 - (void)dealloc
@@ -145,26 +152,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     }
 
     [ [NSNotificationCenter defaultCenter] removeObserver:self ];
-}
-
-- (void)didReceiveMemoryWarning
-{
-//    NSLog( @"did receive memory warning" );
-
-    [super didReceiveMemoryWarning];
-
-    if ([self isViewLoaded] && ([[self view] window] == nil))
-    {
-        self.view = nil;
-        
-        [self tearDownGL];
-        
-        if ([EAGLContext currentContext] == self.context)
-        {
-            [EAGLContext setCurrentContext:nil];
-        }
-        self.context = nil;
-    }
 }
 
 - (void)setupGL
@@ -294,6 +281,35 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 - (void)viewDidAppear:(BOOL)animated
 {
     [self becomeFirstResponder];
+}
+
+- (void)didReceiveMemoryWarning
+{
+//    NSLog( @"did receive memory warning" );
+
+    [super didReceiveMemoryWarning];
+
+    if ([self isViewLoaded] && ([[self view] window] == nil))
+    {
+        self.view = nil;
+        
+        [self tearDownGL];
+        
+        if ([EAGLContext currentContext] == self.context)
+        {
+            [EAGLContext setCurrentContext:nil];
+        }
+        self.context = nil;
+    }
+}
+
+- (void)deviceOrientationDidChange:(NSNotification *)notification
+{
+    /*
+    const float aspectRatio = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
+
+    game.SetAspectRatio( 1.0f / aspectRatio );
+     */
 }
 
 - (vec3f) pointToPixels:(CGPoint)point
@@ -462,7 +478,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         float boardShadowAlpha = 1.0f;
 
         mat4f shadowMatrix;
-        MakeShadowMatrix( vec4f(0,0,1,-0.1f), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
+        MakeShadowMatrix( vec4f(0,0,1,-0.01f), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
 
         mat4f modelView = game.GetCameraMatrix() * shadowMatrix;
         mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
@@ -633,6 +649,11 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     [self render];
 
     telemetry.Update( dt, game.GetBoard(), game.GetStones(), game.IsLocked(), accelerometer.GetUp() );
+}
+
+- (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
+{
+    [self render];
 }
 
 @end

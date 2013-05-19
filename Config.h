@@ -5,7 +5,7 @@
 #define OPENGL_ES2 1
 #endif
 
-const float FlickMax = 1;
+const float DeleteTime = 2;
 
 const float PlacementVariance = 0.2f;
 const float ConstraintDelta = 0.5f;
@@ -37,8 +37,8 @@ const float AccelerometerFrequency = 20;
 const float AccelerometerTightness = 0.1f;
 
 const float JerkThreshold = 0.1f;
-const float JerkScale = 1.0f;
-const float JerkMax = 1.0f;
+const float JerkScale = 1.5f;
+const float JerkMax = 0.75f;
 const float JerkVariance = 0.25f;
 
 const float LaunchThreshold = 0.625f;

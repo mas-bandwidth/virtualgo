@@ -8,6 +8,8 @@
 #include "SceneGrid.h"
 #include "Telemetry.h"
 #include "Touch.h"
+#include <algorithm>
+#include <functional>
 
 class GameInstance
 {
@@ -25,8 +27,9 @@ class GameInstance
     mat4f clipMatrix;
     mat4f inverseClipMatrix;
 
+    int cameraMode;
+
     bool locked;
-    bool zoomed;
     bool gravity;
     bool tilt;
 
@@ -42,26 +45,33 @@ class GameInstance
 
     SceneGrid sceneGrid;
 
+    vec3f zoomPoint;
+
 public:
 
 	GameInstance()
 	{
         stoneId = 0;
 
+        cameraMode = 0;
+
+        tilt = false;//true;
 		locked = true;
-		zoomed = false;
         gravity = true;
 		
-        smoothZoom = GetTargetZoom();
+//        smoothZoom = GetTargetZoom();
+        
         aspectRatio = 1.0f;
 
         lightPosition = vec3f( 10, 10, 50 );
+
+        zoomPoint = vec3f(0,0,0);
 
         telemetry = NULL;
 
         board.Initialize( BoardSize );
 
-        stoneData.Initialize( STONE_SIZE_40 );
+        stoneData.Initialize( STONE_SIZE_36 );
 
         sceneGrid.Initialize( SceneGridRes, SceneGridWidth, SceneGridHeight, SceneGridDepth );
 
@@ -77,29 +87,32 @@ public:
         this->aspectRatio = aspectRatio;
     }
 
-    enum Color
+    void SetAspectRatio( float aspectRatio )
     {
-        Black,
-        White
-    };
+        this->aspectRatio = aspectRatio;
+    }
 
-    void AddStone( int row, int column, Color color, bool constrained = true, float variance = 0.1f )
+    void AddStone( int row, int column, int color, bool constrained = true )
     {
-        vec3f wabiSabi = vec3f( random_float( - PlacementVariance, + PlacementVariance ),
+        vec3f variance = vec3f( random_float( - PlacementVariance, + PlacementVariance ),
                                 random_float( - PlacementVariance, + PlacementVariance ),
                                 0 );
 
         StoneInstance stone;
         stone.Initialize( stoneData, stoneId++, color == White );
-        stone.rigidBody.position = board.GetPointPosition( row, column ) + vec3f( 0, 0, stoneData.biconvex.GetHeight() / 2 ) + wabiSabi;
-        stone.rigidBody.orientation = quat4f(1,0,0,0);      // todo: when we have a texture we're going to want to rotate randomly about z axis
+        stone.rigidBody.position = board.GetPointPosition( row, column ) + vec3f( 0, 0, stoneData.biconvex.GetHeight() / 2 ) + variance;
+        stone.rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f(0,0,1) );
         stone.rigidBody.linearMomentum = vec3f(0,0,0);
         stone.rigidBody.angularMomentum = vec3f(0,0,0);
         stone.rigidBody.Activate();
         stone.constrained = 1;
+        stone.constraintRow = row;
+        stone.constraintColumn = column;
         stone.constraintPosition = board.GetPointPosition( row, column );
         stones.push_back( stone );
         sceneGrid.AddObject( stone.id, stone.rigidBody.position );
+        board.SetPointState( row, column, (PointState) color );
+        board.SetPointStoneId( row, column, stone.id );
     }
 
     void PlaceStones()
@@ -238,19 +251,36 @@ public:
         UpdateTouch( dt );
         
         UpdatePhysics( dt );
+
+        UpdateGame( dt );
     }
 
     void UpdateCamera( float dt = 0.0f )
     {
-        const float targetZoom = GetTargetZoom();
-        
-        smoothZoom += ( targetZoom - smoothZoom ) * ( zoomed ? ZoomInTightness : ZoomOutTightness );
+//        const float targetZoom = GetTargetZoom();
+//        smoothZoom += ( targetZoom - smoothZoom ) * ( zoomed ? ZoomInTightness : ZoomOutTightness );
         
         projectionMatrix = mat4f::perspective( 40, aspectRatio, 0.1f, 100.0f );
 
-        cameraMatrix = mat4f::lookAt( vec3f( 0, 0, smoothZoom ),
-                                      vec3f( 0, 0, 0 ),
-                                      vec3f( 0, 1, 0 ) );
+        if ( cameraMode == 0 )
+        {
+            cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 35 ),
+                                         vec3f( 0, 0, 0 ),
+                                         vec3f( 0, 1, 0 ) );
+        }
+        else if ( cameraMode == 1 )
+        {
+            cameraMatrix = mat4f::lookAt( vec3f( 0, 22, 20 ),
+                                          //vec3f( 0, 24, 22.5f ),
+                                          vec3f( 0, 2, 0 ),
+                                          vec3f( 0, 0, 1 ) );
+        }
+        else if ( cameraMode == 2 )
+        {
+            cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 10, 5 ),
+                                          zoomPoint,
+                                          vec3f( 0, 0, 1 ) );
+        }
 
         clipMatrix = projectionMatrix * cameraMatrix;
 
@@ -285,7 +315,7 @@ public:
         
         // apply jerk acceleration to stones
 
-        const vec3f & jerkAcceleration = accelerometer->GetJerkAcceleration();
+        vec3f jerkAcceleration = accelerometer->GetJerkAcceleration();
         const float jerk = length( jerkAcceleration );
         if ( jerk > JerkThreshold )
         {
@@ -299,9 +329,26 @@ public:
 
                 vec3f jerkImpulse = JerkScale * jerkAcceleration;
 
-                float jerkLength = length( jerkImpulse );
-                if ( jerkLength > JerkMax )
-                    jerkImpulse = jerkImpulse / jerkLength * JerkMax;
+                if ( locked )
+                {
+                    vec3f jerkImpulseXY( jerkImpulse.x(), jerkImpulse.y(), 0 );
+
+                    float jerkLengthXY = length( jerkImpulseXY );
+                    if ( jerkLengthXY > JerkMax )
+                        jerkImpulseXY = jerkImpulseXY / jerkLengthXY * JerkMax;
+
+                    float jerkZ = 0;
+                    /*
+                    float jerkZ = min( jerkImpulse.z() * 10, 2.5 );
+                    if ( jerkZ < 2.0 )
+                        jerkZ = 0.0;
+                     */
+
+//                    jerkImpulse = vec3f( jerkImpulseXY.x(), jerkImpulseXY.y(), jerkZ );
+
+                    // hack: switch x and y due to camera orientation
+                    jerkImpulse = vec3f( -jerkImpulseXY.y(), jerkImpulseXY.x(), jerkZ );
+                }
                 
                 stone.rigidBody.ApplyImpulse( jerkImpulse * varianceScale * stone.rigidBody.mass );
             }
@@ -340,10 +387,41 @@ public:
         ::UpdatePhysics( params, board, stoneData, sceneGrid, stones, *telemetry, frustum );
     }
 
+    void UpdateGame( float dt )
+    {
+        if ( locked )
+        {
+            // iterate across all stone instances -- if stone instance
+            // is no selected or constrained, increase delete timer.
+            // remove stones that have exceeded the delete timer.
+
+            std::vector<StoneInstance>::iterator itor = stones.begin();
+            while ( itor != stones.end() )
+            {
+                StoneInstance & stone = *itor;
+                
+                if ( !stone.constrained && !stone.selected )
+                    stone.deleteTimer += dt;
+                else
+                    stone.deleteTimer = 0.0f;
+                    
+                if ( stone.deleteTimer > DeleteTime )
+                {
+                    sceneGrid.RemoveObject( stone.id, stone.rigidBody.position );
+                    itor = stones.erase( itor );
+                }
+                else
+                    ++itor;
+            }
+        }
+    }
+
+    /*
     float GetTargetZoom() const
     {
         return zoomed ? ZoomIn : ZoomOut;
     }
+     */
 
     bool IsScreenPointOnBoard( const vec3f & point )
     {
@@ -374,15 +452,7 @@ public:
         const vec3f delta = newPosition - prevPosition;
 
         if ( length_squared( delta ) > threshold )
-        {
             stone.rigidBody.linearMomentum = stone.rigidBody.mass * delta / max( 1.0f / 60.0f, dt );
-            if ( locked )
-            {
-                float momentumLength = length( stone.rigidBody.linearMomentum );
-                if ( momentumLength > FlickMax )
-                    stone.rigidBody.linearMomentum = stone.rigidBody.linearMomentum / momentumLength * FlickMax;
-            }
-        }
         
         stone.rigidBody.Activate();
     }
@@ -393,7 +463,30 @@ public:
 
     void OnDoubleTap( const vec3f & point )
     {
-        zoomed = !zoomed;
+        cameraMode++;
+        cameraMode = cameraMode % 3;
+
+        /*
+        vec3f rayStart, rayDirection;
+        GetPickRay( inverseClipMatrix, point.x(), point.y(), rayStart, rayDirection );
+        
+        float t = 0;
+        if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), board.GetThickness(), t ) )
+        {
+            vec3f intersectionPoint = rayStart + rayDirection * t;
+            
+            float x = intersectionPoint.x();
+            float y = intersectionPoint.y();
+            
+            float bx, by;
+            board.GetBounds( bx, by );
+            
+            x = clamp( x, -bx, bx );
+            y = clamp( y, -by, by );
+
+            zoomPoint = vec3f( x, y, board.GetThickness() );
+        }
+        */
     }
 
     StoneInstance * PickStone( const vec3f & rayStart, const vec3f & rayDirection,
@@ -443,6 +536,12 @@ public:
                     stone->rigidBody.ApplyImpulseAtWorldPoint( intersectionPoint, TouchImpulse * rayDirection );
                     stone->selected = 1;
 
+                    if ( stone->constrained )
+                    {
+                        stone->constrained = 0;
+                        board.SetPointState( stone->constraintRow, stone->constraintColumn, Empty );
+                    }
+
                     SelectData select;
                     select.stoneId = stone->id;
                     select.touchHandle = touch.handle;
@@ -461,8 +560,6 @@ public:
 
     void OnTouchesMoved( Touch * touches, int numTouches )
     {
-        // temporary: disable dragging until logical board works
-        /*
         for ( int i = 0; i < numTouches; ++i )
         {
             Touch & touch = touches[i];
@@ -494,7 +591,6 @@ public:
                 }
             }
         }
-        */
     }
 
     void OnTouchesEnded( Touch * touches, int numTouches )
@@ -510,6 +606,22 @@ public:
                 if ( stone )
                 {
                     stone->selected = 0;
+
+                    int row, column;
+                    if ( board.FindNearestPoint( stone->rigidBody.position, row, column ) )
+                    {
+                        if ( board.GetPointState( row, column ) == Empty )
+                        {
+                            stone->constrained = 1;
+                            stone->constraintRow = row;
+                            stone->constraintColumn = column;
+                            stone->constraintPosition = board.GetPointPosition( row, column );
+                        }
+                        else
+                        {
+                            stone->deleteTimer = DeleteTime;
+                        }
+                    }
 
                     InferStoneMomentum( *stone,
                                         select.prevIntersectionPoint, 
