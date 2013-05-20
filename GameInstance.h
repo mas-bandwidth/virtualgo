@@ -33,7 +33,6 @@ class GameInstance
     bool gravity;
     bool tilt;
 
-    float smoothZoom;
     float aspectRatio;
 
     uint32_t stoneId : 16;
@@ -53,17 +52,15 @@ public:
 	{
         stoneId = 0;
 
-        cameraMode = 0;
+        cameraMode = 1;
 
         tilt = false;//true;
 		locked = true;
         gravity = true;
 		
-//        smoothZoom = GetTargetZoom();
-        
         aspectRatio = 1.0f;
 
-        lightPosition = vec3f( 10, 10, 50 );
+        lightPosition = vec3f( 10*1000, 10*1000, 100*1000 );
 
         zoomPoint = vec3f(0,0,0);
 
@@ -113,6 +110,7 @@ public:
         sceneGrid.AddObject( stone.id, stone.rigidBody.position );
         board.SetPointState( row, column, (PointState) color );
         board.SetPointStoneId( row, column, stone.id );
+        Validate();
     }
 
     void PlaceStones()
@@ -257,29 +255,31 @@ public:
 
     void UpdateCamera( float dt = 0.0f )
     {
-//        const float targetZoom = GetTargetZoom();
-//        smoothZoom += ( targetZoom - smoothZoom ) * ( zoomed ? ZoomInTightness : ZoomOutTightness );
-        
         projectionMatrix = mat4f::perspective( 40, aspectRatio, 0.1f, 100.0f );
 
         if ( cameraMode == 0 )
         {
             cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 35 ),
                                          vec3f( 0, 0, 0 ),
-                                         vec3f( 0, 1, 0 ) );
+                                         vec3f( 0, -1, 0 ) );
         }
         else if ( cameraMode == 1 )
         {
-            cameraMatrix = mat4f::lookAt( vec3f( 0, 22, 20 ),
-                                          //vec3f( 0, 24, 22.5f ),
-                                          vec3f( 0, 2, 0 ),
+            cameraMatrix = mat4f::lookAt( vec3f( 0, 23, 20 ),
+                                          vec3f( 0, 0, 0 ),
                                           vec3f( 0, 0, 1 ) );
         }
         else if ( cameraMode == 2 )
         {
-            cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 10, 5 ),
+            cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 15, 10 ),
                                           zoomPoint,
                                           vec3f( 0, 0, 1 ) );
+        }
+        else if ( cameraMode == 3 )
+        {
+            cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 0, 15 ),
+                                          zoomPoint,
+                                          vec3f( 0, -1, 0 ) );
         }
 
         clipMatrix = projectionMatrix * cameraMatrix;
@@ -298,9 +298,94 @@ public:
             StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
             if ( stone )
             {
+                // snap the stone to the latest select point
+
                 vec3f previousPosition = stone->rigidBody.position;
+
                 stone->rigidBody.position = select.intersectionPoint + select.offset;
+
+                // find objects within radius
+
+                const float originalZ = stone->rigidBody.position.z();
+
+                std::vector<StoneInstance*> objects;
+
+                const float radius = ( stoneData.biconvex.GetBoundingSphereRadius() - 0.035f ) * 2;       // hack for bevel!
+
+                FindObjectsInRadius( stone->rigidBody.position, 
+                                     radius, 
+                                     sceneGrid,
+                                     stones, 
+                                     objects );
+
+                // find the highest center position z for all objects nearby
+
+                float z = stone->rigidBody.position.z();
+                for ( int k = 0; k < objects.size(); ++k )
+                {
+                    if ( objects[k]->selected )
+                        continue;
+                    if ( objects[k]->rigidBody.position.z() > z )
+                        z = objects[k]->rigidBody.position.z();
+                }
+
+                // from starting z work up in increments until selected stone
+                // is above all other stones (push up)
+                
+                const float radiusSquared = radius * radius;
+
+                const float delta = 0.1f;
+                
+                const float zmax = 3.5f;           // hack: this should be relative to board thickness
+
+                while ( true )
+                {
+                    if ( z > zmax )
+                    {
+                        z = zmax;
+                        break;
+                    }
+
+                    vec3f position( stone->rigidBody.position.x(), stone->rigidBody.position.y(), z );
+
+                    bool collided = false;
+
+                    for ( int k = 0; k < objects.size(); ++k )
+                    {
+                        if ( objects[k]->selected )
+                            continue;
+
+                        if ( length_squared( objects[k]->rigidBody.position - position ) <= radiusSquared )
+                        {
+                            collided = true;
+                            break;
+                        }
+                    }
+
+                    if ( !collided )
+                    {
+                        stone->rigidBody.position = position;
+                        stone->rigidBody.UpdateTransform();
+                        break;
+                    }
+
+                    z += delta;
+                }
+
+                // update the select offset and depth to match stone lift
+
+                const float deltaZ = stone->rigidBody.position.z() - originalZ;
+
+                if ( deltaZ > 0 )
+                {
+                    select.offset += vec3f(0,0,deltaZ);
+                    select.depth += deltaZ;
+                }
+                
+                // commit the result back to the scene grid
+                
                 sceneGrid.MoveObject( stone->id, previousPosition, stone->rigidBody.position );
+                
                 stone->rigidBody.Activate();
             }
         }
@@ -337,17 +422,16 @@ public:
                     if ( jerkLengthXY > JerkMax )
                         jerkImpulseXY = jerkImpulseXY / jerkLengthXY * JerkMax;
 
-                    float jerkZ = 0;
-                    /*
-                    float jerkZ = min( jerkImpulse.z() * 10, 2.5 );
+                    float jerkZ = min( jerkImpulse.z() * 10, 10 );
                     if ( jerkZ < 2.0 )
-                        jerkZ = 0.0;
-                     */
-
-//                    jerkImpulse = vec3f( jerkImpulseXY.x(), jerkImpulseXY.y(), jerkZ );
-
-                    // hack: switch x and y due to camera orientation
-                    jerkImpulse = vec3f( -jerkImpulseXY.y(), jerkImpulseXY.x(), jerkZ );
+                        jerkImpulse = vec3f( -jerkImpulseXY.y(), jerkImpulseXY.x(), 0 );
+                    else
+                    {
+                        if ( stone.rigidBody.linearVelocity.z() <= 1.0 )
+                            jerkImpulse = vec3f( 0, 0, jerkZ );
+                        else
+                            jerkImpulse = vec3f( 0,0,0 );
+                    }
                 }
                 
                 stone.rigidBody.ApplyImpulse( jerkImpulse * varianceScale * stone.rigidBody.mass );
@@ -380,7 +464,7 @@ public:
 
         params.dt = dt;
         params.locked = locked;
-        params.ceiling = smoothZoom * 0.5f;
+        params.ceiling = 25.0f;
         params.gravity = gravity ? ( 10 * 9.8f * ( tilt ? accelerometer->GetDown() : vec3f(0,0,-1) ) )
                                  : vec3f(0,0,0);
 
@@ -416,12 +500,10 @@ public:
         }
     }
 
-    /*
-    float GetTargetZoom() const
+    void Validate()
     {
-        return zoomed ? ZoomIn : ZoomOut;
+        // ...
     }
-     */
 
     bool IsScreenPointOnBoard( const vec3f & point )
     {
@@ -447,14 +529,16 @@ public:
 
     void InferStoneMomentum( StoneInstance & stone, const vec3f & prevPosition, const vec3f & newPosition, float dt, float threshold = 0.1f * 0.1f )
     {
-        // todo: max flick momentum
+        if ( stone.constrained )
+            return;
 
         const vec3f delta = newPosition - prevPosition;
 
         if ( length_squared( delta ) > threshold )
+        {
             stone.rigidBody.linearMomentum = stone.rigidBody.mass * delta / max( 1.0f / 60.0f, dt );
-        
-        stone.rigidBody.Activate();
+            stone.rigidBody.Activate();
+        }
     }
 
     // -------------------------------------------------------
@@ -464,7 +548,7 @@ public:
     void OnDoubleTap( const vec3f & point )
     {
         cameraMode++;
-        cameraMode = cameraMode % 3;
+        cameraMode = cameraMode % 4;
 
         /*
         vec3f rayStart, rayDirection;
@@ -533,13 +617,14 @@ public:
                 if ( stone )
                 {
                     stone->rigidBody.linearMomentum = vec3f(0,0,0);
-                    stone->rigidBody.ApplyImpulseAtWorldPoint( intersectionPoint, TouchImpulse * rayDirection );
+                    stone->rigidBody.ApplyImpulseAtWorldPoint( intersectionPoint, SelectImpulse * rayDirection );
                     stone->selected = 1;
 
                     if ( stone->constrained )
                     {
                         stone->constrained = 0;
                         board.SetPointState( stone->constraintRow, stone->constraintColumn, Empty );
+                        Validate();
                     }
 
                     SelectData select;
@@ -551,6 +636,8 @@ public:
                     select.intersectionPoint = intersectionPoint;
                     select.prevIntersectionPoint = intersectionPoint;
                     select.timestamp = touch.timestamp;
+                    select.touchImpulse = TouchImpulse * rayDirection;
+                    select.moved = false;
 
                     selectMap.insert( std::make_pair( touch.handle, select ) );
                 }
@@ -567,12 +654,13 @@ public:
             if ( itor != selectMap.end() ) 
             {
                 SelectData & select = itor->second;
+                select.moved = true;
                 StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
                 if ( stone )
                 {
                     vec3f rayStart, rayDirection;
                     GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
-        
+
                     // intersect with the plane at select depth and move the stone
                     // such that it is offset from the intersection point with this plane.
                     // then, push the go stone above the go board.
@@ -608,25 +696,30 @@ public:
                     stone->selected = 0;
 
                     int row, column;
-                    if ( board.FindNearestPoint( stone->rigidBody.position, row, column ) )
+                    if ( board.FindNearestEmptyPoint( stone->rigidBody.position, row, column ) )
                     {
-                        if ( board.GetPointState( row, column ) == Empty )
-                        {
-                            stone->constrained = 1;
-                            stone->constraintRow = row;
-                            stone->constraintColumn = column;
-                            stone->constraintPosition = board.GetPointPosition( row, column );
-                        }
-                        else
-                        {
-                            stone->deleteTimer = DeleteTime;
-                        }
+                        stone->constrained = 1;
+                        stone->constraintRow = row;
+                        stone->constraintColumn = column;
+                        stone->constraintPosition = board.GetPointPosition( row, column );
+                        board.SetPointState( stone->constraintRow, stone->constraintColumn, stone->white ? White : Black );
+                    }
+                    else
+                    {
+                        stone->deleteTimer = DeleteTime;
                     }
 
-                    InferStoneMomentum( *stone,
-                                        select.prevIntersectionPoint, 
-                                        select.intersectionPoint, 
-                                        touch.timestamp - select.timestamp );
+                    if ( select.moved && touch.timestamp - select.timestamp < 0.2f )
+                    {
+                        InferStoneMomentum( *stone,
+                                            select.prevIntersectionPoint, 
+                                            select.intersectionPoint, 
+                                            touch.timestamp - select.timestamp );
+                    }
+                    else
+                    {
+                        stone->rigidBody.ApplyImpulseAtWorldPoint( select.intersectionPoint, select.touchImpulse );
+                    }
                 }
                 selectMap.erase( itor );
             }

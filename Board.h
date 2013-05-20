@@ -211,6 +211,11 @@ public:
         assert( column >= 1 );
         assert( row <= size );
         assert( column <= size );
+
+        // IMPORTANT: this will fire if you try to add a stone 
+        // to a point that is already occupied by another stone!
+        assert( state == Empty || state != Empty && pointState[(column-1)+(row-1)*size] == Empty );
+
         pointState[(column-1)+(row-1)*size] = state;
     }
 
@@ -250,6 +255,81 @@ public:
         if ( row < 1 || row > size || column < 1 || column > size )
             return false;
                 
+        return true;
+    }
+
+    struct EmptyPointInfo
+    {
+        int row;
+        int column;
+        vec3f position;
+    };
+
+    void AddEmptyPoint( std::vector<EmptyPointInfo> & emptyPoints, int row, int column )
+    {
+        if ( row < 1 || row > size || column < 1 || column > size )
+            return;
+
+        if ( GetPointState( row, column ) == Empty )
+        {
+            EmptyPointInfo info;
+            info.row = row;
+            info.column = column;
+            info.position = GetPointPosition( row, column );
+            emptyPoints.push_back( info );
+        }
+    }
+
+    bool FindNearestEmptyPoint( const vec3f & position, int & row, int & column )
+    {
+        vec3f origin = GetPointPosition( 1, 1 );
+
+        vec3f delta = position - origin;
+
+        const float dx = delta.x() + params.cellWidth/2;
+        const float dy = delta.y() + params.cellHeight/2;
+
+        int ix = (int) floor( dx / params.cellWidth );
+        int iy = (int) floor( dy / params.cellHeight );
+
+        row = iy + 1;
+        column = ix + 1;
+
+        std::vector<EmptyPointInfo> emptyPoints;
+
+        AddEmptyPoint( emptyPoints, row - 1, column - 1 );
+        AddEmptyPoint( emptyPoints, row,     column - 1 );
+        AddEmptyPoint( emptyPoints, row + 1, column - 1 );
+
+        AddEmptyPoint( emptyPoints, row - 1, column );
+        AddEmptyPoint( emptyPoints, row,     column );
+        AddEmptyPoint( emptyPoints, row + 1, column );
+
+        AddEmptyPoint( emptyPoints, row - 1, column + 1 );
+        AddEmptyPoint( emptyPoints, row,     column + 1 );
+        AddEmptyPoint( emptyPoints, row + 1, column + 1 );
+
+        if ( emptyPoints.size() == 0 )
+            return false;
+
+        float nearestDistance = FLT_MAX;
+        EmptyPointInfo * nearestEmptyPoint = NULL;
+
+        for ( int i = 0; i < emptyPoints.size(); ++i )
+        {
+            const float distance = length( emptyPoints[i].position - position );
+            if ( distance < nearestDistance )
+            {
+                nearestDistance = distance;
+                nearestEmptyPoint = &emptyPoints[i];
+            }
+        }
+
+        assert( nearestEmptyPoint );
+
+        row = nearestEmptyPoint->row;
+        column = nearestEmptyPoint->column;
+
         return true;
     }
 

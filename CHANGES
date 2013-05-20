@@ -1,4 +1,138 @@
 
+Fixed lots of bugs in stone drag and snap to grid (19/5/2013):
+--------------------------------------------------------------
+
+    Matt Ditton says that bringing stones together
+    with multi-touch causes infinite motion.
+
+    Probably multiple stones getting locked to the
+    same grid point?
+
+    There are some cases where the stones lift up 
+    excessively, especially in views where the camera
+    position is close to the board.
+
+    I'm not sure what is going here, but it's *definitely*
+    a bug and causes pretty weird shit when trying to move
+    stones zoomed in.
+
+    Annoying impulse is applied when you tap a stone,
+    but don't move, then release. In this case, touch
+    impulse should only be applied if the touch releases
+    in a short amount of time. FIXED.
+
+    There are cases where multiple stones appear to be
+    able to be attached to a stone point.
+
+    Add asserts when setting stone state and adding
+    stone ids etc. To make sure that we cannot try
+    to add a stone to a grid point that is already
+    occupied.
+
+    Found it. Was not re-adding the stone to the 
+    logical board after moving it, hence multiple
+    adds to the same point became possible.
+
+    When moving a stone always search for the closest
+    empty point in the 3x3 grid around the immediate
+    drop point.
+
+    This should avoid any false deletes on drops.
+
+    Still some silly buggers when you multi-touch
+    and drag two stones together. They seem to try
+    to leap over each other? Need to exclude stones
+    from consideration if they are selected!
+
+    This has been fixed.
+
+    
+Fixed up stone tap impulse vs. select and drag (19/5/2013):
+-----------------------------------------------------------
+
+    For some reason the stone is lowering again while selected
+    I'm guessing this is because the select Z is not updating
+    to match the stone being pushed up.
+
+    What is the best way to do this?
+
+    After physics update, update touch and detect
+    if the select Z needs to be lifted?
+
+    This seems to work.
+
+    Impulse should only be applied on tap, not hold
+    therefore it seems it should be applied on touch
+    ended, not touch began.
+
+    Actually, motion of stone select and drag is a bit
+    boring without any impulse on select, so split into
+    two impulses, one at touches began, one if tapped
+    and touch does not move.
+
+
+Fixed up constraints and added z lift (19/5/2013):
+--------------------------------------------------
+
+    First need to find nearby stones in adacent cells
+    for a given stone, other cells only need to be tested
+    if the stone is close to the border of cells.
+
+    Added code to find vector of StoneInstance* that can
+    be used to push the selected stone above nearby non
+    selected stones.
+
+    Project selected stones above other stones.
+
+    First, iterate across all stones after integration,
+    but before any collision detection is performed.
+
+    If the stone is selected, find nearby objects within 
+    radius of its position: bounding sphere radius * 2
+
+    Then find the heighest non-selected stone center position z
+    out of all stones in this set.
+
+    This is the start point for the algorithm.
+
+    Next, in a simple for loop move the selected stone up x cms
+    until its bounding sphere is not colliding with ANY of the 
+    other stones.
+
+
+Experiment with stone dragging and constraint (18/5/2013):
+----------------------------------------------------------
+
+    Experimented with double tap to zoom in to point
+
+    Doesn't feel very good.
+
+    Turn dragging back on.
+
+    Add stones to logical board on initial placement,
+    eg. set to "white" or "black"
+
+    Add stone ids to logical board on initial placement.
+
+    On stone selection, remove constraint data.
+
+    When selecting a stone remove it from the logical board.
+
+    This is important so the stone can be returned to its
+    initial position and not see that position as being
+    full!
+
+    Stones that are unconstrained and not selected should
+    be deleted after 2 seconds.
+
+    When a stone is dropped find the XY of the stone center
+    and constrain the stone to that point *if* that point
+    is currently empty!
+
+    Added cycle between top-down, 45 degrees and zoomed in
+    camera angles. Let the players see the different options.
+
+
 Added 3D camera angles (18/5/2013):
 -----------------------------------
 

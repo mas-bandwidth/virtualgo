@@ -57,5 +57,6 @@ const float HoldMoveThreshold = 40;             // points
 const float SelectDamping = 0.75f;
 
 const float TouchImpulse = 5.0f;
+const float SelectImpulse = 2.0f;
 
 #endif

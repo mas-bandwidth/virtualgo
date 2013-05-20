@@ -136,7 +136,7 @@ inline void FindCellOverlappingObjects( ObjectSet & objectSet,
                 objectPair.b = FindStoneInstance( id_pair.b, stones );
                 assert( objectPair.a );
                 assert( objectPair.b );
-                if ( length_squared( objectPair.a->rigidBody.position - objectPair.b->rigidBody.position ) < boundingSphereRadiusSquared * 4 )
+                if ( length_squared( objectPair.a->rigidBody.position - objectPair.b->rigidBody.position ) < boundingSphereRadiusSquared )
                 {
                     objectSet.insert( id_pair );
                     overlappingObjects.push_back( objectPair );
@@ -183,6 +183,71 @@ inline void FindOverlappingObjects( SceneGrid & sceneGrid,
             }
         }
     }
+}
+
+inline void FindCellObjectsInRadius( const vec3f & position,
+                                     float radiusSquared,
+                                     SceneGrid & sceneGrid,
+                                     std::vector<StoneInstance> & stones,
+                                     std::vector<StoneInstance*> & objects,
+                                     int ix,
+                                     int iy,
+                                     int iz )
+{
+    // first add all objects in the cell with positions are within radius
+    Cell & cell = sceneGrid.GetCellAtIntCoords( ix, iy, iz );
+    for ( int i = 0; i < cell.objects.size(); ++i )
+    {
+        StoneInstance * stone = FindStoneInstance( cell.objects[i], stones );
+        assert( stone );
+        if ( length_squared( stone->rigidBody.position - position ) <= radiusSquared )
+            objects.push_back( stone );
+    }
+}
+
+inline void FindObjectsInRadius( const vec3f & position,
+                                 float radius,
+                                 SceneGrid & sceneGrid,
+                                 std::vector<StoneInstance> & stones,
+                                 std::vector<StoneInstance*> & objects )
+{
+    const float radiusSquared = radius * radius;
+
+    int ix,iy,iz;
+    sceneGrid.GetCellCoordinates( position, ix, iy, iz );
+
+    // todo: can optimize this considerably, eg. check if position+radius is within edge of cell
+    // and only test against cells that are potentially overlapping themselves with the sphere
+
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy-1, iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy-1, iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy-1, iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy,   iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy,   iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy,   iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy+1, iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy+1, iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy+1, iz-1 );
+
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy-1, iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy-1, iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy-1, iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy,   iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy,   iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy,   iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy+1, iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy+1, iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy+1, iz );
+
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy-1, iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy-1, iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy-1, iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy,   iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy,   iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy,   iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy+1, iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy+1, iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy+1, iz+1 );
 }
 
 inline void UpdatePhysics( const PhysicsParameters & params,
@@ -402,7 +467,7 @@ inline void UpdatePhysics( const PhysicsParameters & params,
         static std::vector<ObjectPair> potentiallyOverlappingObjects;
         potentiallyOverlappingObjects.clear();
 
-        const float radius = stoneData.biconvex.GetBoundingSphereRadius() - 0.035f;       // hack for bevel!
+        const float radius = ( stoneData.biconvex.GetBoundingSphereRadius() - 0.035f ) * 2;       // hack for bevel!
 
         FindOverlappingObjects( sceneGrid, 
                                 radius * radius,
@@ -435,7 +500,7 @@ inline void UpdatePhysics( const PhysicsParameters & params,
 
             vec3f axis = distance > 0.00001f ? normalize( difference ) : vec3f(0,1,0);
 
-            const float penetration = 2 * radius - distance;
+            const float penetration = radius - distance;
 
             if ( !a->selected )
                 position_a += axis * penetration / 2;

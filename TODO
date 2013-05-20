@@ -1,53 +1,103 @@
 DONE:
 
-    Experimented with double tap to zoom in to point
+    First, it would be good to have a MAXIMUM HEIGHT
+    to lift to, to avoid the pathological lifting when
+    stones are near each other.
 
-    Doesn't feel very good.
-
-    Turn dragging back on.
-
-    Add stones to logical board on initial placement,
-    eg. set to "white" or "black"
-
-    Add stone ids to logical board on initial placement.
-
-    On stone selection, remove constraint data.
-
-    When selecting a stone remove it from the logical board.
-
-    This is important so the stone can be returned to its
-    initial position and not see that position as being
-    full!
-
-    Stones that are unconstrained and not selected should
-    be deleted after 2 seconds.
-
-    When a stone is dropped find the XY of the stone center
-    and constrain the stone to that point *if* that point
-    is currently empty!
-
-    Added cycle between top-down, 45 degrees and zoomed in
-    camera angles. Let the players see the different options.
+    Next, I have disabled any momentum infer while
+    stones are constrained, as it seems to be causing
+    the random launchings.
 
 TODO:
 
-    Add code to project selected stones ABOVE other stones
+    Lots of expansion has occured. 
+
+    It is time to fix bugs and contract.
+
+    Lots of systems are roughly coded and hacked in
+
+    Pass over code and clean up.
+
+    --------------------------------------------------
+
+    For example, sometimes stones simply don't collide.
+
+    What is causing this? 
+
+    It appears to be scene grid related.
+
+    --------------------------------------------------
+
+    Add a validate step that cross-checks between
+    the logical board view of what is going on,
+    and the per-stone instance view of what grid
+    point row,column they are attached to.
+
+    This should catch any silly business.
+
+    --------------------------------------------------
+
+    Multitouch should not be able to drag two stones
+    together. 
+
+    When selecting multiple stones, all stones should
+    standardize to the same select height / plane,
+    otherwise it gets confusing.
+
+    After this, all stones should collide with the
+    other selected stones and push each other out,
+    but only along the xy plane, not vertically.
+
+    This way we can avoid having multi-touch forcing
+    stone penetration.
+
+    --------------------------------------------------
+
+    Generally speaking there needs to be a separation
+    from physical and visual position.
+
+    While a stone is selected and dragging, the visual
+    position should be interpolated/extrapolated from
+    the touch positions (which don't always come in
+    every frame!)
+
+    Also, the Z position of the stone while being dragged
+    must snap physically above other stones, as to not
+    push them around, but visually we want this to be 
+    smooth.
+
+    --------------------------------------------------
+
+    Some highlighting of the currently selected stone,
+    eg. with pulsing of light intensity would also be
+    cool.
+
+    --------------------------------------------------
 
     Would be really nice to hold down off the board and
     have the stones "tighten" towards their constraints.
 
-    Add smoothing on Z axis, this isn't obvious top-down
-    but there are pops when watching in 3D camera view.
+    -------------------------------------------------
+
+    When a stone is colliding with the constraint
+    sometimes it gets stuck in a bad orientation
+    because of friction with the board.
+
+    Perhaps stones while hard colliding against
+    the constraint planes, friction should be 
+    disabled, or reduced with the board, as to
+    make the stone return to a good orientation
+    quickly.
 
     -------------------------------------------------
 
-    The case where stones are penetrating. I believe this
-    is caused because one of the stones is at rest and for
-    some reason does not react to push out. Oh, maybe the 
-    stone that is lower id is at rest. But how?!!!
+    It is sometimes jarring to see the stone hit an
+    invisible wall, it would be nicer if this constraint
+    had some softness to it, such that a soft guidance
+    would keep the stone within the constraint most
+    of the time
 
     -------------------------------------------------
-
 
     Get a basic linear collision response going
     between the stones so flicking a stone at another
@@ -64,12 +114,6 @@ TODO:
     This means that any physical changes in unlocked
     mode do not affect the logical position of the
     stones (makes sense)
-
-    -------------------------------------------------
-
-    Some stones appear to not be colliding. Scene grid
-    still has some bugs where stones are not considered
-    for collision when they should!
 
     -------------------------------------------------
 
@@ -105,12 +149,6 @@ TODO:
     stones, both in physics calculation and in mesh.
 
     Would be nice to turn this on.
-
-    -------------------------------------------------
-
-    Bring back stone swipe detection
-
-    Add wabi sabi to the swipe angular momentum
 
     -------------------------------------------------
 
