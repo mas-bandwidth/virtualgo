@@ -1,28 +1,5 @@
 DONE:
 
-    When a stone is dropped off the board, it should
-    not be deleted immediately. It should drop on 
-    the floor and delete after a few seconds.
-
-    There is a case where selecting a stone far side
-    of the board will make it move incorrectly, like
-    it has changed the shadow on the board, which 
-    implies that actually it has moved in the XY
-    plane.
-
-    This is bad!
-
-    Generally speaking as the stone lifts it must 
-    have as an invariant that its motion is vertical
-    only, this means adjusting the select plane to
-    match correctly is essential, including recalc
-    of the select plane intersection and offset,
-    post-lift up.
-
-    This is probably what is causing weird stuff.
-
-    Fixed!
-
 TODO:
 
     The fix for stone lifting/selection has broken
