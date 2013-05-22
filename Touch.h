@@ -14,16 +14,13 @@ struct Touch
 
 struct SelectData
 {
-    uint32_t stoneId;
-    TouchHandle touchHandle;
-    vec3f point;
+    Touch touch;
+    uint32_t stoneId : 16;
+    uint32_t moved : 1;
     float depth;
     vec3f offset;
-    double timestamp;
+    vec3f impulse;
     vec3f intersectionPoint;
-    vec3f prevIntersectionPoint;
-    vec3f touchImpulse;
-    bool moved;
 };
 
 typedef std::map<TouchHandle,SelectData> SelectMap;

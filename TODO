@@ -16,6 +16,20 @@ TODO:
 
     -------------------------------------------------
 
+    Basically, if a stone is being moved and the drop
+    point is actually on the board, basically the 
+    safest thing to do is simply to search the
+    ENTIRE GODDAMN BOARD to find a nice place 
+    to put the stone.
+
+    Alternatively, remember where the stone was
+    dragged from, and revert it to where it came
+    from.
+
+    It's NOT OK for a stone to just disappear!!!
+
+    -------------------------------------------------
+
     When a stone is colliding with the constraint
     sometimes it gets stuck in a bad orientation
     because of friction with the board.

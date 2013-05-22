@@ -320,12 +320,11 @@ public:
                 select.depth = z;
 
                 vec3f rayStart, rayDirection;
-                GetPickRay( inverseClipMatrix, select.point.x(), select.point.y(), rayStart, rayDirection );
+                GetPickRay( inverseClipMatrix, select.touch.point.x(), select.touch.point.y(), rayStart, rayDirection );
 
                 float t;
                 if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), select.depth, t ) )
                 {
-                    select.prevIntersectionPoint = select.intersectionPoint;
                     select.intersectionPoint = rayStart + rayDirection * t;
                     select.offset = stone->rigidBody.position - select.intersectionPoint;
                 }
@@ -616,15 +615,12 @@ public:
                     }
 
                     SelectData select;
+                    select.touch = touch;
                     select.stoneId = stone->id;
-                    select.touchHandle = touch.handle;
-                    select.point = touch.point;
                     select.depth = intersectionPoint.z();
                     select.offset = stone->rigidBody.position - intersectionPoint;
                     select.intersectionPoint = intersectionPoint;
-                    select.prevIntersectionPoint = intersectionPoint;
-                    select.timestamp = touch.timestamp;
-                    select.touchImpulse = TouchImpulse * rayDirection;
+                    select.impulse = TouchImpulse * rayDirection;
                     select.moved = false;
 
                     selectMap.insert( std::make_pair( touch.handle, select ) );
@@ -642,25 +638,16 @@ public:
             if ( itor != selectMap.end() ) 
             {
                 SelectData & select = itor->second;
-                select.point = touch.point;
+                select.touch = touch;
                 select.moved = true;
                 StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
                 if ( stone )
                 {
                     vec3f rayStart, rayDirection;
-                    GetPickRay( inverseClipMatrix, select.point.x(), select.point.y(), rayStart, rayDirection );
-
-                    // intersect with the plane at select depth and move the stone
-                    // such that it is offset from the intersection point with this plane.
-                    // then, push the go stone above the go board.
-
+                    GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
                     float t;
                     if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), select.depth, t ) )
-                    {
-                        select.prevIntersectionPoint = select.intersectionPoint;
                         select.intersectionPoint = rayStart + rayDirection * t;
-                        select.timestamp = touch.timestamp;
-                    }
                 }
                 else
                 {
@@ -703,15 +690,17 @@ public:
 
                     if ( select.moved )
                     {
+                        /*
                         InferStoneMomentum( *stone,
-                                            select.prevIntersectionPoint, 
+                                            select.prevIntersectionPoint,
                                             select.intersectionPoint, 
                                             touch.timestamp - select.timestamp );
+                         */
                     }
                     else
                     {
-                        if ( touch.timestamp - select.timestamp < 0.2f )
-                            stone->rigidBody.ApplyImpulseAtWorldPoint( select.intersectionPoint, select.touchImpulse );
+                        if ( touch.timestamp - select.touch.timestamp < 0.2f )
+                            stone->rigidBody.ApplyImpulseAtWorldPoint( select.intersectionPoint, select.impulse );
                     }
                 }
                 selectMap.erase( itor );
