@@ -298,94 +298,44 @@ public:
             StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
             if ( stone )
             {
-                // snap the stone to the latest select point
-
                 vec3f previousPosition = stone->rigidBody.position;
+
+                // first snap the selected stone to the offset from
+                // last select intersection point
 
                 stone->rigidBody.position = select.intersectionPoint + select.offset;
 
-                // find objects within radius
+                // next find the projected z that makes sure the stone
+                // is above any non-selected stones in the area, so it slides
+                // above other stones.
 
-                const float originalZ = stone->rigidBody.position.z();
+                const float z = FindSelectedStoneZ( stone, stoneData, stones, sceneGrid );
 
-                std::vector<StoneInstance*> objects;
+                assert( z >= stone->rigidBody.position.z() );
 
-                const float radius = ( stoneData.biconvex.GetBoundingSphereRadius() - 0.035f ) * 2;       // hack for bevel!
+                stone->rigidBody.position = vec3f( stone->rigidBody.position.x(), 
+                                                   stone->rigidBody.position.y(),
+                                                   z );
 
-                FindObjectsInRadius( stone->rigidBody.position, 
-                                     radius, 
-                                     sceneGrid,
-                                     stones, 
-                                     objects );
+                select.depth = z;
 
-                // find the highest center position z for all objects nearby
+                vec3f rayStart, rayDirection;
+                GetPickRay( inverseClipMatrix, select.point.x(), select.point.y(), rayStart, rayDirection );
 
-                float z = stone->rigidBody.position.z();
-                for ( int k = 0; k < objects.size(); ++k )
+                float t;
+                if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), select.depth, t ) )
                 {
-                    if ( objects[k]->selected )
-                        continue;
-                    if ( objects[k]->rigidBody.position.z() > z )
-                        z = objects[k]->rigidBody.position.z();
+                    select.prevIntersectionPoint = select.intersectionPoint;
+                    select.intersectionPoint = rayStart + rayDirection * t;
+                    select.offset = stone->rigidBody.position - select.intersectionPoint;
                 }
 
-                // from starting z work up in increments until selected stone
-                // is above all other stones (push up)
-                
-                const float radiusSquared = radius * radius;
-
-                const float delta = 0.1f;
-                
-                const float zmax = 3.5f;           // hack: this should be relative to board thickness
-
-                while ( true )
-                {
-                    if ( z > zmax )
-                    {
-                        z = zmax;
-                        break;
-                    }
-
-                    vec3f position( stone->rigidBody.position.x(), stone->rigidBody.position.y(), z );
-
-                    bool collided = false;
-
-                    for ( int k = 0; k < objects.size(); ++k )
-                    {
-                        if ( objects[k]->selected )
-                            continue;
-
-                        if ( length_squared( objects[k]->rigidBody.position - position ) <= radiusSquared )
-                        {
-                            collided = true;
-                            break;
-                        }
-                    }
-
-                    if ( !collided )
-                    {
-                        stone->rigidBody.position = position;
-                        stone->rigidBody.UpdateTransform();
-                        break;
-                    }
-
-                    z += delta;
-                }
-
-                // update the select offset and depth to match stone lift
-
-                const float deltaZ = stone->rigidBody.position.z() - originalZ;
-
-                if ( deltaZ > 0 )
-                {
-                    select.offset += vec3f(0,0,deltaZ);
-                    select.depth += deltaZ;
-                }
-                
                 // commit the result back to the scene grid
                 
                 sceneGrid.MoveObject( stone->id, previousPosition, stone->rigidBody.position );
                 
+                stone->rigidBody.UpdateTransform();
+
                 stone->rigidBody.Activate();
             }
         }
@@ -502,7 +452,44 @@ public:
 
     void Validate()
     {
-        // ...
+        // verify that stone constraints match the board state at the point
+
+        for ( int i = 0; i < stones.size(); ++i )
+        {
+            StoneInstance & stone = stones[i];
+
+            if ( stone.constrained )
+            {
+                const int row = stone.constraintRow;
+                const int column = stone.constraintColumn;
+
+                assert( board.GetPointState( row, column ) == ( stone.white ? White : Black ) );
+                assert( board.GetPointStoneId( row, column ) == stone.id );                
+            }
+        }
+
+        // iterate across all board points, verify they match the stone state
+
+        const int size = board.GetSize();
+
+        for ( int row = 1; row <= size; ++row )
+        {
+            for ( int column = 1; column <= size; ++column )
+            {
+                int pointState = board.GetPointState( row, column );
+                if ( pointState != Empty )
+                {
+                    uint16_t id = board.GetPointStoneId( row, column );
+                    StoneInstance * stone = FindStoneInstance( id, stones );
+                    assert( stone );
+                    assert( stone->id == id );
+                    assert( stone->white == ( pointState == White ) );
+                    assert( stone->constrained );
+                }
+            }
+        }
+
+        // verify the cell grid (somehow...) :)
     }
 
     bool IsScreenPointOnBoard( const vec3f & point )
@@ -624,13 +611,14 @@ public:
                     {
                         stone->constrained = 0;
                         board.SetPointState( stone->constraintRow, stone->constraintColumn, Empty );
+                        board.SetPointStoneId( stone->constraintRow, stone->constraintColumn, 0 );
                         Validate();
                     }
 
                     SelectData select;
                     select.stoneId = stone->id;
                     select.touchHandle = touch.handle;
-                    select.point = intersectionPoint;
+                    select.point = touch.point;
                     select.depth = intersectionPoint.z();
                     select.offset = stone->rigidBody.position - intersectionPoint;
                     select.intersectionPoint = intersectionPoint;
@@ -654,12 +642,13 @@ public:
             if ( itor != selectMap.end() ) 
             {
                 SelectData & select = itor->second;
+                select.point = touch.point;
                 select.moved = true;
                 StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
                 if ( stone )
                 {
                     vec3f rayStart, rayDirection;
-                    GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
+                    GetPickRay( inverseClipMatrix, select.point.x(), select.point.y(), rayStart, rayDirection );
 
                     // intersect with the plane at select depth and move the stone
                     // such that it is offset from the intersection point with this plane.
@@ -703,13 +692,16 @@ public:
                         stone->constraintColumn = column;
                         stone->constraintPosition = board.GetPointPosition( row, column );
                         board.SetPointState( stone->constraintRow, stone->constraintColumn, stone->white ? White : Black );
+                        board.SetPointStoneId( row, column, stone->id );
                     }
                     else
                     {
-                        stone->deleteTimer = DeleteTime;
+                        // IMPORTANT: only delete if the stone is over the board
+                        if ( board.FindNearestPoint( stone->rigidBody.position, row, column ) )
+                            stone->deleteTimer = DeleteTime;
                     }
 
-                    if ( select.moved && touch.timestamp - select.timestamp < 0.2f )
+                    if ( select.moved )
                     {
                         InferStoneMomentum( *stone,
                                             select.prevIntersectionPoint, 
@@ -718,7 +710,8 @@ public:
                     }
                     else
                     {
-                        stone->rigidBody.ApplyImpulseAtWorldPoint( select.intersectionPoint, select.touchImpulse );
+                        if ( touch.timestamp - select.timestamp < 0.2f )
+                            stone->rigidBody.ApplyImpulseAtWorldPoint( select.intersectionPoint, select.touchImpulse );
                     }
                 }
                 selectMap.erase( itor );
@@ -728,26 +721,7 @@ public:
 
     void OnTouchesCancelled( Touch * touches, int numTouches )
     {
-        for ( int i = 0; i < numTouches; ++i )
-        {
-            Touch & touch = touches[i];
-            SelectMap::iterator itor = selectMap.find( touch.handle );
-            if ( itor != selectMap.end() )
-            {
-                SelectData & select = itor->second;
-                StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
-                if ( stone )
-                {
-                    stone->selected = 0;
-                    
-                    InferStoneMomentum( *stone,
-                                       select.prevIntersectionPoint,
-                                       select.intersectionPoint,
-                                       touch.timestamp - select.timestamp );
-                }
-                selectMap.erase( itor );
-            }
-        }
+        // todo: implement this (eg. undo the stone move... revert to original positions?)
     }
 
     void OnSwipe( const vec3f & point, const vec3f & delta )

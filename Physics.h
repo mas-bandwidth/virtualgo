@@ -250,6 +250,76 @@ inline void FindObjectsInRadius( const vec3f & position,
     FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy+1, iz+1 );
 }
 
+float FindSelectedStoneZ( StoneInstance * stone, 
+                          StoneData & stoneData, 
+                          std::vector<StoneInstance> & stones,
+                          SceneGrid & sceneGrid )
+{
+    // find objects within radius
+
+    std::vector<StoneInstance*> objects;
+
+    const float radius = ( stoneData.biconvex.GetBoundingSphereRadius() - 0.035f ) * 2;       // hack for bevel!
+
+    FindObjectsInRadius( stone->rigidBody.position, 
+                         radius, 
+                         sceneGrid,
+                         stones, 
+                         objects );
+
+    // find the highest center position z for all objects nearby
+
+    float z = stone->rigidBody.position.z();
+    for ( int k = 0; k < objects.size(); ++k )
+    {
+        if ( objects[k]->selected )
+            continue;
+        if ( objects[k]->rigidBody.position.z() > z )
+            z = objects[k]->rigidBody.position.z();
+    }
+
+    // from starting z work up in increments until selected stone
+    // is above all other stones (push up)
+    
+    const float radiusSquared = radius * radius;
+
+    const float delta = 0.1f;
+    
+    const float zmax = 4.0f;           // hack: this should be relative to board thickness
+
+    while ( true )
+    {
+        if ( z >= zmax )
+        {
+            z = zmax;
+            break;
+        }
+
+        vec3f position( stone->rigidBody.position.x(), stone->rigidBody.position.y(), z );
+
+        bool collided = false;
+
+        for ( int k = 0; k < objects.size(); ++k )
+        {
+            if ( objects[k]->selected )
+                continue;
+
+            if ( length_squared( objects[k]->rigidBody.position - position ) <= radiusSquared )
+            {
+                collided = true;
+                break;
+            }
+        }
+
+        if ( !collided )
+            break;
+
+        z += delta;
+    }
+
+    return z;
+}
+
 inline void UpdatePhysics( const PhysicsParameters & params,
                            const Board & board, 
                            const StoneData & stoneData, 
@@ -491,6 +561,9 @@ inline void UpdatePhysics( const PhysicsParameters & params,
             StoneInstance * a = pair.a;
             StoneInstance * b = pair.b;
 
+            if ( a->selected || b->selected )
+                continue;
+
             vec3f & position_a = a->rigidBody.position;
             vec3f & position_b = b->rigidBody.position;
 
@@ -501,12 +574,9 @@ inline void UpdatePhysics( const PhysicsParameters & params,
             vec3f axis = distance > 0.00001f ? normalize( difference ) : vec3f(0,1,0);
 
             const float penetration = radius - distance;
-
-            if ( !a->selected )
-                position_a += axis * penetration / 2;
             
-            if ( !b->selected )
-                position_b -= axis * penetration / 2;
+            position_a += axis * penetration / 2;
+            position_b -= axis * penetration / 2;
             
             // todo: apply simple linear impulse response
             
@@ -539,23 +609,23 @@ inline void UpdatePhysics( const PhysicsParameters & params,
 
                 if ( dx > ConstraintDelta )
                 {
-                    stone.rigidBody.linearMomentum -= vec3f(stone.rigidBody.linearMomentum.x(),0,0);
+                    stone.rigidBody.linearMomentum -= vec3f( stone.rigidBody.linearMomentum.x(),0, 0 );
                     dx = ConstraintDelta;
                 }
                 else if ( dx < -ConstraintDelta )
                 {
-                    stone.rigidBody.linearMomentum -= vec3f(stone.rigidBody.linearMomentum.x(),0,0);
+                    stone.rigidBody.linearMomentum -= vec3f( stone.rigidBody.linearMomentum.x(), 0, 0 );
                     dx = -ConstraintDelta;
                 }
 
                 if ( dy > ConstraintDelta )
                 {
-                    stone.rigidBody.linearMomentum -= vec3f(0,stone.rigidBody.linearMomentum.y(),0);
+                    stone.rigidBody.linearMomentum -= vec3f( 0, stone.rigidBody.linearMomentum.y(), 0 );
                     dy = ConstraintDelta;
                 }
                 else if ( dy < -ConstraintDelta )
                 {
-                    stone.rigidBody.linearMomentum -= vec3f(0,stone.rigidBody.linearMomentum.y(),0);
+                    stone.rigidBody.linearMomentum -= vec3f( 0, stone.rigidBody.linearMomentum.y(), 0 );
                     dy = -ConstraintDelta;
                 }
 

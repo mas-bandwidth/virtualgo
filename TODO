@@ -1,39 +1,102 @@
 DONE:
 
-    First, it would be good to have a MAXIMUM HEIGHT
-    to lift to, to avoid the pathological lifting when
-    stones are near each other.
+    When a stone is dropped off the board, it should
+    not be deleted immediately. It should drop on 
+    the floor and delete after a few seconds.
 
-    Next, I have disabled any momentum infer while
-    stones are constrained, as it seems to be causing
-    the random launchings.
+    There is a case where selecting a stone far side
+    of the board will make it move incorrectly, like
+    it has changed the shadow on the board, which 
+    implies that actually it has moved in the XY
+    plane.
+
+    This is bad!
+
+    Generally speaking as the stone lifts it must 
+    have as an invariant that its motion is vertical
+    only, this means adjusting the select plane to
+    match correctly is essential, including recalc
+    of the select plane intersection and offset,
+    post-lift up.
+
+    This is probably what is causing weird stuff.
+
+    Fixed!
 
 TODO:
 
-    Lots of expansion has occured. 
+    The fix for stone lifting/selection has broken
+    the stone flicking on release.
 
-    It is time to fix bugs and contract.
+    To fix I think it is necessary to track the
+    previous stone position and update only when
+    "TouchesMoved", eg. don't use the intersection
+    point which adjusts also when the stone moves
+    up in the "UpdateTouches" fn.
 
-    Lots of systems are roughly coded and hacked in
+    This should allow both flicking and nice robust
+    stone movement upwards.
 
-    Pass over code and clean up.
+    -------------------------------------------------
+
+    When a stone is colliding with the constraint
+    sometimes it gets stuck in a bad orientation
+    because of friction with the board.
+
+    Perhaps stones while hard colliding against
+    the constraint planes, friction should be 
+    disabled, or reduced with the board, as to
+    make the stone return to a good orientation
+    quickly.
 
     --------------------------------------------------
 
-    For example, sometimes stones simply don't collide.
+    Sometimes stones simply don't collide.
 
     What is causing this? 
 
     It appears to be scene grid related.
 
+    Can I catch this in the debugger?
+
+    Can I reproduce this in the unit tests?
+
     --------------------------------------------------
 
-    Add a validate step that cross-checks between
-    the logical board view of what is going on,
-    and the per-stone instance view of what grid
-    point row,column they are attached to.
 
-    This should catch any silly business.
+
+
+
+
+
+
+
+    POLISH PHASE
+
+    --------------------------------------------------
+
+    Some highlighting of the currently selected stone,
+    eg. with pulsing of light intensity would also be
+    cool.
+
+    ----------------------------------------------------
+
+    When a stone is removed it should be *at minimum*
+    an alpha fade-out of both stone and shadow.
+
+    Right now it just pops out of existence.
+
+    This looks terrible.
+
+    --------------------------------------------------
+
+    Generally speaking there needs to be a separation
+    from physical and visual position.
+
+    While a stone is selected and dragging, the visual
+    position should be interpolated/extrapolated from
+    the touch positions (which don't always come in
+    every frame!)
 
     --------------------------------------------------
 
@@ -53,41 +116,11 @@ TODO:
 
     --------------------------------------------------
 
-    Generally speaking there needs to be a separation
-    from physical and visual position.
-
-    While a stone is selected and dragging, the visual
-    position should be interpolated/extrapolated from
-    the touch positions (which don't always come in
-    every frame!)
-
-    Also, the Z position of the stone while being dragged
-    must snap physically above other stones, as to not
-    push them around, but visually we want this to be 
-    smooth.
-
-    --------------------------------------------------
-
-    Some highlighting of the currently selected stone,
-    eg. with pulsing of light intensity would also be
-    cool.
-
-    --------------------------------------------------
-
     Would be really nice to hold down off the board and
     have the stones "tighten" towards their constraints.
 
-    -------------------------------------------------
-
-    When a stone is colliding with the constraint
-    sometimes it gets stuck in a bad orientation
-    because of friction with the board.
-
-    Perhaps stones while hard colliding against
-    the constraint planes, friction should be 
-    disabled, or reduced with the board, as to
-    make the stone return to a good orientation
-    quickly.
+    Currently this can be approximated by randomly
+    shaking the board. This is a bit weird! :)
 
     -------------------------------------------------
 
@@ -99,23 +132,58 @@ TODO:
 
     -------------------------------------------------
 
+    Black stones should be slightly larger than white
+    stones, both in physics calculation and in mesh.
+
+    Would be nice to turn this on.
+
+    -------------------------------------------------------------
+
+
+
+
+
+
+
+
+    COLLISION DETECTION & RESPONSE CONTINUED
+
+    -------------------------------------------------
+
     Get a basic linear collision response going
     between the stones so flicking a stone at another
     stone results in basically plausible collision.
 
+    -----------------------------------------------------------------
+
+    Determine sets of axes required to test biconvex vs. biconvex
+
+    Find axis of least penetration
+
+    Implement proper collision response for two moving objects
+    with angular effects. 
+
+    -----------------------------------------------------------------
+
+    I have disable collision between selected stone
+    and non-selected stones.
+
+    In reality, I want this back on eventually, as
+    the user can launch stones while stones are selected
+    which causes penetration.
+
+    Penetration is not acceptable.
+
+    -------------------------------------------------------------
+
+    Now that collision detection is done using a tighter shape,
+    dragging stones over other stones should look a lot smoother
+    because the ramp up is less severe, eg. less energy being used
+    to lift stones above other stones.
+
     -------------------------------------------------
 
-    Toggle lock/unlock by double tapping or holding
 
-    Perhaps the logical position of the stones can be
-    remembered, so after returned to locked mode stones
-    can lerp to their locked positions.
-
-    This means that any physical changes in unlocked
-    mode do not affect the logical position of the
-    stones (makes sense)
-
-    -------------------------------------------------
 
 
 
@@ -143,34 +211,7 @@ TODO:
     simulation. It seems the mass needs to be larger
     so that impulses would have less effect.
 
-    -------------------------------------------------
-
-    Black stones should be slightly larger than white
-    stones, both in physics calculation and in mesh.
-
-    Would be nice to turn this on.
-
-    -------------------------------------------------
-
-    
-
-
-
-
-    -----------------------------------------------------------------
-
-    Determine sets of axes required to test biconvex vs. biconvex
-
-    Find axis of least penetration
-
-    Implement proper collision response for two moving objects
-    with angular effects. 
-
-    Handle the case where the mass is scaled
-    to infinite as well, eg. stone that is currently selected.
-
-    -----------------------------------------------------------------
-
+    ----------------------------------------------------------
 
 
 
@@ -200,69 +241,6 @@ TODO:
 
 
 
-
-
-
-    -----------------------------------------------------------------
-
-    When a stone is moved, it should logically attach to a grid point
-
-    Add a constraint to the grid point
-
-    Add some UI element to toggle locked mode on/off
-
-    When in locked mode, any stone that is not logically occupying
-    a position on the logical board will be deleted in 5 secs.
-
-    -----------------------------------------------------------------
-
-
-
-
-
-    -----------------------------------------------------------------
-
-    Implement zoom in to point of double tap
-
-    Clamp zoom in point to the board surface
-
-    -----------------------------------------------------------------
-
-
-
-
-
-    -----------------------------------------------------------------
-
-    Idea the UI element can be frosted glass resting on the floor
-
-    This would look AWESOME
-
-    -----------------------------------------------------------------
-
-    Add a square UI element that can be pressed to toggle locked mode
-
-    To do this need:
-
-    - ortho projection matrix
-    - shader for UI elements (textured, with alpha)
-
-    -----------------------------------------------------------------
-
-
-
-
-    -----------------------------------------------------------------
-
-    Implement a way to pick the stone up with two finger swipe
-    towards the stone, this is something Evan Cho naturally tried
-    to do, therefore it is intuitive and I should support it. 
-
-    -----------------------------------------------------------------
-
-
-
-
     -----------------------------------------------------------------
 
     Board grid corners need special treatment, a corner texture to
@@ -274,31 +252,6 @@ TODO:
     irregularity etc. They look super harsh and sharp right now!
 
     -----------------------------------------------------------------
-
-
-
-
-
-
-
-
-    -----------------------------------------------------------------
-
-    Instead of zooming in, maybe a second zoomed in view of the board
-    can show while you are holding a touch past a certain point!!!
-
-    This would also help fix the problem of not feeling confident
-    about where you are placing the stone. 
-
-    This should only show after an extended hold. It would be
-    annoying if it would flick on and off.
-
-    Would definitely help fix the FAT FINGERS feeling on ipad,
-    if you can see under your finger, this is no longer an issue.
-
-    -----------------------------------------------------------------
-
-
 
 
 
@@ -342,75 +295,3 @@ TODO:
     textures, eg. light, dark, red wood etc.
 
     -----------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-    -----------------------------------------------------------------
-
-    Pops occur in the corners/edges. Need iterative contacts.
-
-    Blow into the microphone moves the stone up (iphone only)
-
-    http://mobileorchard.com/tutorial-detecting-when-a-user-blows-into-the-mic/
-    
-    -----------------------------------------------------------------
-
-    Prefer spin direction the stone is already spinning around on swipe
-
-    If there is no existing rotation 
-
-    -----------------------------------------------------------------
-
-    The accelerometer not being accurate on side tilt is actually
-    not true, it is caused by the frustum planes being not exactly
-    flat.
-
-    I'm not sure if I should do anything about this.
-
-    I cannot clamp the value as I want tilting to work on side planes
-
-    I could consider some sort of clamp to nearest plane normal
-    concept if within some tolerence, this might be a good idea
-    but would make sliding asymmetrical with the floor.
-
-    -----------------------------------------------------------------
-
-    Implement iterative solver for simultaneous constraints (eg. corners)
-
-    -----------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    -----------------------------------------------------------------
-
-    Move the video recording framework into Platform.h/cpp so
-    it isn't cut & paste in every demo program!
-
-    -----------------------------------------------------------------
-
-    Fix sphere vs. edge to include axes corresponding to
-    each sphere touching the edge -- right now, not exact
-    unless sphere hits 45 degrees.
-
-    Fix bounce back off inside edge collision case (repro first)
-
-    --------------------------------------------------------

@@ -1,4 +1,47 @@
 
+Misc bugfixes (21/5/2013):
+--------------------------
+
+    First, it would be good to have a MAXIMUM HEIGHT
+    to lift to, to avoid the pathological lifting when
+    stones are near each other.
+
+    Next, I have disabled any momentum infer while
+    stones are constrained, as it seems to be causing
+    the random launchings.
+
+    Lots of expansion has occured. 
+
+    It is time to fix bugs and contract.
+
+    Lots of systems are roughly coded and hacked in
+
+    Pass over code and clean up.
+
+    Add a validate step that cross-checks between
+    the logical board view of what is going on,
+    and the per-stone instance view of what grid
+    point row,column they are attached to.
+
+    This should catch any silly business.
+
+    (Indeed, the stone id was not being set properly
+     when a stone was dropped into a new point...)
+
+    Can actually completely disable collision between
+    selected stones and non-selected stones, this
+    will stop the selected stones occasionally pushing
+    against non-selected stones (not wanted) when 
+    dragging over them.
+
+    When you tap a stone, then hold but don't move
+    the large impulse should not be applied.
+
+    Right now it is, and it looks stupid.
+
+    Fixed.
+
+
 Fixed lots of bugs in stone drag and snap to grid (19/5/2013):
 --------------------------------------------------------------
 
