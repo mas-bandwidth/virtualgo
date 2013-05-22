@@ -5,6 +5,8 @@
 #define OPENGL_ES2 1
 #endif
 
+const float DropMomentum = 10;
+
 const float DeleteTime = 2;
 
 const float PlacementVariance = 0.2f;
@@ -57,6 +59,6 @@ const float HoldMoveThreshold = 40;             // points
 const float SelectDamping = 0.75f;
 
 const float TouchImpulse = 5.0f;
-const float SelectImpulse = 2.0f;
+const float SelectImpulse = 1.0f;
 
 #endif

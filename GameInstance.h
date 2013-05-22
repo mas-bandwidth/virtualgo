@@ -311,9 +311,7 @@ public:
 
                 const float z = FindSelectedStoneZ( stone, stoneData, stones, sceneGrid );
 
-                assert( z >= stone->rigidBody.position.z() );
-
-                stone->rigidBody.position = vec3f( stone->rigidBody.position.x(), 
+                stone->rigidBody.position = vec3f( stone->rigidBody.position.x(),
                                                    stone->rigidBody.position.y(),
                                                    z );
 
@@ -513,20 +511,6 @@ public:
         return false;
     }
 
-    void InferStoneMomentum( StoneInstance & stone, const vec3f & prevPosition, const vec3f & newPosition, float dt, float threshold = 0.1f * 0.1f )
-    {
-        if ( stone.constrained )
-            return;
-
-        const vec3f delta = newPosition - prevPosition;
-
-        if ( length_squared( delta ) > threshold )
-        {
-            stone.rigidBody.linearMomentum = stone.rigidBody.mass * delta / max( 1.0f / 60.0f, dt );
-            stone.rigidBody.Activate();
-        }
-    }
-
     // -------------------------------------------------------
     // event handling
     // -------------------------------------------------------
@@ -606,14 +590,6 @@ public:
                     stone->rigidBody.ApplyImpulseAtWorldPoint( intersectionPoint, SelectImpulse * rayDirection );
                     stone->selected = 1;
 
-                    if ( stone->constrained )
-                    {
-                        stone->constrained = 0;
-                        board.SetPointState( stone->constraintRow, stone->constraintColumn, Empty );
-                        board.SetPointStoneId( stone->constraintRow, stone->constraintColumn, 0 );
-                        Validate();
-                    }
-
                     SelectData select;
                     select.touch = touch;
                     select.stoneId = stone->id;
@@ -621,9 +597,21 @@ public:
                     select.offset = stone->rigidBody.position - intersectionPoint;
                     select.intersectionPoint = intersectionPoint;
                     select.impulse = TouchImpulse * rayDirection;
+                    select.lastMoveDelta = vec3f(0,0,0);
                     select.moved = false;
+                    select.constrained = stone->constrained;
+                    select.constraintRow = stone->constraintRow;
+                    select.constraintColumn = stone->constraintColumn;
 
                     selectMap.insert( std::make_pair( touch.handle, select ) );
+
+                    if ( stone->constrained )
+                    {
+                        stone->constrained = 0;
+                        board.SetPointState( stone->constraintRow, stone->constraintColumn, Empty );
+                        board.SetPointStoneId( stone->constraintRow, stone->constraintColumn, 0 );
+                        Validate();
+                    }
                 }
             }
         }
@@ -647,7 +635,12 @@ public:
                     GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
                     float t;
                     if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), select.depth, t ) )
+                    {
+                        vec3f previous = select.intersectionPoint;
                         select.intersectionPoint = rayStart + rayDirection * t;
+                        select.lastMoveDelta = vec3f( select.intersectionPoint.x() - previous.x(),
+                                                      select.intersectionPoint.y() - previous.y(), 0 );
+                    }
                 }
                 else
                 {
@@ -671,6 +664,11 @@ public:
                 {
                     stone->selected = 0;
 
+                    // find the nearest empty point to move the stone to
+                    // be extra nice to the player by searching adjacent cells
+                    // and finding the one that is nearest to the current stone
+                    // select position.
+
                     int row, column;
                     if ( board.FindNearestEmptyPoint( stone->rigidBody.position, row, column ) )
                     {
@@ -680,22 +678,45 @@ public:
                         stone->constraintPosition = board.GetPointPosition( row, column );
                         board.SetPointState( stone->constraintRow, stone->constraintColumn, stone->white ? White : Black );
                         board.SetPointStoneId( row, column, stone->id );
+                        stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
+                        stone->rigidBody.UpdateMomentum();
                     }
                     else
                     {
-                        // IMPORTANT: only delete if the stone is over the board
+                        // if there is no empty point, but the stone is over the board
+                        // this means the player tried to move the stone but fucked up. 
+                        // be nice and revert to original stone position if it's still
+                        // empty, otherwise delete the stone.
+
                         if ( board.FindNearestPoint( stone->rigidBody.position, row, column ) )
-                            stone->deleteTimer = DeleteTime;
+                        {
+                            if ( select.constrained && board.GetPointState( select.constraintRow, select.constraintColumn ) == Empty )
+                            {
+                                stone->constrained = 1;
+                                stone->constraintRow = select.constraintRow;
+                                stone->constraintColumn = select.constraintColumn;
+                                stone->constraintPosition = board.GetPointPosition( select.constraintRow, select.constraintColumn );
+                                board.SetPointState( stone->constraintRow, stone->constraintColumn, stone->white ? White : Black );
+                                board.SetPointStoneId( select.constraintRow, select.constraintColumn, stone->id );
+                                stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
+                                stone->rigidBody.UpdateMomentum();
+                            }
+                            else
+                                stone->deleteTimer = DeleteTime;
+                        }
                     }
 
                     if ( select.moved )
                     {
-                        /*
-                        InferStoneMomentum( *stone,
-                                            select.prevIntersectionPoint,
-                                            select.intersectionPoint, 
-                                            touch.timestamp - select.timestamp );
-                         */
+                        if ( !stone->constrained )
+                        {
+                            if ( length_squared( select.lastMoveDelta ) > 0.1f * 0.1f )
+                            {
+                                const float dt = touch.timestamp - select.touch.timestamp;
+                                stone->rigidBody.linearMomentum = stone->rigidBody.mass * select.lastMoveDelta / max( 1.0f / 60.0f, dt );
+                                stone->rigidBody.Activate();
+                            }
+                        }
                     }
                     else
                     {

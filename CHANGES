@@ -1,4 +1,44 @@
 
+Move work on stone move and drop (22/5/2013):
+---------------------------------------------
+
+    Remember where the stone was initially dragged from
+
+    If it is dropped on the board, but cannot find an
+    empty grid point, revert to the original place.
+
+    If the original place is now filled (multi-touch), 
+    delete the stone. Not much we can do at this point.
+
+    Also, adjusted the stone drop so it has an initial
+    component downwards. This fixes the "floaty" feeling
+    when the stone is released, like it is being pushed
+    down vs. just being let go. 
+
+    Feels better but I now think it wobbles a bit too
+    much on drop and may get annoying. Need to think
+    about what it should look and feel like.
+
+    Perhaps the stone needs additional damping when
+    it is placed, vs. normal motion.
+
+
+Fixed flicking off the board (22/5/2013):
+-----------------------------------------
+
+    The fix for stone lifting/selection has broken
+    the stone flicking on release.
+
+    To fix I think it is necessary to track the
+    previous stone position and update only when
+    "TouchesMoved", eg. don't use the intersection
+    point which adjusts also when the stone moves
+    up in the "UpdateTouches" fn.
+
+    This should allow both flicking and nice robust
+    stone movement upwards.
+
+
 More bugfixes (22/5/2013):
 --------------------------
 

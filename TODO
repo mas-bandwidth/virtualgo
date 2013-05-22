@@ -2,31 +2,41 @@ DONE:
 
 TODO:
 
-    The fix for stone lifting/selection has broken
-    the stone flicking on release.
+    --------------------------------------------------
 
-    To fix I think it is necessary to track the
-    previous stone position and update only when
-    "TouchesMoved", eg. don't use the intersection
-    point which adjusts also when the stone moves
-    up in the "UpdateTouches" fn.
+    Sometimes stones simply don't collide.
 
-    This should allow both flicking and nice robust
-    stone movement upwards.
+    What is causing this? 
 
-    -------------------------------------------------
+    It appears to be scene grid related.
 
-    Basically, if a stone is being moved and the drop
-    point is actually on the board, basically the 
-    safest thing to do is simply to search the
-    ENTIRE GODDAMN BOARD to find a nice place 
-    to put the stone.
+    Can I catch this in the debugger?
 
-    Alternatively, remember where the stone was
-    dragged from, and revert it to where it came
-    from.
+    Can I reproduce this in the unit tests?
 
-    It's NOT OK for a stone to just disappear!!!
+    *** THIS IS THE ONLY REMAINING OBVIOUS BUG ***
+
+    --------------------------------------------------
+
+
+
+
+
+
+
+
+
+    *** GAME POLISH ***
+
+    --------------------------------------------------
+
+    Generally speaking there needs to be a separation
+    from physical and visual position.
+
+    While a stone is selected and dragging, the visual
+    position should be interpolated/extrapolated from
+    the touch positions (which don't always come in
+    every frame!)
 
     -------------------------------------------------
 
@@ -42,52 +52,17 @@ TODO:
 
     --------------------------------------------------
 
-    Sometimes stones simply don't collide.
+    Touch events don't always come in at 60fps
 
-    What is causing this? 
+    This is the OS being a fucking piece of shit
 
-    It appears to be scene grid related.
+    It should be able to do this, but it's probably
+    not fair to rely on it. Therefore, I must implement
+    interpolation/extrapolation on touch events!
 
-    Can I catch this in the debugger?
-
-    Can I reproduce this in the unit tests?
-
-    --------------------------------------------------
-
-
-
-
-
-
-
-
-
-    POLISH PHASE
-
-    --------------------------------------------------
-
-    Some highlighting of the currently selected stone,
-    eg. with pulsing of light intensity would also be
-    cool.
-
-    ----------------------------------------------------
-
-    When a stone is removed it should be *at minimum*
-    an alpha fade-out of both stone and shadow.
-
-    Right now it just pops out of existence.
-
-    This looks terrible.
-
-    --------------------------------------------------
-
-    Generally speaking there needs to be a separation
-    from physical and visual position.
-
-    While a stone is selected and dragging, the visual
-    position should be interpolated/extrapolated from
-    the touch positions (which don't always come in
-    every frame!)
+    Stone movement must be smooth and at 60fps
+    at all times. Otherwise the illusion of solidity
+    is broken!
 
     --------------------------------------------------
 
@@ -121,6 +96,30 @@ TODO:
     would keep the stone within the constraint most
     of the time
 
+    --------------------------------------------------
+
+
+
+
+
+
+    *** RENDER POLISH ***
+
+    --------------------------------------------------
+
+    Some highlighting of the currently selected stone,
+    eg. with pulsing of light intensity would also be
+    cool.
+
+    ----------------------------------------------------
+
+    When a stone is removed it should be *at minimum*
+    an alpha fade-out of both stone and shadow.
+
+    Right now it just pops out of existence.
+
+    This looks terrible.
+
     -------------------------------------------------
 
     Black stones should be slightly larger than white
@@ -130,14 +129,43 @@ TODO:
 
     -------------------------------------------------------------
 
+    Render shadow to texture and blur out with gaussian
+
+    This is probably the biggest visual improvement I can do 
+    at this point.
+
+    -------------------------------------------------------------
+
+    Floor mesh should be rendered with a shader that has a
+    spotlight effect. Otherwise the floor is going to look
+    infinite, or have an edge, which looks weird
+
+    -------------------------------------------------------------
+
+    Board grid corners need special treatment, a corner texture to
+    fix up the gap (otherwise it does not get AA properly...!)
+
+    -----------------------------------------------------------------
+
+    Soften the edges of the go board by baking in some rounding,
+    irregularity etc. They look super harsh and sharp right now!
+
+    -----------------------------------------------------------------
 
 
 
 
 
 
+    *** COLLISION DETECTION & RESPONSE ***
 
-    COLLISION DETECTION & RESPONSE CONTINUED
+    --------------------------------------------------
+
+    When a stone is dropped on top of other stones
+    but has no empty point, it depresses the other
+    stones briefly. This is wrong, but is probably
+    best fixed by doing correct collision detection,
+    not bounding sphere on the stone vs. some hack.
 
     -------------------------------------------------
 
@@ -229,20 +257,6 @@ TODO:
 
     -----------------------------------------------------------------
 
-
-
-
-    -----------------------------------------------------------------
-
-    Board grid corners need special treatment, a corner texture to
-    fix up the gap (otherwise it does not get AA properly...!)
-
-    -----------------------------------------------------------------
-
-    Soften the edges of the go board by baking in some rounding,
-    irregularity etc. They look super harsh and sharp right now!
-
-    -----------------------------------------------------------------
 
 
 

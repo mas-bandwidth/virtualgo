@@ -285,7 +285,7 @@ float FindSelectedStoneZ( StoneInstance * stone,
 
     const float delta = 0.1f;
     
-    const float zmax = 4.0f;           // hack: this should be relative to board thickness
+    const float zmax = 3.0f;           // hack: this should be relative to board thickness
 
     while ( true )
     {

@@ -17,10 +17,14 @@ struct SelectData
     Touch touch;
     uint32_t stoneId : 16;
     uint32_t moved : 1;
+    uint32_t constrained : 1;
+    uint32_t constraintRow : 8;
+    uint32_t constraintColumn : 8;
     float depth;
     vec3f offset;
     vec3f impulse;
     vec3f intersectionPoint;
+    vec3f lastMoveDelta;
 };
 
 typedef std::map<TouchHandle,SelectData> SelectMap;
