@@ -1,4 +1,33 @@
 
+Crash fix in multi-touch (22/5/2013):
+-------------------------------------
+
+    People are getting asserts in validate (3x)
+
+    The asserts are here:
+
+        assert( board.GetPointState( row, column ) == ( stone.white ? White : Black ) );
+
+    I think this means that a stone think it is constrained to a point,
+    but the point itself does not agree that it is black or white.
+
+    Either, the point is empty when it should be black/white,
+    or it is black when it should be white or vice versa.
+
+    Probably empty.
+
+    So... how can this happen? :)
+
+    I believe that it is caused somehow by multi-touch
+
+    Yes. A second touch was able to select the already
+    selected stone, and of coures, get confused when
+    you released the stone (dorking up the logical grid)
+
+    Fixed by explicitly disallowing selecting of a
+    stone that is already selected!
+
+
 Move work on stone move and drop (22/5/2013):
 ---------------------------------------------
 

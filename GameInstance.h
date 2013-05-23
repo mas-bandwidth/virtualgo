@@ -449,6 +449,8 @@ public:
 
     void Validate()
     {
+        const int size = board.GetSize();
+
         // verify that stone constraints match the board state at the point
 
         for ( int i = 0; i < stones.size(); ++i )
@@ -460,14 +462,18 @@ public:
                 const int row = stone.constraintRow;
                 const int column = stone.constraintColumn;
 
+                assert( row >= 1 );
+                assert( row <= size );
+                
+                assert( column >= 1 );
+                assert( column <= size );
+                
                 assert( board.GetPointState( row, column ) == ( stone.white ? White : Black ) );
                 assert( board.GetPointStoneId( row, column ) == stone.id );                
             }
         }
 
         // iterate across all board points, verify they match the stone state
-
-        const int size = board.GetSize();
 
         for ( int row = 1; row <= size; ++row )
         {
@@ -584,7 +590,7 @@ public:
                 float t;
                 vec3f intersectionPoint, intersectionNormal;
                 StoneInstance * stone = PickStone( rayStart, rayDirection, t, intersectionPoint, intersectionNormal );
-                if ( stone )
+                if ( stone && !stone->selected )
                 {
                     stone->rigidBody.linearMomentum = vec3f(0,0,0);
                     stone->rigidBody.ApplyImpulseAtWorldPoint( intersectionPoint, SelectImpulse * rayDirection );
@@ -607,6 +613,7 @@ public:
 
                     if ( stone->constrained )
                     {
+                        Validate();
                         stone->constrained = 0;
                         board.SetPointState( stone->constraintRow, stone->constraintColumn, Empty );
                         board.SetPointStoneId( stone->constraintRow, stone->constraintColumn, 0 );
@@ -672,14 +679,16 @@ public:
                     int row, column;
                     if ( board.FindNearestEmptyPoint( stone->rigidBody.position, row, column ) )
                     {
+                        Validate();
                         stone->constrained = 1;
                         stone->constraintRow = row;
                         stone->constraintColumn = column;
                         stone->constraintPosition = board.GetPointPosition( row, column );
-                        board.SetPointState( stone->constraintRow, stone->constraintColumn, stone->white ? White : Black );
+                        board.SetPointState( row, column, stone->white ? White : Black );
                         board.SetPointStoneId( row, column, stone->id );
                         stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
                         stone->rigidBody.UpdateMomentum();
+                        Validate();
                     }
                     else
                     {
@@ -688,18 +697,24 @@ public:
                         // be nice and revert to original stone position if it's still
                         // empty, otherwise delete the stone.
 
-                        if ( board.FindNearestPoint( stone->rigidBody.position, row, column ) )
+                        if ( board.FindNearestPoint( stone->rigidBody.position, row, column ) )           // hack: this is really "is the stone above the board" check
                         {
                             if ( select.constrained && board.GetPointState( select.constraintRow, select.constraintColumn ) == Empty )
                             {
+                                row = select.constraintRow;
+                                column = select.constraintColumn;
+
+                                // hack: this is cut&paste code
+                                Validate();
                                 stone->constrained = 1;
-                                stone->constraintRow = select.constraintRow;
-                                stone->constraintColumn = select.constraintColumn;
-                                stone->constraintPosition = board.GetPointPosition( select.constraintRow, select.constraintColumn );
-                                board.SetPointState( stone->constraintRow, stone->constraintColumn, stone->white ? White : Black );
-                                board.SetPointStoneId( select.constraintRow, select.constraintColumn, stone->id );
+                                stone->constraintRow = row;
+                                stone->constraintColumn = column;
+                                stone->constraintPosition = board.GetPointPosition( row, column );
+                                board.SetPointState( row, column, stone->white ? White : Black );
+                                board.SetPointStoneId( row, column, stone->id );
                                 stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
                                 stone->rigidBody.UpdateMomentum();
+                                Validate();
                             }
                             else
                                 stone->deleteTimer = DeleteTime;
@@ -731,7 +746,49 @@ public:
 
     void OnTouchesCancelled( Touch * touches, int numTouches )
     {
-        // todo: implement this (eg. undo the stone move... revert to original positions?)
+        for ( int i = 0; i < numTouches; ++i )
+        {
+            Touch & touch = touches[i];
+            SelectMap::iterator itor = selectMap.find( touch.handle );
+            if ( itor != selectMap.end() )
+            {
+                SelectData & select = itor->second;
+                StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
+                if ( stone )
+                {
+                    // whoops touch was cancelled. attempt to revert the stone
+                    // back to the original location before drag, if this is not
+                    // possible then just delete it.
+
+                    stone->selected = 0;
+
+                    int row, column;
+
+                    if ( board.FindNearestPoint( stone->rigidBody.position, row, column ) )     // hack: this is really an "stone is above board" check
+                    {
+                        if ( select.constrained && board.GetPointState( select.constraintRow, select.constraintColumn ) == Empty )
+                        {
+                            row = select.constraintRow;
+                            column = select.constraintColumn;
+
+                            Validate();
+                            stone->constrained = 1;
+                            stone->constraintRow = row;
+                            stone->constraintColumn = column;
+                            stone->constraintPosition = board.GetPointPosition( row, column );
+                            board.SetPointState( row, column, stone->white ? White : Black );
+                            board.SetPointStoneId( row, column, stone->id );
+                            stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
+                            stone->rigidBody.UpdateMomentum();
+                            Validate();
+                        }
+                        else
+                            stone->deleteTimer = DeleteTime;
+                    }
+                }
+                selectMap.erase( itor );
+            }
+        }
     }
 
     void OnSwipe( const vec3f & point, const vec3f & delta )
