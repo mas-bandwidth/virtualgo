@@ -4,6 +4,31 @@ TODO:
 
     --------------------------------------------------
 
+    To make the stone lift look good, we need proper collision
+    between the biconvex solids.
+
+    This can probably be done pretty damn easily, seeing
+    as I have a biconvex support function. Just calculate
+    the support of the two stones along axis (0,0,1)
+
+    Lift up if the supports overlap.
+
+    SOLVED.
+
+    --------------------------------------------------
+
+    Multitouch should not be able to drag stones together.
+
+    To fix, implement an axis between each stone, or (0,1,0)
+    if they have the same center.
+
+    Along this axis check the biconvex support.
+
+    If the supports overlap, push the stones apart along
+    this overlap to make sure they move apart.
+
+    --------------------------------------------------
+
     Sometimes stones simply don't collide.
 
     What is causing this? 
@@ -22,21 +47,7 @@ TODO:
 
 
 
-
-
-
-
     *** GAME POLISH ***
-
-    --------------------------------------------------
-
-    Generally speaking there needs to be a separation
-    from physical and visual position.
-
-    While a stone is selected and dragging, the visual
-    position should be interpolated/extrapolated from
-    the touch positions (which don't always come in
-    every frame!)
 
     -------------------------------------------------
 
@@ -66,22 +77,6 @@ TODO:
 
     --------------------------------------------------
 
-    Multitouch should not be able to drag two stones
-    together. 
-
-    When selecting multiple stones, all stones should
-    standardize to the same select height / plane,
-    otherwise it gets confusing.
-
-    After this, all stones should collide with the
-    other selected stones and push each other out,
-    but only along the xy plane, not vertically.
-
-    This way we can avoid having multi-touch forcing
-    stone penetration.
-
-    --------------------------------------------------
-
     Would be really nice to hold down off the board and
     have the stones "tighten" towards their constraints.
 
@@ -104,6 +99,14 @@ TODO:
 
 
     *** RENDER POLISH ***
+
+    --------------------------------------------------
+
+    Perhaps if I maintain a high res and low res mesh,
+    then I can render the stones with a higher number
+    of vertices, while having shadows using less.
+
+    This would look visually better close up!
 
     --------------------------------------------------
 

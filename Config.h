@@ -7,7 +7,7 @@
 
 const float DropMomentum = 10;
 
-const float DeleteTime = 2;
+const float DeleteTime = 3;
 
 const float PlacementVariance = 0.2f;
 const float ConstraintDelta = 0.5f;

@@ -22,6 +22,26 @@ struct StoneInstance
         rigidBody.inverseInertiaTensor = stoneData.inverseInertiaTensor;
 
         deleteTimer = 0.0f;
+
+        visualOffset = vec3f(0,0,0);
+    }
+
+    void UpdateVisualTransform()
+    {
+        if ( length_squared( visualOffset ) > 0.001f * 0.001f )
+        {
+            visualOffset *= 0.7f;
+            visualTransform = rigidBody.rotation;
+            visualTransform.value.w = simd4f_create( rigidBody.position.x() + visualOffset.x(),
+                                                     rigidBody.position.y() + visualOffset.y(),
+                                                     rigidBody.position.z() + visualOffset.z(), 1 );
+
+        }
+        else
+        {
+            visualOffset = vec3f(0,0,0);
+            visualTransform = rigidBody.transform.localToWorld;
+        }
     }
 
     uint32_t id : 16;
@@ -34,6 +54,9 @@ struct StoneInstance
     float deleteTimer;
 
     vec3f constraintPosition;
+
+    vec3f visualOffset;
+    mat4f visualTransform;
 
     RigidBody rigidBody;
 };

@@ -513,7 +513,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
             mat4f shadowMatrix;
             MakeShadowMatrix( vec4f(0,0,1,0), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
 
-            mat4f modelView = game.GetCameraMatrix() * shadowMatrix * stone.rigidBody.transform.localToWorld;
+            mat4f modelView = game.GetCameraMatrix() * shadowMatrix * stone.visualTransform;
             mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
             
             glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
@@ -558,7 +558,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
             mat4f shadowMatrix;
             MakeShadowMatrix( vec4f(0,0,1,-game.GetBoard().GetThickness()+0.1f), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
             
-            mat4f modelView = game.GetCameraMatrix() * shadowMatrix * stone.rigidBody.transform.localToWorld;
+            mat4f modelView = game.GetCameraMatrix() * shadowMatrix * stone.visualTransform;
             mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
             
             glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
@@ -590,7 +590,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
             if ( !stone.white )
                 continue;
             
-            mat4f modelViewMatrix = game.GetCameraMatrix() * stone.rigidBody.transform.localToWorld;
+            mat4f modelViewMatrix = game.GetCameraMatrix() * stone.visualTransform;
             
             mat3f stoneNormalMatrix;
             stoneNormalMatrix.load( modelViewMatrix );
@@ -621,7 +621,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
             if ( stone.white )
                 continue;
             
-            mat4f modelViewMatrix = game.GetCameraMatrix() * stone.rigidBody.transform.localToWorld;
+            mat4f modelViewMatrix = game.GetCameraMatrix() * stone.visualTransform;
             
             mat3f stoneNormalMatrix;
             stoneNormalMatrix.load( modelViewMatrix );
@@ -653,6 +653,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
+    // IMPORTANT: otherwise we may not have correct matrices
+    game.UpdateCamera();
+
     [self render];
 }
 

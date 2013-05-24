@@ -283,7 +283,7 @@ float FindSelectedStoneZ( StoneInstance * stone,
     
     const float radiusSquared = radius * radius;
 
-    const float delta = 0.1f;
+    const float delta = 0.01f;
     
     const float zmax = 3.0f;           // hack: this should be relative to board thickness
 
@@ -318,6 +318,16 @@ float FindSelectedStoneZ( StoneInstance * stone,
     }
 
     return z;
+}
+
+inline void ConstrainPosition( vec3f & position, const vec3f & constraintPosition )
+{
+    vec3f delta = position - constraintPosition;
+
+    const float dx = clamp( delta.x(), -ConstraintDelta, +ConstraintDelta );
+    const float dy = clamp( delta.y(), -ConstraintDelta, +ConstraintDelta );
+
+    position = vec3f( constraintPosition.x() + dx, constraintPosition.y() + dy, position.z() );
 }
 
 inline void UpdatePhysics( const PhysicsParameters & params,
@@ -531,66 +541,7 @@ inline void UpdatePhysics( const PhysicsParameters & params,
         }        
         
         // =======================================================================
-        // 4. collide stones against other stones
-        // =======================================================================
-        
-        static std::vector<ObjectPair> potentiallyOverlappingObjects;
-        potentiallyOverlappingObjects.clear();
-
-        const float radius = ( stoneData.biconvex.GetBoundingSphereRadius() - 0.035f ) * 2;       // hack for bevel!
-
-        FindOverlappingObjects( sceneGrid, 
-                                radius * radius,
-                                stones,
-                                potentiallyOverlappingObjects );
-
-        /*
-        static float accum = 0;
-        accum += params.dt;
-        if ( accum > 1 )
-        {
-            printf( "overlapping objects: %d\n", (int) potentiallyOverlappingObjects.size() );
-            accum = 0;
-        }
-        */
-
-        for ( int j = 0; j < potentiallyOverlappingObjects.size(); ++j )
-        {
-            ObjectPair & pair = potentiallyOverlappingObjects[j];
-            
-            StoneInstance * a = pair.a;
-            StoneInstance * b = pair.b;
-
-            if ( a->selected || b->selected )
-                continue;
-
-            vec3f & position_a = a->rigidBody.position;
-            vec3f & position_b = b->rigidBody.position;
-
-            vec3f difference = position_a - position_b;
-
-            float distance = length( difference );
-
-            vec3f axis = distance > 0.00001f ? normalize( difference ) : vec3f(0,1,0);
-
-            const float penetration = radius - distance;
-            
-            position_a += axis * penetration / 2;
-            position_b -= axis * penetration / 2;
-            
-            // todo: apply simple linear impulse response
-            
-            // todo: treat selected stones as if they have infinite mass!
-            
-            a->rigidBody.Activate();
-            b->rigidBody.Activate();
-            
-            a->rigidBody.UpdateTransform();
-            b->rigidBody.UpdateTransform();
-        }
-
-        // =======================================================================
-        // 5. enforce stone position constraints
+        // 4. enforce stone position constraints
         // =======================================================================
             
         if ( params.locked )
@@ -635,6 +586,55 @@ inline void UpdatePhysics( const PhysicsParameters & params,
                 
                 stone.rigidBody.UpdateTransform();
             }
+        }
+
+        // =======================================================================
+        // 5. collide stones against other stones
+        // =======================================================================
+        
+        static std::vector<ObjectPair> potentiallyOverlappingObjects;
+        potentiallyOverlappingObjects.clear();
+
+        const float radius = ( stoneData.biconvex.GetBoundingSphereRadius() - 0.035f ) * 2;       // hack for bevel!
+
+        FindOverlappingObjects( sceneGrid, 
+                                radius * radius,
+                                stones,
+                                potentiallyOverlappingObjects );
+
+        for ( int j = 0; j < potentiallyOverlappingObjects.size(); ++j )
+        {
+            ObjectPair & pair = potentiallyOverlappingObjects[j];
+            
+            StoneInstance * a = pair.a;
+            StoneInstance * b = pair.b;
+
+            if ( a->selected || b->selected )
+                continue;
+
+            vec3f & position_a = a->rigidBody.position;
+            vec3f & position_b = b->rigidBody.position;
+
+            vec3f difference = position_a - position_b;
+
+            float distance = length( difference );
+
+            vec3f axis = distance > 0.00001f ? normalize( difference ) : vec3f(0,1,0);
+
+            const float penetration = radius - distance;
+            
+            position_a += axis * penetration / 2;
+            position_b -= axis * penetration / 2;
+            
+            // todo: apply simple linear impulse response
+            
+            // todo: treat selected stones as if they have infinite mass!
+            
+            a->rigidBody.Activate();
+            b->rigidBody.Activate();
+            
+            a->rigidBody.UpdateTransform();
+            b->rigidBody.UpdateTransform();
         }
 
         // =======================================================================

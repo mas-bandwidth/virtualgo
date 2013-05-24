@@ -1,4 +1,76 @@
 
+Added smoothing to stone select height and drop snap (23/5/2013):
+-----------------------------------------------------------------
+
+    Stone lift is now smoothed, which looks better, but not great.
+
+    To make the stone lift look good, we need proper collision
+    between the biconvex solids.
+
+    Also, added a nice lerp back to pre-drag position if stone
+    cannot be placed in an empty spot.
+
+    Also, in the case where the stone is dropped and the 
+    row/column is adjusted, the xy adjustment on the stone
+    is now smooth. Looks really good!
+
+    When a stone is dragged from off the board,
+    it feels wrong that it "disappears"
+
+    Made it warp back to the original unconstrained position
+    on the floor. Feels much better.
+
+
+More fixes to stone select and drog (23/5/2013):
+------------------------------------------------
+
+    Don't adjust the intersection plane when the stone
+    is lifted up, instead stick with the intersection
+    plane being at the center of the go stone, and
+    calculate offset from there.
+
+    When the go stone is lifted up, adjust the offset
+    but remain at the same plane height.
+
+    This should avoid unnecessary drift in stone dragging.
+
+    Yep. Seems to work!
+
+
+Misc bugfixes (22/5/2013):
+--------------------------
+
+    Adjusted game update to run before physics.
+
+    Adjusted stone constraint to run before stone vs. stone.
+
+    These two things combined fix the slight "bumping" of
+    other stones when a stone was dropped over them and deleted,
+    or snapped to it's original position on the grid.
+
+    Fixed initial render frames having wrong matrices
+
+    Lets assume that somehow objects are not getting
+    properly updated in the scene grid.
+
+    So, add a validation step that goes over each
+    stone, and verifies that it is actually in the
+    correct scene grid set for its current postion.
+
+    If this is false, assert!
+
+    Unfortunately... I implemented this and it doesn't
+    assert.
+
+    This means the logic error is in the collision
+    detection and how it uses the scene grid, or
+    inside the scene grid, eg. how it maps the objects
+    to spaces in the world, maybe they are in a 
+    consistent set in the world, but they don't have
+    the property that the search for nearby objects
+    always picks up everything.
+
+
 Crash fix in multi-touch (22/5/2013):
 -------------------------------------
 

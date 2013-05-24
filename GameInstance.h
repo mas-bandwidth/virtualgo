@@ -110,7 +110,8 @@ public:
         sceneGrid.AddObject( stone.id, stone.rigidBody.position );
         board.SetPointState( row, column, (PointState) color );
         board.SetPointStoneId( row, column, stone.id );
-        Validate();
+        ValidateBoard();
+        ValidateSceneGrid();
     }
 
     void PlaceStones()
@@ -248,9 +249,9 @@ public:
 
         UpdateTouch( dt );
         
-        UpdatePhysics( dt );
-
         UpdateGame( dt );
+
+        UpdatePhysics( dt );
     }
 
     void UpdateCamera( float dt = 0.0f )
@@ -311,11 +312,12 @@ public:
 
                 const float z = FindSelectedStoneZ( stone, stoneData, stones, sceneGrid );
 
-                stone->rigidBody.position = vec3f( stone->rigidBody.position.x(),
-                                                   stone->rigidBody.position.y(),
-                                                   z );
+                vec3f newPosition = vec3f( stone->rigidBody.position.x(),
+                                           stone->rigidBody.position.y(),
+                                           z );
 
-                select.depth = z;
+                stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
+                stone->rigidBody.position = newPosition;
 
                 vec3f rayStart, rayDirection;
                 GetPickRay( inverseClipMatrix, select.touch.point.x(), select.touch.point.y(), rayStart, rayDirection );
@@ -334,12 +336,16 @@ public:
                 stone->rigidBody.UpdateTransform();
 
                 stone->rigidBody.Activate();
+
+                ValidateSceneGrid();
             }
         }
     }
 
     void UpdatePhysics( float dt )
     {
+        ValidateSceneGrid();
+
         // calculate frustum planes for collision
 
         Frustum frustum;
@@ -416,6 +422,13 @@ public:
                                  : vec3f(0,0,0);
 
         ::UpdatePhysics( params, board, stoneData, sceneGrid, stones, *telemetry, frustum );
+
+        ValidateSceneGrid();        
+
+        // update visual transform per-stone (smoothing)
+
+        for ( int i = 0; i < stones.size(); ++i )
+            stones[i].UpdateVisualTransform();
     }
 
     void UpdateGame( float dt )
@@ -440,6 +453,7 @@ public:
                 {
                     sceneGrid.RemoveObject( stone.id, stone.rigidBody.position );
                     itor = stones.erase( itor );
+                    ValidateSceneGrid();
                 }
                 else
                     ++itor;
@@ -447,7 +461,7 @@ public:
         }
     }
 
-    void Validate()
+    void ValidateBoard()
     {
         const int size = board.GetSize();
 
@@ -491,8 +505,23 @@ public:
                 }
             }
         }
+    }
 
-        // verify the cell grid (somehow...) :)
+    void ValidateSceneGrid()
+    {
+        for ( int i = 0; i < stones.size(); ++i )
+        {
+            StoneInstance & stone = stones[i];
+
+            int ix,iy,iz;
+            sceneGrid.GetCellCoordinates( stone.rigidBody.position, ix, iy, iz );
+
+            int index = sceneGrid.GetCellIndex( ix, iy, iz );
+
+            const Cell & cell = sceneGrid.GetCell( index );
+
+            assert( std::find( cell.objects.begin(), cell.objects.end(), stone.id ) != cell.objects.end() );
+        }
     }
 
     bool IsScreenPointOnBoard( const vec3f & point )
@@ -599,25 +628,41 @@ public:
                     SelectData select;
                     select.touch = touch;
                     select.stoneId = stone->id;
-                    select.depth = intersectionPoint.z();
-                    select.offset = stone->rigidBody.position - intersectionPoint;
-                    select.intersectionPoint = intersectionPoint;
+                    select.depth = stone->rigidBody.position.z();
                     select.impulse = TouchImpulse * rayDirection;
                     select.lastMoveDelta = vec3f(0,0,0);
                     select.moved = false;
                     select.constrained = stone->constrained;
                     select.constraintRow = stone->constraintRow;
                     select.constraintColumn = stone->constraintColumn;
+                    select.originalPosition = stone->rigidBody.position;
+
+                    // IMPORTANT: determine offset of stone position from intersection
+                    // between screen ray and plane at stone z with normal (0,0,1)
+                    {
+                        vec3f rayStart, rayDirection;
+                        GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
+                        float t;
+                        if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), select.depth, t ) )
+                        {
+                            select.intersectionPoint = rayStart + rayDirection * t;
+                            select.offset = stone->rigidBody.position - select.intersectionPoint;
+                        }
+                        else
+                        {
+                            assert( false );        // what the fuck?
+                        }
+                    } 
 
                     selectMap.insert( std::make_pair( touch.handle, select ) );
 
                     if ( stone->constrained )
                     {
-                        Validate();
+                        ValidateBoard();
                         stone->constrained = 0;
                         board.SetPointState( stone->constraintRow, stone->constraintColumn, Empty );
                         board.SetPointStoneId( stone->constraintRow, stone->constraintColumn, 0 );
-                        Validate();
+                        ValidateBoard();
                     }
                 }
             }
@@ -647,6 +692,10 @@ public:
                         select.intersectionPoint = rayStart + rayDirection * t;
                         select.lastMoveDelta = vec3f( select.intersectionPoint.x() - previous.x(),
                                                       select.intersectionPoint.y() - previous.y(), 0 );
+                    }
+                    else
+                    {
+                        assert( false );    // what the fuck?
                     }
                 }
                 else
@@ -679,7 +728,7 @@ public:
                     int row, column;
                     if ( board.FindNearestEmptyPoint( stone->rigidBody.position, row, column ) )
                     {
-                        Validate();
+                        ValidateBoard();
                         stone->constrained = 1;
                         stone->constraintRow = row;
                         stone->constraintColumn = column;
@@ -688,7 +737,15 @@ public:
                         board.SetPointStoneId( row, column, stone->id );
                         stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
                         stone->rigidBody.UpdateMomentum();
-                        Validate();
+                        ValidateBoard();
+
+                        vec3f previousPosition = stone->rigidBody.position;
+                        vec3f newPosition = previousPosition;
+                        ConstrainPosition( newPosition, stone->constraintPosition );
+                        stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
+                        stone->rigidBody.position = newPosition;
+
+                        sceneGrid.MoveObject( stone->id, previousPosition, newPosition );
                     }
                     else
                     {
@@ -699,25 +756,49 @@ public:
 
                         if ( board.FindNearestPoint( stone->rigidBody.position, row, column ) )           // hack: this is really "is the stone above the board" check
                         {
-                            if ( select.constrained && board.GetPointState( select.constraintRow, select.constraintColumn ) == Empty )
+                            if ( select.constrained )
                             {
-                                row = select.constraintRow;
-                                column = select.constraintColumn;
+                                if ( board.GetPointState( select.constraintRow, select.constraintColumn ) == Empty )
+                                {
+                                    // warp back to point on board the stone was
+                                    // originally dragged from and constrain
 
-                                // hack: this is cut&paste code
-                                Validate();
-                                stone->constrained = 1;
-                                stone->constraintRow = row;
-                                stone->constraintColumn = column;
-                                stone->constraintPosition = board.GetPointPosition( row, column );
-                                board.SetPointState( row, column, stone->white ? White : Black );
-                                board.SetPointStoneId( row, column, stone->id );
-                                stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
-                                stone->rigidBody.UpdateMomentum();
-                                Validate();
+                                    row = select.constraintRow;
+                                    column = select.constraintColumn;
+
+                                    ValidateBoard();
+                                    stone->constrained = 1;
+                                    stone->constraintRow = row;
+                                    stone->constraintColumn = column;
+                                    stone->constraintPosition = board.GetPointPosition( row, column );
+                                    board.SetPointState( row, column, stone->white ? White : Black );
+                                    board.SetPointStoneId( row, column, stone->id );
+                                    stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
+                                    stone->rigidBody.UpdateMomentum();
+                                    ValidateBoard();
+
+                                    vec3f previousPosition = stone->rigidBody.position;
+                                    vec3f newPosition = select.originalPosition;
+                                    stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
+                                    stone->rigidBody.position = newPosition;
+
+                                    sceneGrid.MoveObject( stone->id, previousPosition, newPosition );
+                                }
+                                else
+                                {
+                                    // no choice but to delete the stone
+                                    stone->deleteTimer = DeleteTime;
+                                }
                             }
                             else
-                                stone->deleteTimer = DeleteTime;
+                            {
+                                // warp back to original, unconstrained position off the board
+                                vec3f previousPosition = stone->rigidBody.position;
+                                vec3f newPosition = select.originalPosition;
+                                stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
+                                stone->rigidBody.position = newPosition;
+                                sceneGrid.MoveObject( stone->id, previousPosition, newPosition );
+                            }
                         }
                     }
 
@@ -725,6 +806,9 @@ public:
                     {
                         if ( !stone->constrained )
                         {
+                            // flick stone according to last touch delta position 
+                            // along select plane (world space xy only)
+
                             if ( length_squared( select.lastMoveDelta ) > 0.1f * 0.1f )
                             {
                                 const float dt = touch.timestamp - select.touch.timestamp;
@@ -771,7 +855,7 @@ public:
                             row = select.constraintRow;
                             column = select.constraintColumn;
 
-                            Validate();
+                            ValidateBoard();
                             stone->constrained = 1;
                             stone->constraintRow = row;
                             stone->constraintColumn = column;
@@ -780,7 +864,14 @@ public:
                             board.SetPointStoneId( row, column, stone->id );
                             stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
                             stone->rigidBody.UpdateMomentum();
-                            Validate();
+                            ValidateBoard();
+
+                            vec3f previousPosition = stone->rigidBody.position;
+                            vec3f newPosition = stone->constraintPosition + vec3f(0,0,stoneData.biconvex.GetHeight()/2);
+                            stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
+                            stone->rigidBody.position = newPosition;
+
+                            sceneGrid.MoveObject( stone->id, previousPosition, newPosition );
                         }
                         else
                             stone->deleteTimer = DeleteTime;
