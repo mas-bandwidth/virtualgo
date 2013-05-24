@@ -2,6 +2,16 @@ DONE:
 
 TODO:
 
+    Idea, only lift the stone up when it is moved outside
+    the logical constraint where it was dragged from.
+
+    This way small adjustments to the stone can be made,
+    without it lifting up unneccessarily! Also, you can
+    straighten your stones by pushing the other stones,
+    to a point.
+
+    This is necessary. Right now you cannot do this!
+
     --------------------------------------------------
 
     To make the stone lift look good, we need proper collision
