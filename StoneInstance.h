@@ -3,6 +3,7 @@
 
 #include "StoneData.h"
 #include "RigidBody.h"
+#include <map>
 
 struct StoneInstance
 {
@@ -65,15 +66,15 @@ struct StoneInstance
     RigidBody rigidBody;
 };
 
-StoneInstance * FindStoneInstance( uint16_t id, std::vector<StoneInstance> & stones )
+typedef std::map<uint16_t,int> StoneMap;
+
+StoneInstance * FindStoneInstance( uint16_t id, std::vector<StoneInstance> & stones, StoneMap & stoneMap )
 {
-    // todo: need a fast version of this function
-    for ( int i = 0; i < stones.size(); ++i )
-    {
-        if ( stones[i].id == id ) 
-            return &stones[i];
-    }
-    return NULL;
+    StoneMap::iterator itor = stoneMap.find( id );
+    if ( itor == stoneMap.end() )
+        return NULL;
+    const int stoneIndex = itor->second;
+    return &stones[stoneIndex];
 }
 
 #endif

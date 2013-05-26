@@ -100,6 +100,7 @@ typedef std::set<IdPair> ObjectSet;
 inline void FindCellOverlappingObjects( ObjectSet & objectSet, 
                                         float boundingSphereRadiusSquared,
                                         std::vector<StoneInstance> & stones,
+                                        StoneMap & stoneMap,
                                         std::vector<ObjectPair> & overlappingObjects,
                                         const Cell & self,
                                         const Cell & other )
@@ -132,8 +133,8 @@ inline void FindCellOverlappingObjects( ObjectSet & objectSet,
             {
                 ObjectPair objectPair;
                 objectPair.id_pair = id_pair;
-                objectPair.a = FindStoneInstance( id_pair.a, stones );
-                objectPair.b = FindStoneInstance( id_pair.b, stones );
+                objectPair.a = FindStoneInstance( id_pair.a, stones, stoneMap );
+                objectPair.b = FindStoneInstance( id_pair.b, stones, stoneMap );
                 assert( objectPair.a );
                 assert( objectPair.b );
                 if ( length_squared( objectPair.a->rigidBody.position - objectPair.b->rigidBody.position ) < boundingSphereRadiusSquared )
@@ -149,6 +150,7 @@ inline void FindCellOverlappingObjects( ObjectSet & objectSet,
 inline void FindOverlappingObjects( SceneGrid & sceneGrid,
                                     float boundingSphereRadiusSquared,
                                     std::vector<StoneInstance> & stones,
+                                    StoneMap & stoneMap,
                                     std::vector<ObjectPair> & overlappingObjects )
 {
     static ObjectSet objectSet;
@@ -164,6 +166,10 @@ inline void FindOverlappingObjects( SceneGrid & sceneGrid,
             for ( int ix = 0; ix < nx; ++ix )
             {
                 const Cell & a = sceneGrid.GetCellAtIntCoords( ix, iy, iz );
+
+                if ( a.objects.size() == 0 )
+                    continue;
+
                 const Cell & b = sceneGrid.GetCellAtIntCoords( ix+1, iy, iz ); 
                 const Cell & c = sceneGrid.GetCellAtIntCoords( ix, iy+1, iz ); 
                 const Cell & d = sceneGrid.GetCellAtIntCoords( ix, iy, iz+1 ); 
@@ -172,14 +178,14 @@ inline void FindOverlappingObjects( SceneGrid & sceneGrid,
                 const Cell & g = sceneGrid.GetCellAtIntCoords( ix+1, iy, iz+1 ); 
                 const Cell & h = sceneGrid.GetCellAtIntCoords( ix+1, iy+1, iz+1 ); 
 
-                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, a );
-                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, b );
-                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, c );
-                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, d );
-                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, e );
-                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, f );
-                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, g );
-                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, overlappingObjects, a, h );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, stoneMap, overlappingObjects, a, a );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, stoneMap, overlappingObjects, a, b );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, stoneMap, overlappingObjects, a, c );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, stoneMap, overlappingObjects, a, d );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, stoneMap, overlappingObjects, a, e );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, stoneMap, overlappingObjects, a, f );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, stoneMap, overlappingObjects, a, g );
+                FindCellOverlappingObjects( objectSet, boundingSphereRadiusSquared, stones, stoneMap, overlappingObjects, a, h );
             }
         }
     }
@@ -189,6 +195,7 @@ inline void FindCellObjectsInRadius( const vec3f & position,
                                      float radiusSquared,
                                      SceneGrid & sceneGrid,
                                      std::vector<StoneInstance> & stones,
+                                     StoneMap & stoneMap,
                                      std::vector<StoneInstance*> & objects,
                                      int ix,
                                      int iy,
@@ -198,7 +205,7 @@ inline void FindCellObjectsInRadius( const vec3f & position,
     Cell & cell = sceneGrid.GetCellAtIntCoords( ix, iy, iz );
     for ( int i = 0; i < cell.objects.size(); ++i )
     {
-        StoneInstance * stone = FindStoneInstance( cell.objects[i], stones );
+        StoneInstance * stone = FindStoneInstance( cell.objects[i], stones, stoneMap );
         assert( stone );
         if ( length_squared( stone->rigidBody.position - position ) <= radiusSquared )
             objects.push_back( stone );
@@ -209,6 +216,7 @@ inline void FindObjectsInRadius( const vec3f & position,
                                  float radius,
                                  SceneGrid & sceneGrid,
                                  std::vector<StoneInstance> & stones,
+                                 StoneMap & stoneMap,
                                  std::vector<StoneInstance*> & objects )
 {
     const float radiusSquared = radius * radius;
@@ -219,40 +227,41 @@ inline void FindObjectsInRadius( const vec3f & position,
     // todo: can optimize this considerably, eg. check if position+radius is within edge of cell
     // and only test against cells that are potentially overlapping themselves with the sphere
 
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy-1, iz-1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy-1, iz-1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy-1, iz-1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy,   iz-1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy,   iz-1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy,   iz-1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy+1, iz-1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy+1, iz-1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy+1, iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix-1, iy-1, iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix,   iy-1, iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix+1, iy-1, iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix-1, iy,   iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix,   iy,   iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix+1, iy,   iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix-1, iy+1, iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix,   iy+1, iz-1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix+1, iy+1, iz-1 );
 
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy-1, iz );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy-1, iz );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy-1, iz );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy,   iz );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy,   iz );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy,   iz );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy+1, iz );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy+1, iz );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy+1, iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix-1, iy-1, iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix,   iy-1, iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix+1, iy-1, iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix-1, iy,   iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix,   iy,   iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix+1, iy,   iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix-1, iy+1, iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix,   iy+1, iz );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix+1, iy+1, iz );
 
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy-1, iz+1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy-1, iz+1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy-1, iz+1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy,   iz+1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy,   iz+1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy,   iz+1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix-1, iy+1, iz+1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix,   iy+1, iz+1 );
-    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, objects, ix+1, iy+1, iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix-1, iy-1, iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix,   iy-1, iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix+1, iy-1, iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix-1, iy,   iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix,   iy,   iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix+1, iy,   iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix-1, iy+1, iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix,   iy+1, iz+1 );
+    FindCellObjectsInRadius( position, radiusSquared, sceneGrid, stones, stoneMap, objects, ix+1, iy+1, iz+1 );
 }
 
 float FindSelectedStoneZ( StoneInstance * stone, 
                           StoneData & stoneData, 
                           std::vector<StoneInstance> & stones,
+                          StoneMap & stoneMap,
                           SceneGrid & sceneGrid )
 {
     // find objects within radius
@@ -264,7 +273,8 @@ float FindSelectedStoneZ( StoneInstance * stone,
     FindObjectsInRadius( stone->rigidBody.position, 
                          radius, 
                          sceneGrid,
-                         stones, 
+                         stones,
+                         stoneMap,
                          objects );
 
     // find the highest center position z for all objects nearby
@@ -335,6 +345,7 @@ inline void UpdatePhysics( const PhysicsParameters & params,
                            const StoneData & stoneData, 
                            SceneGrid & sceneGrid,
                            std::vector<StoneInstance> & stones,
+                           StoneMap & stoneMap,
                            Telemetry & telemetry, 
                            const Frustum & frustum )
 {
@@ -583,8 +594,6 @@ inline void UpdatePhysics( const PhysicsParameters & params,
                 stone.rigidBody.position = vec3f( stone.constraintPosition.x() + dx, 
                                                   stone.constraintPosition.y() + dy, 
                                                   stone.rigidBody.position.z() );
-                
-                stone.rigidBody.UpdateTransform();
             }
         }
 
@@ -600,6 +609,7 @@ inline void UpdatePhysics( const PhysicsParameters & params,
         FindOverlappingObjects( sceneGrid, 
                                 radius * radius,
                                 stones,
+                                stoneMap,
                                 potentiallyOverlappingObjects );
 
         for ( int j = 0; j < potentiallyOverlappingObjects.size(); ++j )
@@ -632,9 +642,6 @@ inline void UpdatePhysics( const PhysicsParameters & params,
             
             a->rigidBody.Activate();
             b->rigidBody.Activate();
-            
-            a->rigidBody.UpdateTransform();
-            b->rigidBody.UpdateTransform();
         }
 
         // =======================================================================

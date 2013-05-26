@@ -92,7 +92,9 @@ public:
 		GetCellCoordinates( position, x, y, z );
 		const int index = GetCellIndex( x, y, z );
 		Cell & cell = GetCell( index );
+		#if VALIDATION
 		assert( std::find( cell.objects.begin(), cell.objects.end(), id ) == cell.objects.end() );
+		#endif
 		cell.objects.push_back( id );
 	}
 
@@ -109,7 +111,9 @@ public:
             Cell & prev = GetCell( prev_index );
             Cell & curr = GetCell( curr_index );
 			prev.objects.erase( std::remove( prev.objects.begin(), prev.objects.end(), id ), prev.objects.end() );
+			#if VALIDATION
             assert( std::find( curr.objects.begin(), curr.objects.end(), id ) == curr.objects.end() );
+            #endif
             curr.objects.push_back( id );
         }
 	}

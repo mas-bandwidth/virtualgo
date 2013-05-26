@@ -1,4 +1,137 @@
 
+Reduced stone tessellation depth (26/5/2013):
+---------------------------------------------
+
+    How can I make it run faster?!
+
+    The profile is not really giving me targets that 
+    I can optimize further. So the question needs to
+    be --- what exactly is slow?
+
+    It's probably that the rendering is taking up
+    a very large chunk of CPU, this the small amount
+    of physics CPU is enough to push it over 60fps.
+
+    How can I verify if this is true?
+
+    Simple... don't render the stones and see what
+    the framerate is...
+
+    It could be that we are in fact GPU bound!
+
+    *** VERIFIED ***
+
+    When the stones are not rendered, the game runs
+    at an easy 60fps.
+
+    So the question then is --- what can I do now?!
+
+    I dropped the stone tessellation from 3 to 2.
+
+    This brought the render back up to 60.
+
+
+Update to support 19x19 board (26/5/2013):
+------------------------------------------
+
+    Lets stop fucking around and address the real problem head-on.
+
+    I need to demonstrate a full size 19x19 board working, with
+    all the design challenges of zoom/focus/placement/movement
+    and such solved.
+
+    First, lets get a full 19x19 end-game board position
+    from the Shusaku red-ear game.
+
+    I want to define this in an array, as coding it specifically
+    would be incredibly painful :)
+
+    Don't collide against other planes.
+
+    Wow it's incredibly slow (23fps!)
+
+    It appears to be the physics.
+
+    Add star points for 19x19
+
+    Measure why the physics is running so slow.
+
+    FindCellOverlappingObjects is extremely slow.
+
+    My *guess* is that the linear search through the stone
+    array to go from stone id -> stone instance is the cause.
+
+    Start at 22fps.
+
+    Add add a stone map (33fps)
+
+    Remove validation of scene grid add/remove (45fps)
+
+    Now we're back to 33fps?!
+
+    10.1% -- FindCellOverlappingObjects    
+     5.8% -- SceneGrid::GetCellIndex
+     5.7% -- FindOverlappingObjects
+     4.0% -- stoneMap.find
+     1.6% -- UpdatePhysics
+     1.4% -- ApplyCollisionImpulseWithWithFriction
+
+    Clearly the scene grid and the finding object vs. 
+    object collision is the current bottleneck.
+
+    Can this be improved without ripping out the
+    entire std container based implementation?
+
+    There is one big optimization which needs to be done.
+
+    If the current source cell has no objects in it,
+    skip all additional processing and checking with
+    adjacent cells. No intersecting object pairs are
+    possible!
+
+    Indeed this seems to make a large difference,
+    after this change all the scene grid related
+    calls drop down lower than the rendering CPU
+    usage.
+
+    4.5% -- RigidBody::UpdateTransform
+    3.8% -- StoneMap::find
+    3.0% -- FindCellOverlappingObjects
+    2.5% -- ObjectMap::find (idpair)
+    1.9% -- UpdatePhysics
+    1.3% -- SceneGrid::GetCellIndex
+
+    The situation is now strange. 
+
+    It doesn't seem to run at a decent speed during
+    development, however in profiler everything except
+    render appears to be cheap and it runs at 60fps.
+
+    So is the profile building the game in a non-debug
+    mode with optimizations? Am I simply at the point
+    now where I must develop in release build with
+    optimizations enabled?
+
+    How do I change this?
+
+    Yes. Indeed, the code was being run in debug
+    hence the slowness.
+
+    http://stackoverflow.com/questions/5387076/running-a-release-build-with-xcode-4
+
+    Now we are back to 52 fps.
+
+    How to get the game running faster?! 
+
+    It must *easily* make 60fps when run in release build.
+
+    RigidBody::UpdateTransform is 5% of frame time. 
+
+    Now only call it once or twice per-frame, not per-collision.
+
+    Still hovering around 52fps... =p
+
+
 Added smoothing to stone select height and drop snap (23/5/2013):
 -----------------------------------------------------------------
 

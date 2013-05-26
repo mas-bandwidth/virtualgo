@@ -1,46 +1,24 @@
 DONE:
 
-    Lets stop fucking around and address the real problem head-on.
-
-    I need to demonstrate a full size 19x19 board working, with
-    all the design challenges of zoom/focus/placement/movement
-    and such solved.
-
-    First, lets get a full 19x19 end-game board position
-    from the Shusaku red-ear game.
-
-    I want to define this in an array, as coding it specifically
-    would be incredibly painful :)
-
-    Don't collide against other planes.
-
-    Wow it's incredibly slow (23fps!)
-
-    It appears to be the physics.
-
-    Add star points for 19x19
-
 TODO:
 
-    Measure why the physics is running so slow.
+    PAINFUL BUGFIX O_O
 
-    Optimize this code so that it runs at 60fps.
+    -------------------------------------------------
 
-    Ideas for improving this:
+    Sometimes stones simply don't collide.
 
-        1. While stones are constrained they only need to collide
-           with the primary surface.
+    What is causing this? 
 
-        2. While constrained stones can only collide with adjacent
-           stones in the logical grid. Can walk logical grid and
-           perform collisions instead of using scene grid.
+    It appears to be scene grid related.
 
+    Can I catch this in the debugger?
 
+    Can I reproduce this in the unit tests?
 
+    *** THIS IS THE ONLY REMAINING OBVIOUS BUG ***
 
-
-
-
+    --------------------------------------------------
 
 
 
@@ -71,29 +49,6 @@ TODO:
 
     --------------------------------------------------
 
-
-
-
-
-
-
-    PAINFUL BUGFIX O_O
-
-    -------------------------------------------------
-
-    Sometimes stones simply don't collide.
-
-    What is causing this? 
-
-    It appears to be scene grid related.
-
-    Can I catch this in the debugger?
-
-    Can I reproduce this in the unit tests?
-
-    *** THIS IS THE ONLY REMAINING OBVIOUS BUG ***
-
-    --------------------------------------------------
 
 
 

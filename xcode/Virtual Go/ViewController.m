@@ -111,7 +111,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     game.Initialize( telemetry, accelerometer, 1.0f / aspectRatio );        // hack: for landscape!
 
-    GenerateBiconvexMesh( _stoneMesh, game.GetBiconvex(), 3 );
+    GenerateBiconvexMesh( _stoneMesh, game.GetBiconvex(), 2 );
     GenerateFloorMesh( _floorMesh );
     GenerateBoardMesh( _boardMesh, game.GetBoard() );
     GenerateGridMesh( _gridMesh, game.GetBoard() );
@@ -585,6 +585,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
                 
         [opengl selectNonTexturedMesh:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
 
+        glUniform3fv( _stoneUniformsWhite[UNIFORM_LIGHT_POSITION], 1, (float*)&lightPosition );
+
         const std::vector<StoneInstance> & stones = game.GetStones();
 
         for ( int i = 0; i < stones.size(); ++i )
@@ -603,7 +605,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
             glUniformMatrix4fv( _stoneUniformsWhite[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&stoneModelViewProjectionMatrix );
             glUniformMatrix3fv( _stoneUniformsWhite[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&stoneNormalMatrix );
-            glUniform3fv( _stoneUniformsWhite[UNIFORM_LIGHT_POSITION], 1, (float*)&lightPosition );
 
             glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
         }
@@ -616,6 +617,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         
         [opengl selectNonTexturedMesh:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
         
+        glUniform3fv( _stoneUniformsBlack[UNIFORM_LIGHT_POSITION], 1, (float*)&lightPosition );
+
         const std::vector<StoneInstance> & stones = game.GetStones();
 
         for ( int i = 0; i < stones.size(); ++i )
@@ -634,7 +637,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
             
             glUniformMatrix4fv( _stoneUniformsBlack[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&stoneModelViewProjectionMatrix );
             glUniformMatrix3fv( _stoneUniformsBlack[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&stoneNormalMatrix );
-            glUniform3fv( _stoneUniformsBlack[UNIFORM_LIGHT_POSITION], 1, (float*)&lightPosition );
             
             glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
         }

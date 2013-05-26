@@ -16,7 +16,7 @@ class GameInstance
     Board board;
 
     StoneData stoneData;
-
+    StoneMap stoneMap;
     std::vector<StoneInstance> stones;
 
     vec3f lightPosition;
@@ -114,6 +114,9 @@ public:
 
         stones.push_back( stone );
         
+        const uint16_t id = stone.id;
+        stoneMap.insert( std::make_pair( id, stones.size() - 1 ) );
+
         sceneGrid.AddObject( stone.id, stone.rigidBody.position );
         
         board.SetPointState( row, column, (PointState) color );
@@ -126,6 +129,7 @@ public:
     void PlaceStones()
     {
         stones.clear();
+        stoneMap.clear();
         selectMap.clear();
         sceneGrid.clear();
 
@@ -383,7 +387,7 @@ public:
         {
             SelectData & select = itor->second;
 
-            StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
+            StoneInstance * stone = FindStoneInstance( select.stoneId, stones, stoneMap );
             if ( stone )
             {
                 vec3f previousPosition = stone->rigidBody.position;
@@ -508,9 +512,9 @@ public:
         params.gravity = gravity ? ( 10 * 9.8f * ( tilt ? accelerometer->GetDown() : vec3f(0,0,-1) ) )
                                  : vec3f(0,0,0);
 
-        ::UpdatePhysics( params, board, stoneData, sceneGrid, stones, *telemetry, frustum );
+        ::UpdatePhysics( params, board, stoneData, sceneGrid, stones, stoneMap, *telemetry, frustum );
 
-        ValidateSceneGrid();        
+        ValidateSceneGrid();
 
         // update visual transform per-stone (smoothing)
 
@@ -542,6 +546,7 @@ public:
                 {
                     sceneGrid.RemoveObject( stone.id, stone.rigidBody.position );
                     itor = stones.erase( itor );
+                    stoneMap.erase( stone.id );
                     ValidateSceneGrid();
                 }
                 else
@@ -779,7 +784,7 @@ public:
                 SelectData & select = itor->second;
                 select.touch = touch;
                 select.moved = true;
-                StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
+                StoneInstance * stone = FindStoneInstance( select.stoneId, stones, stoneMap );
                 if ( stone )
                 {
                     vec3f rayStart, rayDirection;
@@ -814,7 +819,7 @@ public:
             if ( itor != selectMap.end() )
             {
                 SelectData & select = itor->second;
-                StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
+                StoneInstance * stone = FindStoneInstance( select.stoneId, stones, stoneMap );
                 if ( stone )
                 {
                     stone->selected = 0;
@@ -936,7 +941,7 @@ public:
             if ( itor != selectMap.end() )
             {
                 SelectData & select = itor->second;
-                StoneInstance * stone = FindStoneInstance( select.stoneId, stones );
+                StoneInstance * stone = FindStoneInstance( select.stoneId, stones, stoneMap );
                 if ( stone )
                 {
                     // whoops touch was cancelled. attempt to revert the stone
