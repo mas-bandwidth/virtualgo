@@ -111,7 +111,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     game.Initialize( telemetry, accelerometer, 1.0f / aspectRatio );        // hack: for landscape!
 
-    GenerateBiconvexMesh( _stoneMesh, game.GetBiconvex(), 2 );
+    GenerateBiconvexMesh( _stoneMesh, game.GetBiconvex(), 3 );
     GenerateFloorMesh( _floorMesh );
     GenerateBoardMesh( _boardMesh, game.GetBoard() );
     GenerateGridMesh( _gridMesh, game.GetBoard() );
@@ -135,7 +135,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     opengl = [[OpenGL alloc] init];
    
     [self setupGL];
-
     
     [ [NSNotificationCenter defaultCenter] addObserver : self
                                               selector : @selector(deviceOrientationDidChange:)
@@ -420,52 +419,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         glDrawElements( GL_TRIANGLES, _boardMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
     }
 
-    // render grid
-    
-    {
-        glUseProgram( _gridProgram );
-
-        [opengl selectTexturedMesh:_lineTexture vertexBuffer:_gridVertexBuffer indexBuffer:_gridIndexBuffer];
-        
-        glUniformMatrix4fv( _gridUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
-        glUniformMatrix3fv( _gridUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
-        glUniform3fv( _gridUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.GetLightPosition() );
-        
-        glEnable( GL_BLEND );
-        glBlendFunc( GL_ZERO, GL_SRC_COLOR );
-
-        glDisable( GL_DEPTH_TEST );
-
-        glDrawElements( GL_TRIANGLES, _gridMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
-        
-        glEnable( GL_DEPTH_TEST );
-
-        glDisable( GL_BLEND );
-    }
-
-    // render star points
-    
-    {
-        glUseProgram( _pointProgram );
-        
-        [opengl selectTexturedMesh:_pointTexture vertexBuffer:_pointVertexBuffer indexBuffer:_pointIndexBuffer];
-
-        glUniformMatrix4fv( _pointUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
-        glUniformMatrix3fv( _pointUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
-        glUniform3fv( _pointUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.GetLightPosition() );
-        
-        glEnable( GL_BLEND );
-        glBlendFunc( GL_ZERO, GL_SRC_COLOR );
-
-        glDisable( GL_DEPTH_TEST );
-
-        glDrawElements( GL_TRIANGLES, _pointMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
-        
-        glEnable( GL_DEPTH_TEST );
-
-        glDisable( GL_BLEND );
-    }
-
     const vec3f & lightPosition = game.GetLightPosition();
 
 #if SHADOWS
@@ -641,6 +594,47 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
             glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
         }
     }
+
+    // *** IMPORTANT: RENDER ALPHA BLENDED OBJECTS PAST HERE ***
+
+    // render grid
+    
+    {
+        glUseProgram( _gridProgram );
+
+        [opengl selectTexturedMesh:_lineTexture vertexBuffer:_gridVertexBuffer indexBuffer:_gridIndexBuffer];
+        
+        glUniformMatrix4fv( _gridUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
+        glUniformMatrix3fv( _gridUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
+        glUniform3fv( _gridUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.GetLightPosition() );
+        
+        glEnable( GL_BLEND );
+        glBlendFunc( GL_ZERO, GL_SRC_COLOR );
+
+        glDrawElements( GL_TRIANGLES, _gridMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+        
+        glDisable( GL_BLEND );
+    }
+
+    // render star points
+    
+    {
+        glUseProgram( _pointProgram );
+        
+        [opengl selectTexturedMesh:_pointTexture vertexBuffer:_pointVertexBuffer indexBuffer:_pointIndexBuffer];
+
+        glUniformMatrix4fv( _pointUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
+        glUniformMatrix3fv( _pointUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
+        glUniform3fv( _pointUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.GetLightPosition() );
+        
+        glEnable( GL_BLEND );
+        glBlendFunc( GL_ZERO, GL_SRC_COLOR );
+
+        glDrawElements( GL_TRIANGLES, _pointMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+        
+        glDisable( GL_BLEND );
+    }
+
 
     const GLenum discards[]  = { GL_DEPTH_ATTACHMENT };
     glDiscardFramebufferEXT( GL_FRAMEBUFFER, 1, discards );

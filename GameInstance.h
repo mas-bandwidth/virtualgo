@@ -314,7 +314,7 @@ public:
 
     void UpdateCamera( float dt = 0.0f )
     {
-        projectionMatrix = mat4f::perspective( 50, aspectRatio, 0.1f, 256.0f );
+        projectionMatrix = mat4f::perspective( 50, aspectRatio, 0.1f, 100.0f );
 
         cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 53 ),
                                       vec3f( 0, 0, 0 ),

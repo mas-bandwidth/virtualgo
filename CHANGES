@@ -1,4 +1,34 @@
 
+Back to 60 by putting alpha blending at end of frame (26/5/2013):
+-----------------------------------------------------------------
+
+    Seems that I now need to do GPU level optimizations
+
+    "Your application rendered opaque geometry after rendering 
+     transparent or alpha tested geometry. For best performance, 
+     render all opaque geometry before any transparent geometry."
+
+    Moved star point and grid rendering to the end 
+    of the frame since it uses alpha blending.
+
+    This may improve performance.
+
+    Shadows will need separate treatment, at the point 
+    they are rendered to texture, the alpha blend of
+    that texture can be deferred until the end of
+    the frame. 
+
+    Wow! The adjustment to move alpha blended objects
+    to the end of the frame alone was enough to increase
+    performance to 60fps with the higher res stone mesh!
+
+    Grid and star point rendering needs depth testing.
+
+    Need to add zbias to grid and star points.
+
+    All sorted!
+
+
 Reduced stone tessellation depth (26/5/2013):
 ---------------------------------------------
 

@@ -387,7 +387,7 @@ void GenerateBoardMesh( Mesh<TexturedVertex> & mesh, const Board & board, const 
     mesh.AddTriangle( a, d, c );
 }
 
-void GenerateGridMesh( Mesh<TexturedVertex> & mesh, const Board & board, float zbias = - 0.01f )
+void GenerateGridMesh( Mesh<TexturedVertex> & mesh, const Board & board, float zbias1 = - 0.015f, float zbias2 = -0.01f )
 {
     TexturedVertex a,b,c,d;
 
@@ -402,7 +402,7 @@ void GenerateGridMesh( Mesh<TexturedVertex> & mesh, const Board & board, float z
     // horizontal lines
 
     {
-        const float z = board.GetThickness() + zbias;
+        const float z = board.GetThickness() + zbias1;
 
         for ( int i = -n; i <= n; ++i )
         {
@@ -434,7 +434,7 @@ void GenerateGridMesh( Mesh<TexturedVertex> & mesh, const Board & board, float z
     // vertical lines
 
     {
-        const float z = board.GetThickness() + zbias;
+        const float z = board.GetThickness() + zbias2;
 
         for ( int i = -n; i <= +n; ++i )
         {
@@ -466,7 +466,7 @@ void GenerateGridMesh( Mesh<TexturedVertex> & mesh, const Board & board, float z
     // todo: need to add corners to board mesh. ideally share the same texture, eg. take 1/4 of it
 }
 
-void GenerateStarPointsMesh( Mesh<TexturedVertex> & mesh, const Board & board, float zbias = -0.01f )
+void GenerateStarPointsMesh( Mesh<TexturedVertex> & mesh, const Board & board, float zbias = -0.005f )
 {
     TexturedVertex a,b,c,d;
 

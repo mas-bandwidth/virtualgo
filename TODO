@@ -2,6 +2,29 @@ DONE:
 
 TODO:
 
+    The first one suggested by the profiler:
+
+    "Your application used the same vertex array configuration 
+     for multiple consecutive calls to DrawArrays or DrawElements. 
+     Use vertex array objects (VAOs) to encapsulate the vertex 
+     array configuration, allowing optimal reuse of that configuration 
+     across multiple draw calls. See documentation on GenVertexArrays 
+     and BindVertexArray."
+
+    Seems legit. Worth trying.
+
+    Another one:
+
+
+
+
+
+
+
+
+
+
+
     PAINFUL BUGFIX O_O
 
     -------------------------------------------------
