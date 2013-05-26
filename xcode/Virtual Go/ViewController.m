@@ -466,10 +466,12 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         glDisable( GL_BLEND );
     }
 
-    // render board shadow on ground
-    
     const vec3f & lightPosition = game.GetLightPosition();
-    
+
+#if SHADOWS
+
+    // render board shadow on ground
+        
     {
         glUseProgram( _shadowProgram );
         
@@ -573,6 +575,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
         glDisable( GL_BLEND );
     }
+
+#endif
 
     // render white stones
 

@@ -20,6 +20,8 @@ Added smoothing to stone select height and drop snap (23/5/2013):
     Made it warp back to the original unconstrained position
     on the floor. Feels much better.
 
+    Also, standardize lift on stone select.
+
 
 More fixes to stone select and drog (23/5/2013):
 ------------------------------------------------

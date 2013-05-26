@@ -72,7 +72,9 @@ public:
 
         sceneGrid.Initialize( SceneGridRes, SceneGridWidth, SceneGridHeight, SceneGridDepth );
 
+        #if STONES
         PlaceStones();
+        #endif
 
         UpdateCamera();
 	}
@@ -106,10 +108,17 @@ public:
         stone.constraintRow = row;
         stone.constraintColumn = column;
         stone.constraintPosition = board.GetPointPosition( row, column );
+        stone.rigidBody.UpdateTransform();
+        stone.rigidBody.UpdateMomentum();
+        stone.UpdateVisualTransform();
+
         stones.push_back( stone );
+        
         sceneGrid.AddObject( stone.id, stone.rigidBody.position );
+        
         board.SetPointState( row, column, (PointState) color );
         board.SetPointStoneId( row, column, stone.id );
+        
         ValidateBoard();
         ValidateSceneGrid();
     }
@@ -120,6 +129,50 @@ public:
         selectMap.clear();
         sceneGrid.clear();
 
+        // shusaku ear-reddening game
+
+        const int e = 0;
+        const int w = 1;
+        const int b = 2;
+
+        int boardState[] = 
+        {
+            e, e, e, w, w, w, b, e, b, b, w, w, e, w, e, w, w, b, e,
+            e, e, w, e, w, b, b, b, e, b, w, e, w, w, w, w, b, b, e,
+            e, e, w, w, w, b, b, e, e, b, b, w, w, b, w, b, e, b, e,
+            e, e, e, e, w, w, b, e, b, w, b, b, b, b, b, e, b, e, e,
+            e, e, e, e, e, b, w, b, e, e, b, b, e, e, e, b, b, b, e,
+            e, e, w, e, w, w, w, b, e, w, w, b, w, w, e, b, e, e, b,
+            e, e, e, w, w, b, b, b, b, b, b, b, b, w, w, w, b, b, b,
+            e, e, w, b, b, e, b, w, w, b, e, b, w, e, b, w, w, w, b,
+            e, e, w, w, b, b, b, e, w, b, w, w, e, w, w, b, b, b, b,
+            e, e, w, b, b, w, w, w, w, b, b, b, w, w, w, w, b, w, w,
+            w, w, w, w, b, b, b, w, e, w, b, w, w, e, w, b, b, w, e,
+            w, b, w, e, w, w, w, w, w, w, b, w, e, w, w, b, w, e, w,
+            b, b, b, b, w, b, b, b, w, b, e, b, w, e, w, b, w, w, e,
+            e, b, w, b, b, w, w, b, w, b, b, b, w, b, w, b, b, w, b,
+            e, e, w, b, e, e, b, b, w, w, e, b, w, b, w, b, w, e, w,
+            e, e, b, e, b, e, b, b, b, w, w, b, w, w, b, w, w, w, e,
+            e, e, e, e, b, b, e, b, w, e, w, w, b, b, b, b, w, w, w,
+            e, e, b, b, w, b, b, w, e, w, w, b, b, b, b, e, b, w, b,
+            e, e, e, b, w, w, w, w, w, e, w, w, b, b, e, b, b, b, e            
+        };
+
+        for ( int i = 0; i < 19; ++i )
+        {
+            for ( int j = 0; j < 19; ++j )
+            {
+                const int row = i + 1;
+                const int column = j + 1;
+                const int state = boardState[(18-j)+i*19];
+                if ( state == w )
+                    AddStone( row, column, White );
+                else if ( state == b )
+                    AddStone( row, column, Black );
+            }       
+        }
+
+        /*
         // Miyamoto Naoki vs Go Seigen 9x9
         // https://www.youtube.com/watch?v=VsBqYNR5P3U
 
@@ -183,6 +236,7 @@ public:
         AddStone( 9, 4, Black );
         AddStone( 9, 6, White );
         AddStone( 9, 7, Black );
+        */
 
         /*
         // add stones on the star points
@@ -256,13 +310,45 @@ public:
 
     void UpdateCamera( float dt = 0.0f )
     {
-        projectionMatrix = mat4f::perspective( 40, aspectRatio, 0.1f, 100.0f );
+        projectionMatrix = mat4f::perspective( 50, aspectRatio, 0.1f, 256.0f );
 
+        cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 53 ),
+                                      vec3f( 0, 0, 0 ),
+                                      vec3f( 0, -1, 0 ) );
+
+        /*
+        if ( cameraMode == 0 )
+        {
+            cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 50 ),
+                                          vec3f( 0, 0, 0 ),
+                                          vec3f( 0, -1, 0 ) );
+        }
+        else if ( cameraMode == 1 )
+        {
+            cameraMatrix = mat4f::lookAt( vec3f( 0, 100, 100 ),
+                                          vec3f( 0, 0, board.GetThickness() ),
+                                          vec3f( 0, 0, 1 ) );
+        }
+        else if ( cameraMode == 2 )
+        {
+            cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 15, 10 ),
+                                          zoomPoint,
+                                          vec3f( 0, 0, 1 ) );
+        }
+        else if ( cameraMode == 3 )
+        {
+            cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 0, 15 ),
+                                          zoomPoint,
+                                          vec3f( 0, -1, 0 ) );
+        }
+        */
+
+        /*
         if ( cameraMode == 0 )
         {
             cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 35 ),
-                                         vec3f( 0, 0, 0 ),
-                                         vec3f( 0, -1, 0 ) );
+                                          vec3f( 0, 0, 0 ),
+                                          vec3f( 0, -1, 0 ) );
         }
         else if ( cameraMode == 1 )
         {
@@ -282,6 +368,7 @@ public:
                                           zoomPoint,
                                           vec3f( 0, -1, 0 ) );
         }
+        */
 
         clipMatrix = projectionMatrix * cameraMatrix;
 
@@ -306,11 +393,9 @@ public:
 
                 stone->rigidBody.position = select.intersectionPoint + select.offset;
 
-                // next find the projected z that makes sure the stone
-                // is above any non-selected stones in the area, so it slides
-                // above other stones.
+                select.time += dt;
 
-                const float z = FindSelectedStoneZ( stone, stoneData, stones, sceneGrid );
+                const float z = SelectHeight;
 
                 vec3f newPosition = vec3f( stone->rigidBody.position.x(),
                                            stone->rigidBody.position.y(),
@@ -344,6 +429,8 @@ public:
 
     void UpdatePhysics( float dt )
     {
+        #if PHYSICS
+
         ValidateSceneGrid();
 
         // calculate frustum planes for collision
@@ -429,6 +516,8 @@ public:
 
         for ( int i = 0; i < stones.size(); ++i )
             stones[i].UpdateVisualTransform();
+
+        #endif
     }
 
     void UpdateGame( float dt )
@@ -463,6 +552,8 @@ public:
 
     void ValidateBoard()
     {
+        #if VALIDATION
+
         const int size = board.GetSize();
 
         // verify that stone constraints match the board state at the point
@@ -505,10 +596,14 @@ public:
                 }
             }
         }
+
+        #endif
     }
 
     void ValidateSceneGrid()
     {
+        #if VALIDATION
+
         for ( int i = 0; i < stones.size(); ++i )
         {
             StoneInstance & stone = stones[i];
@@ -522,6 +617,8 @@ public:
 
             assert( std::find( cell.objects.begin(), cell.objects.end(), stone.id ) != cell.objects.end() );
         }
+
+        #endif
     }
 
     bool IsScreenPointOnBoard( const vec3f & point )
@@ -635,7 +732,9 @@ public:
                     select.constrained = stone->constrained;
                     select.constraintRow = stone->constraintRow;
                     select.constraintColumn = stone->constraintColumn;
-                    select.originalPosition = stone->rigidBody.position;
+                    select.initialPosition = stone->rigidBody.position;
+                    select.initialTimestamp = touch.timestamp;
+                    select.time = 0.0f;
 
                     // IMPORTANT: determine offset of stone position from intersection
                     // between screen ray and plane at stone z with normal (0,0,1)
@@ -778,7 +877,7 @@ public:
                                     ValidateBoard();
 
                                     vec3f previousPosition = stone->rigidBody.position;
-                                    vec3f newPosition = select.originalPosition;
+                                    vec3f newPosition = select.initialPosition;
                                     stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
                                     stone->rigidBody.position = newPosition;
 
@@ -794,7 +893,7 @@ public:
                             {
                                 // warp back to original, unconstrained position off the board
                                 vec3f previousPosition = stone->rigidBody.position;
-                                vec3f newPosition = select.originalPosition;
+                                vec3f newPosition = select.initialPosition;
                                 stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
                                 stone->rigidBody.position = newPosition;
                                 sceneGrid.MoveObject( stone->id, previousPosition, newPosition );
@@ -884,17 +983,7 @@ public:
 
     void OnSwipe( const vec3f & point, const vec3f & delta )
     {
-        const vec3f up = -normalize( accelerometer->GetSmoothedAcceleration() );
-
-        for ( int i = 0; i < stones.size(); ++i )
-        {
-            StoneInstance & stone = stones[i];
-            stone.rigidBody.angularMomentum += SwipeMomentum * up;
-            stone.rigidBody.Activate();
-        }
-
-        telemetry->IncrementCounter( COUNTER_Swiped );
-        telemetry->SetSwipedThisFrame();
+        // ...
     }
 
     // ----------------------------------------------------------------

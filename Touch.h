@@ -25,7 +25,9 @@ struct SelectData
     vec3f impulse;
     vec3f intersectionPoint;
     vec3f lastMoveDelta;
-    vec3f originalPosition;
+    vec3f initialPosition;
+    double initialTimestamp;
+    float time;
 };
 
 typedef std::map<TouchHandle,SelectData> SelectMap;

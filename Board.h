@@ -30,7 +30,7 @@ struct BoardParams
         cellWidth = 2.2f;
         cellHeight = 2.37f;
         border = 1.5f;
-        thickness = 1.0f;
+        thickness = 2.5f;
         lineWidth = 0.1;
         starPointRadius = 0.2f;
     }
@@ -186,14 +186,28 @@ public:
 
     void GetStarPoints( vec3f * pointPosition, int & numStarPoints ) const
     {
-        // todo: generalize this such that it works with different board sizes
-        assert( size == 9 );
-        numStarPoints = 5;
-        pointPosition[0] = GetPointPosition( 3, 3 );
-        pointPosition[1] = GetPointPosition( 7, 3 );
-        pointPosition[2] = GetPointPosition( 3, 7 );
-        pointPosition[3] = GetPointPosition( 7, 7 );
-        pointPosition[4] = GetPointPosition( 5, 5 );
+        if ( size == 9 )
+        {
+            numStarPoints = 5;
+            pointPosition[0] = GetPointPosition( 3, 3 );
+            pointPosition[1] = GetPointPosition( 7, 3 );
+            pointPosition[2] = GetPointPosition( 3, 7 );
+            pointPosition[3] = GetPointPosition( 7, 7 );
+            pointPosition[4] = GetPointPosition( 5, 5 );
+        }
+        else if ( size == 19 )
+        {
+            numStarPoints = 9;
+            pointPosition[0] = GetPointPosition( 4, 4 );
+            pointPosition[1] = GetPointPosition( 10, 4 );
+            pointPosition[2] = GetPointPosition( 16, 4 );
+            pointPosition[3] = GetPointPosition( 4, 10 );
+            pointPosition[4] = GetPointPosition( 10, 10 );
+            pointPosition[5] = GetPointPosition( 16, 10 );
+            pointPosition[6] = GetPointPosition( 4, 16 );
+            pointPosition[7] = GetPointPosition( 10, 16 );
+            pointPosition[8] = GetPointPosition( 16, 16 );
+        }
     }
 
     PointState GetPointState( int row, int column ) const

@@ -403,7 +403,7 @@ inline void UpdatePhysics( const PhysicsParameters & params,
 
             bool iteration_collided = false;
             
-            if ( !params.locked )
+            if ( !params.locked && !stone.constrained )
             {
                 // collision between stone and near plane
 

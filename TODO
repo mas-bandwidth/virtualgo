@@ -1,29 +1,61 @@
 DONE:
 
+    Lets stop fucking around and address the real problem head-on.
+
+    I need to demonstrate a full size 19x19 board working, with
+    all the design challenges of zoom/focus/placement/movement
+    and such solved.
+
+    First, lets get a full 19x19 end-game board position
+    from the Shusaku red-ear game.
+
+    I want to define this in an array, as coding it specifically
+    would be incredibly painful :)
+
+    Don't collide against other planes.
+
+    Wow it's incredibly slow (23fps!)
+
+    It appears to be the physics.
+
+    Add star points for 19x19
+
 TODO:
 
-    Idea, only lift the stone up when it is moved outside
-    the logical constraint where it was dragged from.
+    Measure why the physics is running so slow.
 
-    This way small adjustments to the stone can be made,
-    without it lifting up unneccessarily! Also, you can
-    straighten your stones by pushing the other stones,
-    to a point.
+    Optimize this code so that it runs at 60fps.
 
-    This is necessary. Right now you cannot do this!
+    Ideas for improving this:
+
+        1. While stones are constrained they only need to collide
+           with the primary surface.
+
+        2. While constrained stones can only collide with adjacent
+           stones in the logical grid. Can walk logical grid and
+           perform collisions instead of using scene grid.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     --------------------------------------------------
 
-    To make the stone lift look good, we need proper collision
-    between the biconvex solids.
+    Would be really nice to hold down off the board and
+    have the stones "tighten" towards their constraints.
 
-    This can probably be done pretty damn easily, seeing
-    as I have a biconvex support function. Just calculate
-    the support of the two stones along axis (0,0,1)
-
-    Lift up if the supports overlap.
-
-    SOLVED.
+    Currently this can be approximated by randomly
+    shaking the board. This is a bit weird! :)
 
     --------------------------------------------------
 
@@ -38,6 +70,16 @@ TODO:
     this overlap to make sure they move apart.
 
     --------------------------------------------------
+
+
+
+
+
+
+
+    PAINFUL BUGFIX O_O
+
+    -------------------------------------------------
 
     Sometimes stones simply don't collide.
 
@@ -84,14 +126,6 @@ TODO:
     Stone movement must be smooth and at 60fps
     at all times. Otherwise the illusion of solidity
     is broken!
-
-    --------------------------------------------------
-
-    Would be really nice to hold down off the board and
-    have the stones "tighten" towards their constraints.
-
-    Currently this can be approximated by randomly
-    shaking the board. This is a bit weird! :)
 
     -------------------------------------------------
 

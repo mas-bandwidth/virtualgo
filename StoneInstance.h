@@ -30,7 +30,11 @@ struct StoneInstance
     {
         if ( length_squared( visualOffset ) > 0.001f * 0.001f )
         {
-            visualOffset *= 0.7f;
+            if ( selected )
+                visualOffset *= 0.25f;
+            else
+                visualOffset *= 0.7f;
+
             visualTransform = rigidBody.rotation;
             visualTransform.value.w = simd4f_create( rigidBody.position.x() + visualOffset.x(),
                                                      rigidBody.position.y() + visualOffset.y(),

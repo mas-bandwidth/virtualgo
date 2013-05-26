@@ -247,7 +247,7 @@ void GenerateBiconvexMesh( Mesh<Vertex> & mesh, const Biconvex & biconvex, int s
     }
 }
 
-void GenerateFloorMesh( Mesh<TexturedVertex> & mesh, float w = 20, float h = 20, float uv = 1.5f, float zbias = -0.04f )
+void GenerateFloorMesh( Mesh<TexturedVertex> & mesh, float w = 60, float h = 60, float uv = 4.5f, float zbias = -0.04f )
 {
     TexturedVertex a,b,c,d;
 

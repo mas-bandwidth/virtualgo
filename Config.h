@@ -5,6 +5,11 @@
 #define OPENGL_ES2 1
 #endif
 
+#define STONES 1
+#define SHADOWS 0
+#define PHYSICS 1
+#define VALIDATION 0
+
 const float DropMomentum = 10;
 
 const float DeleteTime = 3;
@@ -12,7 +17,7 @@ const float DeleteTime = 3;
 const float PlacementVariance = 0.2f;
 const float ConstraintDelta = 0.5f;
 
-const int MaxStones = 256;
+const int MaxStones = 400;
 
 const float SceneGridRes = 4;
 const float SceneGridWidth = 64;
@@ -21,19 +26,11 @@ const float SceneGridDepth = 64;
 
 const float FatFingerBonus = 1.35f;
 
-const int BoardSize = 9;
+const int BoardSize = 19;
 
 const int MaxStarPoints = 9;
 
 const int MaxTouches = 64;
-
-const float PlaceStoneHardThreshold = 0.075f;
-
-const float ZoomIn = 25;
-const float ZoomOut = 48;
-
-const float ZoomInTightness = 0.25f;
-const float ZoomOutTightness = 0.15f;
 
 const float AccelerometerFrequency = 20;
 const float AccelerometerTightness = 0.1f;
@@ -47,18 +44,19 @@ const float LaunchThreshold = 0.625f;
 const float LaunchMomentum = 8;
 const float LaunchVariance = 0.1f;
 
-const float MinimumSwipeLength = 50;            // points
-const float SwipeLengthPerSecond = 250;         // points
-const float MaxSwipeTime = 1.0f;                // seconds
-const float SwipeMomentum = 10.0f;
-
-const float HoldDelay = 0.05f;                  // seconds
-const float HoldDamping = 0.75f;                
-const float HoldMoveThreshold = 40;             // points
-
 const float SelectDamping = 0.75f;
+const float SelectHeight = 5.0f;
 
+// while in a game where the stones cannot be moved
+// these are good settings.
+/*
 const float TouchImpulse = 5.0f;
 const float SelectImpulse = 1.0f;
+*/
+
+// these settings work best for edit mode when stones
+// are selected and lifted up.
+const float TouchImpulse = 2.5f;
+const float SelectImpulse = 0.25f;
 
 #endif
