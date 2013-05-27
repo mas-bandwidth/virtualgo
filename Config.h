@@ -6,11 +6,12 @@
 #endif
 
 #define STONES 1
-#define SHADOWS 0
+#define SHADOWS 1
 #define PHYSICS 1
 #define VALIDATION 0
 
 const int StoneTessellationLevel = 3;
+const int StoneShadowTessellationLevel = 3;
 
 const float DropMomentum = 10;
 
@@ -19,7 +20,7 @@ const float DeleteTime = 2;
 const float PlacementVariance = 0.2f;
 const float ConstraintDelta = 0.5f;
 
-const int MaxStones = 400;
+const int MaxStones = 128;
 
 const float SceneGridRes = 4;
 const float SceneGridWidth = 64;
@@ -28,7 +29,7 @@ const float SceneGridDepth = 64;
 
 const float FatFingerBonus = 1.35f;
 
-const int BoardSize = 19;
+const int BoardSize = 9;
 
 const int MaxStarPoints = 9;
 
@@ -47,7 +48,7 @@ const float LaunchMomentum = 8;
 const float LaunchVariance = 0.1f;
 
 const float SelectDamping = 0.75f;
-const float SelectHeight = 5.0f;
+const float SelectHeight = 3.0f;
 
 // while in a game where the stones cannot be moved
 // these are good settings.

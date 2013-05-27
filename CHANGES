@@ -1,4 +1,26 @@
 
+Work in progress optimizing shadows (26/5/2013):
+------------------------------------------------
+
+    Now I have to get shadows working again at 60fps.
+
+    Some options I can think of:
+
+    1. Move shadow rendering to end of frame (50fps)
+
+    2. If stones are constrained and not selected
+       only render shadow on board, not on floor (60fps)
+
+    Wait. Now we're back to 40fps. I don't get it.
+
+    3. Generate a lower polygon shadow mesh without bevel (60fps)
+
+    (60fps -- but only if the fucking tessellation level is 2)
+
+    Verified that shadow tessellation is coarser than stone
+    by setting it to subdivide only once.
+
+
 Switched to using VAOs (26/5/2013):
 -----------------------------------
 

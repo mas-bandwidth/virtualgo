@@ -30,7 +30,7 @@ struct BoardParams
         cellWidth = 2.2f;
         cellHeight = 2.37f;
         border = 1.5f;
-        thickness = 2.5f;
+        thickness = 1.5f;
         lineWidth = 0.1;
         starPointRadius = 0.2f;
     }

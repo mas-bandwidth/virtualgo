@@ -16,6 +16,7 @@ class GameInstance
     Board board;
 
     StoneData stoneData;
+    StoneData stoneShadow;
     StoneMap stoneMap;
     std::vector<StoneInstance> stones;
 
@@ -52,7 +53,7 @@ public:
 	{
         stoneId = 0;
 
-        cameraMode = 1;
+        cameraMode = 0;
 
         tilt = false;//true;
 		locked = true;
@@ -60,7 +61,7 @@ public:
 		
         aspectRatio = 1.0f;
 
-        lightPosition = vec3f( 10*1000, 10*1000, 100*1000 );
+        lightPosition = vec3f( 10, 10, 100 );
 
         zoomPoint = vec3f(0,0,0);
 
@@ -68,7 +69,10 @@ public:
 
         board.Initialize( BoardSize );
 
-        stoneData.Initialize( STONE_SIZE_36 );
+        const StoneSize stoneSize = STONE_SIZE_36;
+
+        stoneData.Initialize( stoneSize );
+        stoneShadow.Initialize( stoneSize, 0.0f );
 
         sceneGrid.Initialize( SceneGridRes, SceneGridWidth, SceneGridHeight, SceneGridDepth );
 
@@ -133,6 +137,7 @@ public:
         selectMap.clear();
         sceneGrid.clear();
 
+        /*
         // shusaku ear-reddening game
 
         const int e = 0;
@@ -175,8 +180,8 @@ public:
                     AddStone( row, column, Black );
             }       
         }
+        */
 
-        /*
         // Miyamoto Naoki vs Go Seigen 9x9
         // https://www.youtube.com/watch?v=VsBqYNR5P3U
 
@@ -240,7 +245,6 @@ public:
         AddStone( 9, 4, Black );
         AddStone( 9, 6, White );
         AddStone( 9, 7, Black );
-        */
 
         /*
         // add stones on the star points
@@ -314,44 +318,18 @@ public:
 
     void UpdateCamera( float dt = 0.0f )
     {
-        projectionMatrix = mat4f::perspective( 50, aspectRatio, 0.1f, 100.0f );
+        projectionMatrix = mat4f::perspective( 30, aspectRatio, 0.1f, 100.0f );
 
         if ( cameraMode == 0 )
         {
-            cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 53 ),
+            cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 43 ),
                                           vec3f( 0, 0, 0 ),
                                           vec3f( 0, -1, 0 ) );
         }
         else if ( cameraMode == 1 )
         {
-            cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 0, 25 ),
-                                          zoomPoint,
-                                          vec3f( 0, -1, 0 ) );
-        }
-        else if ( cameraMode == 2 )
-        {
-            cameraMatrix = mat4f::lookAt( vec3f( 0, 15, 30 ),
-                                          vec3f( 0, 0, board.GetThickness() ),
-                                          vec3f( 0, 0, 1 ) );
-        }
-        else if ( cameraMode == 3 )
-        {
-            cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 15, 10 ),
-                                          zoomPoint,
-                                          vec3f( 0, 0, 1 ) );
-        }
-
-        /*
-        if ( cameraMode == 0 )
-        {
-            cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 35 ),
-                                          vec3f( 0, 0, 0 ),
-                                          vec3f( 0, -1, 0 ) );
-        }
-        else if ( cameraMode == 1 )
-        {
-            cameraMatrix = mat4f::lookAt( vec3f( 0, 23, 20 ),
-                                          vec3f( 0, 0, 0 ),
+            cameraMatrix = mat4f::lookAt( vec3f( 0, 25, 30 ),
+                                          vec3f( 0, 2, board.GetThickness() ),
                                           vec3f( 0, 0, 1 ) );
         }
         else if ( cameraMode == 2 )
@@ -366,7 +344,6 @@ public:
                                           zoomPoint,
                                           vec3f( 0, -1, 0 ) );
         }
-        */
 
         clipMatrix = projectionMatrix * cameraMatrix;
 
@@ -992,6 +969,11 @@ public:
     const Biconvex & GetBiconvex() const
     {
         return stoneData.biconvex;
+    }
+
+    const Biconvex & GetShadowBiconvex() const
+    {
+        return stoneShadow.biconvex;
     }
 
     const Board & GetBoard() const

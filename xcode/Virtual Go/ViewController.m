@@ -59,6 +59,10 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLint _boardUniforms[NUM_UNIFORMS];
 
     GLuint _shadowProgram;
+    Mesh<Vertex> _stoneShadowMesh;
+    GLuint _stoneShadowVertexBuffer;
+    GLuint _stoneShadowIndexBuffer;
+    GLuint _stoneShadowVAO;
     GLint _shadowUniforms[NUM_UNIFORMS];
 
     Mesh<TexturedVertex> _gridMesh;
@@ -115,6 +119,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     game.Initialize( telemetry, accelerometer, 1.0f / aspectRatio );        // hack: for landscape!
 
     GenerateBiconvexMesh( _stoneMesh, game.GetBiconvex(), StoneTessellationLevel );
+    GenerateBiconvexMesh( _stoneShadowMesh, game.GetShadowBiconvex(), StoneShadowTessellationLevel );
     GenerateFloorMesh( _floorMesh );
     GenerateBoardMesh( _boardMesh, game.GetBoard() );
     GenerateGridMesh( _gridMesh, game.GetBoard() );
@@ -201,6 +206,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     {
         _shadowProgram = [opengl loadShader:@"ShadowShader"];
 
+        [opengl generateVBAndIBFromMesh:_stoneShadowMesh vertexBuffer:_stoneShadowVertexBuffer indexBuffer:_stoneShadowIndexBuffer vertexArrayObject:_stoneShadowVAO];
+
         _shadowUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _shadowProgram, "normalMatrix" );
         _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _shadowProgram, "modelViewProjectionMatrix" );
         _shadowUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _shadowProgram, "lightPosition" );
@@ -264,6 +271,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     [opengl destroyTexture:_boardTexture];
 
     [opengl destroyProgram:_shadowProgram];
+    [opengl destroyBuffer:_stoneShadowIndexBuffer];
+    [opengl destroyBuffer:_stoneShadowVertexBuffer];
+    [opengl destroyBuffer:_stoneShadowVAO];
     
     [opengl destroyProgram:_gridProgram];
     [opengl destroyBuffer:_gridIndexBuffer];
@@ -435,119 +445,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         glDrawElements( GL_TRIANGLES, _boardMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
     }
 
-    const vec3f & lightPosition = game.GetLightPosition();
-
-#if SHADOWS
-
-    // render board shadow on ground
-        
-    {
-        glUseProgram( _shadowProgram );
-        
-        [opengl selectTexturedMesh:0 vertexBuffer:_boardVertexBuffer indexBuffer:_boardIndexBuffer];
-
-        float boardShadowAlpha = 1.0f;
-
-        mat4f shadowMatrix;
-        MakeShadowMatrix( vec4f(0,0,1,-0.01f), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
-
-        mat4f modelView = game.GetCameraMatrix() * shadowMatrix;
-        mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
-        
-        glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
-        glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&boardShadowAlpha );
-
-        glEnable( GL_BLEND );
-        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-        
-        glDrawElements( GL_TRIANGLES, _boardMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
-
-        glDisable( GL_BLEND );
-    }
-
-    // render stone shadow on ground
-    
-    {
-        glUseProgram( _shadowProgram );
-        
-        [opengl selectNonTexturedMesh:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
-
-        glEnable( GL_BLEND );
-        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
-        const std::vector<StoneInstance> & stones = game.GetStones();
-        
-        for ( int i = 0; i < stones.size(); ++i )
-        {
-            const StoneInstance & stone = stones[i];
-            
-            mat4f shadowMatrix;
-            MakeShadowMatrix( vec4f(0,0,1,0), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
-
-            mat4f modelView = game.GetCameraMatrix() * shadowMatrix * stone.visualTransform;
-            mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
-            
-            glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
-
-            float shadowAlpha = GetShadowAlpha( stone.rigidBody.position );
-            glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&shadowAlpha );
-
-            glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
-        }
-
-        glDisable( GL_BLEND );
-        
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-        
-        glDisableVertexAttribArray( GLKVertexAttribPosition );
-        glDisableVertexAttribArray( GLKVertexAttribNormal );
-    }
-
-    // render stone shadow on board
-    
-    {
-        glUseProgram( _shadowProgram );
-        
-        [opengl selectNonTexturedMesh:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
-        
-        glEnable( GL_BLEND );
-        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
-        glEnable( GL_DEPTH_TEST );
-        glDepthFunc( GL_GREATER );
-
-        const std::vector<StoneInstance> & stones = game.GetStones();
-
-        for ( int i = 0; i < stones.size(); ++i )
-        {
-            const StoneInstance & stone = stones[i];
-
-            if ( stone.rigidBody.position.z() < game.GetBoard().GetThickness() )
-                continue;
-
-            mat4f shadowMatrix;
-            MakeShadowMatrix( vec4f(0,0,1,-game.GetBoard().GetThickness()+0.1f), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
-            
-            mat4f modelView = game.GetCameraMatrix() * shadowMatrix * stone.visualTransform;
-            mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
-            
-            glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
-            
-            float shadowAlpha = GetShadowAlpha( stone.rigidBody.position );
-            glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&shadowAlpha );
-
-            glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
-        }
-
-        glDepthFunc( GL_LESS );
-
-        glDisable( GL_BLEND );
-    }
-
-#endif
-
     // render white stones
+
+    const vec3f & lightPosition = game.GetLightPosition();
 
     {
         glUseProgram( _stoneProgramWhite );
@@ -656,6 +556,125 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         
         glDisable( GL_BLEND );
     }
+
+#if SHADOWS
+
+    // render board shadow on ground
+        
+    {
+        glUseProgram( _shadowProgram );
+        
+        glBindTexture( GL_TEXTURE_2D, 0 );
+
+        glBindVertexArrayOES( _boardVAO );
+
+        float boardShadowAlpha = 1.0f;
+
+        mat4f shadowMatrix;
+        MakeShadowMatrix( vec4f(0,0,1,-0.01f), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
+
+        mat4f modelView = game.GetCameraMatrix() * shadowMatrix;
+        mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
+        
+        glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
+        glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&boardShadowAlpha );
+
+        glEnable( GL_BLEND );
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+        
+        glDrawElements( GL_TRIANGLES, _boardMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+
+        glDisable( GL_BLEND );
+    }
+
+    // render stone shadow on ground
+    
+    {
+        glUseProgram( _shadowProgram );
+        
+        glBindVertexArrayOES( _stoneShadowVAO );
+
+        glEnable( GL_BLEND );
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
+        const std::vector<StoneInstance> & stones = game.GetStones();
+        
+        for ( int i = 0; i < stones.size(); ++i )
+        {
+            const StoneInstance & stone = stones[i];
+            
+            // IMPORTANT: optimization -- constrained stones are on the board
+            // and thus do not typically cast shadows on the ground (that you would notice)
+            if ( !stone.constrained )
+                continue;
+
+            mat4f shadowMatrix;
+            MakeShadowMatrix( vec4f(0,0,1,0), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
+
+            mat4f modelView = game.GetCameraMatrix() * shadowMatrix * stone.visualTransform;
+            mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
+            
+            glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
+
+            float shadowAlpha = GetShadowAlpha( stone.rigidBody.position );
+
+            if ( shadowAlpha == 0.0f )
+                continue;
+            
+            glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&shadowAlpha );
+
+            glDrawElements( GL_TRIANGLES, _stoneShadowMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+        }
+
+        glDisable( GL_BLEND );
+    }
+
+    // render stone shadow on board
+    
+    {
+        glUseProgram( _shadowProgram );
+        
+        glBindVertexArrayOES( _stoneShadowVAO );
+        
+        glEnable( GL_BLEND );
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
+        glEnable( GL_DEPTH_TEST );
+        glDepthFunc( GL_GREATER );
+
+        const std::vector<StoneInstance> & stones = game.GetStones();
+
+        for ( int i = 0; i < stones.size(); ++i )
+        {
+            const StoneInstance & stone = stones[i];
+
+            if ( stone.rigidBody.position.z() < game.GetBoard().GetThickness() )
+                continue;
+
+            mat4f shadowMatrix;
+            MakeShadowMatrix( vec4f(0,0,1,-game.GetBoard().GetThickness()+0.1f), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
+            
+            mat4f modelView = game.GetCameraMatrix() * shadowMatrix * stone.visualTransform;
+            mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
+            
+            glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
+            
+            float shadowAlpha = GetShadowAlpha( stone.rigidBody.position );
+            
+            if ( shadowAlpha == 0.0f )
+                continue;
+            
+            glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&shadowAlpha );
+
+            glDrawElements( GL_TRIANGLES, _stoneShadowMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+        }
+
+        glDepthFunc( GL_LESS );
+
+        glDisable( GL_BLEND );
+    }
+
+#endif
 
     const GLenum discards[]  = { GL_DEPTH_ATTACHMENT };
     glDiscardFramebufferEXT( GL_FRAMEBUFFER, 1, discards );

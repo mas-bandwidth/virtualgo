@@ -1,7 +1,45 @@
 DONE:
 
+    The truth is that combined with the small screen size, and being
+    almost completely GPU bound with ugly low-tessellated stones at
+    19x19, it seems that on iPad 4 we will not be able to have a 
+    good quality go board rendered at 60fps.
+
+    Giving up on 19x19 board for now.
+
+    Returning to 9x9 board.
+
+    The goal is now to make this board look AMAZINGLY GOOD.
+
+    eg. soft shadows, really good shaders, textures, great lighting etc.
 
 TODO:
+
+    Work on render to texture. 
+
+    Goal is to render stone shadows to a 1024x1024 texture
+
+    Then this texture can be rendered to the go board at the end of the frame.
+
+    ---------------------
+
+    There is a crash when a stone is dropped off the 
+    board. I think the stoneMap gets out of sync 
+    on the delete?
+
+    Floor shadow doesn't appear to show up. Z fighting?
+
+    -------------
+
+    Need to use render to texture to render the shadows
+    on the board, and floor, as there is no way that I
+    can think of to render the shadow without alpha
+    testing mid-frame otherwise.
+
+    How does render to texture work?
+
+    How do I construct the appropriate projection
+    matrix and such to acheive what I want?
 
 
 
