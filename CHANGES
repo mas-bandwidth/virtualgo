@@ -1,4 +1,33 @@
 
+Switched to using VAOs (26/5/2013):
+-----------------------------------
+
+    The first one suggested by the profiler:
+
+    "Your application used the same vertex array configuration 
+     for multiple consecutive calls to DrawArrays or DrawElements. 
+     Use vertex array objects (VAOs) to encapsulate the vertex 
+     array configuration, allowing optimal reuse of that configuration 
+     across multiple draw calls. See documentation on GenVertexArrays 
+     and BindVertexArray."
+
+    Implemented. Difficult to tell if it's any faster.
+
+    Last remaining option really is to run the stone mesh
+    through a tri-stripper offline and render non-indexed
+    tri-strips.
+
+    I think this may be required because at tessellation
+    level 3 we are sometimes dropping below 60fps with
+    the full amount of stones.
+
+    For the moment I'm reducing to tessellation level 2.
+
+    UPDATE: Reduced the amount of rings tessellation that occur in the bevel.
+
+    This appears to have allowed 60fps again with tessellation level 3.
+
+
 Back to 60 by putting alpha blending at end of frame (26/5/2013):
 -----------------------------------------------------------------
 

@@ -161,7 +161,7 @@ void GenerateBiconvexMesh( Mesh<Vertex> & mesh, const Biconvex & biconvex, int s
 
         // tesselate the bevel
 
-        const int numBevelRings = 8;
+        const int numBevelRings = 4;
 
         const float torusMajorRadius = biconvex.GetBevelTorusMajorRadius();
         const float torusMinorRadius = biconvex.GetBevelTorusMinorRadius();

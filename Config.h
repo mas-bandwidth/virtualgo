@@ -10,6 +10,8 @@
 #define PHYSICS 1
 #define VALIDATION 0
 
+const int StoneTessellationLevel = 3;
+
 const float DropMomentum = 10;
 
 const float DeleteTime = 2;

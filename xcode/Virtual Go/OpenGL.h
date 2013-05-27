@@ -25,14 +25,12 @@
 
 - (void) generateVBAndIBFromMesh:(Mesh<Vertex>&) mesh
                     vertexBuffer:(GLuint&) vb
-                     indexBuffer:(GLuint&) ib;
+                     indexBuffer:(GLuint&) ib
+               vertexArrayObject:(GLuint&) vao;
 
 - (void) generateVBAndIBFromTexturedMesh:(Mesh<TexturedVertex>&) mesh
                             vertexBuffer:(GLuint&) vb
-                             indexBuffer:(GLuint&) ib;
-
-- (void)selectTexturedMesh:(GLuint)texture vertexBuffer:(GLuint)vb indexBuffer:(GLuint)ib;
-
-- (void)selectNonTexturedMesh:(GLuint)vb indexBuffer:(GLuint)ib;
+                             indexBuffer:(GLuint&) ib
+                       vertexArrayObject:(GLuint&) vao;
 
 @end

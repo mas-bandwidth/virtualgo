@@ -257,6 +257,7 @@
 - (void) generateVBAndIBFromMesh:(Mesh<Vertex>&) mesh
                     vertexBuffer:(GLuint&) vb
                      indexBuffer:(GLuint&) ib
+               vertexArrayObject:(GLuint&) vao
 {
     void * vertexData = mesh.GetVertexBuffer();
     
@@ -271,11 +272,27 @@
     glGenBuffers( 1, &ib );
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib );
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, mesh.GetNumIndices()*sizeof(GLushort), mesh.GetIndexBuffer(), GL_STATIC_DRAW );
+
+    glGenVertexArraysOES( 1, &vao );
+    glBindVertexArrayOES( vao );
+
+    glBindBuffer( GL_ARRAY_BUFFER, vb );
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib );
+    
+    glEnableVertexAttribArray( GLKVertexAttribPosition );
+    glEnableVertexAttribArray( GLKVertexAttribNormal );
+    glDisableVertexAttribArray( GLKVertexAttribTexCoord0 );
+    
+    glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0 );
+    glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)16 );
+
+    glBindVertexArrayOES( 0 );
 }
 
 - (void) generateVBAndIBFromTexturedMesh:(Mesh<TexturedVertex>&) mesh
                             vertexBuffer:(GLuint&) vb
                              indexBuffer:(GLuint&) ib
+                       vertexArrayObject:(GLuint&) vao
 {
     void * vertexData = mesh.GetVertexBuffer();
     
@@ -290,12 +307,10 @@
     glGenBuffers( 1, &ib );
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib );
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, mesh.GetNumIndices()*sizeof(GLushort), mesh.GetIndexBuffer(), GL_STATIC_DRAW );
-}
 
-- (void)selectTexturedMesh:(GLuint)texture vertexBuffer:(GLuint)vb indexBuffer:(GLuint)ib
-{
-    glBindTexture( GL_TEXTURE_2D, texture );
-    
+    glGenVertexArraysOES( 1, &vao );
+    glBindVertexArrayOES( vao );
+
     glBindBuffer( GL_ARRAY_BUFFER, vb );
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib );
     
@@ -306,21 +321,8 @@
     glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), 0 );
     glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)16 );
     glVertexAttribPointer( GLKVertexAttribTexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)32 );
-}
 
-- (void)selectNonTexturedMesh:(GLuint)vb indexBuffer:(GLuint)ib
-{
-    glBindTexture( GL_TEXTURE_2D, 0 );
-    
-    glBindBuffer( GL_ARRAY_BUFFER, vb );
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib );
-    
-    glEnableVertexAttribArray( GLKVertexAttribPosition );
-    glEnableVertexAttribArray( GLKVertexAttribNormal );
-    glDisableVertexAttribArray( GLKVertexAttribTexCoord0 );
-    
-    glVertexAttribPointer( GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0 );
-    glVertexAttribPointer( GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)16 );
+    glBindVertexArrayOES( 0 );
 }
 
 @end

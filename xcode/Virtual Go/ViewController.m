@@ -41,13 +41,12 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     Accelerometer accelerometer;
 
-    // to be cleaned up below this line
-
     Mesh<Vertex> _stoneMesh;
     GLuint _stoneProgramWhite;
     GLuint _stoneProgramBlack;
     GLuint _stoneVertexBuffer;
     GLuint _stoneIndexBuffer;
+    GLuint _stoneVAO;
     GLint _stoneUniformsBlack[NUM_UNIFORMS];
     GLint _stoneUniformsWhite[NUM_UNIFORMS];
     
@@ -56,6 +55,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLuint _boardTexture;
     GLuint _boardVertexBuffer;
     GLuint _boardIndexBuffer;
+    GLuint _boardVAO;
     GLint _boardUniforms[NUM_UNIFORMS];
 
     GLuint _shadowProgram;
@@ -65,6 +65,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLuint _gridProgram;
     GLuint _gridVertexBuffer;
     GLuint _gridIndexBuffer;
+    GLuint _gridVAO;
     GLint _gridUniforms[NUM_UNIFORMS];
     GLuint _lineTexture;
 
@@ -72,6 +73,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLuint _pointProgram;
     GLuint _pointVertexBuffer;
     GLuint _pointIndexBuffer;
+    GLuint _pointVAO;
     GLint _pointUniforms[NUM_UNIFORMS];
     GLuint _pointTexture;
 
@@ -80,6 +82,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLuint _floorTexture;
     GLuint _floorVertexBuffer;
     GLuint _floorIndexBuffer;
+    GLuint _floorVAO;
     GLint _floorUniforms[NUM_UNIFORMS];
 }
 
@@ -111,7 +114,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     game.Initialize( telemetry, accelerometer, 1.0f / aspectRatio );        // hack: for landscape!
 
-    GenerateBiconvexMesh( _stoneMesh, game.GetBiconvex(), 3 );
+    GenerateBiconvexMesh( _stoneMesh, game.GetBiconvex(), StoneTessellationLevel );
     GenerateFloorMesh( _floorMesh );
     GenerateBoardMesh( _boardMesh, game.GetBoard() );
     GenerateGridMesh( _gridMesh, game.GetBoard() );
@@ -170,7 +173,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         _stoneProgramBlack = [opengl loadShader:@"BlackStoneShader"];
         _stoneProgramWhite = [opengl loadShader:@"WhiteStoneShader"];
 
-        [opengl generateVBAndIBFromMesh:_stoneMesh vertexBuffer:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
+        [opengl generateVBAndIBFromMesh:_stoneMesh vertexBuffer:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer vertexArrayObject:_stoneVAO];
 
         _stoneUniformsBlack[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _stoneProgramBlack, "normalMatrix" );
         _stoneUniformsBlack[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _stoneProgramBlack, "modelViewProjectionMatrix" );
@@ -185,7 +188,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     {
         _boardProgram = [opengl loadShader:@"BoardShader"];
 
-        [opengl generateVBAndIBFromTexturedMesh:_boardMesh vertexBuffer:_boardVertexBuffer indexBuffer:_boardIndexBuffer];
+        [opengl generateVBAndIBFromTexturedMesh:_boardMesh vertexBuffer:_boardVertexBuffer indexBuffer:_boardIndexBuffer vertexArrayObject:_boardVAO];
         
         _boardTexture = [opengl loadTexture:@"wood.jpg"];
 
@@ -208,7 +211,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     {
         _gridProgram = [opengl loadShader:@"GridShader"];
 
-        [opengl generateVBAndIBFromTexturedMesh:_gridMesh vertexBuffer:_gridVertexBuffer indexBuffer:_gridIndexBuffer];
+        [opengl generateVBAndIBFromTexturedMesh:_gridMesh vertexBuffer:_gridVertexBuffer indexBuffer:_gridIndexBuffer vertexArrayObject:_gridVAO];
         
         _gridUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _gridProgram, "normalMatrix" );
         _gridUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _gridProgram, "modelViewProjectionMatrix" );
@@ -221,7 +224,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     {
         _pointProgram = [opengl loadShader:@"PointShader"];
 
-        [opengl generateVBAndIBFromTexturedMesh:_pointMesh vertexBuffer:_pointVertexBuffer indexBuffer:_pointIndexBuffer];
+        [opengl generateVBAndIBFromTexturedMesh:_pointMesh vertexBuffer:_pointVertexBuffer indexBuffer:_pointIndexBuffer vertexArrayObject:_pointVAO];
 
         _pointUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _pointProgram, "normalMatrix" );
         _pointUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _pointProgram, "modelViewProjectionMatrix" );
@@ -234,7 +237,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     {
         _floorProgram = [opengl loadShader:@"FloorShader"];
 
-        [opengl generateVBAndIBFromTexturedMesh:_floorMesh vertexBuffer:_floorVertexBuffer indexBuffer:_floorIndexBuffer];
+        [opengl generateVBAndIBFromTexturedMesh:_floorMesh vertexBuffer:_floorVertexBuffer indexBuffer:_floorIndexBuffer vertexArrayObject:_floorVAO];
         
         _floorTexture = [opengl loadTexture:@"floor.jpg"];
 
@@ -250,24 +253,33 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     [opengl destroyBuffer:_stoneIndexBuffer];
     [opengl destroyBuffer:_stoneVertexBuffer];
+    [opengl destroyBuffer:_stoneVAO];
     [opengl destroyProgram:_stoneProgramBlack];
     [opengl destroyProgram:_stoneProgramWhite];
 
     [opengl destroyBuffer:_boardIndexBuffer];
     [opengl destroyBuffer:_boardVertexBuffer];
+    [opengl destroyBuffer:_boardVAO];
     [opengl destroyProgram:_boardProgram];
     [opengl destroyTexture:_boardTexture];
 
     [opengl destroyProgram:_shadowProgram];
     
     [opengl destroyProgram:_gridProgram];
+    [opengl destroyBuffer:_gridIndexBuffer];
+    [opengl destroyBuffer:_gridVertexBuffer];
+    [opengl destroyBuffer:_gridVAO];
     [opengl destroyTexture:_lineTexture];
     
     [opengl destroyProgram:_pointProgram];
+    [opengl destroyBuffer:_floorIndexBuffer];
+    [opengl destroyBuffer:_floorVertexBuffer];
+    [opengl destroyBuffer:_floorVAO];
     [opengl destroyTexture:_pointTexture];
 
     [opengl destroyBuffer:_floorIndexBuffer];
     [opengl destroyBuffer:_floorVertexBuffer];
+    [opengl destroyBuffer:_floorVAO];
     [opengl destroyProgram:_floorProgram];
     [opengl destroyTexture:_floorTexture];
 }
@@ -386,7 +398,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 }
 
 - (void)render
-{    
+{
     glClearColor( 0, 0, 0, 1 );
 
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -396,7 +408,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     {
         glUseProgram( _floorProgram );
                 
-        [opengl selectTexturedMesh:_floorTexture vertexBuffer:_floorVertexBuffer indexBuffer:_floorIndexBuffer];
+        glBindTexture( GL_TEXTURE_2D, _floorTexture );
+
+        glBindVertexArrayOES( _floorVAO );
 
         glUniformMatrix4fv( _floorUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
         glUniformMatrix3fv( _floorUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
@@ -410,7 +424,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     {
         glUseProgram( _boardProgram );
         
-        [opengl selectTexturedMesh:_boardTexture vertexBuffer:_boardVertexBuffer indexBuffer:_boardIndexBuffer];
+        glBindTexture( GL_TEXTURE_2D, _boardTexture );
+
+        glBindVertexArrayOES( _boardVAO );
 
         glUniformMatrix4fv( _boardUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
         glUniformMatrix3fv( _boardUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
@@ -536,7 +552,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     {
         glUseProgram( _stoneProgramWhite );
                 
-        [opengl selectNonTexturedMesh:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
+        glBindTexture( GL_TEXTURE_2D, 0 );
+
+        glBindVertexArrayOES( _stoneVAO );
 
         glUniform3fv( _stoneUniformsWhite[UNIFORM_LIGHT_POSITION], 1, (float*)&lightPosition );
 
@@ -568,7 +586,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     {
         glUseProgram( _stoneProgramBlack );
         
-        [opengl selectNonTexturedMesh:_stoneVertexBuffer indexBuffer:_stoneIndexBuffer];
+        glBindVertexArrayOES( _stoneVAO );
         
         glUniform3fv( _stoneUniformsBlack[UNIFORM_LIGHT_POSITION], 1, (float*)&lightPosition );
 
@@ -595,14 +613,16 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         }
     }
 
-    // *** IMPORTANT: RENDER ALPHA BLENDED OBJECTS PAST HERE ***
+    // *** IMPORTANT: RENDER ALL ALPHA BLENDED OBJECTS BELOW THIS LINE ***
 
     // render grid
     
     {
         glUseProgram( _gridProgram );
 
-        [opengl selectTexturedMesh:_lineTexture vertexBuffer:_gridVertexBuffer indexBuffer:_gridIndexBuffer];
+        glBindTexture( GL_TEXTURE_2D, _lineTexture );
+
+        glBindVertexArrayOES( _gridVAO );
         
         glUniformMatrix4fv( _gridUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
         glUniformMatrix3fv( _gridUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
@@ -621,8 +641,10 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     {
         glUseProgram( _pointProgram );
         
-        [opengl selectTexturedMesh:_pointTexture vertexBuffer:_pointVertexBuffer indexBuffer:_pointIndexBuffer];
+        glBindTexture( GL_TEXTURE_2D, _pointTexture );
 
+        glBindVertexArrayOES( _pointVAO );
+        
         glUniformMatrix4fv( _pointUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
         glUniformMatrix3fv( _pointUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
         glUniform3fv( _pointUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.GetLightPosition() );
@@ -634,7 +656,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         
         glDisable( GL_BLEND );
     }
-
 
     const GLenum discards[]  = { GL_DEPTH_ATTACHMENT };
     glDiscardFramebufferEXT( GL_FRAMEBUFFER, 1, discards );
@@ -653,6 +674,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
+    // todo: this might be called before we are initialized
+    // if that is the case do nothing ... add a check
+
     // IMPORTANT: otherwise we may not have correct matrices
     game.UpdateCamera();
 

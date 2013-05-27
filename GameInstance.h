@@ -316,36 +316,30 @@ public:
     {
         projectionMatrix = mat4f::perspective( 50, aspectRatio, 0.1f, 100.0f );
 
-        cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 53 ),
-                                      vec3f( 0, 0, 0 ),
-                                      vec3f( 0, -1, 0 ) );
-
-        /*
         if ( cameraMode == 0 )
         {
-            cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 50 ),
+            cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 53 ),
                                           vec3f( 0, 0, 0 ),
                                           vec3f( 0, -1, 0 ) );
         }
         else if ( cameraMode == 1 )
         {
-            cameraMatrix = mat4f::lookAt( vec3f( 0, 100, 100 ),
+            cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 0, 25 ),
+                                          zoomPoint,
+                                          vec3f( 0, -1, 0 ) );
+        }
+        else if ( cameraMode == 2 )
+        {
+            cameraMatrix = mat4f::lookAt( vec3f( 0, 15, 30 ),
                                           vec3f( 0, 0, board.GetThickness() ),
                                           vec3f( 0, 0, 1 ) );
         }
-        else if ( cameraMode == 2 )
+        else if ( cameraMode == 3 )
         {
             cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 15, 10 ),
                                           zoomPoint,
                                           vec3f( 0, 0, 1 ) );
         }
-        else if ( cameraMode == 3 )
-        {
-            cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 0, 15 ),
-                                          zoomPoint,
-                                          vec3f( 0, -1, 0 ) );
-        }
-        */
 
         /*
         if ( cameraMode == 0 )
