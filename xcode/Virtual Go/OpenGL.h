@@ -22,6 +22,7 @@
 - (void)destroyBuffer:(GLuint&)buffer;
 - (void)destroyProgram:(GLuint&)program;
 - (void)destroyTexture:(GLuint&)texture;
+- (void)destroyFramebuffer:(GLuint&)framebuffer;
 
 - (void) generateVBAndIBFromMesh:(Mesh<Vertex>&) mesh
                     vertexBuffer:(GLuint&) vb

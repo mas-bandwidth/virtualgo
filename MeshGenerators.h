@@ -510,4 +510,35 @@ void GenerateStarPointsMesh( Mesh<TexturedVertex> & mesh, const Board & board, f
     }
 }
 
+void GenerateQuadMesh( Mesh<TexturedVertex> & mesh,
+                       const vec3f & position_a,
+                       const vec3f & position_b,
+                       const vec3f & position_c, 
+                       const vec3f & position_d,
+                       const vec3f & normal )
+{
+    TexturedVertex a,b,c,d;
+
+    const float uv = 1.0f;
+
+    a.position = position_a;
+    a.normal = normal;
+    a.texCoords = vec2f( 0, 0 );
+
+    b.position = position_b;
+    b.normal = normal;
+    b.texCoords = vec2f( uv, 0 );
+
+    c.position = position_c;
+    c.normal = normal;
+    c.texCoords = vec2f( uv, uv );
+
+    d.position = position_d;
+    d.normal = normal;
+    d.texCoords = vec2f( 0, uv );
+
+    mesh.AddTriangle( a, c, b );
+    mesh.AddTriangle( a, d, c );
+}
+
 #endif

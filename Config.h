@@ -10,6 +10,8 @@
 #define PHYSICS 1
 #define VALIDATION 0
 
+const int RenderToTextureSize = 2048;
+
 const int StoneTessellationLevel = 3;
 const int StoneShadowTessellationLevel = 3;
 

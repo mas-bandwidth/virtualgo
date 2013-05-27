@@ -53,7 +53,7 @@ public:
 	{
         stoneId = 0;
 
-        cameraMode = 0;
+        cameraMode = 1;
 
         tilt = false;//true;
 		locked = true;
@@ -322,7 +322,7 @@ public:
 
         if ( cameraMode == 0 )
         {
-            cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 43 ),
+            cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 45 ),
                                           vec3f( 0, 0, 0 ),
                                           vec3f( 0, -1, 0 ) );
         }

@@ -1,25 +1,79 @@
 DONE:
 
-    The truth is that combined with the small screen size, and being
-    almost completely GPU bound with ugly low-tessellated stones at
-    19x19, it seems that on iPad 4 we will not be able to have a 
-    good quality go board rendered at 60fps.
+    Work on render to texture. 
 
-    Giving up on 19x19 board for now.
+    Render stone stones to 2048x2048 texture
 
-    Returning to 9x9 board.
+    So far I have chosen "LUMINANCE" 16 bit format.
 
-    The goal is now to make this board look AMAZINGLY GOOD.
+    I'm not sure if this will cause problems or not.
 
-    eg. soft shadows, really good shaders, textures, great lighting etc.
+    Yes, these formats are not renderable =p
+
+    Apparently there is an extension here:
+
+    http://stackoverflow.com/questions/6076255/ios-how-to-render-to-1-channel-texture-in-gles2
+
+    But this only allows rendering to R channel textures if you have iPhone 5...
+
+    Earlier hardware does not support this extension.
+
+    For now the safest option is to start with basic RGB888 texture.
+
+    Single format textures must be viewed as on optimization for
+    more recent hardware only.
+
+    Setup ortho projection matrix for stone shadows render to texture.
+
+    I believe the render to texture is now working, based on the fact
+    that it accidentally caused glBlend to get stuck on at the end of
+    the frame.
+
+    Now I just need a vertex buffer for a quad.
+
+    Done.
+
+    First render the quad buffer and verify it shows up.
 
 TODO:
 
-    Work on render to texture. 
+    No it doesn't show up at all, if rendered after the render to texture.
 
-    Goal is to render stone shadows to a 1024x1024 texture
+    Why is this? Am i setting up the render to texture incorrectly?
 
-    Then this texture can be rendered to the go board at the end of the frame.
+    -----------------------------------------
+
+    Really, really need to better organize meshes, shaders, textures etc.
+
+    Names need to change and be standardized. Perhaps a struct that
+    keeps the mesh, ib, vb, and vao together in one place.
+
+    eg. MeshData
+
+    It's getting impossible to name stuff!
+
+    ------------------------------------------
+
+    After this demonstrates the render to texture is working,
+    next we'll probably need separate shaders for the render to 
+    texture of the stones into the buffer.
+
+    Once this is working start investigating how to get
+    a pixel shader going that performs the gaussian blur.
+
+    Once this gaussian is working the visual quality
+    of the game will greatly improve!
+
+    Once this is done, generalize and do the same 
+    for the floor shadows, including rendering the 
+    go board to the floor shadows in one pass along
+    with the go stone shadows.
+
+    ----------------------
+
+    Consider turning on multi-sampling. Maybe it's fast enough for a 9x9 board?
+
+    http://db-in.com/blog/2011/05/all-about-opengl-es-2-x-part-33/
 
     ---------------------
 
@@ -27,21 +81,13 @@ TODO:
     board. I think the stoneMap gets out of sync 
     on the delete?
 
+    Not really sure how this could be happening!
+
+    --------------
+
     Floor shadow doesn't appear to show up. Z fighting?
 
     -------------
-
-    Need to use render to texture to render the shadows
-    on the board, and floor, as there is no way that I
-    can think of to render the shadow without alpha
-    testing mid-frame otherwise.
-
-    How does render to texture work?
-
-    How do I construct the appropriate projection
-    matrix and such to acheive what I want?
-
-
 
 
 

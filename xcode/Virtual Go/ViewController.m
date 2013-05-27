@@ -60,10 +60,16 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     GLuint _shadowProgram;
     Mesh<Vertex> _stoneShadowMesh;
+    Mesh<TexturedVertex> _boardQuadShadowMesh;
     GLuint _stoneShadowVertexBuffer;
     GLuint _stoneShadowIndexBuffer;
     GLuint _stoneShadowVAO;
+    GLuint _boardQuadShadowVertexBuffer;
+    GLuint _boardQuadShadowIndexBuffer;
+    GLuint _boardQuadShadowVAO;
     GLint _shadowUniforms[NUM_UNIFORMS];
+    GLuint _shadowBoardFramebuffer;
+    GLuint _shadowBoardTexture;
 
     Mesh<TexturedVertex> _gridMesh;
     GLuint _gridProgram;
@@ -124,6 +130,18 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GenerateBoardMesh( _boardMesh, game.GetBoard() );
     GenerateGridMesh( _gridMesh, game.GetBoard() );
     GenerateStarPointsMesh( _pointMesh, game.GetBoard() );
+
+    {
+        const float w = game.GetBoard().GetWidth() / 2;
+        const float h = game.GetBoard().GetHeight() / 2;
+        const float z = 4.0f;//game.GetBoard().GetThickness() + 0.01f;
+        GenerateQuadMesh( _boardQuadShadowMesh,
+                          vec3f( -w, h, z ),
+                          vec3f( +w, h, z ),
+                          vec3f( +w, -h, z ),
+                          vec3f( -w, -h, z ),
+                          vec3f( 0, 0, 1 ) );
+    }
 
     UIAccelerometer * uiAccelerometer = [UIAccelerometer sharedAccelerometer];
     uiAccelerometer.updateInterval = 1 / AccelerometerFrequency;
@@ -202,16 +220,34 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         _boardUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _boardProgram, "lightPosition" );
     }
 
-    // shadow shader, uniforms etc.
+    // shadow shader, uniforms, render to texture framebuffer etc.
     {
         _shadowProgram = [opengl loadShader:@"ShadowShader"];
 
         [opengl generateVBAndIBFromMesh:_stoneShadowMesh vertexBuffer:_stoneShadowVertexBuffer indexBuffer:_stoneShadowIndexBuffer vertexArrayObject:_stoneShadowVAO];
 
+        [opengl generateVBAndIBFromTexturedMesh:_boardQuadShadowMesh vertexBuffer:_boardQuadShadowVertexBuffer indexBuffer:_boardQuadShadowIndexBuffer vertexArrayObject:_boardQuadShadowVAO];
+
         _shadowUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _shadowProgram, "normalMatrix" );
         _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _shadowProgram, "modelViewProjectionMatrix" );
         _shadowUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _shadowProgram, "lightPosition" );
         _shadowUniforms[UNIFORM_ALPHA] = glGetUniformLocation( _shadowProgram, "alpha" );
+
+        glGenFramebuffers( 1, &_shadowBoardFramebuffer );
+        glGenTextures( 1, &_shadowBoardTexture );
+
+        glBindTexture( GL_TEXTURE_2D, _shadowBoardTexture );
+
+        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB,
+                      RenderToTextureSize, RenderToTextureSize,
+                      0, GL_RGB, GL_UNSIGNED_BYTE, NULL );
+
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+
+        glBindTexture( GL_TEXTURE_2D, 0 );
     }
   
     // grid shader, textures, VBs/IBs etc.
@@ -274,6 +310,11 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     [opengl destroyBuffer:_stoneShadowIndexBuffer];
     [opengl destroyBuffer:_stoneShadowVertexBuffer];
     [opengl destroyBuffer:_stoneShadowVAO];
+    [opengl destroyBuffer:_boardQuadShadowVertexBuffer];
+    [opengl destroyBuffer:_boardQuadShadowIndexBuffer];
+    [opengl destroyBuffer:_boardQuadShadowVAO];
+    [opengl destroyTexture:_shadowBoardTexture];
+    [opengl destroyFramebuffer:_shadowBoardFramebuffer];
     
     [opengl destroyProgram:_gridProgram];
     [opengl destroyBuffer:_gridIndexBuffer];
@@ -559,6 +600,86 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
 #if SHADOWS
 
+    // render to texture for shadows on board
+
+    glBindFramebuffer( GL_FRAMEBUFFER, _shadowBoardFramebuffer );
+
+    glFramebufferTexture2D( GL_FRAMEBUFFER, 
+                            GL_COLOR_ATTACHMENT0,
+                            GL_TEXTURE_2D, 
+                            _shadowBoardTexture, 
+                            0 );
+
+    if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE )
+    {
+        glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+        
+        glClear( GL_COLOR_BUFFER_BIT );
+
+        glUseProgram( _shadowProgram );
+        
+        glBindVertexArrayOES( _stoneShadowVAO );
+        
+        glEnable( GL_BLEND );
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+        
+        const std::vector<StoneInstance> & stones = game.GetStones();
+
+        const float w = game.GetBoard().GetWidth() / 2;
+        const float h = game.GetBoard().GetHeight() / 2;
+
+        mat4f orthoProjection = mat4f::ortho( -w, w, -h, +h, -1, +1 );
+
+        for ( int i = 0; i < stones.size(); ++i )
+        {
+            const StoneInstance & stone = stones[i];
+            
+            if ( stone.rigidBody.position.z() < game.GetBoard().GetThickness() )
+                continue;
+
+            mat4f shadowMatrix;
+            MakeShadowMatrix( vec4f(0,0,1,-game.GetBoard().GetThickness()+0.1f), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
+            
+            mat4f modelView = game.GetCameraMatrix() * shadowMatrix * stone.visualTransform;
+            mat4f modelViewProjectionMatrix = orthoProjection * modelView;
+            
+            glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
+            
+            float shadowAlpha = GetShadowAlpha( stone.rigidBody.position );
+            
+            if ( shadowAlpha == 0.0f )
+                continue;
+            
+            glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&shadowAlpha );
+            
+            glDrawElements( GL_TRIANGLES, _stoneShadowMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+        }
+
+        glDisable( GL_BLEND );
+    }
+
+    glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
+    // now render the shadow quad on the board
+
+    {
+        glUseProgram( _stoneProgramBlack );
+          
+        glBindTexture( GL_TEXTURE_2D, 0 );
+        //glBindTexture( GL_TEXTURE_2D, _shadowBoardTexture );
+
+        glBindVertexArrayOES( _boardQuadShadowVAO );
+
+        glUniformMatrix4fv( _stoneUniformsBlack[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
+        glUniformMatrix3fv( _stoneUniformsBlack[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
+        glUniform3fv( _stoneUniformsBlack[UNIFORM_LIGHT_POSITION], 1, (float*)&game.GetLightPosition() );
+
+        glDrawElements( GL_TRIANGLES, _boardQuadShadowMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+    }
+
+// old shadow
+
+/*
     // render board shadow on ground
         
     {
@@ -629,50 +750,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         glDisable( GL_BLEND );
     }
 
-    // render stone shadow on board
-    
-    {
-        glUseProgram( _shadowProgram );
-        
-        glBindVertexArrayOES( _stoneShadowVAO );
-        
-        glEnable( GL_BLEND );
-        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
-        glEnable( GL_DEPTH_TEST );
-        glDepthFunc( GL_GREATER );
-
-        const std::vector<StoneInstance> & stones = game.GetStones();
-
-        for ( int i = 0; i < stones.size(); ++i )
-        {
-            const StoneInstance & stone = stones[i];
-
-            if ( stone.rigidBody.position.z() < game.GetBoard().GetThickness() )
-                continue;
-
-            mat4f shadowMatrix;
-            MakeShadowMatrix( vec4f(0,0,1,-game.GetBoard().GetThickness()+0.1f), vec4f( lightPosition.x(), lightPosition.y(), lightPosition.z(), 1 ), shadowMatrix );
-            
-            mat4f modelView = game.GetCameraMatrix() * shadowMatrix * stone.visualTransform;
-            mat4f modelViewProjectionMatrix = game.GetProjectionMatrix() * modelView;
-            
-            glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
-            
-            float shadowAlpha = GetShadowAlpha( stone.rigidBody.position );
-            
-            if ( shadowAlpha == 0.0f )
-                continue;
-            
-            glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&shadowAlpha );
-
-            glDrawElements( GL_TRIANGLES, _stoneShadowMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
-        }
-
-        glDepthFunc( GL_LESS );
-
-        glDisable( GL_BLEND );
-    }
+*/
 
 #endif
 

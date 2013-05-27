@@ -254,6 +254,15 @@
     }
 }
 
+- (void)destroyFramebuffer:(GLuint&)framebuffer
+{
+    if ( framebuffer )
+    {
+        glDeleteFramebuffers( 1, &framebuffer );
+        framebuffer = 0;
+    }
+}
+
 - (void) generateVBAndIBFromMesh:(Mesh<Vertex>&) mesh
                     vertexBuffer:(GLuint&) vb
                      indexBuffer:(GLuint&) ib

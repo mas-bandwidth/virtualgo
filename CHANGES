@@ -1,4 +1,21 @@
 
+Retuned for 9x9 (27/5/2013):
+----------------------------
+
+    The truth is that combined with the small screen size, and being
+    almost completely GPU bound with ugly low-tessellated stones at
+    19x19, it seems that on iPad 4 we will not be able to have a 
+    good quality go board rendered at 60fps.
+
+    Giving up on 19x19 board for now.
+
+    Returning to 9x9 board.
+
+    The goal is now to make this board look AMAZINGLY GOOD.
+
+    eg. soft shadows, really good shaders, textures, great lighting etc.
+
+
 Work in progress optimizing shadows (26/5/2013):
 ------------------------------------------------
 
