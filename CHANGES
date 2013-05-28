@@ -1,4 +1,109 @@
 
+Fast render to texture shadows (27/5/2013):
+-------------------------------------------
+
+    OK so it's really slow. Fuck. What exactly can I do?
+
+    It appears to be fillrate bound.
+
+    How do I know this? Well, reducing tessellation levels
+    for the go stones has absolutely zero effect on the fps.
+
+    This is a pretty poor situation. 
+
+    I'm not sure if there is anything that can be done.
+
+    Some documents suggest that switching framebuffer
+    is extremely expensive.
+
+    I've switched my code to render to texture at the beginning
+    of the frame.
+
+    This seems to have fixed it! It's now running at 60fps again!
+
+    Shadows seem to be in the wrong direction relative to lighting =p
+
+
+Working render to texture shadows (27/5/2013):
+----------------------------------------------
+
+    Now the texture renders as black, no matter what I do.
+
+    Even if I clear that texture to red and don't do
+    any rendering operations to the texture.
+
+    What is going on?!
+
+    Filtering modes on the texture were at fault.
+
+    Now that this is fixed, the clear color comes though
+    but no rendered stone shadows. 
+
+    What is wrong?
+
+    The z near/far were incorrect, causing the stones
+    to be fully clipped before any triangles were
+    rendered to the texture.
+
+    I'm seeing the go stone shadows now, but they
+    are distorted and appear to be rendered at twice
+    the scale I expect.
+
+    After adjusting viewport and such, the render to texture
+    shadows are working, but they are very slow :(
+
+    I am concerned this project simply may not work at all
+    on anything except an iPad 5 =p
+
+
+Render to texture WIP (27/5/2013):
+----------------------------------
+
+    Work on render to texture. 
+
+    Render stone stones to 2048x2048 texture
+
+    So far I have chosen "LUMINANCE" 16 bit format.
+
+    I'm not sure if this will cause problems or not.
+
+    Yes, these formats are not renderable =p
+
+    Apparently there is an extension here:
+
+    http://stackoverflow.com/questions/6076255/ios-how-to-render-to-1-channel-texture-in-gles2
+
+    But this only allows rendering to R channel textures if you have iPhone 5...
+
+    Earlier hardware does not support this extension.
+
+    For now the safest option is to start with basic RGB888 texture.
+
+    Single format textures must be viewed as on optimization for
+    more recent hardware only.
+
+    Setup ortho projection matrix for stone shadows render to texture.
+
+    I believe the render to texture is now working, based on the fact
+    that it accidentally caused glBlend to get stuck on at the end of
+    the frame.
+
+    Now I just need a vertex buffer for a quad.
+
+    Done.
+
+    First render the quad buffer and verify it shows up.
+
+    No it doesn't show up at all, if rendered after the render to texture.
+
+    Why is this? Am i setting up the render to texture incorrectly?
+
+    Theory: Maybe the default framebuffer isn't 0? This would
+    explain why rendering is not occuring post-framebuffer switch.
+
+    Yes this was it!
+
+    
 Retuned for 9x9 (27/5/2013):
 ----------------------------
 

@@ -1,45 +1,21 @@
 DONE:
 
-    Work on render to texture. 
-
-    Render stone stones to 2048x2048 texture
-
-    So far I have chosen "LUMINANCE" 16 bit format.
-
-    I'm not sure if this will cause problems or not.
-
-    Yes, these formats are not renderable =p
-
-    Apparently there is an extension here:
-
-    http://stackoverflow.com/questions/6076255/ios-how-to-render-to-1-channel-texture-in-gles2
-
-    But this only allows rendering to R channel textures if you have iPhone 5...
-
-    Earlier hardware does not support this extension.
-
-    For now the safest option is to start with basic RGB888 texture.
-
-    Single format textures must be viewed as on optimization for
-    more recent hardware only.
-
-    Setup ortho projection matrix for stone shadows render to texture.
-
-    I believe the render to texture is now working, based on the fact
-    that it accidentally caused glBlend to get stuck on at the end of
-    the frame.
-
-    Now I just need a vertex buffer for a quad.
-
-    Done.
-
-    First render the quad buffer and verify it shows up.
-
 TODO:
 
-    No it doesn't show up at all, if rendered after the render to texture.
+    I need to find a way to make the shadows blur back 
+    in with some brightness adjustment.
 
-    Why is this? Am i setting up the render to texture incorrectly?
+    This can be done by creating a new pixel shader
+    to use for the shadow compositing.
+
+    I'll call this shader "ShadowCompositing"
+
+    I should also create a new shader shortly
+    for the gaussing blur called "ShadowBlur"
+
+
+
+
 
     -----------------------------------------
 

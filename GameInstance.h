@@ -61,7 +61,7 @@ public:
 		
         aspectRatio = 1.0f;
 
-        lightPosition = vec3f( 10, 10, 100 );
+        lightPosition = vec3f( 10*1000, 10*1000, 100*1000 );
 
         zoomPoint = vec3f(0,0,0);
 
