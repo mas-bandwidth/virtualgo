@@ -59,6 +59,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLint _boardUniforms[NUM_UNIFORMS];
 
     GLuint _shadowProgram;
+    GLuint _shadowCompositingProgram;
+    GLint _shadowUniforms[NUM_UNIFORMS];
+    GLint _shadowCompositingUniforms[NUM_UNIFORMS];
     Mesh<Vertex> _stoneShadowMesh;
     Mesh<TexturedVertex> _boardQuadShadowMesh;
     GLuint _stoneShadowVertexBuffer;
@@ -67,7 +70,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLuint _boardQuadShadowVertexBuffer;
     GLuint _boardQuadShadowIndexBuffer;
     GLuint _boardQuadShadowVAO;
-    GLint _shadowUniforms[NUM_UNIFORMS];
     GLuint _shadowBoardFramebuffer;
     GLuint _shadowBoardTexture;
 
@@ -223,6 +225,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     // shadow shader, uniforms, render to texture framebuffer etc.
     {
         _shadowProgram = [opengl loadShader:@"ShadowShader"];
+        _shadowCompositingProgram = [opengl loadShader:@"ShadowCompositingShader"];
 
         [opengl generateVBAndIBFromMesh:_stoneShadowMesh vertexBuffer:_stoneShadowVertexBuffer indexBuffer:_stoneShadowIndexBuffer vertexArrayObject:_stoneShadowVAO];
 
@@ -232,6 +235,11 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _shadowProgram, "modelViewProjectionMatrix" );
         _shadowUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _shadowProgram, "lightPosition" );
         _shadowUniforms[UNIFORM_ALPHA] = glGetUniformLocation( _shadowProgram, "alpha" );
+
+        _shadowCompositingUniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _shadowCompositingProgram, "normalMatrix" );
+        _shadowCompositingUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _shadowCompositingProgram, "modelViewProjectionMatrix" );
+        _shadowCompositingUniforms[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _shadowCompositingProgram, "lightPosition" );
+        _shadowCompositingUniforms[UNIFORM_ALPHA] = glGetUniformLocation( _shadowCompositingProgram, "alpha" );
 
         glGenFramebuffers( 1, &_shadowBoardFramebuffer );
 
@@ -316,6 +324,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     [opengl destroyTexture:_boardTexture];
 
     [opengl destroyProgram:_shadowProgram];
+    [opengl destroyProgram:_shadowCompositingProgram];
     [opengl destroyBuffer:_stoneShadowIndexBuffer];
     [opengl destroyBuffer:_stoneShadowVertexBuffer];
     [opengl destroyBuffer:_stoneShadowVAO];
@@ -689,15 +698,15 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     // now render the shadow quad on the board
     
     {
-        glUseProgram( _boardProgram );
+        glUseProgram( _shadowCompositingProgram );
         
         glBindTexture( GL_TEXTURE_2D, _shadowBoardTexture );
         
         glBindVertexArrayOES( _boardQuadShadowVAO );
         
-        glUniformMatrix4fv( _boardUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
-        glUniformMatrix3fv( _boardUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
-        glUniform3fv( _boardUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.GetLightPosition() );
+        glUniformMatrix4fv( _shadowCompositingUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&game.GetClipMatrix() );
+        glUniformMatrix3fv( _shadowCompositingUniforms[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&game.GetNormalMatrix() );
+        glUniform3fv( _shadowCompositingUniforms[UNIFORM_LIGHT_POSITION], 1, (float*)&game.GetLightPosition() );
         
         glEnable( GL_BLEND );
         glBlendFunc( GL_ZERO, GL_ONE_MINUS_SRC_COLOR );

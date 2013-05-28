@@ -1,4 +1,16 @@
 
+Shadows now have proper color (27/5/2013):
+------------------------------------------
+
+    I need to find a way to make the shadows blur back 
+    in with some brightness adjustment.
+
+    This can be done by creating a new pixel shader
+    to use for the shadow compositing.
+
+    I'll call this shader "ShadowCompositing"
+
+
 Fast render to texture shadows (27/5/2013):
 -------------------------------------------
 

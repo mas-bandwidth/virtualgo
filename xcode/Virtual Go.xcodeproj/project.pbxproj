@@ -33,6 +33,8 @@
 		F266540C171A205500CFB131 /* MainStoryboard_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F266540A171A205500CFB131 /* MainStoryboard_iPhone.storyboard */; };
 		F266540F171A205500CFB131 /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F266540D171A205500CFB131 /* MainStoryboard_iPad.storyboard */; };
 		F2665416171A205500CFB131 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2665415171A205500CFB131 /* ViewController.m */; };
+		F27C93C117545285000684B8 /* ShadowCompositingShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F27C93BF17545285000684B8 /* ShadowCompositingShader.fragment */; };
+		F27C93C217545285000684B8 /* ShadowCompositingShader.vertex in Resources */ = {isa = PBXBuildFile; fileRef = F27C93C017545285000684B8 /* ShadowCompositingShader.vertex */; };
 		F2A01A2417530271007F9DC0 /* NvTriStrip in Resources */ = {isa = PBXBuildFile; fileRef = F2A01A2317530271007F9DC0 /* NvTriStrip */; };
 		F2A3914E172CFACC00A6A74D /* BoardShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F2A39145172CFA7D00A6A74D /* BoardShader.fragment */; };
 		F2A39150172CFACC00A6A74D /* BoardShader.vertex in Resources */ = {isa = PBXBuildFile; fileRef = F2A39147172CFA7D00A6A74D /* BoardShader.vertex */; };
@@ -100,6 +102,8 @@
 		F2776EB4171B834800E73C61 /* Mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Mesh.h; path = ../../Mesh.h; sourceTree = "<group>"; };
 		F2776EB5171B834800E73C61 /* Render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Render.h; path = ../../Render.h; sourceTree = "<group>"; };
 		F2776EB6171B834800E73C61 /* RigidBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RigidBody.h; path = ../../RigidBody.h; sourceTree = "<group>"; };
+		F27C93BF17545285000684B8 /* ShadowCompositingShader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = ShadowCompositingShader.fragment; path = "Virtual Go/shaders/ShadowCompositingShader.fragment"; sourceTree = "<group>"; };
+		F27C93C017545285000684B8 /* ShadowCompositingShader.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = ShadowCompositingShader.vertex; path = "Virtual Go/shaders/ShadowCompositingShader.vertex"; sourceTree = "<group>"; };
 		F2A01A2317530271007F9DC0 /* NvTriStrip */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NvTriStrip; path = ../../NvTriStrip; sourceTree = "<group>"; };
 		F2A39145172CFA7D00A6A74D /* BoardShader.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = BoardShader.fragment; path = "Virtual Go/shaders/BoardShader.fragment"; sourceTree = "<group>"; };
 		F2A39147172CFA7D00A6A74D /* BoardShader.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = BoardShader.vertex; path = "Virtual Go/shaders/BoardShader.vertex"; sourceTree = "<group>"; };
@@ -241,6 +245,8 @@
 		F2A3914D172CFA8F00A6A74D /* shaders */ = {
 			isa = PBXGroup;
 			children = (
+				F27C93BF17545285000684B8 /* ShadowCompositingShader.fragment */,
+				F27C93C017545285000684B8 /* ShadowCompositingShader.vertex */,
 				F2F71D001731D1A10051C50F /* PointShader.fragment */,
 				F2F71D011731D1A10051C50F /* PointShader.vertex */,
 				F22E4844172E247800907BCD /* GridShader.fragment */,
@@ -367,6 +373,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F27C93C117545285000684B8 /* ShadowCompositingShader.fragment in Resources */,
+				F27C93C217545285000684B8 /* ShadowCompositingShader.vertex in Resources */,
 				F2E20293173C9EA400FC056D /* BlackStoneShader.fragment in Resources */,
 				F2E20294173C9EA400FC056D /* WhiteStoneShader.fragment in Resources */,
 				F2E20295173C9EA400FC056D /* BlackStoneShader.vertex in Resources */,

@@ -2,14 +2,6 @@ DONE:
 
 TODO:
 
-    I need to find a way to make the shadows blur back 
-    in with some brightness adjustment.
-
-    This can be done by creating a new pixel shader
-    to use for the shadow compositing.
-
-    I'll call this shader "ShadowCompositing"
-
     I should also create a new shader shortly
     for the gaussing blur called "ShadowBlur"
 
