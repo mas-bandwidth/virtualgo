@@ -4,6 +4,26 @@
 		"selected_items":
 		[
 			[
+				"App",
+				"ApplyImpulseAtWorldPoint"
+			],
+			[
+				"Find",
+				"FindObjectsInRadius"
+			],
+			[
+				"generateVBandIB",
+				"generateVBAndIBFromTexturedMesh"
+			],
+			[
+				"inc",
+				"incrementCounter"
+			],
+			[
+				"is",
+				"isPointOnBoard"
+			],
+			[
 				"cont",
 				"contentScaleFactor"
 			],
@@ -75,6 +95,62 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "xcode/Virtual Go/ViewController.m",
+			"settings":
+			{
+				"buffer_size": 26079,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "TODO",
+			"settings":
+			{
+				"buffer_size": 9813,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "MeshGenerators.h",
+			"settings":
+			{
+				"buffer_size": 15863,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "xcode/Virtual Go/OpenGL.m",
+			"settings":
+			{
+				"buffer_size": 9486,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Config.h",
+			"settings":
+			{
+				"buffer_size": 1425,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "CHANGES",
+			"settings":
+			{
+				"buffer_size": 91093,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "GameInstance.h",
+			"settings":
+			{
+				"buffer_size": 36808,
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "Packages/Makefile/Make.sublime-build",
 	"command_palette":
@@ -135,42 +211,72 @@
 	},
 	"file_history":
 	[
+		"/Users/gaffer/virtualgo/Config.h",
+		"/Users/gaffer/virtualgo/vectorial/mat4f.h",
+		"/Users/gaffer/virtualgo/render to texture.txt",
+		"/Users/gaffer/virtualgo/MeshGenerators.h",
+		"/Users/gaffer/virtualgo/GameInstance.h",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/ViewController.h",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/ViewController.m",
 		"/Users/gaffer/virtualgo/TODO",
 		"/Users/gaffer/virtualgo/CHANGES",
-		"/Users/gaffer/virtualgo/xcode/Virtual Go.xcodeproj/project.pbxproj",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/OpenGL.h",
+		"/Users/gaffer/virtualgo/Board.h",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/OpenGL.m",
+		"/Users/gaffer/virtualgo/Mesh.h",
+		"/Users/gaffer/virtualgo/StoneData.h",
+		"/Users/gaffer/virtualgo/StoneInstance.h",
+		"/Users/gaffer/virtualgo/SceneGrid.h",
+		"/Users/gaffer/virtualgo/Physics.h",
+		"/Users/gaffer/virtualgo/Common.h",
+		"/Users/gaffer/virtualgo/RigidBody.h",
+		"/Users/gaffer/virtualgo/Touch.h",
+		"/Users/gaffer/virtualgo/Render.h",
+		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
+		"/Users/gaffer/virtualgo/vectorial/mat3f.h",
+		"/Users/gaffer/virtualgo/vectorial/simd4x4f.h",
+		"/Users/gaffer/virtualgo/LogicalBoard.h",
+		"/Users/gaffer/virtualgo/CollisionDetection.h",
+		"/Users/gaffer/virtualgo/CollisionResponse.h",
+		"/Users/gaffer/virtualgo/UnitTest.cpp",
+		"/Users/gaffer/Documents/moneys.txt",
+		"/Users/gaffer/Desktop/virtual go quotes.txt",
+		"/Users/gaffer/virtualgo/Biconvex.h",
 		"/Users/gaffer/virtualgo/Intersection.h",
-		"/Users/gaffer/virtualgo/xcode/Virtual Go/ViewController.m",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/OldViewController.m",
+		"/Users/gaffer/virtualgo/Telemetry.h",
+		"/Users/gaffer/virtualgo/Touch.m",
+		"/Users/gaffer/virtualgo/Support.cpp",
+		"/Users/gaffer/virtualgo/Dynamics.cpp",
+		"/Users/gaffer/virtualgo/Collision.cpp",
+		"/Users/gaffer/virtualgo/Tessellation.cpp",
+		"/Users/gaffer/Desktop/phoenix guild.txt",
+		"/Users/gaffer/virtualgo/Stone.h",
+		"/Users/gaffer/virtualgo/Accelerometer.h",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/Config.h",
+		"/Users/gaffer/virtualgo/vectorial/config.h",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/en.lproj/MainStoryboard_iPhone.storyboard",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/Game.h",
+		"/Users/gaffer/virtualgo/vectorial/vec4f.h",
+		"/Users/gaffer/Downloads/testflight_contacts.csv",
+		"/Users/gaffer/Documents/unurban.txt",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/Shaders/Shader.vsh",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/Shaders/Shader.fsh",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go.xcodeproj/project.pbxproj",
+		"/Users/gaffer/virtualgo/VirtualGo.cpp",
 		"/Users/gaffer/Desktop/tolga.txt",
 		"/Users/gaffer/Desktop/blair.txt",
-		"/Users/gaffer/virtualgo/Stone.h",
-		"/Users/gaffer/virtualgo/Collision.cpp",
-		"/Users/gaffer/virtualgo/Render.h",
-		"/Users/gaffer/virtualgo/Common.h",
-		"/Users/gaffer/virtualgo/xcode/Virtual Go/ViewController.h",
-		"/Users/gaffer/virtualgo/CollisionDetection.h",
-		"/Users/gaffer/virtualgo/RigidBody.h",
-		"/Users/gaffer/virtualgo/Mesh.h",
 		"/Users/gaffer/Downloads/TestFlightSDK1.2.4/README.md",
-		"/Users/gaffer/virtualgo/vectorial/mat4f.h",
 		"/Users/gaffer/virtualgo/Picking.cpp",
 		"/Users/gaffer/virtualgo/Platform.h",
-		"/Users/gaffer/virtualgo/CollisionResponse.h",
-		"/Users/gaffer/virtualgo/vectorial/simd4x4f.h",
 		"/Users/gaffer/Dropbox/talks/gdc2009/sandbox/source/Render.h",
 		"/Users/gaffer/Dropbox/talks/gdc2009/sandbox/source/Mathematics.h",
-		"/Users/gaffer/virtualgo/vectorial/vec4f.h",
-		"/Users/gaffer/virtualgo/Biconvex.h",
 		"/Users/gaffer/Dropbox/gdc/2009/sandbox/source/Render.h",
 		"/Users/gaffer/Dropbox/gdc/2009/sandbox/source/Common.h",
 		"/Users/gaffer/Dropbox/gdc/2009/sandbox/source/Mathematics.h",
-		"/Users/gaffer/virtualgo/VirtualGo.cpp",
 		"/Users/gaffer/virtualgo/InertiaTensor.h",
 		"/Users/gaffer/virtualgo/premake4.lua",
-		"/Users/gaffer/virtualgo/Tessellation.cpp",
-		"/Users/gaffer/virtualgo/Support.cpp",
 		"/Users/gaffer/virtualgo/VirtualGo.sublime-project",
-		"/Users/gaffer/virtualgo/Board.h",
-		"/Users/gaffer/virtualgo/Dynamics.cpp",
 		"/Users/gaffer/Desktop/RollingFriction.c",
 		"/Users/gaffer/Desktop/CoulombFriction.c",
 		"/Users/gaffer/Desktop/gdc/CalculateBiconvex.c",
@@ -179,9 +285,7 @@
 		"/Users/gaffer/Desktop/InertiaTensor.c",
 		"/Users/gaffer/virtualgo/stb_image.c",
 		"/Users/gaffer/virtualgo/stb_image.h",
-		"/Users/gaffer/virtualgo/Config.h",
 		"/Users/gaffer/virtualgo/Platform.cpp",
-		"/Users/gaffer/virtualgo/UnitTest.cpp",
 		"/Users/gaffer/virtualgo/TALK",
 		"/Users/gaffer/virtualgo/obj/Debug/Collision/Platform.d",
 		"/Users/gaffer/virtualgo/Collision.h",
@@ -194,7 +298,6 @@
 		"/Users/gaffer/virtualgo/Tesselation",
 		"/Users/gaffer/virtualgo/Tesselation.cpp",
 		"/Users/gaffer/virtualgo/vectorial/simd4f_common.h",
-		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
 		"/Users/gaffer/virtualgo/vectorial/simd4f_sse.h",
 		"/Users/gaffer/virtualgo/UnitTest++/CurrentTest.cpp",
 		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Core/MeshFactory.h",
@@ -224,7 +327,6 @@
 		"/Users/gaffer/git/network/premake4.lua",
 		"/Users/gaffer/Desktop/Intersection of Ellipsoids.pdf",
 		"/Users/gaffer/git/cubes/PreCompiled.h",
-		"/Users/gaffer/virtualgo/vectorial/config.h",
 		"/Users/gaffer/git/cubes/shared/Engine.cpp",
 		"/Users/gaffer/Downloads/scoopr-vectorial-85caa38/README",
 		"/Users/gaffer/Dropbox/perforce-2006/Projects/Virtual Go/Source/Engine/Core/Stone.h",
@@ -236,37 +338,11 @@
 		"/Users/gaffer/git/network/ruby/gameModes.rb",
 		"/Users/gaffer/git/network/TODO",
 		"/Users/gaffer/git/network/CHANGES",
-		"/Users/gaffer/git/network/data/wads/network/GameModes.json",
-		"/Users/gaffer/git/network/shadow/netMake.txt",
-		"/Users/gaffer/git/network/shadow/m4/GameModes.net.29486",
-		"/Users/gaffer/git/network/include/netShortcutData.h",
-		"/Users/gaffer/git/network/test/TestShortcutData.cpp",
-		"/Users/gaffer/git/network/ruby/ndl/Events.net",
-		"/Users/gaffer/git/network/data/GameModes.net",
-		"/Users/gaffer/git/network/data/Shortcuts.net",
-		"/Users/gaffer/git/network/ALPHA",
-		"/Users/gaffer/git/network/data/wads/network/Shortcuts.json",
-		"/Users/gaffer/git/network/build/Generated.make",
-		"/Users/gaffer/git/network/ruby/subWads.rb",
-		"/Users/gaffer/git/network/include/netSubWadData.h",
-		"/Users/gaffer/git/network/src/netSubWadData.cpp",
-		"/Users/gaffer/git/network/test/TestSubWadData.h",
-		"/Users/gaffer/git/network/test/TestSubWadData.cpp",
-		"/Users/gaffer/git/network/ruby/ndl/Header.net",
-		"/Users/gaffer/git/network/data/SubWads.net",
-		"/Users/gaffer/git/network/data/wads/network/SubWads.json",
-		"/Users/gaffer/git/network/ruby/netQuery.rb",
-		"/Users/gaffer/git/network/TASKS",
-		"/Users/gaffer/git/network/src/netTransportLAN.cpp",
-		"/Users/gaffer/Desktop/community plan: game to web",
-		"/Users/gaffer/git/network/shadow/Shortcuts.txt",
-		"/Users/gaffer/git/network/ruby/common.rb",
-		"/Users/gaffer/git/network/ruby/levels.rb",
-		"/Users/gaffer/git/network/incoming/mpScriptingManager.cpp"
+		"/Users/gaffer/git/network/data/wads/network/GameModes.json"
 	],
 	"find":
 	{
-		"height": 38.0
+		"height": 37.0
 	},
 	"find_in_files":
 	{
@@ -300,134 +376,134 @@
 		"case_sensitive": true,
 		"find_history":
 		[
-			"PROVISION",
-			"PROVISIONING",
-			"_selectOffset",
-			"_selectDepth",
-			"select",
-			"_selectIntersectionPoint",
-			"_selectIntersection",
-			"selectDepth",
-			"timetamp",
-			"_selected",
-			"_select",
-			"Mesh",
-			"holdStarted",
-			"LaunchMomentum",
-			"HoldThreshold",
-			"updateTouch",
-			"handleSwipe",
-			"swipeStart",
-			"handleSwipe",
-			"_inverse",
-			"_clipMatrix",
-			"GetPickRay",
-			"PickRay",
-			"GetMousePickRay",
-			"GetMousePickRay\nGetMousePickRay",
-			"GetMousePickRay",
-			"GetMousePickRay\nGetMousePickRay",
-			"GetMousePickRay",
-			"updatePhysics",
-			"u = ",
-			"updateTouch",
-			"updatePhysics",
-			"updatePhyscis",
-			"updatePhysics",
-			"updateTouch",
+			"shadowCompositing",
+			"lightPosition",
 			"touchesBegan",
-			"dropStone",
-			"frustum",
-			"iteratively",
-			"_clipMatrix",
-			"Plane",
-			"dropStone",
-			"_stone",
-			"Frustum",
-			"0.5",
-			"drop",
-			"Jerk",
-			"gravity",
-			"LookAt",
-			"_rotation",
-			"inertiaTensor",
-			"InertiaTensor",
-			"CollisionResponse",
-			"Go",
-			"cross",
-			"lights",
-			"_CW",
-			"CCW",
-			".up",
-			"camera",
-			"axis",
-			"stoneSizes",
-			"stone",
-			"DetermineStoneBoardRegion",
-			"ClosestFeaturePrimarySurface",
-			"cross",
-			"Primary",
-			"0,1,0",
-			"left",
-			"0,1,0",
-			"Support",
-			"scrollY",
-			"scrollX",
-			"deltaAngle",
-			"scrollX",
-			"deltaAngle",
-			"IntersectStoneBoard",
-			"\n\nIntersectStoneBoard",
-			"\nIntersectStoneBoard",
-			"IntersectStoneBoard",
-			"ClosestFeaturesStoneBoard",
-			"ASSERTasse",
-			"rigidBody.",
-			"todo",
-			"glColor",
-			"Ambient",
-			"rotation",
-			"LIGHT",
-			"RenderStone",
-			"rotation",
-			"setup light",
-			"LIGHT",
-			"world velocity",
-			"inverseInertiaTensor",
-			"inertiaTensor",
-			"max",
-			"AngularCollision",
-			"frame",
-			"PBO",
-			"num",
-			"%",
-			"RandomNoSpin",
-			"printf",
-			"PointInside",
-			"doublefloat",
-			"CalculateBiconvexInertiaTensor",
-			"Inertia",
-			"angularMomentum += ",
-			"axisRotation",
-			"boardContact",
-			"collided",
-			"StoneBoardCollision",
-			"prevOne",
-			"RandomStone",
-			"RestoreDefaults",
-			"RandomStone",
-			"LinearCollisionResponse",
-			"RandomStone",
-			"int main",
-			"TEXTURE",
-			"RollingFriction",
-			"Textured",
+			"scaleFactor",
+			"setupGL",
+			"glViewport",
+			"QuadShadow",
+			"render",
+			"Framebuffer",
+			"Frame",
+			"QuadShadow",
+			"shadow",
 			"Texture",
-			"scrollX",
-			"LIGHT4",
-			"Support",
-			"frame ",
-			"snapshotAccum"
+			"setupGL",
+			"_36",
+			"stoneData",
+			"deleteTimer",
+			"cameraMode = ",
+			"lightPosition",
+			"BoardShadow",
+			"Biconvex",
+			"_gridVAO",
+			"generate",
+			"destroyBuffer",
+			"UpdateTransform",
+			"MaxStones",
+			"assert",
+			"stoneMap.",
+			"stoneMap",
+			".erase",
+			"stones.erase",
+			"erase",
+			"remove",
+			"PlaceStones",
+			"UpdateCamera",
+			"UpdateCameras",
+			"Board",
+			"PlaceStones",
+			"UpdatePhysics",
+			"Physics.h",
+			"Validate",
+			"UpdateCamera",
+			"fov = ",
+			"PlaceStones",
+			"Generate",
+			"stone shadow",
+			"shadow",
+			"PlaceStones",
+			"UpdateTouch",
+			"originalPosition",
+			"UpdateTouch",
+			"Find",
+			"UpdateTouche",
+			"Render",
+			"UpdatePhysics",
+			"UpdateTouch",
+			"ValidateSceneGrid",
+			"UpdateTouch",
+			"sceneGrid.",
+			"ValidateSceneGrid",
+			".position",
+			"Validate",
+			"SetPointStoneId",
+			"GetPointState",
+			"SetPointState",
+			"Empty",
+			"Validate",
+			"4.0",
+			"Infer",
+			".moved",
+			"Infer",
+			".point",
+			"UpdateTouch",
+			".offset",
+			"offset = ",
+			"select.depth",
+			"UpdateTouch",
+			"UpdateTouche",
+			"UpdateTouch",
+			"InferStoneMomentum",
+			"Empty",
+			".selected",
+			"Empty",
+			"SetPointState",
+			"SetPointStoneId",
+			"Validate",
+			"Infer",
+			"UpdateTouch",
+			"FindNearestEmptyPoint",
+			"board.SetPoint",
+			"UpdateCamera(",
+			"UpdateCamera",
+			"smoothZoom",
+			"UpdateCamera",
+			"JerkAcceleration",
+			"cameraMode",
+			"UpdateCamera",
+			"hack for",
+			"RadiusSquared",
+			"FindOverlappingObjects",
+			"FindOverlapping",
+			".active",
+			"constraint",
+			"UpdateCamera",
+			"cameraMode",
+			"Infer",
+			"InferStoneMomentum",
+			"UpdateGame",
+			"tilt",
+			"selected",
+			"PlaceStones",
+			"zoomPoint",
+			"UpdateCamera",
+			"accelMatrix",
+			"normalMatrix4",
+			"normalMatrix",
+			"Subdivide",
+			"UpdateCamera",
+			"lightPosition",
+			"OrientationDid",
+			"viewOrientationDidChange",
+			"OrientationDid",
+			"UpdateCamera",
+			"GetStoneHeight",
+			"JerkAccel",
+			"quat4f",
+			"Touch",
+			"FlickSpeedThreshold"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -451,14 +527,216 @@
 	"groups":
 	[
 		{
+			"selected": 0,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "xcode/Virtual Go/ViewController.m",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 26079,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								25214,
+								25214
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 14320.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "TODO",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 9813,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								13,
+								13
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "MeshGenerators.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 15863,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								15787,
+								15787
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 10499.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "xcode/Virtual Go/OpenGL.m",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 9486,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2336,
+								2336
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1761.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "Config.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1425,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								286,
+								286
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "CHANGES",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 91093,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								395,
+								395
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "GameInstance.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 36808,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1051,
+								1051
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 879.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
 			]
 		}
 	],
 	"incremental_find":
 	{
-		"height": 30.0
+		"height": 29.0
 	},
 	"input":
 	{
@@ -494,7 +772,7 @@
 	"project": "VirtualGo.sublime-project",
 	"replace":
 	{
-		"height": 56.0
+		"height": 54.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -511,80 +789,212 @@
 				"TODO"
 			],
 			[
-				"intersection.h",
-				"Intersection.h"
-			],
-			[
-				"view",
+				"viewcont",
 				"xcode/Virtual Go/ViewController.m"
 			],
 			[
-				"collision.cpp",
-				"Collision.cpp"
+				"gameinstance.h",
+				"GameInstance.h"
 			],
 			[
-				"collisiondetection.h",
-				"CollisionDetection.h"
-			],
-			[
-				"render.h",
-				"Render.h"
-			],
-			[
-				"rigidbody.h",
-				"RigidBody.h"
-			],
-			[
-				"",
-				"xcode/Virtual Go/ViewController.m"
-			],
-			[
-				"mesh.h",
-				"Mesh.h"
-			],
-			[
-				"stone.h",
-				"Stone.h"
-			],
-			[
-				"mat4f.h",
-				"vectorial/mat4f.h"
-			],
-			[
-				"common.h",
-				"Common.h"
-			],
-			[
-				"platform.h",
-				"Platform.h"
+				"config.h",
+				"Config.h"
 			],
 			[
 				"viewcontroller.m",
 				"xcode/Virtual Go/ViewController.m"
 			],
 			[
+				"opengl.m",
+				"xcode/Virtual Go/OpenGL.m"
+			],
+			[
+				"gen",
+				"MeshGenerators.h"
+			],
+			[
+				"mat4f.h",
+				"vectorial/mat4f.h"
+			],
+			[
+				"mat4f",
+				"vectorial/mat4f.h"
+			],
+			[
 				"viewcontroller.h",
 				"xcode/Virtual Go/ViewController.h"
 			],
 			[
-				"dropstone",
-				"~/Dropbox/talks/gdc2009/sandbox/source/Render.h"
+				"view",
+				"xcode/Virtual Go/ViewController.m"
+			],
+			[
+				"meshgenerators.h",
+				"MeshGenerators.h"
+			],
+			[
+				"opengl.h",
+				"xcode/Virtual Go/OpenGL.h"
+			],
+			[
+				"board.h",
+				"Board.h"
+			],
+			[
+				"stonedata.h",
+				"StoneData.h"
+			],
+			[
+				"",
+				"MeshGenerators.h"
+			],
+			[
+				"mesh.h",
+				"Mesh.h"
+			],
+			[
+				"gener",
+				"MeshGenerators.h"
+			],
+			[
+				"common.h",
+				"Common.h"
+			],
+			[
+				"rigidbody.h",
+				"RigidBody.h"
+			],
+			[
+				"physics.h",
+				"Physics.h"
+			],
+			[
+				"scenegrid.h",
+				"SceneGrid.h"
+			],
+			[
+				"stoneinstance.h",
+				"StoneInstance.h"
+			],
+			[
+				"mesh",
+				"MeshGenerators.h"
+			],
+			[
+				"touch.h",
+				"Touch.h"
+			],
+			[
+				"render.h",
+				"Render.h"
+			],
+			[
+				"vec3f.h",
+				"vectorial/vec3f.h"
+			],
+			[
+				"vew",
+				"xcode/Virtual Go/ViewController.m"
+			],
+			[
+				"generat",
+				"MeshGenerators.h"
+			],
+			[
+				"stone.h",
+				"StoneData.h"
+			],
+			[
+				"mat3f.h",
+				"vectorial/mat3f.h"
+			],
+			[
+				"simd",
+				"vectorial/simd4x4f.h"
+			],
+			[
+				"mat4h",
+				"vectorial/mat4f.h"
+			],
+			[
+				"stone",
+				"StoneData.h"
+			],
+			[
+				"physcis.h",
+				"Physics.h"
+			],
+			[
+				"collisiondetection.h",
+				"CollisionDetection.h"
 			],
 			[
 				"collisionresponse.h",
 				"CollisionResponse.h"
 			],
 			[
-				"vec4f.h",
-				"vectorial/vec4f.h"
+				"unittest.cpp",
+				"UnitTest.cpp"
+			],
+			[
+				"viewcontrol.",
+				"xcode/Virtual Go/ViewController.m"
 			],
 			[
 				"biconvex.h",
 				"Biconvex.h"
 			],
 			[
-				"simd4x4f.h",
+				"simd4",
 				"vectorial/simd4x4f.h"
+			],
+			[
+				"inter",
+				"Intersection.h"
+			],
+			[
+				"oldviewcontroller.m",
+				"xcode/Virtual Go/OldViewController.m"
+			],
+			[
+				"old",
+				"xcode/Virtual Go/OldViewController.m"
+			],
+			[
+				"intersection.h",
+				"Intersection.h"
+			],
+			[
+				"gameinstnce.h",
+				"GameInstance.h"
+			],
+			[
+				"oldview",
+				"xcode/Virtual Go/OldViewController.m"
+			],
+			[
+				"game",
+				"GameInstance.h"
+			],
+			[
+				"viewcontr",
+				"xcode/Virtual Go/ViewController.m"
+			],
+			[
+				"dynamics.cpp",
+				"Dynamics.cpp"
+			],
+			[
+				"inters",
+				"Intersection.h"
+			],
+			[
+				"tessel",
+				"Tessellation.cpp"
+			],
+			[
+				"collision.cpp",
+				"Collision.cpp"
 			],
 			[
 				"support.cpp",
@@ -593,6 +1003,62 @@
 			[
 				"tessellation.cpp",
 				"Tessellation.cpp"
+			],
+			[
+				"game.h",
+				"GameInstance.h"
+			],
+			[
+				"telemetry.h",
+				"Telemetry.h"
+			],
+			[
+				"vec4f.h",
+				"vectorial/vec4f.h"
+			],
+			[
+				"borad.h",
+				"Board.h"
+			],
+			[
+				"collisiondetectioh.",
+				"CollisionDetection.h"
+			],
+			[
+				"collisiondetectio.h",
+				"CollisionDetection.h"
+			],
+			[
+				"vec3",
+				"vectorial/vec3f.h"
+			],
+			[
+				"shader.vsh",
+				"xcode/Virtual Go/Shaders/Shader.vsh"
+			],
+			[
+				"shader.fsh",
+				"xcode/Virtual Go/Shaders/Shader.fsh"
+			],
+			[
+				"virtual",
+				"VirtualGo.cpp"
+			],
+			[
+				"virtualgo.cpp",
+				"xcode/Virtual Go.xcodeproj/project.pbxproj"
+			],
+			[
+				"platform.h",
+				"Platform.h"
+			],
+			[
+				"dropstone",
+				"~/Dropbox/talks/gdc2009/sandbox/source/Render.h"
+			],
+			[
+				"simd4x4f.h",
+				"vectorial/simd4x4f.h"
 			],
 			[
 				"premake4.lua",
@@ -611,40 +1077,20 @@
 				"VirtualGo.cpp"
 			],
 			[
-				"board.h",
-				"Board.h"
-			],
-			[
 				"colliionresponse.h",
 				"CollisionResponse.h"
-			],
-			[
-				"dynamics.cpp",
-				"Dynamics.cpp"
 			],
 			[
 				"rigidbod.h",
 				"RigidBody.h"
 			],
 			[
-				"virtualgo.cpp",
-				"VirtualGo.cpp"
-			],
-			[
 				"premake",
 				"premake4.lua"
 			],
 			[
-				"mat4f",
-				"vectorial/mat4f.h"
-			],
-			[
 				"stb_image.c",
 				"stb_image.c"
-			],
-			[
-				"config.h",
-				"Config.h"
 			],
 			[
 				"platform.cpp",
@@ -663,10 +1109,6 @@
 				"VirtualGo.cpp"
 			],
 			[
-				"unittest.cpp",
-				"UnitTest.cpp"
-			],
-			[
 				"vitualgo.cpp",
 				"VirtualGo.cpp"
 			],
@@ -683,10 +1125,6 @@
 				"Picking.cpp"
 			],
 			[
-				"mesh",
-				"Mesh.h"
-			],
-			[
 				"collisiondet",
 				"CollisionDetection.h"
 			],
@@ -701,10 +1139,6 @@
 			[
 				"simd4f.h",
 				"vectorial/simd4f.h"
-			],
-			[
-				"simd",
-				"vectorial/simd4x4f.h"
 			],
 			[
 				"diagrams",
@@ -753,10 +1187,6 @@
 			[
 				"intersect.",
 				"Intersection.h"
-			],
-			[
-				"vec3f.h",
-				"vectorial/vec3f.h"
 			],
 			[
 				"output.txt",
@@ -861,158 +1291,6 @@
 			[
 				"generate",
 				"build/Generated.make"
-			],
-			[
-				"shortcuts.rb",
-				"ruby/shortcuts.rb"
-			],
-			[
-				"subwads.rb",
-				"ruby/subWads.rb"
-			],
-			[
-				"subwads.net",
-				"data/SubWads.net"
-			],
-			[
-				"header.net",
-				"ruby/ndl/Header.net"
-			],
-			[
-				"subwads.json",
-				"data/wads/network/SubWads.json"
-			],
-			[
-				"testsubwaddata.cpp",
-				"test/TestSubWadData.cpp"
-			],
-			[
-				"netsubwaddata.cpp",
-				"src/netSubWadData.cpp"
-			],
-			[
-				"netsubwaddata.h",
-				"include/netSubWadData.h"
-			],
-			[
-				"testsubwaddata.h",
-				"test/TestSubWadData.h"
-			],
-			[
-				"netquery.rb",
-				"ruby/netQuery.rb"
-			],
-			[
-				"tasks",
-				"TASKS"
-			],
-			[
-				"nettransportlan.cpp",
-				"src/netTransportLAN.cpp"
-			],
-			[
-				"shortcuts.txt",
-				"shadow/Shortcuts.txt"
-			],
-			[
-				"common.rb",
-				"ruby/common.rb"
-			],
-			[
-				"levels.rb",
-				"ruby/levels.rb"
-			],
-			[
-				"mpscriptingmanager.h",
-				"incoming/mpScriptingManager.h"
-			],
-			[
-				"tsks",
-				"TASKS"
-			],
-			[
-				"contants.net",
-				"ruby/ndl/Constants.net"
-			],
-			[
-				"constants.net",
-				"ruby/ndl/Constants.net"
-			],
-			[
-				"prebuildcpp",
-				"test/PreBuild.cpp"
-			],
-			[
-				"data.cpp",
-				"test/Data.cpp"
-			],
-			[
-				"prebuild.cpp",
-				"test/PreBuild.cpp"
-			],
-			[
-				"filewriter.rb",
-				"ruby/fileWriter.rb"
-			],
-			[
-				"netshortcutdata.cpp",
-				"src/netShortcutData.cpp"
-			],
-			[
-				"netleveldata.cpp",
-				"src/netLevelData.cpp"
-			],
-			[
-				"soaktest.cpp",
-				"test/SoakTest.cpp"
-			],
-			[
-				"testdata.h",
-				"test/TestData.h"
-			],
-			[
-				"types",
-				"include/netTypes.h"
-			],
-			[
-				"testevents.h",
-				"test/TestEvents.h"
-			],
-			[
-				"testshortcuts.cpp",
-				"test/TestShortcuts.cpp"
-			],
-			[
-				"netmake.rb",
-				"ruby/netMake.rb"
-			],
-			[
-				"short",
-				"ruby/shortcuts.rb"
-			],
-			[
-				"testgamemode",
-				"test/TestGameModeData.h"
-			],
-			[
-				"testsubwads.cpp",
-				"test/TestSubWads.cpp"
-			],
-			[
-				"testlevel",
-				"test/TestLevelStateMachine.cpp"
-			],
-			[
-				"testlevelstatemachine.h",
-				"test/TestLevelStateMachine.h"
-			],
-			[
-				"testgamefixture.cpp",
-				"test/TestGameFixture.cpp"
-			],
-			[
-				"testgamefixture.h",
-				"test/TestGameFixture.h"
 			]
 		],
 		"width": 0.0
@@ -1027,11 +1305,11 @@
 	},
 	"select_symbol":
 	{
-		"height": 0.0,
+		"height": 392.0,
 		"selected_items":
 		[
 		],
-		"width": 0.0
+		"width": 404.0
 	},
 	"settings":
 	{

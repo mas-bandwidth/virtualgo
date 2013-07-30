@@ -14,5 +14,16 @@
          startingLineNumber = "8"
          endingLineNumber = "8">
       </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "Virtual Go/shaders/ShadowCompositingShader.fragment"
+         timestampString = "391837846.919308"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "10"
+         endingLineNumber = "10">
+      </FileBreakpoint>
    </FileBreakpoints>
 </Bucket>
