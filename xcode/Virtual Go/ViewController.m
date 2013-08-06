@@ -17,8 +17,8 @@
 #include "CollisionDetection.h"
 #include "CollisionResponse.h"
 
-#define MULTIPLE_STONES 1
-#define LOCKED 1
+//#define MULTIPLE_STONES 1
+//#define LOCKED 1
 
 const int BoardSize = 9;
 
@@ -40,7 +40,7 @@ const float ZoomOut_iPhone = 50;             // not really supported (too small!
 const float ZoomInTightness = 0.25f;
 const float ZoomOutTightness = 0.15f;
 
-const float AccelerometerFrequency = 20;
+const float AccelerometerFrequency = 60;
 const float AccelerometerTightness = 0.1f;
 
 const float JerkThreshold = 0.1f;
@@ -1201,6 +1201,7 @@ bool iPad()
 
 #else
 
+                    /*
                     Stone & stone = _stones[0];
 
                     stone.rigidBody.position = rayStart + rayDirection * t;
@@ -1210,13 +1211,10 @@ bool iPad()
                     stone.rigidBody.Activate();
 
                     // IMPORTANT: go into select mode post placement so you can immediately drag the stone
-        
-                    RigidBodyTransform transform;
-                    stone.rigidBody.GetTransform( transform );
                     
                     vec3f intersectionPoint, intersectionNormal;
                     
-                    if ( IntersectRayStone( stone.biconvex, transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+                    if ( IntersectRayStone( stone.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
                     {
                         _selected = true;
                         _selectTouch = touch;
@@ -1228,6 +1226,7 @@ bool iPad()
                         _selectPrevIntersectionPoint = _selectIntersectionPoint;
                         _selectPrevTimestamp = _selectTimestamp;
                     }
+                     */
 
 #endif
                 }
@@ -1255,12 +1254,9 @@ bool iPad()
         
         GetPickRay( inverseClipMatrix, point.x(), point.y(), rayStart, rayDirection );
         
-        RigidBodyTransform transform;
-        stone.rigidBody.GetTransform( transform );
-
         vec3f intersectionPoint, intersectionNormal;
 
-        if ( IntersectRayStone( stone.biconvex, transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+        if ( IntersectRayStone( stone.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
         {
 //            NSLog( @"select" );
             
@@ -1332,10 +1328,8 @@ bool iPad()
             // from the ground to the board and then not snap back to ground when dragged
             // off the board (looks bad)
 
-            RigidBodyTransform transform;
-            stone.rigidBody.GetTransform( transform );
             vec3f intersectionPoint, intersectionNormal;
-            if ( IntersectRayStone( stone.biconvex, transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
+            if ( IntersectRayStone( stone.biconvex, stone.rigidBody.transform, rayStart, rayDirection, intersectionPoint, intersectionNormal ) > 0 )
             {
                 if ( intersectionPoint.z() > _selectDepth )
                 {
@@ -2063,14 +2057,14 @@ void GetPickRay( const mat4f & inverseClipMatrix, float screen_x, float screen_y
 
         const vec3f up = - [self getDown];
 
-        RigidBodyTransform rigidBodyTransform;
-        stone.rigidBody.GetTransform( rigidBodyTransform );
+        vec3f stoneUp;
+        stone.rigidBody.transform.GetUp( stoneUp);
         
         const float upSpin = fabs( dot( stone.rigidBody.angularVelocity, up ) );
         const float totalSpin = length( stone.rigidBody.angularVelocity );
-
+        
         const bool spinning = length( stone.rigidBody.linearVelocity ) < 10.0 &&
-                              dot( rigidBodyTransform.GetUp(), up ) < 0.25f &&
+                              dot( stoneUp, up ) < 0.25f &&
                               upSpin > 1.0f && fabs( upSpin / totalSpin ) > 0.7f &&
                               _secondsSinceLastSwipe < 1.0f;
 
