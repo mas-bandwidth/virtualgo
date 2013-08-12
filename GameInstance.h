@@ -55,8 +55,8 @@ public:
 
         cameraMode = 1;
 
-        tilt = false;//true;
-		locked = true;
+        tilt = true;
+		locked = false;
         gravity = true;
 		
         aspectRatio = 1.0f;
@@ -69,7 +69,7 @@ public:
 
         board.Initialize( BoardSize );
 
-        const StoneSize stoneSize = STONE_SIZE_36;
+        const StoneSize stoneSize = STONE_SIZE_40;
 
         stoneData.Initialize( stoneSize );
         stoneShadow.Initialize( stoneSize, 0.0f );
@@ -108,10 +108,13 @@ public:
         stone.rigidBody.linearMomentum = vec3f(0,0,0);
         stone.rigidBody.angularMomentum = vec3f(0,0,0);
         stone.rigidBody.Activate();
-        stone.constrained = 1;
-        stone.constraintRow = row;
-        stone.constraintColumn = column;
-        stone.constraintPosition = board.GetPointPosition( row, column );
+        stone.constrained = constrained;
+        if ( constrained )
+        {
+            stone.constraintRow = row;
+            stone.constraintColumn = column;
+            stone.constraintPosition = board.GetPointPosition( row, column );
+        }
         stone.rigidBody.UpdateTransform();
         stone.rigidBody.UpdateMomentum();
         stone.UpdateVisualTransform();
@@ -137,160 +140,168 @@ public:
         selectMap.clear();
         sceneGrid.clear();
 
-        /*
-        // shusaku ear-reddening game
+        #if STONE_DEMO
 
-        const int e = 0;
-        const int w = 1;
-        const int b = 2;
+            AddStone( 5, 5, White, false );
 
-        int boardState[] = 
-        {
-            e, e, e, w, w, w, b, e, b, b, w, w, e, w, e, w, w, b, e,
-            e, e, w, e, w, b, b, b, e, b, w, e, w, w, w, w, b, b, e,
-            e, e, w, w, w, b, b, e, e, b, b, w, w, b, w, b, e, b, e,
-            e, e, e, e, w, w, b, e, b, w, b, b, b, b, b, e, b, e, e,
-            e, e, e, e, e, b, w, b, e, e, b, b, e, e, e, b, b, b, e,
-            e, e, w, e, w, w, w, b, e, w, w, b, w, w, e, b, e, e, b,
-            e, e, e, w, w, b, b, b, b, b, b, b, b, w, w, w, b, b, b,
-            e, e, w, b, b, e, b, w, w, b, e, b, w, e, b, w, w, w, b,
-            e, e, w, w, b, b, b, e, w, b, w, w, e, w, w, b, b, b, b,
-            e, e, w, b, b, w, w, w, w, b, b, b, w, w, w, w, b, w, w,
-            w, w, w, w, b, b, b, w, e, w, b, w, w, e, w, b, b, w, e,
-            w, b, w, e, w, w, w, w, w, w, b, w, e, w, w, b, w, e, w,
-            b, b, b, b, w, b, b, b, w, b, e, b, w, e, w, b, w, w, e,
-            e, b, w, b, b, w, w, b, w, b, b, b, w, b, w, b, b, w, b,
-            e, e, w, b, e, e, b, b, w, w, e, b, w, b, w, b, w, e, w,
-            e, e, b, e, b, e, b, b, b, w, w, b, w, w, b, w, w, w, e,
-            e, e, e, e, b, b, e, b, w, e, w, w, b, b, b, b, w, w, w,
-            e, e, b, b, w, b, b, w, e, w, w, b, b, b, b, e, b, w, b,
-            e, e, e, b, w, w, w, w, w, e, w, w, b, b, e, b, b, b, e            
-        };
+        #else
 
-        for ( int i = 0; i < 19; ++i )
-        {
-            for ( int j = 0; j < 19; ++j )
+            /*
+            // shusaku ear-reddening game
+
+            const int e = 0;
+            const int w = 1;
+            const int b = 2;
+
+            int boardState[] = 
             {
-                const int row = i + 1;
-                const int column = j + 1;
-                const int state = boardState[(18-j)+i*19];
-                if ( state == w )
-                    AddStone( row, column, White );
-                else if ( state == b )
-                    AddStone( row, column, Black );
-            }       
-        }
-        */
+                e, e, e, w, w, w, b, e, b, b, w, w, e, w, e, w, w, b, e,
+                e, e, w, e, w, b, b, b, e, b, w, e, w, w, w, w, b, b, e,
+                e, e, w, w, w, b, b, e, e, b, b, w, w, b, w, b, e, b, e,
+                e, e, e, e, w, w, b, e, b, w, b, b, b, b, b, e, b, e, e,
+                e, e, e, e, e, b, w, b, e, e, b, b, e, e, e, b, b, b, e,
+                e, e, w, e, w, w, w, b, e, w, w, b, w, w, e, b, e, e, b,
+                e, e, e, w, w, b, b, b, b, b, b, b, b, w, w, w, b, b, b,
+                e, e, w, b, b, e, b, w, w, b, e, b, w, e, b, w, w, w, b,
+                e, e, w, w, b, b, b, e, w, b, w, w, e, w, w, b, b, b, b,
+                e, e, w, b, b, w, w, w, w, b, b, b, w, w, w, w, b, w, w,
+                w, w, w, w, b, b, b, w, e, w, b, w, w, e, w, b, b, w, e,
+                w, b, w, e, w, w, w, w, w, w, b, w, e, w, w, b, w, e, w,
+                b, b, b, b, w, b, b, b, w, b, e, b, w, e, w, b, w, w, e,
+                e, b, w, b, b, w, w, b, w, b, b, b, w, b, w, b, b, w, b,
+                e, e, w, b, e, e, b, b, w, w, e, b, w, b, w, b, w, e, w,
+                e, e, b, e, b, e, b, b, b, w, w, b, w, w, b, w, w, w, e,
+                e, e, e, e, b, b, e, b, w, e, w, w, b, b, b, b, w, w, w,
+                e, e, b, b, w, b, b, w, e, w, w, b, b, b, b, e, b, w, b,
+                e, e, e, b, w, w, w, w, w, e, w, w, b, b, e, b, b, b, e            
+            };
 
-        // Miyamoto Naoki vs Go Seigen 9x9
-        // https://www.youtube.com/watch?v=VsBqYNR5P3U
+            for ( int i = 0; i < 19; ++i )
+            {
+                for ( int j = 0; j < 19; ++j )
+                {
+                    const int row = i + 1;
+                    const int column = j + 1;
+                    const int state = boardState[(18-j)+i*19];
+                    if ( state == w )
+                        AddStone( row, column, White );
+                    else if ( state == b )
+                        AddStone( row, column, Black );
+                }       
+            }
+            */
 
-        AddStone( 1, 2, Black );
-        AddStone( 1, 3, White );
-        AddStone( 1, 4, White );
-        AddStone( 1, 8, White );
+            // Miyamoto Naoki vs Go Seigen 9x9
+            // https://www.youtube.com/watch?v=VsBqYNR5P3U
 
-        AddStone( 2, 2, Black );
-        AddStone( 2, 3, White );
-        AddStone( 2, 5, White );
-        AddStone( 2, 7, White );
-        AddStone( 2, 8, Black );
-        AddStone( 2, 9, Black );
+            AddStone( 1, 2, Black );
+            AddStone( 1, 3, White );
+            AddStone( 1, 4, White );
+            AddStone( 1, 8, White );
 
-        AddStone( 3, 2, Black );
-        AddStone( 3, 3, Black );
-        AddStone( 3, 4, White );
-        AddStone( 3, 5, White );
-        AddStone( 3, 6, White );
-        AddStone( 3, 7, Black );
-        AddStone( 3, 8, Black );
+            AddStone( 2, 2, Black );
+            AddStone( 2, 3, White );
+            AddStone( 2, 5, White );
+            AddStone( 2, 7, White );
+            AddStone( 2, 8, Black );
+            AddStone( 2, 9, Black );
 
-        AddStone( 4, 3, Black );
-        AddStone( 4, 4, White );
-        AddStone( 4, 6, White );
-        AddStone( 4, 7, White );
-        AddStone( 4, 8, Black );
+            AddStone( 3, 2, Black );
+            AddStone( 3, 3, Black );
+            AddStone( 3, 4, White );
+            AddStone( 3, 5, White );
+            AddStone( 3, 6, White );
+            AddStone( 3, 7, Black );
+            AddStone( 3, 8, Black );
 
-        AddStone( 5, 1, Black );
-        AddStone( 5, 2, Black );
-        AddStone( 5, 5, Black );
-        AddStone( 5, 7, White );
-        AddStone( 5, 8, Black );
+            AddStone( 4, 3, Black );
+            AddStone( 4, 4, White );
+            AddStone( 4, 6, White );
+            AddStone( 4, 7, White );
+            AddStone( 4, 8, Black );
 
-        AddStone( 6, 1, Black );
-        AddStone( 6, 2, White );
-        AddStone( 6, 3, Black );
-        AddStone( 6, 4, Black );
-        AddStone( 6, 6, Black );
-        AddStone( 6, 7, White );
-        AddStone( 6, 8, Black );
-        
-        AddStone( 7, 1, Black );
-        AddStone( 7, 2, White );
-        AddStone( 7, 3, White );
-        AddStone( 7, 4, Black );
-        AddStone( 7, 6, White );
-        AddStone( 7, 7, Black );
+            AddStone( 5, 1, Black );
+            AddStone( 5, 2, Black );
+            AddStone( 5, 5, Black );
+            AddStone( 5, 7, White );
+            AddStone( 5, 8, Black );
 
-        AddStone( 8, 1, White );
-        AddStone( 8, 2, White );
-        AddStone( 8, 3, White );
-        AddStone( 8, 4, White );
-        AddStone( 8, 5, White );
-        AddStone( 8, 6, White );
-        AddStone( 8, 7, Black );
+            AddStone( 6, 1, Black );
+            AddStone( 6, 2, White );
+            AddStone( 6, 3, Black );
+            AddStone( 6, 4, Black );
+            AddStone( 6, 6, Black );
+            AddStone( 6, 7, White );
+            AddStone( 6, 8, Black );
+            
+            AddStone( 7, 1, Black );
+            AddStone( 7, 2, White );
+            AddStone( 7, 3, White );
+            AddStone( 7, 4, Black );
+            AddStone( 7, 6, White );
+            AddStone( 7, 7, Black );
 
-        AddStone( 9, 2, Black );
-        AddStone( 9, 3, White );
-        AddStone( 9, 4, Black );
-        AddStone( 9, 6, White );
-        AddStone( 9, 7, Black );
+            AddStone( 8, 1, White );
+            AddStone( 8, 2, White );
+            AddStone( 8, 3, White );
+            AddStone( 8, 4, White );
+            AddStone( 8, 5, White );
+            AddStone( 8, 6, White );
+            AddStone( 8, 7, Black );
 
-        /*
-        // add stones on the star points
+            AddStone( 9, 2, Black );
+            AddStone( 9, 3, White );
+            AddStone( 9, 4, Black );
+            AddStone( 9, 6, White );
+            AddStone( 9, 7, Black );
 
-        int numStarPoints;
-        vec3f pointPosition[MaxStarPoints];
-        board.GetStarPoints( pointPosition, numStarPoints );
+            /*
+            // add stones on the star points
 
-        bool white = false;
-        for ( int i = 0; i < numStarPoints; ++i )
-        {
-            StoneInstance stone;
-            stone.Initialize( stoneData, stoneId++, white );
-            stone.rigidBody.position = pointPosition[i] + vec3f(0,0,stoneData.biconvex.GetHeight()/2);
-            stone.rigidBody.orientation = quat4f(1,0,0,0);
-            stone.rigidBody.linearMomentum = vec3f(0,0,0);
-            stone.rigidBody.angularMomentum = vec3f(0,0,0);
-            stone.rigidBody.Activate();
-            stones.push_back( stone );
-            sceneGrid.AddObject( stone.id, stone.rigidBody.position );
-            white = !white;
-        }
-        */
+            int numStarPoints;
+            vec3f pointPosition[MaxStarPoints];
+            board.GetStarPoints( pointPosition, numStarPoints );
 
-        /*
-        // add stones on every point
-
-        bool white = true;
-        for ( int i = 1; i <= BoardSize; ++i )
-        {
-            for ( int j = 1; j <= BoardSize; ++j )
+            bool white = false;
+            for ( int i = 0; i < numStarPoints; ++i )
             {
                 StoneInstance stone;
                 stone.Initialize( stoneData, stoneId++, white );
-                stone.rigidBody.position = board.GetPointPosition( i, j ) + vec3f( 0, 0, stoneData.biconvex.GetHeight() / 2 );
+                stone.rigidBody.position = pointPosition[i] + vec3f(0,0,stoneData.biconvex.GetHeight()/2);
                 stone.rigidBody.orientation = quat4f(1,0,0,0);
                 stone.rigidBody.linearMomentum = vec3f(0,0,0);
                 stone.rigidBody.angularMomentum = vec3f(0,0,0);
                 stone.rigidBody.Activate();
                 stones.push_back( stone );
-                //white = !white;
-
                 sceneGrid.AddObject( stone.id, stone.rigidBody.position );
+                white = !white;
             }
-        }
-        */
+            */
+
+            /*
+            // add stones on every point
+
+            bool white = true;
+            for ( int i = 1; i <= BoardSize; ++i )
+            {
+                for ( int j = 1; j <= BoardSize; ++j )
+                {
+                    StoneInstance stone;
+                    stone.Initialize( stoneData, stoneId++, white );
+                    stone.rigidBody.position = board.GetPointPosition( i, j ) + vec3f( 0, 0, stoneData.biconvex.GetHeight() / 2 );
+                    stone.rigidBody.orientation = quat4f(1,0,0,0);
+                    stone.rigidBody.linearMomentum = vec3f(0,0,0);
+                    stone.rigidBody.angularMomentum = vec3f(0,0,0);
+                    stone.rigidBody.Activate();
+                    stones.push_back( stone );
+                    //white = !white;
+
+                    sceneGrid.AddObject( stone.id, stone.rigidBody.position );
+                }
+            }
+            */
+
+        #endif
     }
 
     void InvertMatrix( const mat4f & matrix, mat4f & inverse )
@@ -318,32 +329,44 @@ public:
 
     void UpdateCamera( float dt = 0.0f )
     {
-        projectionMatrix = mat4f::perspective( 30, aspectRatio, 0.1f, 100.0f );
+        #if STONE_DEMO
 
-        if ( cameraMode == 0 )
-        {
-            cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 45 ),
+            projectionMatrix = mat4f::perspective( 45, aspectRatio, 0.1f, 25.0f );
+
+            cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 10.0f ),
                                           vec3f( 0, 0, 0 ),
-                                          vec3f( 0, -1, 0 ) );
-        }
-        else if ( cameraMode == 1 )
-        {
-            cameraMatrix = mat4f::lookAt( vec3f( 0, 25, 30 ),
-                                          vec3f( 0, 2, board.GetThickness() ),
-                                          vec3f( 0, 0, 1 ) );
-        }
-        else if ( cameraMode == 2 )
-        {
-            cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 15, 10 ),
-                                          zoomPoint,
-                                          vec3f( 0, 0, 1 ) );
-        }
-        else if ( cameraMode == 3 )
-        {
-            cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 0, 15 ),
-                                          zoomPoint,
-                                          vec3f( 0, -1, 0 ) );
-        }
+                                          vec3f( -1, 0, 0 ) );
+
+        #else
+
+            projectionMatrix = mat4f::perspective( 30, aspectRatio, 0.1f, 100.0f );
+
+            if ( cameraMode == 0 )
+            {
+                cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 45 ),
+                                              vec3f( 0, 0, 0 ),
+                                              vec3f( 0, -1, 0 ) );
+            }
+            else if ( cameraMode == 1 )
+            {
+                cameraMatrix = mat4f::lookAt( vec3f( 0, 25, 30 ),
+                                              vec3f( 0, 2, board.GetThickness() ),
+                                              vec3f( 0, 0, 1 ) );
+            }
+            else if ( cameraMode == 2 )
+            {
+                cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 15, 10 ),
+                                              zoomPoint,
+                                              vec3f( 0, 0, 1 ) );
+            }
+            else if ( cameraMode == 3 )
+            {
+                cameraMatrix = mat4f::lookAt( zoomPoint + vec3f( 0, 0, 15 ),
+                                              zoomPoint,
+                                              vec3f( 0, -1, 0 ) );
+            }
+
+        #endif
 
         clipMatrix = projectionMatrix * cameraMatrix;
 
@@ -370,11 +393,19 @@ public:
 
                 select.time += dt;
 
-                const float z = SelectHeight;
+                #if STONE_DEMO
 
-                vec3f newPosition = vec3f( stone->rigidBody.position.x(),
-                                           stone->rigidBody.position.y(),
-                                           z );
+                    vec3f newPosition = stone->rigidBody.position;
+
+                #else
+
+                    const float z = SelectHeight;
+
+                    vec3f newPosition = vec3f( stone->rigidBody.position.x(),
+                                               stone->rigidBody.position.y(),
+                                               z );
+
+                #endif
 
                 stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
                 stone->rigidBody.position = newPosition;
@@ -465,7 +496,11 @@ public:
                                              random_float( 1.0f - LaunchVariance, 1.0f + LaunchVariance ),
                                              random_float( 1.0f - LaunchVariance, 1.0f + LaunchVariance ) );
 
+                #if STONE_DEMO
+                vec3f jerkImpulse = jerkAcceleration * vec3f( LaunchMomentumScale, LaunchMomentumScale, LaunchMomentumScale );
+                #else
                 vec3f jerkImpulse = jerkAcceleration * vec3f( LaunchMomentum*0.66f, LaunchMomentum*0.66f, LaunchMomentum*1.5f );
+                #endif
 
                 stone.rigidBody.ApplyImpulse( jerkImpulse * varianceScale );
             }
@@ -479,9 +514,14 @@ public:
 
         params.dt = dt;
         params.locked = locked;
-        params.ceiling = 25.0f;
+        params.ceiling = 25.0f;         // todo: this should be configurable in Config.h
         params.gravity = gravity ? ( 10 * 9.8f * ( tilt ? accelerometer->GetDown() : vec3f(0,0,-1) ) )
                                  : vec3f(0,0,0);
+
+        #if STONE_DEMO
+        params.iterations = 16;
+        params.rotationSubsteps = 16;
+        #endif
 
         ::UpdatePhysics( params, board, stoneData, sceneGrid, stones, stoneMap, *telemetry, frustum );
 
@@ -725,7 +765,7 @@ public:
                         }
                         else
                         {
-                            assert( false );        // what the fuck?
+                            assert( false );
                         }
                     } 
 
@@ -770,7 +810,7 @@ public:
                     }
                     else
                     {
-                        assert( false );    // what the fuck?
+                        assert( false );
                     }
                 }
                 else
@@ -795,87 +835,91 @@ public:
                 {
                     stone->selected = 0;
 
-                    // find the nearest empty point to move the stone to
-                    // be extra nice to the player by searching adjacent cells
-                    // and finding the one that is nearest to the current stone
-                    // select position.
+                    #if !STONE_DEMO
 
-                    int row, column;
-                    if ( board.FindNearestEmptyPoint( stone->rigidBody.position, row, column ) )
-                    {
-                        ValidateBoard();
-                        stone->constrained = 1;
-                        stone->constraintRow = row;
-                        stone->constraintColumn = column;
-                        stone->constraintPosition = board.GetPointPosition( row, column );
-                        board.SetPointState( row, column, stone->white ? White : Black );
-                        board.SetPointStoneId( row, column, stone->id );
-                        stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
-                        stone->rigidBody.UpdateMomentum();
-                        ValidateBoard();
+                        // find the nearest empty point to move the stone to
+                        // be extra nice to the player by searching adjacent cells
+                        // and finding the one that is nearest to the current stone
+                        // select position.
 
-                        vec3f previousPosition = stone->rigidBody.position;
-                        vec3f newPosition = previousPosition;
-                        ConstrainPosition( newPosition, stone->constraintPosition );
-                        stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
-                        stone->rigidBody.position = newPosition;
-
-                        sceneGrid.MoveObject( stone->id, previousPosition, newPosition );
-                    }
-                    else
-                    {
-                        // if there is no empty point, but the stone is over the board
-                        // this means the player tried to move the stone but fucked up. 
-                        // be nice and revert to original stone position if it's still
-                        // empty, otherwise delete the stone.
-
-                        if ( board.FindNearestPoint( stone->rigidBody.position, row, column ) )           // hack: this is really "is the stone above the board" check
+                        int row, column;
+                        if ( board.FindNearestEmptyPoint( stone->rigidBody.position, row, column ) )
                         {
-                            if ( select.constrained )
+                            ValidateBoard();
+                            stone->constrained = 1;
+                            stone->constraintRow = row;
+                            stone->constraintColumn = column;
+                            stone->constraintPosition = board.GetPointPosition( row, column );
+                            board.SetPointState( row, column, stone->white ? White : Black );
+                            board.SetPointStoneId( row, column, stone->id );
+                            stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
+                            stone->rigidBody.UpdateMomentum();
+                            ValidateBoard();
+
+                            vec3f previousPosition = stone->rigidBody.position;
+                            vec3f newPosition = previousPosition;
+                            ConstrainPosition( newPosition, stone->constraintPosition );
+                            stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
+                            stone->rigidBody.position = newPosition;
+
+                            sceneGrid.MoveObject( stone->id, previousPosition, newPosition );
+                        }
+                        else
+                        {
+                            // if there is no empty point, but the stone is over the board
+                            // this means the player tried to move the stone but messed up. 
+                            // be nice and revert to original stone position if it's still
+                            // empty, otherwise delete the stone.
+
+                            if ( board.FindNearestPoint( stone->rigidBody.position, row, column ) )           // hack: this is really "is the stone above the board" check
                             {
-                                if ( board.GetPointState( select.constraintRow, select.constraintColumn ) == Empty )
+                                if ( select.constrained )
                                 {
-                                    // warp back to point on board the stone was
-                                    // originally dragged from and constrain
+                                    if ( board.GetPointState( select.constraintRow, select.constraintColumn ) == Empty )
+                                    {
+                                        // warp back to point on board the stone was
+                                        // originally dragged from and constrain
 
-                                    row = select.constraintRow;
-                                    column = select.constraintColumn;
+                                        row = select.constraintRow;
+                                        column = select.constraintColumn;
 
-                                    ValidateBoard();
-                                    stone->constrained = 1;
-                                    stone->constraintRow = row;
-                                    stone->constraintColumn = column;
-                                    stone->constraintPosition = board.GetPointPosition( row, column );
-                                    board.SetPointState( row, column, stone->white ? White : Black );
-                                    board.SetPointStoneId( row, column, stone->id );
-                                    stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
-                                    stone->rigidBody.UpdateMomentum();
-                                    ValidateBoard();
+                                        ValidateBoard();
+                                        stone->constrained = 1;
+                                        stone->constraintRow = row;
+                                        stone->constraintColumn = column;
+                                        stone->constraintPosition = board.GetPointPosition( row, column );
+                                        board.SetPointState( row, column, stone->white ? White : Black );
+                                        board.SetPointStoneId( row, column, stone->id );
+                                        stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
+                                        stone->rigidBody.UpdateMomentum();
+                                        ValidateBoard();
 
+                                        vec3f previousPosition = stone->rigidBody.position;
+                                        vec3f newPosition = select.initialPosition;
+                                        stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
+                                        stone->rigidBody.position = newPosition;
+
+                                        sceneGrid.MoveObject( stone->id, previousPosition, newPosition );
+                                    }
+                                    else
+                                    {
+                                        // no choice but to delete the stone
+                                        stone->deleteTimer = DeleteTime;
+                                    }
+                                }
+                                else
+                                {
+                                    // warp back to original, unconstrained position off the board
                                     vec3f previousPosition = stone->rigidBody.position;
                                     vec3f newPosition = select.initialPosition;
                                     stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
                                     stone->rigidBody.position = newPosition;
-
                                     sceneGrid.MoveObject( stone->id, previousPosition, newPosition );
                                 }
-                                else
-                                {
-                                    // no choice but to delete the stone
-                                    stone->deleteTimer = DeleteTime;
-                                }
-                            }
-                            else
-                            {
-                                // warp back to original, unconstrained position off the board
-                                vec3f previousPosition = stone->rigidBody.position;
-                                vec3f newPosition = select.initialPosition;
-                                stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
-                                stone->rigidBody.position = newPosition;
-                                sceneGrid.MoveObject( stone->id, previousPosition, newPosition );
                             }
                         }
-                    }
+
+                    #endif
 
                     if ( select.moved )
                     {

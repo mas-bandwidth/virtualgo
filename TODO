@@ -1,15 +1,41 @@
 DONE:
 
+    Cut down back to one stone #if STONE_DEMO
+
+    Roughly sorted out camera + tilt.
+
+    Collision frustum planes aren't working. Why?
+
+    When you touch a stone it is released in constrained mode or something, and falls through the frustum.
+
+    Remove lift up and drop from the stone drag.
+
+    Remove the large jerk compenent. Scale it down as per-old stone demo.
+
 TODO:
+    
+    Camera looks to have too much distortion at edges. Diff old camera and fov. Match it.
 
-    I should also create a new shader shortly
-    for the gaussing blur called "ShadowBlur"
+    Recover exact friction and other physics settings from old stone demo. Diff and match it.
+
+    Stone lighting looks "less realistic" than previous single stone demo. Diff and match it.
+
+    Get swipe working again.
+
+    Detect current orientation and "adjust" gravity such that it is relative
+    to the surface of the current frustum plane for that orientation.
+
+    Dynamically adjust camera to get the ideal shadow when spinning for the
+    current orientation.
 
 
 
 
 
-    -----------------------------------------
+
+
+
+    ===============================================================================
 
     Really, really need to better organize meshes, shaders, textures etc.
 
@@ -20,7 +46,7 @@ TODO:
 
     It's getting impossible to name stuff!
 
-    ------------------------------------------
+    --------------------------------------------------------------------
 
     After this demonstrates the render to texture is working,
     next we'll probably need separate shaders for the render to 

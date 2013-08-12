@@ -6,7 +6,7 @@ namespace UnitTest {
 #ifdef _MSC_VER
 #pragma warning(disable: 4786) // 'identifier' : identifier was truncated to 'number' characters
 #pragma warning(disable: 4996) // disable security warnings about sprintf etc.
-#pragma warning(disable: 4800) // forcing value to bool true or false (fuckers)
+#pragma warning(disable: 4800) // forcing value to bool true or false
 #endif
 
     AssertException::AssertException(char const* description, char const* filename, int lineNumber)

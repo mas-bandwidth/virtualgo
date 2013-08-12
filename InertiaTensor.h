@@ -85,7 +85,7 @@ void CalculateBiconvexInertiaTensor( float mass, const Biconvex & biconvex, vec3
         }
     }
 
-    // todo: i fucked this up. fix it!
+    // todo: this is broken. fix it!
 
     /*
     // http://wolframalpha.com
