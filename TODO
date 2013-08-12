@@ -12,21 +12,33 @@ DONE:
 
     Remove the large jerk compenent. Scale it down as per-old stone demo.
 
-TODO:
-    
     Camera looks to have too much distortion at edges. Diff old camera and fov. Match it.
 
-    Recover exact friction and other physics settings from old stone demo. Diff and match it.
+    Actually, could not match because stone and board are now at a different scale.
 
-    Stone lighting looks "less realistic" than previous single stone demo. Diff and match it.
+    Setting FOV to 10 degrees sorted it out.
+
+    Friction designed to bring stones to rest quickly is interfering with the simulation,
+    making the stone "stick" and come to rest unnaturally. Retune in stone demo.
+
+    Code for deactiviting rigid bodies is a bit aggressive. Tune it down.
+
+TODO:
 
     Get swipe working again.
 
     Detect current orientation and "adjust" gravity such that it is relative
     to the surface of the current frustum plane for that orientation.
 
-    Dynamically adjust camera to get the ideal shadow when spinning for the
+    Recover code to detect checkpoints when the use does things, eg. spinning on planes
+    flicking the stone, sliding the stone etc.
+
+    Recover exact friction and other physics settings from old stone demo. Diff and match it.
+
+    Dynamically adjust lighting to get the ideal shadow when spinning for the
     current orientation.
+
+
 
 
 

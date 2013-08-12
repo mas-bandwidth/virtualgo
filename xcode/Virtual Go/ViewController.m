@@ -118,7 +118,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 {
     [super viewDidLoad];
 
-    self.view.multipleTouchEnabled = YES;
+    self.view.multipleTouchEnabled = ( MaxTouches > 1 ) ? YES : NO;
 
     telemetry.SetCounterNotifyFunc( HandleCounterNotify );
 

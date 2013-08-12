@@ -54,26 +54,17 @@ struct PhysicsParameters
         
         gravity = vec3f(0,0,0);
 
-        // size 40
-        rollingFactorA = 0.75f;
+        rollingFactorA = 0.9f;
         rollingFactorB = 0.975f;
-        rollingSpeedA = 0.25f;
+        rollingSpeedA = 0.85f;
         rollingSpeedB = 1.0f;
 
-        /*
-        // size 32
-        rollingFactorA = 0.75f;
-        rollingFactorB = 0.99f;
-        rollingSpeedA = 0.25f;
-        rollingSpeedB = 1.0f;
-        */
-        
         dampingThreshold = 0.01f;
         dampingFactor = 0.999f;
 
-        deactivateTime = 0.25f;
+        deactivateTime = 1.0f;
         deactivateLinearThreshold = 0.1f * 0.1f;
-        deactivateAngularThreshold = 0.1f * 0.1f;
+        deactivateAngularThreshold = 0.0001f * 0.0001f;
     }
 };
 

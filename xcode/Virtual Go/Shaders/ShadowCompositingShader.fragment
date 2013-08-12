@@ -13,5 +13,5 @@ varying lowp vec2 texCoordsVarying;
 
 void main()
 {
-    gl_FragColor = 0.25 * texture2D( uniformTexture, texCoordsVarying );
+    gl_FragColor = 0.2 * texture2D( uniformTexture, texCoordsVarying );
 }

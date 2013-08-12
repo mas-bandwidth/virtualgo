@@ -331,9 +331,9 @@ public:
     {
         #if STONE_DEMO
 
-            projectionMatrix = mat4f::perspective( 45, aspectRatio, 0.1f, 25.0f );
+            projectionMatrix = mat4f::perspective( 10, aspectRatio, 0.1f, 100.0f );
 
-            cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 10.0f ),
+            cameraMatrix = mat4f::lookAt( vec3f( 0, 0, 45.0f ),
                                           vec3f( 0, 0, 0 ),
                                           vec3f( -1, 0, 0 ) );
 
@@ -514,7 +514,7 @@ public:
 
         params.dt = dt;
         params.locked = locked;
-        params.ceiling = 25.0f;         // todo: this should be configurable in Config.h
+        params.ceiling = Ceiling;
         params.gravity = gravity ? ( 10 * 9.8f * ( tilt ? accelerometer->GetDown() : vec3f(0,0,-1) ) )
                                  : vec3f(0,0,0);
 

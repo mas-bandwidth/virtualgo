@@ -11,6 +11,8 @@
 #define PHYSICS 1
 #define VALIDATION 0
 
+const float Ceiling = 50;
+
 const int RenderToTextureSize = 2048;
 
 const int StoneTessellationLevel = 5;
@@ -23,7 +25,11 @@ const float DeleteTime = 2;
 const float PlacementVariance = 0.2f;
 const float ConstraintDelta = 0.5f;
 
+#if STONE_DEMO
 const int MaxStones = 128;
+#else
+const int MaxStones = 1;
+#endif
 
 const float SceneGridRes = 4;
 const float SceneGridWidth = 64;
@@ -36,9 +42,13 @@ const int BoardSize = 9;
 
 const int MaxStarPoints = 9;
 
+#if STONE_DEMO
+const int MaxTouches = 1;
+#else
 const int MaxTouches = 64;
+#endif
 
-const float AccelerometerFrequency = 20;
+const float AccelerometerFrequency = 30;
 const float AccelerometerTightness = 0.1f;
 
 const float JerkThreshold = 0.1f;
@@ -47,22 +57,22 @@ const float JerkMax = 0.1f;
 const float JerkVariance = 0.025f;
 
 const float LaunchThreshold = 0.9;
-const float LaunchMomentumScale = 2.0;
+const float LaunchMomentumScale = 4.0;
 const float LaunchVariance = 0.1f;
 
-const float SelectDamping = 0.75f;
+#if STONE_DEMO
+const float SelectDamping = 0.95f;
+#else
+const float SelectDamping = 0.85f;
+#endif
 const float SelectHeight = 3.0f;
 
-// while in a game where the stones cannot be moved
-// these are good settings.
-/*
-const float TouchImpulse = 5.0f;
-const float SelectImpulse = 1.0f;
-*/
-
-// these settings work best for edit mode when stones
-// are selected and lifted up.
+#if STONE_DEMO
+const float TouchImpulse = 3.0f;
+const float SelectImpulse = 3.0f;
+#else
 const float TouchImpulse = 2.5f;
 const float SelectImpulse = 0.25f;
+#endif
 
 #endif
