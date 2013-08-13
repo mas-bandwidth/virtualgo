@@ -41,6 +41,11 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     Accelerometer accelerometer;
 
+    bool _swipeStarted;
+    UITouch * _swipeTouch;
+    float _swipeTime;
+    CGPoint _swipeStartPoint;
+
     Mesh<Vertex> _stoneMesh;
     GLuint _stoneProgramWhite;
     GLuint _stoneProgramBlack;
@@ -164,6 +169,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
    
     [self setupGL];
     
+    _swipeStarted = false;
+
     [ [NSNotificationCenter defaultCenter] addObserver : self
                                               selector : @selector(deviceOrientationDidChange:)
                                                   name : UIDeviceOrientationDidChangeNotification object:nil ];
@@ -421,6 +428,14 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     [self convertTouches:nativeTouches toArray:touches andCount:numTouches];
 
     game.OnTouchesBegan( touches, numTouches );
+
+    if ( !_swipeStarted )
+    {
+        _swipeTouch = [touches anyObject];
+        _swipeTime = 0;
+        _swipeStarted = true;
+        _swipeStartPoint = [touch locationInView:self.view];
+    }
 }
 
 - (void)touchesMoved:(NSSet *)nativeTouches withEvent:(UIEvent *)event
@@ -449,6 +464,31 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         game.OnDoubleTap( [self pointToPixels:touchPoint] );
         
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
+    }
+
+    if ( _swipeStarted && [touches containsObject:_swipeTouch] )
+    {
+        UITouch * touch = _swipeTouch;
+        
+        CGPoint currentPosition = [touch locationInView:self.view];
+
+        vec3f swipePoint( _swipeStartPoint.x, _swipeStartPoint.y, 0 );
+        
+        vec3f swipeDelta( _swipeStartPoint.x - currentPosition.x,
+                          _swipeStartPoint.y - currentPosition.y,
+                          0 );
+        
+        if ( length( swipeDelta ) >= MinimumSwipeLength + SwipeLengthPerSecond * _swipeTime )
+        {
+            // IMPORTANT: convert points to pixels!
+            const float contentScaleFactor = [self.view contentScaleFactor];
+            swipePoint *= contentScaleFactor;
+            swipeDelta *= contentScaleFactor;
+            
+            [self handleSwipe:swipeDelta atPoint:swipePoint ];
+
+            _swipeStarted = false;
+        }
     }
 }
 
@@ -732,6 +772,14 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     game.Update( dt );
 
     [self render];
+
+    if ( _swipeStarted )
+    {
+        _swipeTime += dt;
+
+        if ( _swipeTime > MaxSwipeTime )
+            _swipeStarted = false;
+    }
 
     telemetry.Update( dt, game.GetBoard(), game.GetStones(), game.IsLocked(), accelerometer.GetUp() );
 }

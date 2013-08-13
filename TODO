@@ -27,6 +27,8 @@ TODO:
 
     Get swipe working again.
 
+    Get hold detection working again (eg. to damp the stone)
+
     Detect current orientation and "adjust" gravity such that it is relative
     to the surface of the current frustum plane for that orientation.
 

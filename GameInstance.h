@@ -1003,7 +1003,15 @@ public:
 
     void OnSwipe( const vec3f & point, const vec3f & delta )
     {
-        // ...
+        NSLog( @"on swipe" );
+        for ( int i = 0; i < stones.size(); ++i )
+        {
+            StoneInstance & stone = stones[i];
+            const vec3f up = -normalize( accelerometer->GetDown() );
+            stone.rigidBody.angularMomentum += SwipeMomentum * up;
+            stone.rigidBody.UpdateMomentum();
+            stone.rigidBody.Activate();
+        }
     }
 
     // ----------------------------------------------------------------
