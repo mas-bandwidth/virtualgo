@@ -29,14 +29,18 @@ struct RigidBody
 
     float mass;
     float inverseMass;
-    float deactivateTimer;
 
+    #if !STONE_DEMO
+    float deactivateTimer;
     bool active;
+    #endif
 
     RigidBody()
     {
+        #if !STONE_DEMO
         active = true;
         deactivateTimer = 0.0f;
+        #endif
         position = vec3f(0,0,0);
         orientation = quat4f::identity();
         linearMomentum = vec3f(0,0,0);
@@ -64,7 +68,9 @@ struct RigidBody
 
     void UpdateMomentum()
     {
+        #if !STONE_DEMO
         if ( active )
+        #endif
         {
             const float MaxAngularMomentum = 10;
 
@@ -80,6 +86,7 @@ struct RigidBody
             linearVelocity = linearMomentum * inverseMass;
             angularVelocity = transformVector( inverseInertiaTensorWorld, angularMomentum );
         }
+        #if !STONE_DEMO
         else
         {
             linearMomentum = vec3f( 0,0,0 );
@@ -87,6 +94,7 @@ struct RigidBody
             angularMomentum = vec3f( 0,0,0 );
             angularVelocity = vec3f( 0,0,0 );
         }
+        #endif
     }
 
     void GetLinearVelocity( vec3f & velocity ) const
@@ -125,6 +133,8 @@ struct RigidBody
         return linearKE + angularKE;
     }
 
+#if !STONE_DEMO
+
     void Activate()
     {
         if ( !active )
@@ -148,16 +158,22 @@ struct RigidBody
         }
     }
 
+#endif
+
     void ApplyImpulse( const vec3f & impulse )
     {
+        #if !STONE_DEMO
         Activate();
+        #endif
         linearMomentum += impulse;
         UpdateMomentum();
     }
 
     void ApplyImpulseAtWorldPoint( const vec3f & point, const vec3f & impulse )
     {
+        #if !STONE_DEMO
         Activate();
+        #endif
         vec3f r = point - position;
         linearMomentum += impulse;
         angularMomentum += cross( r, impulse );

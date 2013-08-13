@@ -431,7 +431,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     if ( !_swipeStarted )
     {
-        _swipeTouch = [touches anyObject];
+        UITouch * touch = [nativeTouches anyObject];
+        _swipeTouch = touch;
         _swipeTime = 0;
         _swipeStarted = true;
         _swipeStartPoint = [touch locationInView:self.view];
@@ -446,12 +447,37 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     game.OnTouchesMoved( touches, numTouches );
 }
-
+    
 - (void)touchesEnded:(NSSet *)nativeTouches withEvent:(UIEvent *)event
 {
     int numTouches = 0;
     Touch touches[MaxTouches];
     [self convertTouches:nativeTouches toArray:touches andCount:numTouches];
+
+    if ( _swipeStarted && [nativeTouches containsObject:_swipeTouch] )
+    {
+        UITouch * touch = _swipeTouch;
+        
+        CGPoint currentPosition = [touch locationInView:self.view];
+        
+        vec3f swipePoint( _swipeStartPoint.x, _swipeStartPoint.y, 0 );
+        
+        vec3f swipeDelta( _swipeStartPoint.x - currentPosition.x,
+                         _swipeStartPoint.y - currentPosition.y,
+                         0 );
+        
+        if ( length( swipeDelta ) >= MinimumSwipeLength + SwipeLengthPerSecond * _swipeTime )
+        {
+            // IMPORTANT: convert points to pixels!
+            const float contentScaleFactor = [self.view contentScaleFactor];
+            swipePoint *= contentScaleFactor;
+            swipeDelta *= contentScaleFactor;
+
+            game.OnSwipe( swipePoint, swipeDelta );
+            
+            _swipeStarted = false;
+        }
+    }
 
     game.OnTouchesEnded( touches, numTouches );
 
@@ -464,31 +490,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         game.OnDoubleTap( [self pointToPixels:touchPoint] );
         
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
-    }
-
-    if ( _swipeStarted && [touches containsObject:_swipeTouch] )
-    {
-        UITouch * touch = _swipeTouch;
-        
-        CGPoint currentPosition = [touch locationInView:self.view];
-
-        vec3f swipePoint( _swipeStartPoint.x, _swipeStartPoint.y, 0 );
-        
-        vec3f swipeDelta( _swipeStartPoint.x - currentPosition.x,
-                          _swipeStartPoint.y - currentPosition.y,
-                          0 );
-        
-        if ( length( swipeDelta ) >= MinimumSwipeLength + SwipeLengthPerSecond * _swipeTime )
-        {
-            // IMPORTANT: convert points to pixels!
-            const float contentScaleFactor = [self.view contentScaleFactor];
-            swipePoint *= contentScaleFactor;
-            swipeDelta *= contentScaleFactor;
-            
-            [self handleSwipe:swipeDelta atPoint:swipePoint ];
-
-            _swipeStarted = false;
-        }
     }
 }
 

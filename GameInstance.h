@@ -107,7 +107,6 @@ public:
         stone.rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f(0,0,1) );
         stone.rigidBody.linearMomentum = vec3f(0,0,0);
         stone.rigidBody.angularMomentum = vec3f(0,0,0);
-        stone.rigidBody.Activate();
         stone.constrained = constrained;
         if ( constrained )
         {
@@ -426,7 +425,9 @@ public:
                 
                 stone->rigidBody.UpdateTransform();
 
+                #if !STONE_DEMO
                 stone->rigidBody.Activate();
+                #endif
 
                 ValidateSceneGrid();
             }
@@ -932,7 +933,10 @@ public:
                             {
                                 const float dt = touch.timestamp - select.touch.timestamp;
                                 stone->rigidBody.linearMomentum = stone->rigidBody.mass * select.lastMoveDelta / max( 1.0f / 60.0f, dt );
+                                #if !STONE_DEMO
                                 stone->rigidBody.Activate();
+                                #endif
+                                stone->rigidBody.UpdateMomentum();
                             }
                         }
                     }
@@ -1003,15 +1007,23 @@ public:
 
     void OnSwipe( const vec3f & point, const vec3f & delta )
     {
-        NSLog( @"on swipe" );
-        for ( int i = 0; i < stones.size(); ++i )
+        #if STONE_DEMO
+
+        if ( selectMap.size() == 0 )
         {
-            StoneInstance & stone = stones[i];
-            const vec3f up = -normalize( accelerometer->GetDown() );
-            stone.rigidBody.angularMomentum += SwipeMomentum * up;
-            stone.rigidBody.UpdateMomentum();
-            stone.rigidBody.Activate();
+            for ( int i = 0; i < stones.size(); ++i )
+            {
+                StoneInstance & stone = stones[i];
+                const vec3f up = -normalize( accelerometer->GetDown() );
+                stone.rigidBody.angularMomentum += SwipeMomentum * up;
+                stone.rigidBody.UpdateMomentum();
+                #if !STONE_DEMO
+                stone.rigidBody.Activate();
+                #endif
+            }
         }
+
+        #endif
     }
 
     // ----------------------------------------------------------------

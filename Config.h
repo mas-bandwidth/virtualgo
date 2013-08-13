@@ -76,7 +76,7 @@ const float SelectImpulse = 0.25f;
 #endif
 
 const float MinimumSwipeLength = 50;            // points
-const float SwipeLengthPerSecond = 250;         // points
+const float SwipeLengthPerSecond = 150;         // points
 const float MaxSwipeTime = 1.0f;                // seconds
 const float SwipeMomentum = 10.0f;
 

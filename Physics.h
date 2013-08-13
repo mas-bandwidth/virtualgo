@@ -2,6 +2,7 @@
 #define PHYSICS_H
 
 #include <vector>
+#include "Config.h"
 #include "Board.h"
 #include "StoneData.h"
 #include "StoneInstance.h"
@@ -35,9 +36,11 @@ struct PhysicsParameters
     float dampingThreshold;
     float dampingFactor;
     
+    #if !STONE_DEMO
     float deactivateTime;
     float deactivateLinearThreshold;
     float deactivateAngularThreshold;
+    #endif
 
     PhysicsParameters()
     {
@@ -54,17 +57,23 @@ struct PhysicsParameters
         
         gravity = vec3f(0,0,0);
 
+        /*
         rollingFactorA = 0.9f;
         rollingFactorB = 0.975f;
+        */
+        rollingFactorA = 0.9f;
+        rollingFactorB = 0.98f;
         rollingSpeedA = 0.85f;
         rollingSpeedB = 1.0f;
 
         dampingThreshold = 0.01f;
         dampingFactor = 0.999f;
 
+        #if !STONE_DEMO
         deactivateTime = 1.0f;
         deactivateLinearThreshold = 0.1f * 0.1f;
         deactivateAngularThreshold = 0.0001f * 0.0001f;
+        #endif
     }
 };
 
@@ -367,8 +376,10 @@ inline void UpdatePhysics( const PhysicsParameters & params,
         {
             StoneInstance & stone = stones[j];
 
+            #if !STONE_DEMO
             if ( !stone.rigidBody.active )
                 continue;
+            #endif
 
             if ( !stone.selected )
                 stone.rigidBody.linearMomentum += params.gravity * stone.rigidBody.mass * iteration_dt;
@@ -398,8 +409,10 @@ inline void UpdatePhysics( const PhysicsParameters & params,
         {
             StoneInstance & stone = stones[j];
 
+            #if !STONE_DEMO
             if ( !stone.rigidBody.active )
                 continue;
+            #endif
 
             StaticContact contact;
 
@@ -534,14 +547,18 @@ inline void UpdatePhysics( const PhysicsParameters & params,
         {
             StoneInstance & stone = stones[j];
             
+            #if !STONE_DEMO
             if ( !stone.rigidBody.active )
                 continue;
+            #endif
 
             sceneGrid.MoveObject( stone.id, previousPosition[j], stone.rigidBody.position );
             
             previousPosition[j] = stone.rigidBody.position;
         }        
         
+#if !STONE_DEMO
+
         // =======================================================================
         // 4. enforce stone position constraints
         // =======================================================================
@@ -630,7 +647,7 @@ inline void UpdatePhysics( const PhysicsParameters & params,
             // todo: apply simple linear impulse response
             
             // todo: treat selected stones as if they have infinite mass!
-            
+
             a->rigidBody.Activate();
             b->rigidBody.Activate();
         }
@@ -650,7 +667,11 @@ inline void UpdatePhysics( const PhysicsParameters & params,
 
             stone.rigidBody.UpdateTransform();
         }        
+
+#endif
     }
+
+#if !STONE_DEMO
 
     // =======================================================================
     // 6. detect stones at rest and deactivate them
@@ -685,6 +706,8 @@ inline void UpdatePhysics( const PhysicsParameters & params,
         else
             stone.rigidBody.deactivateTimer = 0;
     }
+
+#endif
 }
 
 #endif

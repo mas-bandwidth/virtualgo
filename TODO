@@ -23,16 +23,39 @@ DONE:
 
     Code for deactiviting rigid bodies is a bit aggressive. Tune it down.
 
+    Get swipe working again.
+
+    Spinning comes to rest too quickly. Needs to be retuned, eg. spinning friction amount.
+
+    There is definitely a bug with the code that detects when the stone is at rest. Disable it.
+
+    Swipes need to be excluded if you are currently selecting and dragging the stone.
+
+    Strange "coming to rest suddenly" is still happening. It's not deactivation causing it.
+
+    Actually, seems the Config.h was not included in Physics.h maybe. This would explain it.
+
+    It feels that the stone is a bit more wobbly, maybe less realistic when moving about.
+    Is it possible to get nice spin behavior *and* more realistic, solid behavior when
+    sliding about? Perhaps three friction points with linear interpolation would do it
+
+    Tuned physics sort of in the middle. Seems better. Spin is a bit shorter though
+    will have to see how I like this.
+
 TODO:
 
-    Get swipe working again.
+    I think I really do want a third speed threshold for reduced damping
+    that should be at the rotational speed of a typical spin, eg. hold the
+    spin for longer.
+
+    Swipes are sometimes not detected.
 
     Get hold detection working again (eg. to damp the stone)
 
     Detect current orientation and "adjust" gravity such that it is relative
     to the surface of the current frustum plane for that orientation.
 
-    Recover code to detect checkpoints when the use does things, eg. spinning on planes
+    Recover code to detect checkpoints when the user does things, eg. spinning on planes
     flicking the stone, sliding the stone etc.
 
     Recover exact friction and other physics settings from old stone demo. Diff and match it.
@@ -40,8 +63,13 @@ TODO:
     Dynamically adjust lighting to get the ideal shadow when spinning for the
     current orientation.
 
+    Is it possible to put a cube-map reflection on the go stone? This would really add
+    a massive dose of realisism to the stone, eg. make it shiny.
 
+    Implement the gaussian blur of the shadow texture. Soft shadows would look amazing.
 
+    Can't seem to throw the stone as cleanly as I used to from the ceiling to the floor
+    It seems that in this case I'm going to need a larger launch impulse.
 
 
 
