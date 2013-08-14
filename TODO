@@ -1,78 +1,67 @@
 DONE:
 
-    Cut down back to one stone #if STONE_DEMO
-
-    Roughly sorted out camera + tilt.
-
-    Collision frustum planes aren't working. Why?
-
-    When you touch a stone it is released in constrained mode or something, and falls through the frustum.
-
-    Remove lift up and drop from the stone drag.
-
-    Remove the large jerk compenent. Scale it down as per-old stone demo.
-
-    Camera looks to have too much distortion at edges. Diff old camera and fov. Match it.
-
-    Actually, could not match because stone and board are now at a different scale.
-
-    Setting FOV to 10 degrees sorted it out.
-
-    Friction designed to bring stones to rest quickly is interfering with the simulation,
-    making the stone "stick" and come to rest unnaturally. Retune in stone demo.
-
-    Code for deactiviting rigid bodies is a bit aggressive. Tune it down.
-
-    Get swipe working again.
-
-    Spinning comes to rest too quickly. Needs to be retuned, eg. spinning friction amount.
-
-    There is definitely a bug with the code that detects when the stone is at rest. Disable it.
-
-    Swipes need to be excluded if you are currently selecting and dragging the stone.
-
-    Strange "coming to rest suddenly" is still happening. It's not deactivation causing it.
-
-    Actually, seems the Config.h was not included in Physics.h maybe. This would explain it.
-
-    It feels that the stone is a bit more wobbly, maybe less realistic when moving about.
-    Is it possible to get nice spin behavior *and* more realistic, solid behavior when
-    sliding about? Perhaps three friction points with linear interpolation would do it
-
-    Tuned physics sort of in the middle. Seems better. Spin is a bit shorter though
-    will have to see how I like this.
-
-TODO:
-
-    I think I really do want a third speed threshold for reduced damping
-    that should be at the rotational speed of a typical spin, eg. hold the
-    spin for longer.
-
-    Swipes are sometimes not detected.
+    Improved logic for swipe detection. Now handles touches cancelled 
+    and should be more robust when touches end without swiping should
+    not get stuck in swiping mode.
 
     Get hold detection working again (eg. to damp the stone)
+
+    Limited max hold time. It's more like a sustained press. Works well.
+
+TODO:
 
     Detect current orientation and "adjust" gravity such that it is relative
     to the surface of the current frustum plane for that orientation.
 
-    Recover code to detect checkpoints when the user does things, eg. spinning on planes
-    flicking the stone, sliding the stone etc.
+    Recover code to detect checkpoints when the user does things, 
+    eg. spinning on planes flicking the stone, sliding the stone etc.
 
-    Recover exact friction and other physics settings from old stone demo. Diff and match it.
+    I cannot stand it when the stone drag is jittery. Is there anything I can do?
+
+    ----------------------------------------------------
+
+    *** New features ***
+
+    Add code to pick up stone with two finger pinch that ends near the stone
+
+    (This will require turning multi-touch back on again)
+
+    When in the mode where no stone is placed, any touch on the screen will place
+    a new stone. Perhaps alternate between black and white?
+
+    ----------------------------------------------------
+
+    *** Sound ***
+
+    Contact Justin and set expectations, email agreement etc.
+
+    Find out how to play music. What formats are supported?
+
+    Find out how to play sound. What format?
+
+    Design sets of sounds required for stone.
+
+    Basically, hits: light medium heavy X material, eg. wood, side (aluminum), glass
+
+    sliding
+
+    spinning
+
+    (requires variants!)
+
+    ----------------------------------------------------
+
+    *** Visual improvements ***
 
     Dynamically adjust lighting to get the ideal shadow when spinning for the
     current orientation.
 
-    Is it possible to put a cube-map reflection on the go stone? This would really add
-    a massive dose of realisism to the stone, eg. make it shiny.
+    Is it possible to add a sphere map reflection on the go stone? 
+    This would really add a massive dose of realisism to the stone!!!
 
     Implement the gaussian blur of the shadow texture. Soft shadows would look amazing.
 
-    Can't seem to throw the stone as cleanly as I used to from the ceiling to the floor
-    It seems that in this case I'm going to need a larger launch impulse.
-
-
-
+    -----------------------------------------------------
 
 
 

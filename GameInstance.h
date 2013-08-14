@@ -47,6 +47,12 @@ class GameInstance
 
     vec3f zoomPoint;
 
+    #if STONE_DEMO
+    bool holding;
+    float holdTime;
+    TouchHandle holdTouch;
+    #endif
+
 public:
 
 	GameInstance()
@@ -69,10 +75,14 @@ public:
 
         board.Initialize( BoardSize );
 
+        #if STONE_DEMO
+        holding = false;
+        #endif
+
         const StoneSize stoneSize = STONE_SIZE_40;
 
         stoneData.Initialize( stoneSize );
-        stoneShadow.Initialize( stoneSize, 0.0f );
+        stoneShadow.Initialize( stoneSize, 0.0f );      // no bevel
 
         sceneGrid.Initialize( SceneGridRes, SceneGridWidth, SceneGridHeight, SceneGridDepth );
 
@@ -376,6 +386,29 @@ public:
 
     void UpdateTouch( float dt )
     {
+        #if STONE_DEMO
+        if ( holding )
+        {
+            holdTime += dt;
+
+            if ( holdTime > HoldStartTime )
+            {
+                for ( int i = 0; i < stones.size(); ++i )
+                {
+                    StoneInstance & stone = stones[i];
+                    stone.rigidBody.angularMomentum *= HoldDamping;
+                    stone.rigidBody.UpdateMomentum();
+                    #if !STONE_DEMO
+                    stone.rigidBody.Activate();
+                    #endif
+                }
+            }
+
+            if ( holdTime > HoldStopTime )
+                holding = false;
+        }
+        #endif
+
         for ( SelectMap::iterator itor = selectMap.begin(); itor != selectMap.end(); ++itor ) 
         {
             SelectData & select = itor->second;
@@ -721,6 +754,16 @@ public:
 
     void OnTouchesBegan( Touch * touches, int numTouches )
     {
+        assert( touches );
+        assert( numTouches > 0 );
+
+        if ( !holding )
+        {
+            holding = true;
+            holdTime = 0.0f;
+            holdTouch = touches[0].handle;
+        }
+
         for ( int i = 0; i < numTouches; ++i )
         {
             Touch & touch = touches[i];
@@ -790,6 +833,12 @@ public:
         for ( int i = 0; i < numTouches; ++i )
         {
             Touch & touch = touches[i];
+
+            #if STONE_DEMO
+            if ( holding && holdTouch == touch.handle )
+                holding = false;   
+            #endif
+
             SelectMap::iterator itor = selectMap.find( touch.handle );
             if ( itor != selectMap.end() ) 
             {
@@ -827,6 +876,12 @@ public:
         for ( int i = 0; i < numTouches; ++i )
         {
             Touch & touch = touches[i];
+
+            #if STONE_DEMO
+            if ( holding && holdTouch == touch.handle )
+                holding = false;   
+            #endif
+
             SelectMap::iterator itor = selectMap.find( touch.handle );
             if ( itor != selectMap.end() )
             {
@@ -956,6 +1011,12 @@ public:
         for ( int i = 0; i < numTouches; ++i )
         {
             Touch & touch = touches[i];
+
+            #if STONE_DEMO
+            if ( holding && touch.handle == holdTouch )
+                holding = false;
+            #endif
+
             SelectMap::iterator itor = selectMap.find( touch.handle );
             if ( itor != selectMap.end() )
             {

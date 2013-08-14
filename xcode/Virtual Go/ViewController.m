@@ -474,9 +474,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
             swipeDelta *= contentScaleFactor;
 
             game.OnSwipe( swipePoint, swipeDelta );
-            
-            _swipeStarted = false;
         }
+
+        _swipeStarted = false;
     }
 
     game.OnTouchesEnded( touches, numTouches );
@@ -498,6 +498,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     int numTouches = 0;
     Touch touches[MaxTouches];
     [self convertTouches:nativeTouches toArray:touches andCount:numTouches];
+
+    if ( _swipeStarted && [nativeTouches containsObject:_swipeTouch] )
+        _swipeStarted = false;
 
     game.OnTouchesCancelled( touches, numTouches );
 }

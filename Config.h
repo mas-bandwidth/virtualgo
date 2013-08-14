@@ -16,7 +16,7 @@ const float Ceiling = 50;
 const int RenderToTextureSize = 2048;
 
 const int StoneTessellationLevel = 5;
-const int StoneShadowTessellationLevel = 3;
+const int StoneShadowTessellationLevel = 4;
 
 const float DropMomentum = 10;
 
@@ -54,14 +54,14 @@ const float AccelerometerTightness = 0.1f;
 const float JerkThreshold = 0.1f;
 const float JerkScale = 1.0f;
 const float JerkMax = 0.1f;
-const float JerkVariance = 0.025f;
+const float JerkVariance = 0.0f;//0.025f;
 
 const float LaunchThreshold = 0.9;
 const float LaunchMomentumScale = 4.0;
-const float LaunchVariance = 0.1f;
+const float LaunchVariance = 0.0f;//0.1f;
 
 #if STONE_DEMO
-const float SelectDamping = 0.95f;
+const float SelectDamping = 0.99f;
 #else
 const float SelectDamping = 0.85f;
 #endif
@@ -79,5 +79,9 @@ const float MinimumSwipeLength = 50;            // points
 const float SwipeLengthPerSecond = 150;         // points
 const float MaxSwipeTime = 1.0f;                // seconds
 const float SwipeMomentum = 10.0f;
+
+const float HoldDamping = 0.75f;
+const float HoldStartTime = 0.05f;
+const float HoldStopTime = 0.25f;
 
 #endif

@@ -95,62 +95,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "xcode/Virtual Go/ViewController.m",
-			"settings":
-			{
-				"buffer_size": 26079,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "TODO",
-			"settings":
-			{
-				"buffer_size": 9813,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "MeshGenerators.h",
-			"settings":
-			{
-				"buffer_size": 15863,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "xcode/Virtual Go/OpenGL.m",
-			"settings":
-			{
-				"buffer_size": 9486,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "Config.h",
-			"settings":
-			{
-				"buffer_size": 1425,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "CHANGES",
-			"settings":
-			{
-				"buffer_size": 91093,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "GameInstance.h",
-			"settings":
-			{
-				"buffer_size": 36808,
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "Packages/Makefile/Make.sublime-build",
 	"command_palette":
@@ -211,25 +155,31 @@
 	},
 	"file_history":
 	[
+		"/Users/gaffer/virtualgo/TODO",
+		"/Users/gaffer/git/virtualgo-master/xcode/Virtual Go/ViewController.m",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/ViewController.m",
+		"/Users/gaffer/virtualgo/GameInstance.h",
 		"/Users/gaffer/virtualgo/Config.h",
+		"/Users/gaffer/virtualgo/Physics.h",
+		"/Users/gaffer/virtualgo/RigidBody.h",
+		"/Users/gaffer/virtualgo/Accelerometer.h",
+		"/Users/gaffer/Desktop/old settings.txt",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/ViewController.h",
+		"/Users/gaffer/virtualgo/InertiaTensor.h",
+		"/Users/gaffer/virtualgo/UnitTest++/AssertException.cpp",
+		"/Users/gaffer/virtualgo/CHANGES",
+		"/Users/gaffer/virtualgo/xcode/Virtual Go/OpenGL.m",
+		"/Users/gaffer/virtualgo/MeshGenerators.h",
+		"/Users/gaffer/virtualgo/log.txt",
 		"/Users/gaffer/virtualgo/vectorial/mat4f.h",
 		"/Users/gaffer/virtualgo/render to texture.txt",
-		"/Users/gaffer/virtualgo/MeshGenerators.h",
-		"/Users/gaffer/virtualgo/GameInstance.h",
-		"/Users/gaffer/virtualgo/xcode/Virtual Go/ViewController.h",
-		"/Users/gaffer/virtualgo/xcode/Virtual Go/ViewController.m",
-		"/Users/gaffer/virtualgo/TODO",
-		"/Users/gaffer/virtualgo/CHANGES",
 		"/Users/gaffer/virtualgo/xcode/Virtual Go/OpenGL.h",
 		"/Users/gaffer/virtualgo/Board.h",
-		"/Users/gaffer/virtualgo/xcode/Virtual Go/OpenGL.m",
 		"/Users/gaffer/virtualgo/Mesh.h",
 		"/Users/gaffer/virtualgo/StoneData.h",
 		"/Users/gaffer/virtualgo/StoneInstance.h",
 		"/Users/gaffer/virtualgo/SceneGrid.h",
-		"/Users/gaffer/virtualgo/Physics.h",
 		"/Users/gaffer/virtualgo/Common.h",
-		"/Users/gaffer/virtualgo/RigidBody.h",
 		"/Users/gaffer/virtualgo/Touch.h",
 		"/Users/gaffer/virtualgo/Render.h",
 		"/Users/gaffer/virtualgo/vectorial/vec3f.h",
@@ -252,7 +202,6 @@
 		"/Users/gaffer/virtualgo/Tessellation.cpp",
 		"/Users/gaffer/Desktop/phoenix guild.txt",
 		"/Users/gaffer/virtualgo/Stone.h",
-		"/Users/gaffer/virtualgo/Accelerometer.h",
 		"/Users/gaffer/virtualgo/xcode/Virtual Go/Config.h",
 		"/Users/gaffer/virtualgo/vectorial/config.h",
 		"/Users/gaffer/virtualgo/xcode/Virtual Go/en.lproj/MainStoryboard_iPhone.storyboard",
@@ -274,7 +223,6 @@
 		"/Users/gaffer/Dropbox/gdc/2009/sandbox/source/Render.h",
 		"/Users/gaffer/Dropbox/gdc/2009/sandbox/source/Common.h",
 		"/Users/gaffer/Dropbox/gdc/2009/sandbox/source/Mathematics.h",
-		"/Users/gaffer/virtualgo/InertiaTensor.h",
 		"/Users/gaffer/virtualgo/premake4.lua",
 		"/Users/gaffer/virtualgo/VirtualGo.sublime-project",
 		"/Users/gaffer/Desktop/RollingFriction.c",
@@ -334,15 +282,11 @@
 		"/Users/gaffer/git/network/ruby/shortcuts.rb",
 		"/Users/gaffer/git/network/src/netGameModeData.cpp",
 		"/Users/gaffer/git/network/include/netGameModeData.h",
-		"/Users/gaffer/git/network/test/TestGameModeData.cpp",
-		"/Users/gaffer/git/network/ruby/gameModes.rb",
-		"/Users/gaffer/git/network/TODO",
-		"/Users/gaffer/git/network/CHANGES",
-		"/Users/gaffer/git/network/data/wads/network/GameModes.json"
+		"/Users/gaffer/git/network/test/TestGameModeData.cpp"
 	],
 	"find":
 	{
-		"height": 37.0
+		"height": 39.0
 	},
 	"find_in_files":
 	{
@@ -376,6 +320,42 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"activate",
+			"deactivateTime",
+			"deactivate",
+			"Detect",
+			"touchesBegan",
+			"_swipeStarted",
+			"touchesBegan",
+			"swipe",
+			"swipeStarted",
+			"touchesBegan",
+			"accelerometer",
+			"stones",
+			"Swipe",
+			"deactivateAngularThreshold",
+			"deactivateTimer",
+			"deactivateTime",
+			"deactivateAngularThreshold",
+			"rollingFactorA",
+			"render",
+			"UpdateCamera",
+			"Multi",
+			"UpdateCamera",
+			"Camera",
+			"getTargetZoom",
+			"targetZoom",
+			"_smoothZoom",
+			"camera",
+			"view",
+			"LaunchMomentum",
+			"UpdateTouch",
+			"locked",
+			"fuck",
+			"Camera",
+			"Initialize",
+			"Camera",
+			"MULTIPLE_STONES",
 			"shadowCompositing",
 			"lightPosition",
 			"touchesBegan",
@@ -467,43 +447,7 @@
 			"FindNearestEmptyPoint",
 			"board.SetPoint",
 			"UpdateCamera(",
-			"UpdateCamera",
-			"smoothZoom",
-			"UpdateCamera",
-			"JerkAcceleration",
-			"cameraMode",
-			"UpdateCamera",
-			"hack for",
-			"RadiusSquared",
-			"FindOverlappingObjects",
-			"FindOverlapping",
-			".active",
-			"constraint",
-			"UpdateCamera",
-			"cameraMode",
-			"Infer",
-			"InferStoneMomentum",
-			"UpdateGame",
-			"tilt",
-			"selected",
-			"PlaceStones",
-			"zoomPoint",
-			"UpdateCamera",
-			"accelMatrix",
-			"normalMatrix4",
-			"normalMatrix",
-			"Subdivide",
-			"UpdateCamera",
-			"lightPosition",
-			"OrientationDid",
-			"viewOrientationDidChange",
-			"OrientationDid",
-			"UpdateCamera",
-			"GetStoneHeight",
-			"JerkAccel",
-			"quat4f",
-			"Touch",
-			"FlickSpeedThreshold"
+			"UpdateCamera"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -527,210 +471,8 @@
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "xcode/Virtual Go/ViewController.m",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 26079,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								25214,
-								25214
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 14320.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "TODO",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 9813,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								13,
-								13
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "MeshGenerators.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 15863,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								15787,
-								15787
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 10499.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "xcode/Virtual Go/OpenGL.m",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 9486,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2336,
-								2336
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1761.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "Config.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1425,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								286,
-								286
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "CHANGES",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 91093,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								395,
-								395
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "GameInstance.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 36808,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1051,
-								1051
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 879.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
 			]
 		}
 	],
@@ -781,27 +523,47 @@
 		"selected_items":
 		[
 			[
-				"changes",
-				"CHANGES"
-			],
-			[
 				"todo",
 				"TODO"
 			],
 			[
-				"viewcont",
-				"xcode/Virtual Go/ViewController.m"
+				"rigidbody.h",
+				"RigidBody.h"
 			],
 			[
-				"gameinstance.h",
-				"GameInstance.h"
+				"physics.h",
+				"Physics.h"
+			],
+			[
+				"view",
+				"xcode/Virtual Go/ViewController.m"
 			],
 			[
 				"config.h",
 				"Config.h"
 			],
 			[
+				"accel",
+				"Accelerometer.h"
+			],
+			[
+				"gameinstance.h",
+				"GameInstance.h"
+			],
+			[
 				"viewcontroller.m",
+				"xcode/Virtual Go/ViewController.m"
+			],
+			[
+				"log.txt",
+				"log.txt"
+			],
+			[
+				"changes",
+				"CHANGES"
+			],
+			[
+				"viewcont",
 				"xcode/Virtual Go/ViewController.m"
 			],
 			[
@@ -823,10 +585,6 @@
 			[
 				"viewcontroller.h",
 				"xcode/Virtual Go/ViewController.h"
-			],
-			[
-				"view",
-				"xcode/Virtual Go/ViewController.m"
 			],
 			[
 				"meshgenerators.h",
@@ -859,14 +617,6 @@
 			[
 				"common.h",
 				"Common.h"
-			],
-			[
-				"rigidbody.h",
-				"RigidBody.h"
-			],
-			[
-				"physics.h",
-				"Physics.h"
 			],
 			[
 				"scenegrid.h",
@@ -1283,14 +1033,6 @@
 			[
 				"netshortcutdata.h",
 				"include/netShortcutData.h"
-			],
-			[
-				"shortcuts.json",
-				"data/wads/network/Shortcuts.json"
-			],
-			[
-				"generate",
-				"build/Generated.make"
 			]
 		],
 		"width": 0.0

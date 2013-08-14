@@ -1,4 +1,46 @@
 
+Work in progress on the stone demo (14/8/2013):
+-----------------------------------------------
+
+    Cut down back to one stone #if STONE_DEMO
+
+    Roughly sorted out camera + tilt.
+
+    Collision frustum planes aren't working. Why?
+
+    When you touch a stone it is released in constrained mode or something, and falls through the frustum.
+
+    Remove lift up and drop from the stone drag.
+
+    Remove the large jerk compenent. Scale it down as per-old stone demo.
+
+    Camera looks to have too much distortion at edges. Diff old camera and fov. Match it.
+
+    Actually, could not match because stone and board are now at a different scale.
+
+    Setting FOV to 10 degrees sorted it out.
+
+    Friction designed to bring stones to rest quickly is interfering with the simulation,
+    making the stone "stick" and come to rest unnaturally. Retune in stone demo.
+
+    Code for deactiviting rigid bodies is a bit aggressive. Tune it down.
+
+    Get swipe working again.
+
+    Spinning comes to rest too quickly. Needs to be retuned, eg. spinning friction amount.
+
+    There is definitely a bug with the code that detects when the stone is at rest. Disable it.
+
+    Swipes need to be excluded if you are currently selecting and dragging the stone.
+
+    Strange "coming to rest suddenly" is still happening. It's not deactivation causing it.
+
+    Actually, seems the Config.h was not included in Physics.h maybe. This would explain it.
+
+    Tuned physics better. It's now a nice combination of realistic sliding motion and
+    good spinning. I like it!
+
+
 Shadows now have proper color (27/5/2013):
 ------------------------------------------
 
