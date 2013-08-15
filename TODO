@@ -1,22 +1,31 @@
 DONE:
 
-    Improved logic for swipe detection. Now handles touches cancelled 
-    and should be more robust when touches end without swiping should
-    not get stuck in swiping mode.
-
-    Get hold detection working again (eg. to damp the stone)
-
-    Limited max hold time. It's more like a sustained press. Works well.
-
 TODO:
 
-    Detect current orientation and "adjust" gravity such that it is relative
-    to the surface of the current frustum plane for that orientation.
+    *** Glitches ***
+
+    1. There is still some weird coming to rest suddenly thing going on. What is it?
+
+    2. I cannot stand it when the stone drag is jittery. Is there anything I can do?
+
+    3. When the application thaws out from hibernation it shows the stone stuck
+    at a previous orientation, and then it pops to a new orientation.
+
+    Why does it do this? I want the stone to remain frozen until it activates
+    fully. My guess it is capturing a screenshot and that screenshot is out
+    of date, but the extra time elapsed during shutdown, not on wake... but
+    who knows?
+
+    How can I tell the difference?
+
+    ----------------------------------------------------
+
+    *** Testflight ***
+
+    Upgrade to latest version of testflight library.
 
     Recover code to detect checkpoints when the user does things, 
     eg. spinning on planes flicking the stone, sliding the stone etc.
-
-    I cannot stand it when the stone drag is jittery. Is there anything I can do?
 
     ----------------------------------------------------
 

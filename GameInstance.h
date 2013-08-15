@@ -11,6 +11,30 @@
 #include <algorithm>
 #include <functional>
 
+enum Orientation
+{
+    Normal,
+    UpsideDown,
+    Left,
+    Right,
+    Top,
+    Bottom
+};
+
+const char * GetString( Orientation orientation )
+{
+    switch ( orientation )
+    {
+        case Normal: return "normal";
+        case UpsideDown: return "upside down";
+        case Left: return "left";
+        case Right: return "right";
+        case Top: return "top";
+        case Bottom: return "bottom";
+        default: return "???";
+    }
+}
+
 class GameInstance
 {
     Board board;
@@ -53,6 +77,8 @@ class GameInstance
     TouchHandle holdTouch;
     #endif
 
+    Orientation orientation;
+
 public:
 
 	GameInstance()
@@ -89,6 +115,8 @@ public:
         #if STONES
         PlaceStones();
         #endif
+
+        orientation = Normal;
 
         UpdateCamera();
 	}
@@ -327,6 +355,8 @@ public:
 
     void Update( float dt )
     {
+        UpdateOrientation( dt );
+
         UpdateCamera( dt );
 
         UpdateTouch( dt );
@@ -334,6 +364,71 @@ public:
         UpdateGame( dt );
 
         UpdatePhysics( dt );
+    }
+
+    void UpdateOrientation( float dt )
+    {
+        /*
+            normal: (0,0,-1)
+            upside down: (0,0,1)
+
+            left: (0,-1,0)
+            right: (0,+1,0)
+
+            bottom: (-1,0,0)
+            top: (1,0,0)
+        */
+
+        const vec3f & down = accelerometer->GetDown();
+
+        const float threshold = 0.5f;
+
+        if ( down.z() > threshold )
+            orientation = UpsideDown;
+        else if ( down.x() < -threshold )
+            orientation = Bottom;
+        else if ( down.x() > threshold )
+            orientation = Top;
+        else if ( down.y() < -threshold )
+            orientation = Left;
+        else if ( down.y() > threshold )
+            orientation = Right;
+        else
+            orientation = Normal;
+    }
+
+    void GetBasisVectorsForOrientation( Orientation orientation, const Frustum & frustum, vec3f & x, vec3f & y, vec3f & z )
+    {
+        if ( orientation == Bottom )
+        {
+            x = -vec3f(frustum.bottom.value);
+            y = vec3f(0,1,0);
+            z = cross( x, y );
+        }
+        else if ( orientation == Top )
+        {
+            x = frustum.top.value;
+            y = vec3f(0,1,0);
+            z = cross( x, y );
+        }
+        else if ( orientation == Left )
+        {
+            x = vec3f(1,0,0);
+            y = -vec3f(frustum.right.value);
+            z = cross( x, y );
+        }
+        else if ( orientation == Right )
+        {
+            x = vec3f(1,0,0);
+            y = frustum.left.value;
+            z = cross( x, y );
+        }
+        else
+        {
+            x = vec3f(1,0,0);
+            y = vec3f(0,1,0);
+            z = vec3f(0,0,1);
+        }
     }
 
     void UpdateCamera( float dt = 0.0f )
@@ -541,24 +636,45 @@ public:
 
             telemetry->IncrementCounter( COUNTER_AppliedImpulse );
         }
-     
-        // update physics sim
+
+        // setup physics parameters
 
         PhysicsParameters params;
 
         params.dt = dt;
         params.locked = locked;
         params.ceiling = Ceiling;
-        params.gravity = gravity ? ( 10 * 9.8f * ( tilt ? accelerometer->GetDown() : vec3f(0,0,-1) ) )
-                                 : vec3f(0,0,0);
-
-        #if STONE_DEMO
+        
+#if STONE_DEMO
         params.iterations = 16;
         params.rotationSubsteps = 16;
-        #endif
+#endif
+
+        params.gravity = vec3f(0,0,0);
+
+        if ( gravity )
+        {
+            if ( tilt )
+            {
+                const vec3f & down = accelerometer->GetDown();
+                
+                vec3f x,y,z;
+                GetBasisVectorsForOrientation( orientation, frustum, x,y,z );
+
+                params.gravity = vec3f( dot( down, x ), dot( down, y ), dot( down, z ) ) * 10 * 9.8f;
+            }
+            else
+            {
+                params.gravity = vec3f(0,0,-10*9.8f);
+            }
+        }
+     
+        // update physics sim
 
         ::UpdatePhysics( params, board, stoneData, sceneGrid, stones, stoneMap, *telemetry, frustum );
 
+        // validate scene grid post physics update
+        
         ValidateSceneGrid();
 
         // update visual transform per-stone (smoothing)

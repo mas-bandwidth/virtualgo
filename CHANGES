@@ -1,4 +1,42 @@
 
+More work on polish and tuning of stone demo (15/8/2013):
+---------------------------------------------------------
+
+    Improved logic for swipe detection. Now handles touches cancelled 
+    and should be more robust when touches end without swiping should
+    not get stuck in swiping mode.
+
+    Get hold detection working again (eg. to damp the stone)
+
+    Limited max hold time. It's more like a sustained press. Works well.
+
+    Detect current orientation and "adjust" gravity such that it is relative
+    to the surface of the current frustum plane for that orientation.
+
+    1. Detect (and print) the current orientation detected each second
+
+        -- need, left/right/top/bottom/normal/upside down
+
+        normal: (0,0,-1)
+        upside down: (0,0,1)
+
+        left: (-1,0,0)
+        right: (1,0,0)
+
+        top: (0,+1,0)
+        bottom: (0,-1,0)
+
+    2. Now categorize current orientation into an enum and print to verify
+
+    3. Add a function to determine the basis vectors given the current
+       orientation, and the frustum planes. This function should be called
+       from inside "UpdatePhysics" as the frustum planes are available there.
+
+    4. Verify that the spinning and sliding is now perfectly balanced
+       against the frustum plane when the iPhone is in bottom orientation
+       etc.
+
+
 Work in progress on the stone demo (14/8/2013):
 -----------------------------------------------
 
