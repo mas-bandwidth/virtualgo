@@ -2,6 +2,15 @@ DONE:
 
 TODO:
 
+    *** Testflight ***
+
+    Upgrade to latest version of testflight library.
+
+    Recover code to detect checkpoints when the user does things, 
+    eg. spinning on planes flicking the stone, sliding the stone etc.
+
+    ----------------------------------------------------
+
     *** Glitches ***
 
     1. There is still some weird coming to rest suddenly thing going on. What is it?
@@ -17,15 +26,6 @@ TODO:
     who knows?
 
     How can I tell the difference?
-
-    ----------------------------------------------------
-
-    *** Testflight ***
-
-    Upgrade to latest version of testflight library.
-
-    Recover code to detect checkpoints when the user does things, 
-    eg. spinning on planes flicking the stone, sliding the stone etc.
 
     ----------------------------------------------------
 
@@ -57,6 +57,10 @@ TODO:
     spinning
 
     (requires variants!)
+
+    Need a sound for picking up the stone
+
+    Need a sound for placing the stone
 
     ----------------------------------------------------
 
