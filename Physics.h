@@ -490,7 +490,7 @@ inline void UpdatePhysics( const PhysicsParameters & params,
 
             if ( iteration_collided )
             {
-                if ( length_squared( stone.rigidBody.angularMomentum ) > 0.0001f )
+                if ( length_squared( stone.rigidBody.angularMomentum ) > 0.0000001f )
                 {
                     const float factor_a = DecayFactor( params.rollingFactorA, iteration_dt );
                     const float factor_b = DecayFactor( params.rollingFactorB, iteration_dt );

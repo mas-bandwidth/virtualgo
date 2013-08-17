@@ -1,6 +1,8 @@
 #ifndef RIGID_BODY_H
 #define RIGID_BODY_H
 
+#include "Config.h"
+
 /*
     Rigid body class and support functions.
     We need a nice way to cache the local -> world,

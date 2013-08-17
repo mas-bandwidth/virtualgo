@@ -1,4 +1,30 @@
 
+More work on demo, telemetry and organizing music+sounds (17/8/2013):
+---------------------------------------------------------------------
+
+    Contact Justin and set expectations about music/sound, email 
+    rough agreement etc. Wait for music to come back. If I like the
+    music, mail a more formal agreement that we can both sign.
+
+    Upgrade to latest version of testflight library.
+
+    Fix weird coming to rest issues. Rolling friction was clamping
+    too large values of angular velocity to zero.
+
+    Retuned white stone. Made it whiter. Better AA against board.
+
+    Recover code to detect checkpoints when the user does things, 
+    eg. spinning on planes flicking the stone, sliding the stone etc.
+
+    Instrument flick stone
+
+    Instrument touch stone
+
+    Instrument swipe
+
+    Instrument stone drag
+
+
 More work on polish and tuning of stone demo (15/8/2013):
 ---------------------------------------------------------
 

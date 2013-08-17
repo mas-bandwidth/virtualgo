@@ -964,6 +964,8 @@ public:
                 StoneInstance * stone = FindStoneInstance( select.stoneId, stones, stoneMap );
                 if ( stone )
                 {
+                    telemetry->IncrementCounter( COUNTER_DraggedStone );
+
                     vec3f rayStart, rayDirection;
                     GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
                     float t;
@@ -1102,6 +1104,7 @@ public:
 
                             if ( length_squared( select.lastMoveDelta ) > 0.1f * 0.1f )
                             {
+                                telemetry->IncrementCounter( COUNTER_FlickedStone );
                                 const float dt = touch.timestamp - select.touch.timestamp;
                                 stone->rigidBody.linearMomentum = stone->rigidBody.mass * select.lastMoveDelta / max( 1.0f / 60.0f, dt );
                                 #if !STONE_DEMO
@@ -1114,7 +1117,10 @@ public:
                     else
                     {
                         if ( touch.timestamp - select.touch.timestamp < 0.2f )
+                        {
+                            telemetry->IncrementCounter( COUNTER_TouchedStone );
                             stone->rigidBody.ApplyImpulseAtWorldPoint( select.intersectionPoint, select.impulse );
+                        }
                     }
                 }
                 selectMap.erase( itor );
@@ -1188,6 +1194,10 @@ public:
 
         if ( selectMap.size() == 0 )
         {
+            telemetry->IncrementCounter( COUNTER_Swiped );
+
+            telemetry->SetSwipedThisFrame();
+
             for ( int i = 0; i < stones.size(); ++i )
             {
                 StoneInstance & stone = stones[i];

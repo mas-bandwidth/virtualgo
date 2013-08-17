@@ -2,22 +2,13 @@ DONE:
 
 TODO:
 
-    *** Testflight ***
-
-    Upgrade to latest version of testflight library.
-
-    Recover code to detect checkpoints when the user does things, 
-    eg. spinning on planes flicking the stone, sliding the stone etc.
-
     ----------------------------------------------------
 
     *** Glitches ***
 
-    1. There is still some weird coming to rest suddenly thing going on. What is it?
+    1. I cannot stand it when the stone drag is jittery. Is there anything I can do?
 
-    2. I cannot stand it when the stone drag is jittery. Is there anything I can do?
-
-    3. When the application thaws out from hibernation it shows the stone stuck
+    2. When the application thaws out from hibernation it shows the stone stuck
     at a previous orientation, and then it pops to a new orientation.
 
     Why does it do this? I want the stone to remain frozen until it activates
@@ -41,8 +32,6 @@ TODO:
     ----------------------------------------------------
 
     *** Sound ***
-
-    Contact Justin and set expectations, email agreement etc.
 
     Find out how to play music. What formats are supported?
 
