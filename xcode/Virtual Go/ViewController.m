@@ -132,6 +132,10 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     self.view.multipleTouchEnabled = ( MaxTouches > 1 ) ? YES : NO;
 
+    UIAccelerometer * accel = [UIAccelerometer sharedAccelerometer];
+    accel.updateInterval = 1 / AccelerometerFrequency;
+    accel.delegate = self;
+
     telemetry.SetCounterNotifyFunc( HandleCounterNotify );
 
     const float aspectRatio = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
@@ -157,10 +161,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
                           vec3f( 0, 0, 1 ) );
     }
 
-    UIAccelerometer * uiAccelerometer = [UIAccelerometer sharedAccelerometer];
-    uiAccelerometer.updateInterval = 1 / AccelerometerFrequency;
-    uiAccelerometer.delegate = self;
-    
     self.context = [ [EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 ];
 
     if (!self.context)
@@ -440,7 +440,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     }
 }
 
-- (vec3f) pointToPixels:(CGPoint)point
+- (vec3f)pointToPixels:(CGPoint)point
 {
     const float contentScaleFactor = [self.view contentScaleFactor];
     vec3f pixels( point.x, point.y, 0 );
