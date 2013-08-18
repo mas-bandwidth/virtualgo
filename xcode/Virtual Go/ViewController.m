@@ -828,7 +828,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
 - (void)update
 {
-    if ( _paused || !_rendered )
+    if ( _paused )//|| !_rendered )
         return;
 
     float dt = 1.0f / 60.0f;

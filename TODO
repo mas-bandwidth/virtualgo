@@ -21,20 +21,6 @@ TODO:
 
     Find out how to play sound. What format?
 
-    Design sets of sounds required for stone.
-
-    Basically, hits: light medium heavy X material, eg. wood, side (aluminum), glass
-
-    sliding
-
-    spinning
-
-    (requires variants!)
-
-    Need a sound for picking up the stone
-
-    Need a sound for placing the stone
-
     ----------------------------------------------------
 
     *** Visual improvements ***
@@ -171,20 +157,6 @@ TODO:
     disabled, or reduced with the board, as to
     make the stone return to a good orientation
     quickly.
-
-    --------------------------------------------------
-
-    Touch events don't always come in at 60fps
-
-    This is the OS being a fucking piece of shit
-
-    It should be able to do this, but it's probably
-    not fair to rely on it. Therefore, I must implement
-    interpolation/extrapolation on touch events!
-
-    Stone movement must be smooth and at 60fps
-    at all times. Otherwise the illusion of solidity
-    is broken!
 
     -------------------------------------------------
 

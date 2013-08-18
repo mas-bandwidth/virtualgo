@@ -48,7 +48,7 @@ const int MaxTouches = 1;
 const int MaxTouches = 64;
 #endif
 
-const float AccelerometerFrequency = 60;
+const float AccelerometerFrequency = 30;
 const float AccelerometerTightness = 0.1f;
 
 const float JerkThreshold = 0.1f;
