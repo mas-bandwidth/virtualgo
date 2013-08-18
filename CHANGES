@@ -1,4 +1,24 @@
 
+Work on fixing glitches (18/8/2013):
+------------------------------------
+
+    1. I cannot stand it when the stone drag is jittery. Is there anything I can do?
+
+    2. When the application thaws out from hibernation it shows the stone stuck
+    at a previous orientation, and then it pops to a new orientation.
+
+    I've solved #1. It seems I was rendering twice per-frame accidentally
+    and now that is fixed the touch moved events arrive at a reasonable rate.
+
+    #2 is harder. It seems impossible to fix. I am already pausing while
+    inactive, and only simulating while active and after having rendered,
+    and this should *logically* work but it doesn't.
+
+    I suspect some really stupid crap at the OS level related to shutting
+    down and capturing a screenshot, then starting up and showing that
+    screenshot. It may simply not be possible to fix.
+
+
 More work on demo, telemetry and organizing music+sounds (17/8/2013):
 ---------------------------------------------------------------------
 

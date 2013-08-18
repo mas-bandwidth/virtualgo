@@ -101,6 +101,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLuint _floorIndexBuffer;
     GLuint _floorVAO;
     GLint _floorUniforms[NUM_UNIFORMS];
+
+    bool _paused;
+    bool _rendered;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -108,12 +111,16 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 - (void)setupGL;
 - (void)tearDownGL;
 
+- (void)didBecomeActive:(NSNotification *)notification;
+- (void)willResignActive:(NSNotification *)notification;
+- (void)didEnterBackground:(NSNotification *)notification;
+- (void)willEnterForeground:(NSNotification *)notification;
+- (void)didReceiveMemoryWarning;
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event;
-
-- (void)deviceOrientationDidChange:(NSNotification *)notification;
 
 @end
 
@@ -171,9 +178,10 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     
     _swipeStarted = false;
 
-    [ [NSNotificationCenter defaultCenter] addObserver : self
-                                              selector : @selector(deviceOrientationDidChange:)
-                                                  name : UIDeviceOrientationDidChangeNotification object:nil ];
+    _paused = true;
+    _rendered = false;
+
+    [self setupNotifications];
 }
 
 - (void)dealloc
@@ -186,6 +194,25 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     }
 
     [ [NSNotificationCenter defaultCenter] removeObserver:self ];
+}
+
+- (void)setupNotifications
+{
+    [ [NSNotificationCenter defaultCenter] addObserver : self
+                                              selector : @selector(didBecomeActive:)
+                                                  name : UIApplicationDidBecomeActiveNotification object:nil ];
+
+    [ [NSNotificationCenter defaultCenter] addObserver : self
+                                              selector : @selector(willResignActive:)
+                                                  name : UIApplicationWillResignActiveNotification object:nil ];
+    
+    [ [NSNotificationCenter defaultCenter] addObserver : self
+                                              selector : @selector(didEnterBackground:)
+                                                  name : UIApplicationDidEnterBackgroundNotification object:nil ];
+
+    [ [NSNotificationCenter defaultCenter] addObserver : self
+                                              selector : @selector(willEnterForeground:)
+                                                  name : UIApplicationWillEnterForegroundNotification object:nil ];
 }
 
 - (void)setupGL
@@ -370,9 +397,32 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     [self becomeFirstResponder];
 }
 
+- (void)didBecomeActive:(NSNotification *)notification
+{
+    NSLog( @"did become active" );
+    _paused = false;
+    _rendered = false;
+}
+
+- (void)willResignActive:(NSNotification *)notification
+{
+    NSLog( @"will resign active" );
+    _paused = true;
+}
+
+- (void)didEnterBackground:(NSNotification *)notification
+{
+    NSLog( @"did enter background" );
+}
+
+- (void)willEnterForeground:(NSNotification *)notification
+{
+    NSLog( @"will enter foreground" );
+}
+
 - (void)didReceiveMemoryWarning
 {
-//    NSLog( @"did receive memory warning" );
+    NSLog( @"did receive memory warning" );
 
     [super didReceiveMemoryWarning];
 
@@ -388,15 +438,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         }
         self.context = nil;
     }
-}
-
-- (void)deviceOrientationDidChange:(NSNotification *)notification
-{
-    /*
-    const float aspectRatio = fabsf( self.view.bounds.size.width / self.view.bounds.size.height );
-
-    game.SetAspectRatio( 1.0f / aspectRatio );
-     */
 }
 
 - (vec3f) pointToPixels:(CGPoint)point
@@ -423,6 +464,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
 - (void)touchesBegan:(NSSet *)nativeTouches withEvent:(UIEvent *)event
 {
+    [super touchesBegan:nativeTouches withEvent:event];
+
     int numTouches = 0;
     Touch touches[MaxTouches];
     [self convertTouches:nativeTouches toArray:touches andCount:numTouches];
@@ -441,6 +484,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
 - (void)touchesMoved:(NSSet *)nativeTouches withEvent:(UIEvent *)event
 {
+    [super touchesMoved:nativeTouches withEvent:event];
+
     int numTouches = 0;
     Touch touches[MaxTouches];
     [self convertTouches:nativeTouches toArray:touches andCount:numTouches];
@@ -450,6 +495,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     
 - (void)touchesEnded:(NSSet *)nativeTouches withEvent:(UIEvent *)event
 {
+    [super touchesEnded:nativeTouches withEvent:event];
+
     int numTouches = 0;
     Touch touches[MaxTouches];
     [self convertTouches:nativeTouches toArray:touches andCount:numTouches];
@@ -495,6 +542,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
 - (void)touchesCancelled:(NSSet *)nativeTouches withEvent:(UIEvent *)event
 {
+    [super touchesCancelled:nativeTouches withEvent:event];
+
     int numTouches = 0;
     Touch touches[MaxTouches];
     [self convertTouches:nativeTouches toArray:touches andCount:numTouches];
@@ -595,6 +644,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     
+#if !STONE_DEMO
+
     // render floor
 
     {
@@ -610,6 +661,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
         glDrawElements( GL_TRIANGLES, _floorMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
     }
+
+#endif
 
     // render board
 
@@ -661,6 +714,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         }
     }
 
+#if !STONE_DEMO
+
     // render black stones
     
     {
@@ -692,6 +747,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
             glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
         }
     }
+
+#endif
     
     // *** IMPORTANT: RENDER ALL ALPHA BLENDED OBJECTS BELOW THIS LINE ***
     
@@ -771,11 +828,12 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
 - (void)update
 {
+    if ( _paused || !_rendered )
+        return;
+
     float dt = 1.0f / 60.0f;
 
     game.Update( dt );
-
-    [self render];
 
     if ( _swipeStarted )
     {
@@ -790,8 +848,13 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
-    // todo: this might be called before we are initialized
-    // if that is the case do nothing ... add a check
+    if ( _paused )
+    {
+        _rendered = false;
+        return;
+    }
+
+    _rendered = true;
 
     // IMPORTANT: otherwise we may not have correct matrices
     game.UpdateCamera();

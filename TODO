@@ -4,22 +4,6 @@ TODO:
 
     ----------------------------------------------------
 
-    *** Glitches ***
-
-    1. I cannot stand it when the stone drag is jittery. Is there anything I can do?
-
-    2. When the application thaws out from hibernation it shows the stone stuck
-    at a previous orientation, and then it pops to a new orientation.
-
-    Why does it do this? I want the stone to remain frozen until it activates
-    fully. My guess it is capturing a screenshot and that screenshot is out
-    of date, but the extra time elapsed during shutdown, not on wake... but
-    who knows?
-
-    How can I tell the difference?
-
-    ----------------------------------------------------
-
     *** New features ***
 
     Add code to pick up stone with two finger pinch that ends near the stone
