@@ -399,30 +399,30 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
 - (void)didBecomeActive:(NSNotification *)notification
 {
-    NSLog( @"did become active" );
+//    NSLog( @"did become active" );
     _paused = false;
     _rendered = false;
 }
 
 - (void)willResignActive:(NSNotification *)notification
 {
-    NSLog( @"will resign active" );
+//    NSLog( @"will resign active" );
     _paused = true;
 }
 
 - (void)didEnterBackground:(NSNotification *)notification
 {
-    NSLog( @"did enter background" );
+//    NSLog( @"did enter background" );
 }
 
 - (void)willEnterForeground:(NSNotification *)notification
 {
-    NSLog( @"will enter foreground" );
+//    NSLog( @"will enter foreground" );
 }
 
 - (void)didReceiveMemoryWarning
 {
-    NSLog( @"did receive memory warning" );
+//    NSLog( @"did receive memory warning" );
 
     [super didReceiveMemoryWarning];
 
