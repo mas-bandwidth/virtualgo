@@ -1,4 +1,31 @@
 
+Added alpha blending and fade-in/out to stones (19/8/2013):
+-----------------------------------------------------------
+
+    Implement alpha blending (render stones at 0.5% alpha)
+
+    Make sure the shadow is rendered with alpha
+
+    Extend stone instance to include alpha value
+
+    Make shadow alpha fade out quicker than stone alpha (pow 2)
+
+    Design how stone instance should drive alpha,
+    eg. set target alpha and tightness? fire and forget?
+
+    Use alpha blending to fade in the stone on placement
+
+    How to delete the stone once it fades out? Design delete
+    timer so it increments if a condition is set, eg. alpha
+    is zero and target alpha is zero? Or something else?
+
+    Use alpha blending to fade out the stone on pickup
+
+    Tuned pickup to fade out slower, place to fade in quick
+
+    Feels really good!
+
+
 Added stone pickup gesture (18/8/2013):
 ---------------------------------------
 

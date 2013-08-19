@@ -22,7 +22,13 @@ struct StoneInstance
         rigidBody.inertiaTensor = stoneData.inertiaTensor;
         rigidBody.inverseInertiaTensor = stoneData.inverseInertiaTensor;
 
+        #if !STONE_DEMO
         deleteTimer = 0.0f;
+        #endif
+
+        alpha = 1.0f;
+        fadingIn = false;
+        fadingOut = false;
 
         visualOffset = vec3f(0,0,0);
     }
@@ -55,8 +61,14 @@ struct StoneInstance
     uint32_t constrained : 1;
     uint32_t constraintRow : 5;
     uint32_t constraintColumn : 5;
+    uint32_t fadingIn : 1;
+    uint32_t fadingOut : 1;
 
+    #if !STONE_DEMO
     float deleteTimer;
+    #endif
+
+    float alpha;
 
     vec3f constraintPosition;
 

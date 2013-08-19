@@ -237,10 +237,12 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         _stoneUniformsBlack[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _stoneProgramBlack, "normalMatrix" );
         _stoneUniformsBlack[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _stoneProgramBlack, "modelViewProjectionMatrix" );
         _stoneUniformsBlack[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _stoneProgramBlack, "lightPosition" );
+        _stoneUniformsBlack[UNIFORM_ALPHA] = glGetUniformLocation( _stoneProgramBlack, "alpha" );
 
         _stoneUniformsWhite[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation( _stoneProgramWhite, "normalMatrix" );
         _stoneUniformsWhite[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation( _stoneProgramWhite, "modelViewProjectionMatrix" );
         _stoneUniformsWhite[UNIFORM_LIGHT_POSITION] = glGetUniformLocation( _stoneProgramWhite, "lightPosition" );
+        _stoneUniformsWhite[UNIFORM_ALPHA] = glGetUniformLocation( _stoneProgramWhite, "alpha" );
     }
     
     // board shader, textures, VBs/IBs etc.
@@ -614,7 +616,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
         glUniformMatrix4fv( _shadowUniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&modelViewProjectionMatrix );
         
-        float shadowAlpha = GetShadowAlpha( stone.rigidBody.position );
+        float shadowAlpha = GetShadowAlpha( stone.rigidBody.position ) * stone.alpha * stone.alpha;
         if ( shadowAlpha == 0.0f )
             continue;
         glUniform1fv( _shadowUniforms[UNIFORM_ALPHA], 1, (float*)&shadowAlpha );
@@ -679,78 +681,6 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
 
         glDrawElements( GL_TRIANGLES, _boardMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
     }    
-
-    // render white stones
-
-    {
-        glUseProgram( _stoneProgramWhite );
-                
-        glBindTexture( GL_TEXTURE_2D, 0 );
-
-        glBindVertexArrayOES( _stoneVAO );
-
-        glUniform3fv( _stoneUniformsWhite[UNIFORM_LIGHT_POSITION], 1, (float*)&lightPosition );
-
-        const std::vector<StoneInstance> & stones = game.GetStones();
-
-        for ( int i = 0; i < stones.size(); ++i )
-        {
-            const StoneInstance & stone = stones[i];
-            
-            if ( !stone.white )
-                continue;
-            
-            mat4f modelViewMatrix = game.GetCameraMatrix() * stone.visualTransform;
-            
-            mat3f stoneNormalMatrix;
-            stoneNormalMatrix.load( modelViewMatrix );
-
-            mat4f stoneModelViewProjectionMatrix = game.GetProjectionMatrix() * modelViewMatrix;
-
-            glUniformMatrix4fv( _stoneUniformsWhite[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&stoneModelViewProjectionMatrix );
-            glUniformMatrix3fv( _stoneUniformsWhite[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&stoneNormalMatrix );
-
-            glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
-        }
-    }
-
-#if !STONE_DEMO
-
-    // render black stones
-    
-    {
-        glUseProgram( _stoneProgramBlack );
-        
-        glBindVertexArrayOES( _stoneVAO );
-        
-        glUniform3fv( _stoneUniformsBlack[UNIFORM_LIGHT_POSITION], 1, (float*)&lightPosition );
-
-        const std::vector<StoneInstance> & stones = game.GetStones();
-
-        for ( int i = 0; i < stones.size(); ++i )
-        {
-            const StoneInstance & stone = stones[i];
-            
-            if ( stone.white )
-                continue;
-            
-            mat4f modelViewMatrix = game.GetCameraMatrix() * stone.visualTransform;
-            
-            mat3f stoneNormalMatrix;
-            stoneNormalMatrix.load( modelViewMatrix );
-            
-            mat4f stoneModelViewProjectionMatrix = game.GetProjectionMatrix() * modelViewMatrix;
-            
-            glUniformMatrix4fv( _stoneUniformsBlack[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&stoneModelViewProjectionMatrix );
-            glUniformMatrix3fv( _stoneUniformsBlack[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&stoneNormalMatrix );
-            
-            glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
-        }
-    }
-
-#endif
-    
-    // *** IMPORTANT: RENDER ALL ALPHA BLENDED OBJECTS BELOW THIS LINE ***
     
     // render grid
     
@@ -817,6 +747,81 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         glDisable( GL_BLEND );
     }
     
+#endif
+
+    // render white stones
+
+    glEnable( GL_BLEND );
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
+    {
+        glUseProgram( _stoneProgramWhite );
+                
+        glBindTexture( GL_TEXTURE_2D, 0 );
+
+        glBindVertexArrayOES( _stoneVAO );
+
+        glUniform3fv( _stoneUniformsWhite[UNIFORM_LIGHT_POSITION], 1, (float*)&lightPosition );
+
+        const std::vector<StoneInstance> & stones = game.GetStones();
+
+        for ( int i = 0; i < stones.size(); ++i )
+        {
+            const StoneInstance & stone = stones[i];
+            
+            if ( !stone.white )
+                continue;
+            
+            mat4f modelViewMatrix = game.GetCameraMatrix() * stone.visualTransform;
+            
+            mat3f stoneNormalMatrix;
+            stoneNormalMatrix.load( modelViewMatrix );
+
+            mat4f stoneModelViewProjectionMatrix = game.GetProjectionMatrix() * modelViewMatrix;
+
+            glUniformMatrix4fv( _stoneUniformsWhite[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&stoneModelViewProjectionMatrix );
+            glUniformMatrix3fv( _stoneUniformsWhite[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&stoneNormalMatrix );
+            glUniform1fv( _stoneUniformsWhite[UNIFORM_ALPHA], 1, (float*)&stone.alpha );
+
+            glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+        }
+    }
+
+#if !STONE_DEMO
+
+    // render black stones
+    
+    {
+        glUseProgram( _stoneProgramBlack );
+        
+        glBindVertexArrayOES( _stoneVAO );
+        
+        glUniform3fv( _stoneUniformsBlack[UNIFORM_LIGHT_POSITION], 1, (float*)&lightPosition );
+
+        const std::vector<StoneInstance> & stones = game.GetStones();
+
+        for ( int i = 0; i < stones.size(); ++i )
+        {
+            const StoneInstance & stone = stones[i];
+            
+            if ( stone.white )
+                continue;
+            
+            mat4f modelViewMatrix = game.GetCameraMatrix() * stone.visualTransform;
+            
+            mat3f stoneNormalMatrix;
+            stoneNormalMatrix.load( modelViewMatrix );
+            
+            mat4f stoneModelViewProjectionMatrix = game.GetProjectionMatrix() * modelViewMatrix;
+            
+            glUniformMatrix4fv( _stoneUniformsBlack[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, (float*)&stoneModelViewProjectionMatrix );
+            glUniformMatrix3fv( _stoneUniformsBlack[UNIFORM_NORMAL_MATRIX], 1, 0, (float*)&stoneNormalMatrix );
+            glUniform1fv( _stoneUniformsBlack[UNIFORM_ALPHA], 1, (float*)&stone.alpha );
+            
+            glDrawElements( GL_TRIANGLES, _stoneMesh.GetNumTriangles()*3, GL_UNSIGNED_SHORT, NULL );
+        }
+    }
+
 #endif
 
     // we no longer need the depth buffer. discard it

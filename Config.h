@@ -83,4 +83,7 @@ const float HoldStopTime = 0.25f;
 const float PickupTime = 0.1f;
 const float PickupBonus = 2.0f;
 
+const float FadeInTightness = 0.9f;
+const float FadeOutTightness = 0.3f;
+
 #endif

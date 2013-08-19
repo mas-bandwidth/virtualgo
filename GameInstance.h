@@ -738,23 +738,32 @@ public:
 
     void UpdateGame( float dt )
     {
-        if ( locked )
-        {
-            // iterate across all stone instances -- if stone instance
-            // is no selected or constrained, increase delete timer.
-            // remove stones that have exceeded the delete timer.
+        #if STONE_DEMO
 
             std::vector<StoneInstance>::iterator itor = stones.begin();
             while ( itor != stones.end() )
             {
                 StoneInstance & stone = *itor;
+
+                bool deleteStone = false;
+
+                if ( stone.fadingOut )
+                {
+                    stone.alpha -= stone.alpha * FadeOutTightness;
+                    if ( stone.alpha < 0.001f )
+                        deleteStone = true;
+                }
+                else if ( stone.fadingIn )
+                {
+                    stone.alpha += ( 1 - stone.alpha ) * FadeInTightness;
+                    if ( stone.alpha > ( 1.0f - 0.001f ) )
+                    {
+                        stone.alpha = 1.0f;
+                        stone.fadingIn = false;
+                    }
+                }
                 
-                if ( !stone.constrained && !stone.selected )
-                    stone.deleteTimer += dt;
-                else
-                    stone.deleteTimer = 0.0f;
-                    
-                if ( stone.deleteTimer > DeleteTime )
+                if ( deleteStone )
                 {
                     sceneGrid.RemoveObject( stone.id, stone.rigidBody.position );
                     itor = stones.erase( itor );
@@ -764,24 +773,38 @@ public:
                 else
                     ++itor;
             }
-        }
-        else
-        {
-            std::vector<StoneInstance>::iterator itor = stones.begin();
-            while ( itor != stones.end() )
+
+        #else
+
+            if ( locked )
             {
-                StoneInstance & stone = *itor;
-                if ( stone.deleteTimer >= DeleteTime )
+                // iterate across all stone instances -- if stone instance
+                // is no selected or constrained, increase delete timer.
+                // remove stones that have exceeded the delete timer.
+
+                std::vector<StoneInstance>::iterator itor = stones.begin();
+                while ( itor != stones.end() )
                 {
-                    sceneGrid.RemoveObject( stone.id, stone.rigidBody.position );
-                    itor = stones.erase( itor );
-                    stoneMap.erase( stone.id );
-                    ValidateSceneGrid();
+                    StoneInstance & stone = *itor;
+                    
+                    if ( !stone.constrained && !stone.selected )
+                        stone.deleteTimer += dt;
+                    else
+                        stone.deleteTimer = 0.0f;
+                        
+                    if ( stone.deleteTimer > DeleteTime )
+                    {
+                        sceneGrid.RemoveObject( stone.id, stone.rigidBody.position );
+                        itor = stones.erase( itor );
+                        stoneMap.erase( stone.id );
+                        ValidateSceneGrid();
+                    }
+                    else
+                        ++itor;
                 }
-                else
-                    ++itor;
             }
-        }
+
+        #endif
     }
 
     void ValidateBoard()
@@ -977,6 +1000,8 @@ public:
                     stone->rigidBody.linearMomentum = vec3f(0,0,0);
                     stone->rigidBody.ApplyImpulseAtWorldPoint( intersectionPoint, SelectImpulse * rayDirection );
                     stone->selected = 1;
+                    stone->alpha = 0.0f;
+                    stone->fadingIn = true;
 
                     SelectData select;
                     select.placed = true;
@@ -1159,7 +1184,7 @@ public:
                     {
                         // pickup the stone
                         telemetry->IncrementCounter( COUNTER_PickedUpStone );
-                        stone->deleteTimer = DeleteTime;
+                        stone->fadingOut = true;
                         pickup = false;
                         justPickedUp = true;
                         continue;
@@ -1333,36 +1358,40 @@ public:
 
                     stone->selected = 0;
 
-                    int row, column;
+                    #if !STONE_DEMO
+                    
+                        int row, column;
 
-                    if ( board.FindNearestPoint( stone->rigidBody.position, row, column ) )     // hack: this is really an "stone is above board" check
-                    {
-                        if ( select.constrained && board.GetPointState( select.constraintRow, select.constraintColumn ) == Empty )
+                        if ( board.FindNearestPoint( stone->rigidBody.position, row, column ) )     // hack: this is really an "stone is above board" check
                         {
-                            row = select.constraintRow;
-                            column = select.constraintColumn;
+                            if ( select.constrained && board.GetPointState( select.constraintRow, select.constraintColumn ) == Empty )
+                            {
+                                row = select.constraintRow;
+                                column = select.constraintColumn;
 
-                            ValidateBoard();
-                            stone->constrained = 1;
-                            stone->constraintRow = row;
-                            stone->constraintColumn = column;
-                            stone->constraintPosition = board.GetPointPosition( row, column );
-                            board.SetPointState( row, column, stone->white ? White : Black );
-                            board.SetPointStoneId( row, column, stone->id );
-                            stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
-                            stone->rigidBody.UpdateMomentum();
-                            ValidateBoard();
+                                ValidateBoard();
+                                stone->constrained = 1;
+                                stone->constraintRow = row;
+                                stone->constraintColumn = column;
+                                stone->constraintPosition = board.GetPointPosition( row, column );
+                                board.SetPointState( row, column, stone->white ? White : Black );
+                                board.SetPointStoneId( row, column, stone->id );
+                                stone->rigidBody.linearMomentum = vec3f(0,0,-DropMomentum);
+                                stone->rigidBody.UpdateMomentum();
+                                ValidateBoard();
 
-                            vec3f previousPosition = stone->rigidBody.position;
-                            vec3f newPosition = stone->constraintPosition + vec3f(0,0,stoneData.biconvex.GetHeight()/2);
-                            stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
-                            stone->rigidBody.position = newPosition;
+                                vec3f previousPosition = stone->rigidBody.position;
+                                vec3f newPosition = stone->constraintPosition + vec3f(0,0,stoneData.biconvex.GetHeight()/2);
+                                stone->visualOffset = stone->rigidBody.position + stone->visualOffset - newPosition;
+                                stone->rigidBody.position = newPosition;
 
-                            sceneGrid.MoveObject( stone->id, previousPosition, newPosition );
+                                sceneGrid.MoveObject( stone->id, previousPosition, newPosition );
+                            }
+                            else
+                                stone->deleteTimer = DeleteTime;
                         }
-                        else
-                            stone->deleteTimer = DeleteTime;
-                    }
+                        
+                    #endif
                 }
                 selectMap.erase( itor );
             }
