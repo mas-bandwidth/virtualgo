@@ -25,6 +25,11 @@ Added alpha blending and fade-in/out to stones (19/8/2013):
 
     Feels really good!
 
+    If there is a second touch, cancel any selects.
+
+    This is necessary to support the two finger pinch to
+    pickup when multiple stones are on the board
+
 
 Added stone pickup gesture (18/8/2013):
 ---------------------------------------

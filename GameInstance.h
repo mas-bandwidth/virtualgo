@@ -611,6 +611,20 @@ public:
                 ValidateSceneGrid();
             }
         }
+
+        // IMPORTANT: if multiple touches are active we are in a pickup stone gesture
+        // do *not* interpret this as a select and drag stone!
+        if ( numActiveTouches > 1 )
+        {
+            for ( SelectMap::iterator itor = selectMap.begin(); itor != selectMap.end(); ++itor )
+            {
+                SelectData & select = itor->second;
+                StoneInstance * stone = FindStoneInstance( select.stoneId, stones, stoneMap );
+                if ( stone )
+                    stone->selected = 0;
+            }
+            selectMap.clear();
+        }
     }
 
     void UpdatePhysics( float dt )
