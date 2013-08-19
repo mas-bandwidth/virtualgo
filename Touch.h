@@ -20,6 +20,7 @@ struct SelectData
     uint32_t constrained : 1;
     uint32_t constraintRow : 8;
     uint32_t constraintColumn : 8;
+    uint32_t placed;
     float depth;
     vec3f offset;
     vec3f impulse;

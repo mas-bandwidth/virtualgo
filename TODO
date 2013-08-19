@@ -1,18 +1,5 @@
 DONE:
 
-TODO:
-
-    ----------------------------------------------------
-
-    *** New features ***
-
-    Add code to pick up stone with two finger pinch that ends near the stone
-
-    (This will require turning multi-touch back on again)
-
-    When in the mode where no stone is placed, any touch on the screen will place
-    a new stone. Perhaps alternate between black and white?
-
     ----------------------------------------------------
 
     *** Sound ***
@@ -20,6 +7,10 @@ TODO:
     Find out how to play music. What formats are supported?
 
     Find out how to play sound. What format?
+
+    Detect when sounds should be played. Define set of sound
+    triggers via enums, map to file names. Add code to trigger
+    sounds based ons sound enum.
 
     ----------------------------------------------------
 

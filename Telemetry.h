@@ -47,7 +47,7 @@ enum Counters
     COUNTER_ToggleLocked,
 
     COUNTER_PlacedStone,
-    COUNTER_PlacedStoneHard,
+    COUNTER_PickedUpStone,
 
     COUNTER_ZoomedIn,
     COUNTER_ZoomedOut,
@@ -98,7 +98,7 @@ const char * CounterNames[] =
     "toggle locked",
 
     "placed stone",
-    "placed stone hard",
+    "picked up stone",
 
     "zoomed in",
     "zoomed out",
@@ -214,7 +214,8 @@ public:
 
     void Update( float dt, const Board & board, const std::vector<StoneInstance> & stones, bool locked, const vec3f & up )
     {
-        // todo: convert this to work with new telemetry system
+        if ( stones.size() == 0 )
+            return;
 
         const StoneInstance & stone = stones[0];
 

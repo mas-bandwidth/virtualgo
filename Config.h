@@ -42,11 +42,7 @@ const int BoardSize = 9;
 
 const int MaxStarPoints = 9;
 
-#if STONE_DEMO
-const int MaxTouches = 1;
-#else
 const int MaxTouches = 64;
-#endif
 
 const float AccelerometerFrequency = 30;
 const float AccelerometerTightness = 0.1f;
@@ -83,5 +79,8 @@ const float SwipeMomentum = 10.0f;
 const float HoldDamping = 0.75f;
 const float HoldStartTime = 0.05f;
 const float HoldStopTime = 0.25f;
+
+const float PickupTime = 0.1f;
+const float PickupBonus = 2.0f;
 
 #endif

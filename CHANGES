@@ -1,4 +1,45 @@
 
+Added stone pickup gesture (18/8/2013):
+---------------------------------------
+
+    Add code to pick up stone with two finger pinch that ends near the stone
+
+    Break this down:
+
+        1. enable multi-touches
+
+        2. verify existing gestures work with multi
+
+        3. disable swiping if there are multiple active touches
+
+        4. design criteria for detecting gesture
+
+            You need to have 2 touches ending, with their points
+            both touching the stone (plus fat finger). these releases
+            must be within n seconds of each other, don't assume they
+            will be released on exactly the same frame.
+
+            So the system has the following states:
+
+                a. nothing
+
+                b. first touch released on stone, waiting for next touch.
+                   if in this state longer than 0.1 seconds, abort.
+
+                c. second touch released on stone. remove stone from board
+
+        5. implement gesture detection
+
+        6. game code needs to know when it needs to place a stone
+           basically, #if STONE_DEMO and no placed stones, any 
+           new touch adds a new stone. this stone should be
+           immediately selected, so it can be dragged post-place.
+
+        6. add "pick up stone" notification
+
+        7. add "place stone" notification
+
+
 Work on fixing glitches (18/8/2013):
 ------------------------------------
 

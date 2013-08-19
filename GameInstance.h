@@ -79,6 +79,11 @@ class GameInstance
 
     Orientation orientation;
 
+    int numActiveTouches;
+
+    bool pickup;
+    float pickupTimer;
+
 public:
 
 	GameInstance()
@@ -118,6 +123,11 @@ public:
 
         orientation = Normal;
 
+        numActiveTouches = 0;
+
+        pickup = false;
+        pickupTimer = 0.0f;
+
         UpdateCamera();
 	}
 
@@ -133,7 +143,7 @@ public:
         this->aspectRatio = aspectRatio;
     }
 
-    void AddStone( int row, int column, int color, bool constrained = true )
+    uint16_t AddStone( int row, int column, int color, bool constrained = true )
     {
         vec3f variance = vec3f( random_float( - PlacementVariance, + PlacementVariance ),
                                 random_float( - PlacementVariance, + PlacementVariance ),
@@ -163,11 +173,42 @@ public:
 
         sceneGrid.AddObject( stone.id, stone.rigidBody.position );
         
-        board.SetPointState( row, column, (PointState) color );
-        board.SetPointStoneId( row, column, stone.id );
+        if ( constrained )
+        {
+            board.SetPointState( row, column, (PointState) color );
+            board.SetPointStoneId( row, column, stone.id );
+        }
         
         ValidateBoard();
         ValidateSceneGrid();
+
+        return id;
+    }
+
+    uint16_t AddStone( const vec3f & position, int color )
+    {
+        StoneInstance stone;
+        stone.Initialize( stoneData, stoneId++, color == White );
+        stone.rigidBody.position = position;
+        stone.rigidBody.orientation = quat4f::axisRotation( random_float(0,2*pi), vec3f(0,0,1) );
+        stone.rigidBody.linearMomentum = vec3f(0,0,0);
+        stone.rigidBody.angularMomentum = vec3f(0,0,0);
+        stone.constrained = false;
+        stone.rigidBody.UpdateTransform();
+        stone.rigidBody.UpdateMomentum();
+        stone.UpdateVisualTransform();
+
+        stones.push_back( stone );
+        
+        const uint16_t id = stone.id;
+        stoneMap.insert( std::make_pair( id, stones.size() - 1 ) );
+
+        sceneGrid.AddObject( stone.id, stone.rigidBody.position );
+        
+        ValidateBoard();
+        ValidateSceneGrid();
+
+        return id;
     }
 
     void PlaceStones()
@@ -481,6 +522,16 @@ public:
 
     void UpdateTouch( float dt )
     {
+        if ( pickup )
+        {
+            pickupTimer += dt;
+            if ( pickupTimer > PickupTime )
+            {
+                pickup = false;
+                pickupTimer = 0;
+            }
+        }
+
         #if STONE_DEMO
         if ( holding )
         {
@@ -714,6 +765,23 @@ public:
                     ++itor;
             }
         }
+        else
+        {
+            std::vector<StoneInstance>::iterator itor = stones.begin();
+            while ( itor != stones.end() )
+            {
+                StoneInstance & stone = *itor;
+                if ( stone.deleteTimer >= DeleteTime )
+                {
+                    sceneGrid.RemoveObject( stone.id, stone.rigidBody.position );
+                    itor = stones.erase( itor );
+                    stoneMap.erase( stone.id );
+                    ValidateSceneGrid();
+                }
+                else
+                    ++itor;
+            }
+        }
     }
 
     void ValidateBoard()
@@ -842,7 +910,8 @@ public:
     }
 
     StoneInstance * PickStone( const vec3f & rayStart, const vec3f & rayDirection,
-                               float & pick_t, vec3f & pick_point, vec3f & pick_normal )
+                               float & pick_t, vec3f & pick_point, vec3f & pick_normal,
+                               float bonus = FatFingerBonus )
     {
         pick_t = FLT_MAX;
         StoneInstance * pick_stone = NULL;
@@ -853,7 +922,7 @@ public:
 
             float t;
             vec3f intersectionPoint, intersectionNormal;            
-            if ( IntersectRayStone( stoneData.biconvex, stone.rigidBody.transform, rayStart, rayDirection, t, intersectionPoint, intersectionNormal, FatFingerBonus ) )
+            if ( IntersectRayStone( stoneData.biconvex, stone.rigidBody.transform, rayStart, rayDirection, t, intersectionPoint, intersectionNormal, bonus ) )
             {
                 if ( t < pick_t )
                 {
@@ -873,6 +942,8 @@ public:
         assert( touches );
         assert( numTouches > 0 );
 
+        numActiveTouches += numTouches;
+
         if ( !holding )
         {
             holding = true;
@@ -884,21 +955,31 @@ public:
         {
             Touch & touch = touches[i];
 
-            if ( selectMap.find( touch.handle ) == selectMap.end() )
+            if ( stones.size() == 0 )
             {
+                // place stone
+
                 vec3f rayStart, rayDirection;
                 GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
-
                 float t;
-                vec3f intersectionPoint, intersectionNormal;
-                StoneInstance * stone = PickStone( rayStart, rayDirection, t, intersectionPoint, intersectionNormal );
-                if ( stone && !stone->selected )
+                if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), 0, t ) )
                 {
+                    vec3f intersectionPoint = rayStart + rayDirection * t;
+
+                    const float selectHeight =  board.GetThickness() + stoneData.biconvex.GetHeight()/2;
+                    
+                    uint16_t stoneId = AddStone( intersectionPoint + vec3f(0,0,selectHeight), White );
+
+                    StoneInstance * stone = FindStoneInstance( stoneId, stones, stoneMap );
+
+                    assert( stone );
+
                     stone->rigidBody.linearMomentum = vec3f(0,0,0);
                     stone->rigidBody.ApplyImpulseAtWorldPoint( intersectionPoint, SelectImpulse * rayDirection );
                     stone->selected = 1;
 
                     SelectData select;
+                    select.placed = true;
                     select.touch = touch;
                     select.stoneId = stone->id;
                     select.depth = stone->rigidBody.position.z();
@@ -938,6 +1019,71 @@ public:
                         board.SetPointState( stone->constraintRow, stone->constraintColumn, Empty );
                         board.SetPointStoneId( stone->constraintRow, stone->constraintColumn, 0 );
                         ValidateBoard();
+                    }
+
+                    telemetry->IncrementCounter( COUNTER_PlacedStone );
+                }
+            }
+            else
+            {
+                // select and drag stone
+
+                if ( selectMap.find( touch.handle ) == selectMap.end() )
+                {
+                    vec3f rayStart, rayDirection;
+                    GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
+
+                    float t;
+                    vec3f intersectionPoint, intersectionNormal;
+                    StoneInstance * stone = PickStone( rayStart, rayDirection, t, intersectionPoint, intersectionNormal );
+                    if ( stone && !stone->selected )
+                    {
+                        stone->rigidBody.linearMomentum = vec3f(0,0,0);
+                        stone->rigidBody.ApplyImpulseAtWorldPoint( intersectionPoint, SelectImpulse * rayDirection );
+                        stone->selected = 1;
+
+                        SelectData select;
+                        select.placed = false;
+                        select.touch = touch;
+                        select.stoneId = stone->id;
+                        select.depth = stone->rigidBody.position.z();
+                        select.impulse = TouchImpulse * rayDirection;
+                        select.lastMoveDelta = vec3f(0,0,0);
+                        select.moved = false;
+                        select.constrained = stone->constrained;
+                        select.constraintRow = stone->constraintRow;
+                        select.constraintColumn = stone->constraintColumn;
+                        select.initialPosition = stone->rigidBody.position;
+                        select.initialTimestamp = touch.timestamp;
+                        select.time = 0.0f;
+
+                        // IMPORTANT: determine offset of stone position from intersection
+                        // between screen ray and plane at stone z with normal (0,0,1)
+                        {
+                            vec3f rayStart, rayDirection;
+                            GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
+                            float t;
+                            if ( IntersectRayPlane( rayStart, rayDirection, vec3f(0,0,1), select.depth, t ) )
+                            {
+                                select.intersectionPoint = rayStart + rayDirection * t;
+                                select.offset = stone->rigidBody.position - select.intersectionPoint;
+                            }
+                            else
+                            {
+                                assert( false );
+                            }
+                        } 
+
+                        selectMap.insert( std::make_pair( touch.handle, select ) );
+
+                        if ( stone->constrained )
+                        {
+                            ValidateBoard();
+                            stone->constrained = 0;
+                            board.SetPointState( stone->constraintRow, stone->constraintColumn, Empty );
+                            board.SetPointStoneId( stone->constraintRow, stone->constraintColumn, 0 );
+                            ValidateBoard();
+                        }
                     }
                 }
             }
@@ -991,9 +1137,39 @@ public:
 
     void OnTouchesEnded( Touch * touches, int numTouches )
     {
+        numActiveTouches -= numTouches;
+
+        bool justPickedUp = false;
+
         for ( int i = 0; i < numTouches; ++i )
         {
             Touch & touch = touches[i];
+
+            // stone pickup
+            {
+                vec3f rayStart, rayDirection;
+                GetPickRay( inverseClipMatrix, touch.point.x(), touch.point.y(), rayStart, rayDirection );
+
+                float t;
+                vec3f intersectionPoint, intersectionNormal;
+                StoneInstance * stone = PickStone( rayStart, rayDirection, t, intersectionPoint, intersectionNormal, PickupBonus );
+                if ( stone )
+                {
+                    if ( pickup )
+                    {
+                        // pickup the stone
+                        telemetry->IncrementCounter( COUNTER_PickedUpStone );
+                        stone->deleteTimer = DeleteTime;
+                        pickup = false;
+                        justPickedUp = true;
+                        continue;
+                    }
+                    else
+                    {
+                        pickup = true;
+                    }
+                }
+            }
 
             #if STONE_DEMO
             if ( holding && holdTouch == touch.handle )
@@ -1095,31 +1271,34 @@ public:
 
                     #endif
 
-                    if ( select.moved )
+                    if ( !justPickedUp )
                     {
-                        if ( !stone->constrained )
+                        if ( select.moved )
                         {
-                            // flick stone according to last touch delta position 
-                            // along select plane (world space xy only)
-
-                            if ( length_squared( select.lastMoveDelta ) > 0.1f * 0.1f )
+                            if ( !stone->constrained )
                             {
-                                telemetry->IncrementCounter( COUNTER_FlickedStone );
-                                const float dt = touch.timestamp - select.touch.timestamp;
-                                stone->rigidBody.linearMomentum = stone->rigidBody.mass * select.lastMoveDelta / max( 1.0f / 60.0f, dt );
-                                #if !STONE_DEMO
-                                stone->rigidBody.Activate();
-                                #endif
-                                stone->rigidBody.UpdateMomentum();
+                                // flick stone according to last touch delta position 
+                                // along select plane (world space xy only)
+
+                                if ( length_squared( select.lastMoveDelta ) > 0.1f * 0.1f )
+                                {
+                                    telemetry->IncrementCounter( COUNTER_FlickedStone );
+                                    const float dt = touch.timestamp - select.touch.timestamp;
+                                    stone->rigidBody.linearMomentum = stone->rigidBody.mass * select.lastMoveDelta / max( 1.0f / 60.0f, dt );
+                                    #if !STONE_DEMO
+                                    stone->rigidBody.Activate();
+                                    #endif
+                                    stone->rigidBody.UpdateMomentum();
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        if ( touch.timestamp - select.touch.timestamp < 0.2f )
+                        else
                         {
-                            telemetry->IncrementCounter( COUNTER_TouchedStone );
-                            stone->rigidBody.ApplyImpulseAtWorldPoint( select.intersectionPoint, select.impulse );
+                            if ( !select.placed && touch.timestamp - select.touch.timestamp < 0.2f )
+                            {
+                                telemetry->IncrementCounter( COUNTER_TouchedStone );
+                                stone->rigidBody.ApplyImpulseAtWorldPoint( select.intersectionPoint, select.impulse );
+                            }
                         }
                     }
                 }
@@ -1130,6 +1309,8 @@ public:
 
     void OnTouchesCancelled( Touch * touches, int numTouches )
     {
+        numActiveTouches -= numTouches;
+
         for ( int i = 0; i < numTouches; ++i )
         {
             Touch & touch = touches[i];
@@ -1192,7 +1373,7 @@ public:
     {
         #if STONE_DEMO
 
-        if ( selectMap.size() == 0 )
+        if ( selectMap.size() == 0 && numActiveTouches == 1 )
         {
             telemetry->IncrementCounter( COUNTER_Swiped );
 
