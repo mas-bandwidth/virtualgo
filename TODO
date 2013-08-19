@@ -5,15 +5,28 @@ TODO:
 
     ----------------------------------------------------
 
-    *** Sound ***
+    *** Music ***
 
     Find out how to play music. What formats are supported?
 
-    Find out how to play sound. What format?
+    Add code to play music
 
-    Detect when sounds should be played. Define set of sound
-    triggers via enums, map to file names. Add code to trigger
-    sounds based ons sound enum.
+    Verify that music playing works by passing in an existing MP3 or whatever.
+
+    Warning: You'll get attached to this MP3 so choose wisely (or unwisely!)
+
+    ----------------------------------------------------
+
+    Define set of sound triggers via enums in Sound.h
+
+    Add way to register multiple sound file names to sound events (variants)
+
+    Add code to randomly select sound file, ensuring that it does not pick
+    the sound that previously played for that sound trigger (if n > 1 ).
+
+    Add easy to trigger sounds, eg: swipe, flick, placed stone, picked up stone.
+
+    Find out how to actually play sound. What format is required?
 
     ----------------------------------------------------
 
@@ -28,6 +41,33 @@ TODO:
     Implement the gaussian blur of the shadow texture. Soft shadows would look amazing.
 
     -----------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
