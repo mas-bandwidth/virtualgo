@@ -188,6 +188,7 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     [self setupNotifications];
 
     music = [self playSound:@"zen garden.mp3" loop: YES];
+    music.volume = 0.5f;
 }
 
 - (void)dealloc
