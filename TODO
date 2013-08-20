@@ -62,18 +62,6 @@ TODO:
 
     ----------------------------------------------------
 
-    *** Music ***
-
-    Find out how to play music. What formats are supported?
-
-    Add code to play music
-
-    Verify that music playing works by passing in an existing MP3 or whatever.
-
-    Warning: You'll get attached to this MP3 so choose wisely (or unwisely!)
-
-    ----------------------------------------------------
-
     *** Visual improvements ***
 
     Dynamically adjust lighting to get the ideal shadow when spinning for the

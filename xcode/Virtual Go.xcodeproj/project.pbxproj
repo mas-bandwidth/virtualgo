@@ -19,6 +19,9 @@
 		F2502FD5172DCF0B002BC84D /* wood.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F2502FD4172DCF0B002BC84D /* wood.jpg */; };
 		F2502FD8172DD763002BC84D /* ShadowShader.fragment in Resources */ = {isa = PBXBuildFile; fileRef = F2502FD6172DD763002BC84D /* ShadowShader.fragment */; };
 		F2502FD9172DD763002BC84D /* ShadowShader.vertex in Resources */ = {isa = PBXBuildFile; fileRef = F2502FD7172DD763002BC84D /* ShadowShader.vertex */; };
+		F256AF4217C3C87B00C87F05 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F256AF4117C3C87B00C87F05 /* AudioToolbox.framework */; };
+		F256AF4417C3C88000C87F05 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F256AF4317C3C88000C87F05 /* AVFoundation.framework */; };
+		F256AF4817C3CA4000C87F05 /* zen garden.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = F256AF4717C3CA4000C87F05 /* zen garden.mp3 */; };
 		F26653EF171A205400CFB131 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F26653EE171A205400CFB131 /* UIKit.framework */; };
 		F26653F1171A205400CFB131 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F26653F0171A205400CFB131 /* Foundation.framework */; };
 		F26653F3171A205400CFB131 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F26653F2171A205400CFB131 /* CoreGraphics.framework */; };
@@ -72,6 +75,10 @@
 		F2502FD4172DCF0B002BC84D /* wood.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = wood.jpg; path = "Virtual Go/textures/wood.jpg"; sourceTree = "<group>"; };
 		F2502FD6172DD763002BC84D /* ShadowShader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = ShadowShader.fragment; path = "Virtual Go/shaders/ShadowShader.fragment"; sourceTree = "<group>"; };
 		F2502FD7172DD763002BC84D /* ShadowShader.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = ShadowShader.vertex; path = "Virtual Go/shaders/ShadowShader.vertex"; sourceTree = "<group>"; };
+		F256AF4117C3C87B00C87F05 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		F256AF4317C3C88000C87F05 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		F256AF4517C3C88700C87F05 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
+		F256AF4717C3CA4000C87F05 /* zen garden.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = "zen garden.mp3"; path = "Virtual Go/music/zen garden.mp3"; sourceTree = "<group>"; };
 		F26653EB171A205400CFB131 /* Virtual Go.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Virtual Go.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F26653EE171A205400CFB131 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		F26653F0171A205400CFB131 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -140,6 +147,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F256AF4417C3C88000C87F05 /* AVFoundation.framework in Frameworks */,
+				F256AF4217C3C87B00C87F05 /* AudioToolbox.framework in Frameworks */,
 				F203E5871720C9260040ECA8 /* libz.dylib in Frameworks */,
 				F26653EF171A205400CFB131 /* UIKit.framework in Frameworks */,
 				F26653F1171A205400CFB131 /* Foundation.framework in Frameworks */,
@@ -165,9 +174,20 @@
 			path = testflight;
 			sourceTree = "<group>";
 		};
+		F256AF4017C3C73500C87F05 /* music */ = {
+			isa = PBXGroup;
+			children = (
+				F256AF4717C3CA4000C87F05 /* zen garden.mp3 */,
+			);
+			name = music;
+			sourceTree = "<group>";
+		};
 		F26653E2171A205400CFB131 = {
 			isa = PBXGroup;
 			children = (
+				F256AF4517C3C88700C87F05 /* AudioUnit.framework */,
+				F256AF4317C3C88000C87F05 /* AVFoundation.framework */,
+				F256AF4117C3C87B00C87F05 /* AudioToolbox.framework */,
 				F2D6AD70172053A900930D69 /* resources */,
 				F26653F8171A205400CFB131 /* Virtual Go */,
 				F26653ED171A205400CFB131 /* Frameworks */,
@@ -268,6 +288,7 @@
 		F2D6AD70172053A900930D69 /* resources */ = {
 			isa = PBXGroup;
 			children = (
+				F256AF4017C3C73500C87F05 /* music */,
 				F2E15330173B00FD00D1538E /* storyboards */,
 				F2A3914D172CFA8F00A6A74D /* shaders */,
 				F2A3913D172CE92000A6A74D /* icons */,
@@ -410,6 +431,7 @@
 				F2F71CFE1731BC5D0051C50F /* line.jpg in Resources */,
 				F2F71CFF1731BC5D0051C50F /* point.jpg in Resources */,
 				F2A01A2417530271007F9DC0 /* NvTriStrip in Resources */,
+				F256AF4817C3CA4000C87F05 /* zen garden.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

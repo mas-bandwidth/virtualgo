@@ -17,6 +17,8 @@
 #import "Accelerometer.h"
 #import "MeshGenerators.h"
 #import "GameInstance.h"
+#import <AudioToolbox/AudioToolbox.h>
+#import <AVFoundation/AVAudioPlayer.h>
 
 bool iPad()
 {
@@ -102,6 +104,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     GLuint _floorVAO;
     GLint _floorUniforms[NUM_UNIFORMS];
 
+    AVAudioPlayer * music;
+
     bool _paused;
     bool _rendered;
 }
@@ -182,6 +186,8 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     _rendered = false;
 
     [self setupNotifications];
+
+    music = [self playSound:@"zen garden.mp3" loop: YES];
 }
 
 - (void)dealloc
@@ -389,6 +395,32 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
     [opengl destroyTexture:_floorTexture];
 }
 
+-(AVAudioPlayer*) playSound: (NSString*) vSFXName loop: (BOOL) vLoop
+{
+    NSError * error;
+    
+    NSBundle * bundle = [NSBundle mainBundle];
+    
+    NSString * bundleDirectory = (NSString*)[bundle bundlePath];
+    
+    NSURL * url = [NSURL fileURLWithPath:[bundleDirectory stringByAppendingPathComponent:vSFXName]];
+    
+    AVAudioPlayer * audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:&error];
+    
+    if ( vLoop )
+        audioPlayer.numberOfLoops = -1;
+    else
+        audioPlayer.numberOfLoops = 0;
+    
+    if ( audioPlayer == nil )
+        return nil;
+
+    if ( [audioPlayer play] == YES )
+        return audioPlayer;
+    else
+        return nil;
+}
+
 - (BOOL)canBecomeFirstResponder
 {
     return YES;
@@ -433,7 +465,9 @@ void HandleCounterNotify( int counterIndex, uint64_t counterValue, const char * 
         self.view = nil;
         
         [self tearDownGL];
-        
+     
+        music = nil;
+
         if ([EAGLContext currentContext] == self.context)
         {
             [EAGLContext setCurrentContext:nil];

@@ -1,4 +1,14 @@
 
+Hooked up music player (20/8/2013):
+-----------------------------------
+
+    Ripped a random MP3 from youtube.com
+
+    Hooked up AVAudioPlayer to loop the MP3
+
+    Works fine! EASY!
+
+
 First pass at sound system logic (19/8/2013):
 ---------------------------------------------
 
