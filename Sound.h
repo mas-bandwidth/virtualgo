@@ -20,11 +20,12 @@ const char * soundNames[] =
 
 struct VariantData
 {
-	char * filename;
+	const char * filename;
 };
 
 struct SoundData
 {
+	int lastVariantPlayed;
 	std::vector<VariantData> variants;
 };
 
@@ -37,11 +38,12 @@ public:
         // ...
     }
     
-    void LoadSound( Sounds soundIndex, char filename[] )
+    void LoadSound( Sounds soundIndex, const char * filename )
     {
 		SoundData & sound = sounds[soundIndex];
 		VariantData variant;
 		variant.filename = filename;
+		sound.lastVariantPlayed = -1;
 		sound.variants.push_back( variant );
     }
     
@@ -53,7 +55,16 @@ public:
 		int numVariants = sound.variants.size();
 		if ( numVariants > 0 )
 		{
-			int i = rand() % numVariants;
+			int i = 0;
+			if ( numVariants > 1 )
+			{
+				do
+				{
+					i = rand() % numVariants;
+				}
+				while ( i == sound.lastVariantPlayed );
+			}
+			sound.lastVariantPlayed = i;
 			printf( " --> %s\n", sound.variants[i].filename );
 		}
 		else

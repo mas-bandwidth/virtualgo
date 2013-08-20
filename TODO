@@ -1,26 +1,10 @@
-
 DONE:
-
-    Define set of sound triggers via enums in Sound.h
-
-    Add easy to trigger sounds, eg: swipe, flick, placed stone, picked up stone.
-
-    Add data structure to register multiple sound file names to sound events (variants)
-
-    Dummy out some sound variants, eg. sound_1.wav, sound_2.wav etc.
-
-    Add code to randomly select sound variant and print its filename
 
 TODO:
 
-    Add logic to avoid picking the same variant twice in a row,
-    eg. don't play the same sound twice.
-
-    ----------------------------------------------------
-
     Find out how to actually play sound. What format is required?
 
-    Actually load the sound when registering variants.
+    Actually load the sound when registering variants
 
     Actually play the sound
 
