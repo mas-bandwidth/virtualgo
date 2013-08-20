@@ -83,6 +83,7 @@ class GameInstance
 
     bool pickup;
     float pickupTimer;
+    uint16_t pickupStoneId;
 
 public:
 
@@ -127,6 +128,7 @@ public:
 
         pickup = false;
         pickupTimer = 0.0f;
+        pickupStoneId = 0;
 
         UpdateCamera();
 	}
@@ -529,6 +531,7 @@ public:
             {
                 pickup = false;
                 pickupTimer = 0;
+                pickupStoneId = 0;
             }
         }
 
@@ -763,6 +766,10 @@ public:
 
                 if ( stone.fadingOut )
                 {
+                    stone.rigidBody.linearMomentum = vec3f(0,0,0);
+                    stone.rigidBody.angularMomentum *= vec3f(0,0,0);
+                    stone.rigidBody.UpdateMomentum();
+
                     stone.alpha -= stone.alpha * FadeOutTightness;
                     if ( stone.alpha < 0.001f )
                         deleteStone = true;
@@ -1196,16 +1203,23 @@ public:
                 {
                     if ( pickup )
                     {
-                        // pickup the stone
-                        telemetry->IncrementCounter( COUNTER_PickedUpStone );
-                        stone->fadingOut = true;
+                        if ( pickupStoneId == stone->id )
+                        {
+                            // pickup the stone
+                            telemetry->IncrementCounter( COUNTER_PickedUpStone );
+                            stone->fadingOut = true;
+                            justPickedUp = true;
+                        }
                         pickup = false;
-                        justPickedUp = true;
+                        pickupTimer = 0.0f;
+                        pickupStoneId = false;
                         continue;
                     }
                     else
                     {
                         pickup = true;
+                        pickupTimer = 0.0f;
+                        pickupStoneId = stone->id;
                     }
                 }
             }
