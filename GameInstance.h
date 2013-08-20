@@ -8,6 +8,7 @@
 #include "SceneGrid.h"
 #include "Telemetry.h"
 #include "Touch.h"
+#include "Sound.h"
 #include <algorithm>
 #include <functional>
 
@@ -62,6 +63,7 @@ class GameInstance
 
     uint32_t stoneId : 16;
 
+    Sound sound;
     Telemetry * telemetry;
     Accelerometer * accelerometer;
 
@@ -1067,6 +1069,8 @@ public:
                         ValidateBoard();
                     }
 
+                    sound.PlaySound( SOUND_PlaceStone );
+
                     telemetry->IncrementCounter( COUNTER_PlacedStone );
                 }
             }
@@ -1206,6 +1210,7 @@ public:
                         if ( pickupStoneId == stone->id )
                         {
                             // pickup the stone
+                            sound.PlaySound( SOUND_PickUpStone );
                             telemetry->IncrementCounter( COUNTER_PickedUpStone );
                             stone->fadingOut = true;
                             justPickedUp = true;
@@ -1335,7 +1340,10 @@ public:
 
                                 if ( length_squared( select.lastMoveDelta ) > 0.1f * 0.1f )
                                 {
+                                    sound.PlaySound( SOUND_FlickStone );
+
                                     telemetry->IncrementCounter( COUNTER_FlickedStone );
+
                                     const float dt = touch.timestamp - select.touch.timestamp;
                                     stone->rigidBody.linearMomentum = stone->rigidBody.mass * select.lastMoveDelta / max( 1.0f / 60.0f, dt );
                                     #if !STONE_DEMO
@@ -1380,14 +1388,14 @@ public:
                 StoneInstance * stone = FindStoneInstance( select.stoneId, stones, stoneMap );
                 if ( stone )
                 {
-                    // whoops touch was cancelled. attempt to revert the stone
-                    // back to the original location before drag, if this is not
-                    // possible then just delete it.
-
                     stone->selected = 0;
 
                     #if !STONE_DEMO
                     
+                        // whoops touch was cancelled. attempt to revert the stone
+                        // back to the original location before drag, if this is not
+                        // possible then just delete it.
+
                         int row, column;
 
                         if ( board.FindNearestPoint( stone->rigidBody.position, row, column ) )     // hack: this is really an "stone is above board" check
@@ -1432,6 +1440,8 @@ public:
 
         if ( selectMap.size() == 0 && numActiveTouches == 1 )
         {
+            sound.PlaySound( SOUND_Swipe );
+
             telemetry->IncrementCounter( COUNTER_Swiped );
 
             telemetry->SetSwipedThisFrame();

@@ -1,7 +1,82 @@
 
 DONE:
 
+    Define set of sound triggers via enums in Sound.h
+
+    Add easy to trigger sounds, eg: swipe, flick, placed stone, picked up stone.
+
 TODO:
+
+    Add data structure to register multiple sound file names to sound events (variants)
+
+    Add code to randomly select sound file, ensuring that it does not pick
+    the sound that previously played for that sound trigger (if n > 1 ).
+
+    Dummy out some sound variants, eg. sound_1.wav, sound_2.wav etc.
+
+    Now when playing sound, print out the variant selected.
+
+    Verify correct randomization is working.
+
+    ----------------------------------------------------
+
+    Find out how to actually play sound. What format is required?
+
+    Actually load the sound when registering variants.
+
+    Actually play the sound
+
+    ----------------------------------------------------
+
+    Design how to handle collision sounds, eg. filtering which
+    collision to play sounds on during physics. 
+
+    Should probably be triggered inside Physics.h so should
+    definitely have a sound object passed into physics update.
+
+    When multiple collisions happen per-frame (eg. iterations), 
+    what should happen? I'm thinking we should take the collision
+    with the most energy, eg. this would also most likely be the
+    first collision.
+
+    Don't want to play multiple sounds for iteration, so I'm
+    definitely liking this idea of the 
+
+    How to categorize collisions according to strength?
+
+    Again, should be based on the energy of the collision
+    or simply, the magnitude of j. This is easier to calc
+    and is linear. But is the sound itself proportional
+    to the energy of the collision yes, but we are not
+    adjusting volume of sound playing.
+
+    If we do adjust volume of sound according to collision,
+    then yes, it should be adjusted according to energy
+    of collision (squared) not linear.
+
+    ----------------------------------------------------
+
+    Design how to play sliding and spinning loops.
+
+    I'm thinking a first pass is that the loops should
+    always be playing, but their volume is zero when
+    not sliding or spinning.
+
+    For sliding just fading the volume up/down according
+    to LINEAR KE of the stone should be sufficient.
+
+    For spinning first, try the same approach but proportional
+    to the ANGULAR KE of the stone.
+
+    However, I want the spinning to be two tone, eg. for slow
+    wobble I want a lower pitched sound, for high wobble 
+    I want the pitch to be higher, like a coin spinning.
+
+    As the motion of the stone regresses, I want the high
+    spinning sound of the stone to transition in/out
+    of low, which should give a convincing sound.
+
+    I'm not sure yet exactly how to do this.
 
     ----------------------------------------------------
 
@@ -14,19 +89,6 @@ TODO:
     Verify that music playing works by passing in an existing MP3 or whatever.
 
     Warning: You'll get attached to this MP3 so choose wisely (or unwisely!)
-
-    ----------------------------------------------------
-
-    Define set of sound triggers via enums in Sound.h
-
-    Add way to register multiple sound file names to sound events (variants)
-
-    Add code to randomly select sound file, ensuring that it does not pick
-    the sound that previously played for that sound trigger (if n > 1 ).
-
-    Add easy to trigger sounds, eg: swipe, flick, placed stone, picked up stone.
-
-    Find out how to actually play sound. What format is required?
 
     ----------------------------------------------------
 
