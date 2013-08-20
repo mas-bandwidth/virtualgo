@@ -5,18 +5,16 @@ DONE:
 
     Add easy to trigger sounds, eg: swipe, flick, placed stone, picked up stone.
 
-TODO:
-
     Add data structure to register multiple sound file names to sound events (variants)
-
-    Add code to randomly select sound file, ensuring that it does not pick
-    the sound that previously played for that sound trigger (if n > 1 ).
 
     Dummy out some sound variants, eg. sound_1.wav, sound_2.wav etc.
 
-    Now when playing sound, print out the variant selected.
+    Add code to randomly select sound variant and print its filename
 
-    Verify correct randomization is working.
+TODO:
+
+    Add logic to avoid picking the same variant twice in a row,
+    eg. don't play the same sound twice.
 
     ----------------------------------------------------
 

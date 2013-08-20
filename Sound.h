@@ -18,6 +18,16 @@ const char * soundNames[] =
 	"swipe"
 };
 
+struct VariantData
+{
+	char * filename;
+};
+
+struct SoundData
+{
+	std::vector<VariantData> variants;
+};
+
 class Sound
 {
 public:
@@ -27,16 +37,32 @@ public:
         // ...
     }
     
-    void AddSound( Sounds sound, char filename[] )
+    void LoadSound( Sounds soundIndex, char filename[] )
     {
-        // ...
+		SoundData & sound = sounds[soundIndex];
+		VariantData variant;
+		variant.filename = filename;
+		sound.variants.push_back( variant );
     }
     
-	void PlaySound( Sounds sound )
+	void PlaySound( Sounds soundIndex )
 	{
-		const char * soundName = soundNames[sound];
+		const char * soundName = soundNames[soundIndex];
 		printf( "play sound: %s\n", soundName );
+		SoundData & sound = sounds[soundIndex];
+		int numVariants = sound.variants.size();
+		if ( numVariants > 0 )
+		{
+			int i = rand() % numVariants;
+			printf( " --> %s\n", sound.variants[i].filename );
+		}
+		else
+			printf( " --> no variants defined\n" );
 	}
+
+private:
+
+	SoundData sounds[SOUND_NumValues];
 };
 
 #endif

@@ -133,7 +133,36 @@ public:
         pickupStoneId = 0;
 
         UpdateCamera();
+
+        LoadSounds();
 	}
+
+    void LoadSounds()
+    {
+        sound.LoadSound( SOUND_PlaceStone, "place_stone_1.wav" );
+        sound.LoadSound( SOUND_PlaceStone, "place_stone_2.wav" );
+        sound.LoadSound( SOUND_PlaceStone, "place_stone_3.wav" );
+        sound.LoadSound( SOUND_PlaceStone, "place_stone_4.wav" );
+        sound.LoadSound( SOUND_PlaceStone, "place_stone_5.wav" );
+
+        sound.LoadSound( SOUND_PickUpStone, "pick_up_stone_1.wav" );
+        sound.LoadSound( SOUND_PickUpStone, "pick_up_stone_2.wav" );
+        sound.LoadSound( SOUND_PickUpStone, "pick_up_stone_3.wav" );
+        sound.LoadSound( SOUND_PickUpStone, "pick_up_stone_4.wav" );
+        sound.LoadSound( SOUND_PickUpStone, "pick_up_stone_5.wav" );
+
+        sound.LoadSound( SOUND_FlickStone, "flick_stone_1.wav" );
+        sound.LoadSound( SOUND_FlickStone, "flick_stone_2.wav" );
+        sound.LoadSound( SOUND_FlickStone, "flick_stone_3.wav" );
+        sound.LoadSound( SOUND_FlickStone, "flick_stone_4.wav" );
+        sound.LoadSound( SOUND_FlickStone, "flick_stone_5.wav" );
+
+        sound.LoadSound( SOUND_Swipe, "swipe_1.wav" );
+        sound.LoadSound( SOUND_Swipe, "swipe_2.wav" );
+        sound.LoadSound( SOUND_Swipe, "swipe_3.wav" );
+        sound.LoadSound( SOUND_Swipe, "swipe_4.wav" );
+        sound.LoadSound( SOUND_Swipe, "swipe_5.wav" );
+    }
 
     void Initialize( Telemetry & telemetry, Accelerometer & accelerometer, float aspectRatio )
     {
