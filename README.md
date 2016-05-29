@@ -1,4 +1,4 @@
 virtualgo
 =========
 
-a networked physics simulation of a go board and stones
+Simulation of a go board and stones
