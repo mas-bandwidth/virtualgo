@@ -1,4 +1,4 @@
 virtualgo
 =========
 
-Simulation of a go board and stones
+A simulation of a go board and stones
