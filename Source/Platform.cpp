@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#define GL_SILENCE_DEPRECATION 1
+
 #if PLATFORM == PLATFORM_MAC
 #include "CoreServices/CoreServices.h"
 #include <stdint.h>

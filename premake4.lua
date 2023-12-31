@@ -1,7 +1,6 @@
 solution "VirtualGo"
     language "C++"
-    includedirs { ".", ".." }
-    configuration { "not windows" }
+    includedirs { ".", "Source" }
     configurations { "Debug", "Release" }
     configuration "Debug"
         flags { "Symbols" }
@@ -22,25 +21,25 @@ project "UnitTest++"
 
 project "Support"
     kind "ConsoleApp"
-    files { "*.h", "Support.cpp", "Platform.cpp" }
+    files { "Source/*.h", "Source/Support.cpp", "Source/Platform.cpp" }
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
 project "Tessellation"
     kind "ConsoleApp"
-    files { "*.h", "Tessellation.cpp", "Platform.cpp" }
+    files { "Source/*.h", "Source/Tessellation.cpp", "Source/Platform.cpp" }
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
 project "Dynamics"
     kind "ConsoleApp"
-    files { "*.h", "Dynamics.cpp", "Platform.cpp" }
+    files { "Source/*.h", "Source/Dynamics.cpp", "Source/Platform.cpp" }
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
 project "Collision"
     kind "ConsoleApp"
-    files { "*.h", "Collision.cpp", "Platform.cpp", "stb_image.c" }
+    files { "Source/*.h", "Source/Collision.cpp", "Source/Platform.cpp", "Source/stb_image.c" }
     configuration { "macosx" }
         links { "OpenGL.framework", "AGL.framework", "Carbon.framework" }
 
