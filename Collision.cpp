@@ -52,7 +52,7 @@ const float MinimumBoardThickness = 0.2f;
 const float DefaultBoardThickness = 0.5f;
 const float MaximumBoardThickness = 9.0f;
 
-Board board( DefaultBoardSize );
+Board board;
 
 enum StoneDropType
 {
@@ -114,7 +114,8 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     if ( mode < LinearCollisionResponse )
         rigidBody.angularMomentum = vec3f(0,0,0);
 
-    rigidBody.Update();
+    // todo
+    //rigidBody.Update();
 }
 
 void SelectStoneSize( int newStoneSize )
@@ -132,6 +133,8 @@ void RestoreDefaults()
 {
     SelectStoneSize( STONE_SIZE_34 );
 
+    // todo: board initialize
+
     board.SetThickness( DefaultBoardThickness );
 
     scrollX = 0;
@@ -144,9 +147,12 @@ void RestoreDefaults()
     stone.rigidBody.orientation = quat4f(1,0,0,0);
     stone.rigidBody.linearMomentum = vec3f(0,0,0);
     stone.rigidBody.angularMomentum = vec3f(0,0,0);
-    stone.rigidBody.Update();
 
-    board = Board( DefaultBoardSize );
+    // todo
+    //stone.rigidBody.Update();
+
+    // todo
+    // board = Board( DefaultBoardSize );
 
     stoneDropType = STONE_DROP_RandomWithSpin;    
 }
@@ -189,7 +195,7 @@ int main( int argc, char * argv[] )
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
         stoneSizes[i].Initialize( (StoneSize)i );
     
-    Mesh mesh[STONE_SIZE_NumValues];
+    Mesh<Vertex,int> mesh[STONE_SIZE_NumValues];
     for ( int i = 0; i < STONE_SIZE_NumValues; ++i )
         GenerateBiconvexMesh( mesh[i], stoneSizes[i].biconvex );
 
@@ -452,6 +458,7 @@ int main( int argc, char * argv[] )
                 board.SetThickness( thickness );
             }
 
+            /*
             if ( input.one )
                 board = Board( 9 );
 
@@ -460,6 +467,7 @@ int main( int argc, char * argv[] )
 
             if ( input.three )
                 board = Board( 19 );
+                */
 
             prevAltCtrlUp = false;
             prevAltCtrlDown = false;
@@ -730,7 +738,8 @@ int main( int argc, char * argv[] )
             else
                 stone.rigidBody.linearMomentum = vec3f(0,0,0);
 
-            stone.rigidBody.Update();
+            // todo
+            // stone.rigidBody.Update();
 
             stone.rigidBody.position += stone.rigidBody.linearVelocity * iteration_dt;
 
@@ -738,7 +747,8 @@ int main( int argc, char * argv[] )
             const float rotation_substep_dt = iteration_dt / rotation_substeps;
             for ( int j = 0; j < rotation_substeps; ++j )
             {
-                quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
+                quat4f spin;
+                AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity, spin );
                 stone.rigidBody.orientation += spin * rotation_substep_dt;
                 stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
             }
@@ -760,7 +770,8 @@ int main( int argc, char * argv[] )
                     ApplyCollisionImpulseWithFriction( boardContact, board_e, 0.0f );
                 else if ( mode >= CollisionResponseWithFriction )
                     ApplyCollisionImpulseWithFriction( boardContact, board_e, board_u );
-                stone.rigidBody.Update();
+                // todo
+                // stone.rigidBody.Update();
                 collided = true;
             }
 
@@ -780,7 +791,8 @@ int main( int argc, char * argv[] )
                         ApplyCollisionImpulseWithFriction( floorContact, floor_e, 0.0f );
                     else if ( mode >= CollisionResponseWithFriction )
                         ApplyCollisionImpulseWithFriction( floorContact, floor_e, floor_u );
-                    stone.rigidBody.Update();
+                    // todo
+                    //stone.rigidBody.Update();
                     collided = true;
                 }
             }
@@ -936,10 +948,13 @@ int main( int argc, char * argv[] )
 
         glPushMatrix();
 
+        // todo
+        /*
         RigidBodyTransform biconvexTransform( stone.rigidBody.position, stone.rigidBody.orientation );
         float opengl_transform[16];
         biconvexTransform.localToWorld.store( opengl_transform );
         glMultMatrixf( opengl_transform );
+        */
 
         if ( mode >= SolidColor )
         {
@@ -1010,7 +1025,7 @@ int main( int argc, char * argv[] )
             if ( ptr )
             {
                 char filename[256];
-                sprintf( filename, "output/frame-%05d.tga", frame );
+                snprintf( filename, sizeof(filename), "output/frame-%05d.tga", frame );
                 #ifdef LETTERBOX
                 WriteTGA( filename, displayWidth, displayHeight - 80, ptr + displayWidth * 3 * 40 );
                 #else

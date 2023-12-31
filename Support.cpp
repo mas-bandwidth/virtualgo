@@ -37,7 +37,7 @@ int main( int argc, char * argv[] )
 
     Biconvex biconvex( 2.2f, 1.13f );
 
-    Mesh mesh;
+    Mesh<Vertex,int> mesh;
     GenerateBiconvexMesh( mesh, biconvex );
 
     int displayWidth, displayHeight;
@@ -170,8 +170,10 @@ int main( int argc, char * argv[] )
             smoothedRotation += ( targetRotation - smoothedRotation ) * 0.15f;
             mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(1,2,3) );
             rotation = rotation * deltaRotation;
+            mat4f inverseRotation = transpose( rotation );
 
-            RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
+            RigidBodyTransform biconvexTransform;
+            biconvexTransform.Initialize( vec3f(0,0,0), rotation, inverseRotation );
 
             glEnable( GL_LIGHTING );
             glEnable( GL_LIGHT0 );
@@ -205,8 +207,10 @@ int main( int argc, char * argv[] )
 
             // visualize biconvex support
 
-            vec3f biconvexCenter = biconvexTransform.GetPosition();
-            vec3f biconvexUp = biconvexTransform.GetUp();
+            vec3f biconvexCenter;
+            vec3f biconvexUp;
+            biconvexTransform.GetPosition( biconvexCenter );
+            biconvexTransform.GetUp( biconvexUp );
             float s1,s2;
             BiconvexSupport_WorldSpace( biconvex, biconvexCenter, biconvexUp, vec3f(1,0,0), s1, s2 );
 
@@ -262,7 +266,7 @@ int main( int argc, char * argv[] )
                 if ( ptr )
                 {
                     char filename[256];
-                    sprintf( filename, "output/frame-%05d.tga", frame - NumPBOs );
+                    snprintf( filename, sizeof(filename), "output/frame-%05d.tga", frame - NumPBOs );
                     #ifdef LETTERBOX
                     WriteTGA( filename, displayWidth, displayHeight - 80, ptr + displayWidth * 3 * 40 );
                     #else

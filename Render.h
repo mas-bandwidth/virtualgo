@@ -5,6 +5,8 @@
 #include "Board.h"
 #include "Mesh.h"
 
+#define GL_SILENCE_DEPRECATION
+
 #if PLATFORM == PLATFORM_MAC
 #include <OpenGl/gl.h>
 #include <OpenGl/glu.h>
@@ -237,7 +239,7 @@ void RenderBoard( const Board & board )
     glEnd();
 }
 
-void RenderMesh( Mesh & mesh )
+void RenderMesh( Mesh<Vertex,int> & mesh )
 {
     glBegin( GL_TRIANGLES );
 

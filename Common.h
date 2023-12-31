@@ -198,8 +198,6 @@ struct quat4f
     }
 };
 
-// todo: quat4f should probably just be vec4f derived. fast operations like add, mult by scalar at least...
-
 inline quat4f multiply( const quat4f & q1, const quat4f & q2 )
 {
     quat4f result;

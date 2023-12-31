@@ -41,7 +41,7 @@ struct TessellationData
 
 TessellationData tessellation;
 
-void UpdateTessellation( Mesh & mesh, Mode mode, int subdivisions )
+void UpdateTessellation( Mesh<Vertex,int> & mesh, Mode mode, int subdivisions )
 {
     if ( mode == tessellation.mode && subdivisions == tessellation.subdivisions )
         return;
@@ -72,7 +72,7 @@ int main()
     rigidBody.inverseMass = 1.0f / rigidBody.mass;
     CalculateBiconvexInertiaTensor( rigidBody.mass, biconvex, rigidBody.inertia, rigidBody.inertiaTensor, rigidBody.inverseInertiaTensor );
 
-    Mesh mesh;
+    Mesh<Vertex,int> mesh;
     
     int displayWidth, displayHeight;
     GetDisplayResolution( displayWidth, displayHeight );
@@ -247,8 +247,10 @@ int main()
             smoothedRotation += ( targetRotation - smoothedRotation ) * 0.15f;
             mat4f deltaRotation = mat4f::axisRotation( smoothedRotation, vec3f(-3,-2,1) );
             rotation = rotation * deltaRotation;
+            mat4f inverseRotation = transpose( rotation );
 
-            RigidBodyTransform biconvexTransform( vec3f(0,0,0), rotation );
+            RigidBodyTransform biconvexTransform;
+            biconvexTransform.Initialize( vec3f(0,0,0), rotation, inverseRotation );
 
             glPushMatrix();
 

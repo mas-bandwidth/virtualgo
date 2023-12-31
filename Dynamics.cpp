@@ -62,9 +62,11 @@ void RandomStone( const Biconvex & biconvex, RigidBody & rigidBody, Mode mode )
     if ( mode == AngularMotion || mode == Combination )
         rigidBody.angularMomentum = vec3f(1,2,10);
 
-    rigidBody.Update();
+    // todo
+    //rigidBody.Update();
 
     snapshots.clear();
+
     snapshotAccumulator = FLT_MAX;
 }
 
@@ -108,10 +110,10 @@ int main( int argc, char * argv[] )
     stone.rigidBody.inertiaTensor = mat4f::identity();
     stone.rigidBody.inverseInertiaTensor = mat4f::identity();
 
-    Mesh mesh;
+    Mesh<Vertex,int> mesh;
     GenerateBiconvexMesh( mesh, stone.biconvex );
 
-    Mesh cheapMesh;
+    Mesh<Vertex,int> cheapMesh;
     GenerateBiconvexMesh( cheapMesh, stone.biconvex, 3 );
 
     int displayWidth, displayHeight;
@@ -383,10 +385,12 @@ int main( int argc, char * argv[] )
             stone.rigidBody.linearMomentum += vec3f(0,-gravity,0) * stone.rigidBody.mass * dt;
         }
 
-        stone.rigidBody.Update();
+        // todo
+        // stone.rigidBody.Update();
 
         stone.rigidBody.position += stone.rigidBody.linearVelocity * dt;
-        quat4f spin = AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity );
+        quat4f spin;
+        AngularVelocityToSpin( stone.rigidBody.orientation, stone.rigidBody.angularVelocity, spin );
         stone.rigidBody.orientation += spin * dt;
         stone.rigidBody.orientation = normalize( stone.rigidBody.orientation );
 
@@ -427,10 +431,13 @@ int main( int argc, char * argv[] )
 
                 RigidBody & rigidBody = snapshots[i];
 
+                // todo
+                /*
                 RigidBodyTransform biconvexTransform( rigidBody.position, rigidBody.orientation );
                 float opengl_transform[16];
                 biconvexTransform.localToWorld.store( opengl_transform );
                 glMultMatrixf( opengl_transform );
+                */
 
                 RenderMesh( cheapMesh );
 
@@ -451,10 +458,13 @@ int main( int argc, char * argv[] )
 
         glPushMatrix();
 
+        // todo
+        /*
         RigidBodyTransform biconvexTransform( stone.rigidBody.position, stone.rigidBody.orientation );
         float opengl_transform[16];
         biconvexTransform.localToWorld.store( opengl_transform );
         glMultMatrixf( opengl_transform );
+        */
 
         glEnable( GL_BLEND ); 
         glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -503,7 +513,7 @@ int main( int argc, char * argv[] )
                 if ( ptr )
                 {
                     char filename[256];
-                    sprintf( filename, "output/frame-%05d.tga", frame - NumPBOs );
+                    snprintf( filename, sizeof(filename), "output/frame-%05d.tga", frame - NumPBOs );
                     #ifdef LETTERBOX
                     WriteTGA( filename, displayWidth, displayHeight - 80, ptr + displayWidth * 3 * 40 );
                     #else

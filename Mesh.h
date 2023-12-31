@@ -137,9 +137,6 @@ protected:
         const float vy = vertex.position.y();
         const float vz = vertex.position.z();
 
-        // todo: this code is dumb. christer says it is faster to test
-        // against adjacent cells vs. adding to multiple buckets here
-        
         for ( int ix = -1; ix <= 1; ++ix )
         {
             for ( int iy = -1; iy <= 1; ++iy )
@@ -169,18 +166,15 @@ protected:
 
 private:
 
-    // todo: provide a way to export this data to some basic mesh format
-    // then I can run nvtristrip over it and get something more efficient?
-    
     std::vector<vertex_t> vertexBuffer;
-    
+
     std::vector<index_t> indexBuffer;
 
     int numBuckets;
     std::list<index_t> * buckets;
 };
 
-void SubdivideBiconvexMesh( Mesh<Vertex> & mesh,
+void SubdivideBiconvexMesh( Mesh<Vertex,int> & mesh,
                             const Biconvex & biconvex, 
                             bool i, bool j, bool k,
                             vec3f a, vec3f b, vec3f c,
@@ -283,7 +277,7 @@ void SubdivideBiconvexMesh( Mesh<Vertex> & mesh,
     }
 }
 
-void GenerateBiconvexMesh( Mesh<Vertex> & mesh, const Biconvex & biconvex, int subdivisions = 5, int numTriangles = 5, float epsilon = 0.001f )
+void GenerateBiconvexMesh( Mesh<Vertex,int> & mesh, const Biconvex & biconvex, int subdivisions = 5, int numTriangles = 5, float epsilon = 0.001f )
 {
     const float bevelCircleRadius = biconvex.GetBevelCircleRadius();
 
